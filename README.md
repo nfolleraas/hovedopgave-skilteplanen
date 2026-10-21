@@ -1,7 +1,8 @@
 # Hovedopgave for skilteplanen.dk
 
-A small bun-workspaces monorepo used to try out a VS Code dev container that
-runs a React frontend, a NestJS backend and a Postgres database together.
+Et projekt udviklet i forbindelse med 5. semester på Datamatiker-studiet på UCL i samarbejde med [Skilteplanen](https://skilteplanen.dk).
+
+Projektet består af følgende:
 
 | App   | Stack                         | Path            | Port (in container)              |
 | ----- | ----------------------------- | --------------- | -------------------------------- |
