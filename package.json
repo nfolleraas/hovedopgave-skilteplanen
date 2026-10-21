@@ -1,5 +1,5 @@
 {
-  "name": "devcontainer-test",
+  "name": "hovedopgave-skilteplanen",
   "private": true,
   "workspaces": [
     "apps/*"

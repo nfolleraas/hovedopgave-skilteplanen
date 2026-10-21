@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "devcontainer-test",
+      "name": "hovedopgave-skilteplanen",
       "devDependencies": {
         "@biomejs/biome": "2.5.15",
       },

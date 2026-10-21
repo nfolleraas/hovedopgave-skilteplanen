@@ -3,7 +3,7 @@ services:
     container_name: app
     image: mcr.microsoft.com/devcontainers/typescript-node:22-bookworm
     volumes:
-      - ..:/workspaces/devcontainer-test:cached
+      - ..:/workspaces/hovedopgave-skilteplanen:cached
     command: sleep infinity
     environment:
       - DATABASE_URL=postgres://app:app@db:5432/app

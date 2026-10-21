@@ -1,8 +1,8 @@
 {
-  "name": "devcontainer-test",
+  "name": "hovedopgave-skilteplanen",
   "dockerComposeFile": "compose.yaml",
   "service": "app",
-  "workspaceFolder": "/workspaces/devcontainer-test",
+  "workspaceFolder": "/workspaces/hovedopgave-skilteplanen",
   "features": {
     "ghcr.io/shyim/devcontainers-features/bun:0": {},
     "ghcr.io/devcontainers/features/common-utils:2": {

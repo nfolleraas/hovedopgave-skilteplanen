@@ -1,4 +1,4 @@
-# devcontainer-test
+# Hovedopgave for skilteplanen.dk
 
 A small bun-workspaces monorepo used to try out a VS Code dev container that
 runs a React frontend, a NestJS backend and a Postgres database together.
