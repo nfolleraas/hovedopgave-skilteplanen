@@ -4,182 +4,182 @@ Et projekt udviklet i forbindelse med 5. semester på Datamatiker-studiet på UC
 
 Projektet består af følgende:
 
-| App   | Stack                         | Path            | Port (in container)              |
-| ----- | ----------------------------- | --------------- | -------------------------------- |
-| `web` | React 19 + TypeScript, Vite 8 | `apps/web`      | 5173                             |
-| `api` | NestJS 12 + TypeScript        | `apps/api`      | 3000, all routes under `/api`    |
-| `db`  | Postgres 17                   | compose service | 5432, reachable as hostname `db` |
+| App   | Stack                         | Sti             | Port (i containeren)               |
+| ----- | ----------------------------- | --------------- | ---------------------------------- |
+| `web` | React 19 + TypeScript, Vite 8 | `apps/web`      | 5173                               |
+| `api` | NestJS 12 + TypeScript        | `apps/api`      | 3000, alle ruter ligger under `/api` |
+| `db`  | Postgres 17                   | compose service | 5432, tilgængelig som hostname `db` |
 
-For a line-by-line explanation of the container setup, why each setting
-exists and how to change it, see [DEVCONTAINER.md](DEVCONTAINER.md).
+For en linje-for-linje forklaring af container-opstillingen, hvorfor hver
+indstilling findes, og hvordan den ændres, se [DEVCONTAINER.md](DEVCONTAINER.md).
 
-## Prerequisites
+## Forudsætninger
 
-- [Docker](https://docs.docker.com/get-docker/) with Docker Compose v2
-- [VS Code](https://code.visualstudio.com/) with the
-  [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
-  extension
+- [Docker](https://docs.docker.com/get-docker/) med Docker Compose v2
+- [VS Code](https://code.visualstudio.com/) med
+  [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)-udvidelsen
 
-Nothing else is needed on the host. Node, bun and Postgres all live inside
-the containers.
+Intet andet er nødvendigt på værten. Node, bun og Postgres ligger alle i
+containerne.
 
-## Using the dev container
+## Brug af dev containeren
 
-A dev container is a Docker container that VS Code opens the repo inside of.
-Your editor, terminal, extensions and the tools you run all live in the
-container, so every contributor gets the same Node version, the same bun and
-the same database without installing anything on their machine.
+En dev container er en Docker-container, som VS Code åbner repoet inde i.
+Din editor, terminal, udvidelser og de værktøjer, du kører, ligger alle i
+containeren, så hver bidragyder får den samme Node-version, samme bun og
+samme database uden at installere noget på sin maskine.
 
-Everything the container needs is described in `.devcontainer/`:
+Alt, som containeren har brug for, er beskrevet i `.devcontainer/`:
 
-| File                     | Purpose                                                                                                   |
-| ------------------------ | --------------------------------------------------------------------------------------------------------- |
-| `devcontainer.json`      | What VS Code attaches to, which ports to forward, which extensions to install, what to run after creation |
-| `compose.yaml`           | The two containers: `app` (Node 22 + bun, holds the repo) and `db` (Postgres 17)                          |
-| `devcontainer-lock.json` | Pinned versions of the installed features. Commit it, like `bun.lock`                                     |
+| Fil                      | Formål                                                                                                   |
+| ------------------------ | -------------------------------------------------------------------------------------------------------- |
+| `devcontainer.json`      | Hvad VS Code kobler til, hvilke porte der videresendes, hvilke udvidelser der installeres, og hvad der køres efter oprettelse |
+| `compose.yaml`           | De to containere: `app` (Node 22 + bun, indeholder repoet) og `db` (Postgres 17)                       |
+| `devcontainer-lock.json` | Låste versioner af de installerede features. Commit den, ligesom `bun.lock`                              |
 
-### Open the project in the container
+### Åbn projektet i containeren
 
-1. Clone the repo and open the folder in VS Code.
-2. When prompted, choose **Reopen in Container**. If there is no prompt, open
-   the command palette and run **Dev Containers: Reopen in Container**.
-3. Wait for the build. On first run VS Code pulls the images, installs bun,
-   starts Postgres and runs `bun install` automatically.
+1. Klon repositet og åbn mappen i VS Code.
+2. Når du bliver bedt om det, vælg **Reopen in Container**. Hvis der ikke vises
+   en prompt, skal du åbne kommandopaletten og køre **Dev Containers: Reopen in Container**.
+3. Vent på builden. Ved første kørsel henter VS Code billederne, installerer bun,
+   starter Postgres og kører `bun install` automatisk.
 
-The repo is mounted at `/workspaces/devcontainer-test` inside the container.
-Edits made in VS Code land directly in your local checkout, so git works as
-usual from either side.
+Repositet monteres på `/workspaces/devcontainer-test` inde i containeren.
+Ændringer foretaget i VS Code lander direkte i din lokale checkout, så git fungerer
+som normalt fra begge sider.
 
-### Everyday commands
+### Hverdagskommandoer
 
-| Action                                                      | Command palette entry                               |
-| ----------------------------------------------------------- | --------------------------------------------------- |
-| Rebuild after editing `devcontainer.json` or `compose.yaml` | **Dev Containers: Rebuild Container**               |
-| Rebuild from scratch, discarding image cache                | **Dev Containers: Rebuild Container Without Cache** |
-| Leave the container and work on the host                    | **Dev Containers: Reopen Folder Locally**           |
-| See forwarded ports and their real host port                | **Ports** panel in the bottom bar                   |
+| Handling                                                       | Indtastning i kommandopaletten                              |
+| -------------------------------------------------------------- | ----------------------------------------------------------- |
+| Genopbyg efter redigering af `devcontainer.json` eller `compose.yaml` | **Dev Containers: Rebuild Container**                       |
+| Genopbyg fra bunden og slet cache for billeder                 | **Dev Containers: Rebuild Container Without Cache**         |
+| Forlad containeren og arbejd lokalt på værten                  | **Dev Containers: Reopen Folder Locally**                    |
+| Se videresendte porte og deres aktuelle vært-port             | **Ports**-panelet i nederste bjælke                          |
 
-A running container does not pick up config changes. Any edit under
-`.devcontainer/` needs a rebuild.
+En kørende container opfanger ikke ændringer i konfigurationen. Enhver
+ændring under `.devcontainer/` kræver en genopbygning.
 
-### Things to know
+### Ting at vide
 
-- `bun install` only runs automatically when the container is first created.
-  After pulling changes that touch a `package.json`, run it again by hand from
-  the repo root.
-- Forwarded ports are "make reachable", not "guarantee this number". If 5173
-  is busy on your host, VS Code picks another port and shows it in the Ports
-  panel.
-- The database is only on the compose network. The `api` app reaches it as
-  `db:5432` via the `DATABASE_URL` environment variable, which is already set
-  in the `app` container. To connect a GUI from the host, forward `db:5432`
-  from the Ports panel.
-- Database data lives in a named volume (`pgdata`), so it survives container
-  rebuilds. Delete the volume if you want a clean database.
-- Extensions listed in `devcontainer.json` install inside the container. Host
-  extensions do not carry over.
-- [Biome](https://biomejs.dev/) is the linter, formatter and import sorter,
-  served by the single Biome extension. The editor formats on save and, on an
-  explicit save, applies safe lint fixes, organises imports and sorts JSX
-  props alphabetically. One `biome.json` at the root configures all of it.
-  There is no ESLint, Prettier or oxc anywhere in the repo.
+- `bun install` køres kun automatisk, når containeren først oprettes.
+  Efter at have hentet ændringer, der berører en `package.json`, skal du køre
+  den igen manuelt fra repo-roden.
+- Hvis en port allerede er i brug på værten, vælger VS Code automatisk en anden
+  ledig port, som vises i **Ports**-panelet.
+- Databasen ligger kun på compose-netværket. `api`-appen når den som
+  `db:5432` via miljøvariablen `DATABASE_URL`, som allerede er sat i
+  `app`-containeren. For at forbinde en GUI fra værten skal du videresende
+  `db:5432` fra **Ports**-panelet.
+- Databasedata ligger i et navngivet volumen (`pgdata`), så de overlever
+  container-genopbygninger. Slet volumenet, hvis du vil have en ren database.
+- Udvidelser, der er angivet i `devcontainer.json`, installeres inde i
+  containeren. Værtens udvidelser bliver ikke overført.
+- [Biome](https://biomejs.dev/) er linteren, formatteren og import-sorteren,
+  leveret af den enkelte Biome-udvidelse. Editoren formaterer ved gem og
+  anvender sikre lint-fixes ved en eksplicit gem, organiserer imports og
+  sorterer JSX-props alfabetisk. En enkelt `biome.json` i roden konfigurerer
+  alt dette. Der er ingen ESLint, Prettier eller oxc i repositoriet.
 
-## Running the project
+## Kørsel af projektet
 
-All commands are run from the repo root, inside the container.
+Alle kommandoer køres fra repo-roden, inde i containeren.
 
-```
-bun install        # once, or after dependency changes
-bun run dev        # starts web and api in parallel
-bun run check      # lint + format + import order, report only; use in CI
-bun run check:fix  # same, but writes every safe fix
-bun run lint       # lint only
-bun run format     # format only, writes
-bun run format:check  # format only, report
+```bash
+bun install        # én gang, eller efter ændringer i afhængigheder
+bun run dev        # starter web og api parallelt
+bun run check      # lint + format + import-sortering, rapportér kun; bruges i CI
+bun run check:fix  # samme, men skriver alle sikre rettelser
+bun run lint       # kun lint
+bun run format     # kun format, skriver
+bun run format:check  # kun format, rapportér
 ```
 
-Biome covers TypeScript, JSX, CSS and JSON. Markdown, YAML, HTML and SVG
-files are left untouched.
+Biome dækker TypeScript, JSX, CSS og JSON. Markdown-, YAML-, HTML- og SVG-filer
+lades uberørt.
 
-`bun run dev` runs the `dev` script of every workspace package and prefixes
-the output with the package name. Then open the **web** port from the Ports
-panel. Vite proxies every `/api/...` request to Nest, so the browser only ever
-talks to a single origin. The API currently exposes a single `GET /api` route
-that returns a hello message.
+`bun run dev` kører `dev`-scriptet for hver workspace-pakke og sætter
+outputtet foran med pakkenavnet. Åbn derefter porten for **web** i
+**Ports**-panelet. Vite viderestiller alle `/api/...`-anmodninger til Nest, så
+browseren kun nogensinde taler med én enkelt origin. API'et eksponerer
+i øjeblikket en enkelt `GET /api`-rute, der returnerer en hilsen.
 
-To run one app on its own:
+For at køre én app for sig:
 
-```
+```bash
 bun run --filter web dev
 bun run --filter api dev
 ```
 
 ### Per-app scripts
 
-Run them from the root with a workspace filter, or with plain `bun run` from
-inside the app's directory:
+Kør dem fra roden med et workspace-filter, eller med almindelig `bun run` inde
+i appens mappe:
 
-```
-bun run --filter web lint     # from the root
-bun run lint                  # from inside apps/web
+```bash
+bun run --filter web lint     # fra roden
+bun run lint                  # inde i apps/web
 ```
 
-| Script       | `web`                      | `api`                   |
-| ------------ | -------------------------- | ----------------------- |
-| `dev`        | Vite dev server with HMR   | `nest start --watch`    |
-| `build`      | `tsc -b && vite build`     | `nest build` to `dist/` |
-| `lint`       | `biome lint .`             | `biome lint .`          |
-| `test`       | –                          | vitest unit tests       |
-| `test:e2e`   | –                          | vitest e2e tests        |
-| `preview`    | serve the production build | –                       |
-| `start:prod` | –                          | `node dist/main`        |
+| Script       | `web`                              | `api`                     |
+| ------------ | ---------------------------------- | ------------------------- |
+| `dev`        | Vite dev server med HMR            | `nest start --watch`      |
+| `build`      | `tsc -b && vite build`             | `nest build` til `dist/`  |
+| `lint`       | `biome lint .`                     | `biome lint .`            |
+| `test`       | –                                  | Vitest unit tests        |
+| `test:e2e`   | –                                  | Vitest e2e tests         |
+| `preview`    | serverer produktionsbuild          | –                         |
+| `start:prod` | –                                  | `node dist/main`          |
 
 ### Database
 
-Credentials are fixed for local development and set in `compose.yaml`:
+Legitimationsoplysninger er faste til lokal udvikling og angivet i `compose.yaml`:
 
-```
+```bash
 postgres://app:app@db:5432/app
 ```
 
-No app uses the database yet. When one does, pick a driver or ORM that reads
-`DATABASE_URL` and nothing in the container setup needs to change.
+Ingen app bruger databasen endnu. Når en gør det, skal du vælge en driver eller
+ORM, der læser `DATABASE_URL`, og så behøver der ingen ændringer i
+container-opstillingen.
 
-## Repository layout
+## Repository-layout
 
-```
+```text
 .
-├── .devcontainer/          # container definition, see DEVCONTAINER.md
+├── .devcontainer/          # container-definition, se DEVCONTAINER.md
 ├── apps/
 │   ├── web/                # Vite + React frontend
 │   └── api/                # NestJS backend
-├── DEVCONTAINER.md         # detailed reference for the container setup
-├── package.json            # bun workspaces root, holds the "dev" script
-├── bun.lock                # single lockfile for all workspaces
-└── .gitignore              # single ignore file for the whole repo
+├── DEVCONTAINER.md         # detaljeret reference for container-opstillingen
+├── package.json            # bun workspaces root, indeholder "dev"-scriptet
+├── bun.lock                # enkelt lockfile for alle workspaces
+└── .gitignore              # én samlet ignore-fil for hele repositoriet
 ```
 
-Bun uses its isolated linker for workspaces. Real packages live in
-`node_modules/.bun` at the root and each app's `node_modules` only contains
-symlinks to what that app declares. Always run `bun install` from the root.
+Bun bruger sin isolerede linker til workspaces. Reelle pakker ligger i
+`node_modules/.bun` i roden, og hver apps `node_modules` indeholder kun
+symlinks til det, som appen erklærer. Kør altid `bun install` fra roden.
 
-## Related documentation
+## Relateret dokumentation
 
-- [DEVCONTAINER.md](DEVCONTAINER.md): every file in `.devcontainer/` explained,
-  how to add tools, services or extensions, and gotchas met while building it.
-- [apps/web/README.md](apps/web/README.md): the Vite React template notes.
-  Its oxlint section no longer applies; this repo uses Biome.
-- [apps/api/README.md](apps/api/README.md): the NestJS starter notes.
-- [Dev Containers specification](https://containers.dev/) and
-  [feature catalog](https://containers.dev/features) for adding tools to the
-  container.
-- [VS Code Dev Containers docs](https://code.visualstudio.com/docs/devcontainers/containers).
-- [Bun workspaces](https://bun.com/docs/install/workspaces) for how
-  `--filter` and the shared lockfile behave.
+- [DEVCONTAINER.md](DEVCONTAINER.md): alt om hver fil i `.devcontainer/`,
+  hvordan du tilføjer værktøjer, services eller udvidelser, og faldgruber
+  der blev stødt på under opbygningen.
+- [apps/web/README.md](apps/web/README.md): noter til Vite React-templaten.
+  Dets oxlint-afsnit gælder ikke længere; dette repo bruger Biome.
+- [apps/api/README.md](apps/api/README.md): noter til NestJS starteren.
+- [Dev Containers-specifikationen](https://containers.dev/) og
+  [featurekatalogen](https://containers.dev/features) til at tilføje værktøjer
+  til containeren.
+- [VS Code Dev Containers-dokumentation](https://code.visualstudio.com/docs/devcontainers/containers).
+- [Bun workspaces](https://bun.com/docs/install/workspaces) for hvordan
+  `--filter` og den delte lockfile opfører sig.
 
-## Versions
+## Versioner
 
-| Tool             | Version |
+| Værktøj          | Version |
 | ---------------- | ------- |
 | Node (container) | 22      |
 | bun              | 1.4     |
