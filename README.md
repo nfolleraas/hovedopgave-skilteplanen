@@ -9,6 +9,7 @@ Projektet består af følgende:
 | `web` | React 19 + TypeScript, Vite 8 | `apps/web`      | 5173                               |
 | `api` | NestJS 12 + TypeScript        | `apps/api`      | 3000, alle ruter ligger under `/api` |
 | `db`  | Postgres 17                   | compose service | 5432, tilgængelig som hostname `db` |
+| `pgweb` | Webbaseret PostgreSQL-klient | compose service | 8081, åbnes via `http://localhost:8081` |
 
 For en linje-for-linje forklaring af container-opstillingen, hvorfor hver
 indstilling findes, og hvordan den ændres, se [DEVCONTAINER.md](DEVCONTAINER.md).
@@ -34,18 +35,21 @@ Alt, som containeren har brug for, er beskrevet i `.devcontainer/`:
 | Fil                      | Formål                                                                                                   |
 | ------------------------ | -------------------------------------------------------------------------------------------------------- |
 | `devcontainer.json`      | Hvad VS Code kobler til, hvilke porte der videresendes, hvilke udvidelser der installeres, og hvad der køres efter oprettelse |
-| `compose.yaml`           | De to containere: `app` (Node 22 + bun, indeholder repoet) og `db` (Postgres 17)                       |
+| `compose.yaml`           | Containere til `app` (Node 22 + bun, indeholder repoet), `db` (Postgres 17) og `pgweb` (database-GUI) |
 | `devcontainer-lock.json` | Låste versioner af de installerede features. Commit den, ligesom `bun.lock`                              |
+| `setup-zsh.sh`           | Henter Zsh-plugins og vælger standardtema for terminalen ved oprettelse af containeren                    |
 
 ### Åbn projektet i containeren
 
 1. Klon repositet og åbn mappen i VS Code.
 2. Når du bliver bedt om det, vælg **Reopen in Container**. Hvis der ikke vises
    en prompt, skal du åbne kommandopaletten og køre **Dev Containers: Reopen in Container**.
-3. Vent på builden. Ved første kørsel henter VS Code billederne, installerer bun,
-   starter Postgres og kører `bun install` automatisk.
+3. Vent på builden. Ved første kørsel henter VS Code billederne, installerer bun
+   og de fælles værktøjer, starter Postgres og pgweb og kører `bun install`
+   automatisk. Zsh konfigureres med Oh My Zsh, autosuggestions,
+   syntax-highlighting og temaet `jnrowe`.
 
-Repositet monteres på `/workspaces/devcontainer-test` inde i containeren.
+Repositet monteres på `/workspaces/hovedopgave-skilteplanen` inde i containeren.
 Ændringer foretaget i VS Code lander direkte i din lokale checkout, så git fungerer
 som normalt fra begge sider.
 
@@ -68,10 +72,11 @@ En kørende container opfanger ikke ændringer i konfigurationen. Enhver
   den igen manuelt fra repo-roden.
 - Hvis en port allerede er i brug på værten, vælger VS Code automatisk en anden
   ledig port, som vises i **Ports**-panelet.
-- Databasen ligger kun på compose-netværket. `api`-appen når den som
-  `db:5432` via miljøvariablen `DATABASE_URL`, som allerede er sat i
-  `app`-containeren. For at forbinde en GUI fra værten skal du videresende
-  `db:5432` fra **Ports**-panelet.
+- `api`-appen når databasen som `db:5432` via miljøvariablen `DATABASE_URL`,
+  som allerede er sat i `app`-containeren. pgweb er tilgængelig på
+  `http://localhost:8081` og forbinder til samme database. Porten er bundet
+  direkte til værten i Compose; pgwebs databaseforbindelse går over
+  compose-netværket.
 - Databasedata ligger i et navngivet volumen (`pgdata`), så de overlever
   container-genopbygninger. Slet volumenet, hvis du vil have en ren database.
 - Udvidelser, der er angivet i `devcontainer.json`, installeres inde i
