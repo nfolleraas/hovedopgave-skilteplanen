@@ -1,50 +1,50 @@
 # Dev container setup
 
-Reference for how this repo's development environment is put together, why each
-piece exists, and how to change it. Written after building it step by step on
-2026-10-09.
+Reference til, hvordan dette repos udviklingsmiljø er sat sammen, hvorfor hvert
+element findes, og hvordan det ændres. Skrevet efter at have bygget det trin for
+trin den 9. oktober 2026.
 
-## What you get
+## Hvad du får
 
-One VS Code dev container running two apps from the same repo at the same time,
-plus a Postgres database in a sidecar container.
+Et enkelt VS Code-devcontainer, der kører to apps fra samme repo samtidig,
+samt en PostgreSQL-database i en sidecar-container.
 
-| Piece                       | Where                | Runs on                                        |
-| --------------------------- | -------------------- | ---------------------------------------------- |
-| React + TypeScript (Vite 8) | `apps/web`           | container port 5173                            |
-| NestJS 12 + TypeScript      | `apps/api`           | container port 3000, routes under `/api`       |
-| Postgres 17                 | `db` compose service | hostname `db`, port 5432, compose network only |
+| Del                         | Hvor                  | Kører på                                      |
+| --------------------------- | --------------------- | --------------------------------------------- |
+| React + TypeScript (Vite 8) | `apps/web`            | container port 5173                           |
+| NestJS 12 + TypeScript      | `apps/api`            | container port 3000, ruter under `/api`      |
+| Postgres 17                 | `db` compose service  | hostname `db`, port 5432, kun på compose-netværket |
 
-Start everything from the repo root inside the container:
+Start alt fra repo-roden inde i containeren:
 
-```
+```bash
 bun run dev
 ```
 
-Then open the `web` port from the VS Code Ports panel. Requests to `/api/...` are
-proxied by Vite to Nest, so the browser only ever talks to one origin.
+Åbn derefter web-porten fra VS Code-panelet Ports. Anmodninger til `/api/...`
+viderebehandles af Vite til Nest, så browseren kun kommunikerer med én oprindelse.
 
-## Repo layout
+## Repo-layout
 
-```
+```text
 .
 ├── .devcontainer/
-│   ├── devcontainer.json       # what VS Code attaches to and installs
-│   ├── compose.yaml            # the containers: app + db
-│   └── devcontainer-lock.json  # pinned feature versions, commit it
+│   ├── devcontainer.json       # hvad VS Code tilslutter sig og installerer
+│   ├── compose.yaml            # containere: app + db
+│   └── devcontainer-lock.json  # låste feature-versioner, kom det med i repoet
 ├── apps/
 │   ├── web/                    # Vite + React, package name "web"
 │   └── api/                    # NestJS, package name "api"
-├── package.json                # bun workspaces root, holds the "dev" script
-├── bun.lock                    # single lockfile for all workspaces
-└── .gitignore                  # single ignore file for the whole repo
+├── package.json                # bun workspaces root, indeholder "dev"-scriptet
+├── bun.lock                    # én samlet lockfile for alle workspaces
+└── .gitignore                  # én samlet ignore-fil for hele repoet
 ```
 
-Bun uses its isolated linker for workspaces: real packages live in the hidden
-`node_modules/.bun` at the root and each app's `node_modules` holds symlinks to
-only what it declares. Always run `bun install` from the root.
+Bun bruger sin isolerede linker til workspaces: de rigtige pakker ligger i den
+skjulte `node_modules/.bun` i roden, og hver apps `node_modules` indeholder
+kun symlinks til det, den faktisk erklærer. Kør altid `bun install` fra roden.
 
-## The files, line by line
+## Filerne, linje for linje
 
 ### `.devcontainer/devcontainer.json`
 
@@ -99,35 +99,37 @@ only what it declares. Always run `bun install` from the root.
 }
 ```
 
-- **`dockerComposeFile` / `service` / `workspaceFolder`** replace a plain `image`.
-  VS Code brings up every service in the compose file and attaches to `app`.
-  `workspaceFolder` must match the bind-mount target in `compose.yaml`.
-- **`features`** are install scripts layered onto the service image at build
-  time. The base image has no bun, so this adds it. `:0` is the feature's major
-  version, not bun's; the exact resolved version is recorded in
-  `devcontainer-lock.json`.
-- **`forwardPorts`** makes container ports reachable from the host browser.
-  It means "make reachable", not "guarantee this number": if the host port is
-  busy, VS Code picks the next free one and the Ports panel shows the real one.
-- **`portsAttributes`** only sets labels for the Ports panel.
-- **`postCreateCommand`** runs once, after the container is first created, not
-  on every start. After pulling changes to any `package.json`, run `bun install`
-  by hand.
-- **`customizations.vscode.extensions`** install inside the container. Host
-  extensions do not carry over.
-- **`customizations.vscode.settings`** are editor settings applied only inside
-  the container. `workbench.iconTheme` selects Material Icon Theme for
-  everyone, since installing the extension alone does not activate it. The
-  rest make the Biome extension the formatter and linter:
-  format on every save, and on an explicit save also apply safe lint fixes,
-  organise imports and sort JSX props. Biome reads the single `biome.json`
-  at the repo root and finds its binary in `node_modules`, which is why
-  `@biomejs/biome` is a root dev dependency pinned to an exact version, as
-  Biome's own docs recommend. The config excludes `public/`, `*.svg` and
-  `*.html`, so `index.html` and the icon assets are never rewritten. The `apps/api` override turns off `useImportType` because NestJS
-  dependency injection needs runtime class imports under
+- **`dockerComposeFile` / `service` / `workspaceFolder`** erstatter et almindeligt
+  `image`. VS Code starter alle services i compose-filen og kobler sig til `app`.
+  `workspaceFolder` skal matche bind-mount-målet i `compose.yaml`.
+- **`features`** er installationsscripts, der lægges oven på service-billedet på
+  build-tidspunktet. Basisbilledet har ikke bun, så dette tilføjer det. `:0`
+  er feature-versionens major-version, ikke bun-versionen; den præcise løste
+  version registreres i `devcontainer-lock.json`.
+- **`forwardPorts`** gør containerens porte tilgængelige for værten via browseren.
+  Det betyder “gør tilgængelige”, ikke “garanterer dette nummer”: hvis værtsporten
+  allerede er optaget, vælger VS Code den næste ledige port, og Ports-panelet
+  viser den faktiske port.
+- **`portsAttributes`** sætter kun labels i Ports-panelet.
+- **`postCreateCommand`** kører én gang, efter at containere først er oprettet, ikke
+  ved hvert start. Når du har hentet ændringer i en `package.json`, skal du køre
+  `bun install` manuelt.
+- **`customizations.vscode.extensions`** installeres inde i containeren. Hostens
+  extensions bliver ikke overført.
+- **`customizations.vscode.settings`** er editor-indstillinger, der kun anvendes
+  inde i containeren. `workbench.iconTheme` vælger Material Icon Theme for alle,
+  fordi at installere selve extensionen alene ikke aktiverer den. Resten gør
+  Biome til formatter og linter: formatér ved hver gem, og ved en eksplicit gem
+  anvendes også sikre lint-fixes, import-organisation og sortering af JSX-
+  attributter. Biome læser den enkelte `biome.json` i repo-roten og finder sit
+  binary i `node_modules`, derfor er `@biomejs/biome` en root dev dependency
+  låst til en præcis version, som Biomes egen dokumentation anbefaler. Config
+  ekskluderer `public/`, `*.svg` og `*.html`, så `index.html` og ikon-assets
+  aldrig bliver omskrevet. `apps/api`-overrides slår `useImportType` fra, fordi
+  NestJS dependency injection kræver runtime class imports under
   `emitDecoratorMetadata`.
-- **`remoteUser`** avoids working as root. The base image ships a `node` user.
+- **`remoteUser`** undgår at arbejde som root. Basisbilledet leverer en `node`
+  bruger.
 
 ### `.devcontainer/compose.yaml`
 
@@ -155,25 +157,27 @@ volumes:
   pgdata:
 ```
 
-- **`app.image`** is Microsoft's prebuilt Node 22 image on Debian bookworm with
-  git, zsh and the `node` user. Node 22 because Vite 8 needs at least 20.19.
-- **`app.volumes`** bind-mounts the repo. The compose file lives in
-  `.devcontainer/`, so `..` is the repo root.
-- **`app.command: sleep infinity`** keeps the container alive. The image has no
-  long-running process, so without this it exits immediately and VS Code has
-  nothing to attach to.
-- **`DATABASE_URL`** uses hostname `db`, the name of the other service. Inside
-  the compose network, service names resolve as DNS. `localhost` inside `app`
-  is only `app` itself. Verify with `getent hosts db`.
-- **`db`** has no `ports` block on purpose. The app reaches it over the compose
-  network. Host access, if ever wanted, goes through VS Code port forwarding.
-- **`pgdata`** is a named volume, so data survives container rebuilds. Note the
-  two different `volumes:` shapes: a _list_ inside a service, a _mapping_ at
-  the top level. Getting this wrong gives `volumes must be a mapping`.
+- **`app.image`** er Microsofts forbyggede Node 22-image på Debian bookworm med
+  git, zsh og `node`-brugeren. Node 22, fordi Vite 8 kræver mindst 20.19.
+- **`app.volumes`** bind-mounts repoet. Compose-filen ligger i
+  `.devcontainer/`, så `..` er repo-roden.
+- **`app.command: sleep infinity`** holder containeren i live. Billedet har ingen
+  langvarig proces, så uden dette lukker den med det samme og VS Code har
+  intet at tilslutte sig til.
+- **`DATABASE_URL`** bruger hostname `db`, navnet på den anden service. Inde i
+  compose-netværket løser service-navne som DNS. `localhost` inde i `app` er kun
+  `app` selv. Verificér med `getent hosts db`.
+- **`db`** har bevidst ingen `ports`-sektion. Appen når den via
+  compose-netværket. Hostadgang, hvis det nogensinde ønskes, går via VS
+  Code-portforwarding.
+- **`pgdata`** er et navngivet volume, så data overlever
+  container-rebuilds. Bemærk de to forskellige `volumes:`-former: en _liste_ inde i
+  en service og et _mapping_ øverst. Hvis dette gøres forkert, får man fejlen
+  `volumes must be a mapping`.
 
-Validate after editing, from inside `.devcontainer/`:
+Valider efter redigering, inde fra `.devcontainer/`:
 
-```
+```bash
 docker compose config
 ```
 
@@ -198,13 +202,13 @@ docker compose config
 }
 ```
 
-`--filter '*'` runs the `dev` script of every workspace package in parallel,
-prefixing output with the package name. Both apps must therefore have a script
-named `dev`. The Biome scripts are not filtered: Biome walks the whole repo
-from the root, honouring `.gitignore` through its `vcs` setting, and the
-per-app `lint` scripts just call `biome lint .` for convenience. `check` is
-the one to run in CI, since it covers lint, format and import order in a
-single pass. The Nest app's `dev` was added by hand as an alias:
+`--filter '*'` kører `dev`-scriptet for hvert workspace-package parallelt, med
+output præfikset med pakkenavnet. Begge apps skal derfor have et script kaldet
+`dev`. Biome-scriptene filtreres ikke: Biome går gennem hele repoet fra roden og
+respekterer `.gitignore` via `vcs`-indstillingen, og de per-app `lint`-scripts
+kalder blot `biome lint .` for bekvemmelighed. `check` er den, der skal køre i CI,
+fordi den dækker lint, format og import-order i et enkelt gennemløb. Nest-appens
+`dev` blev tilføjet manuelt som et alias:
 
 ```json
 "dev": "nest start --watch"
@@ -216,8 +220,8 @@ single pass. The Nest app's `dev` was added by hand as an alias:
 app.setGlobalPrefix('api');
 ```
 
-Every Nest route lives under `/api`. This is what lets the Vite proxy forward
-`/api` without a path rewrite.
+Hver Nest-route ligger under `/api`. Det er det, der gør, at Vite-proxyn kan
+viderebehandle `/api` uden path rewrite.
 
 ### `apps/web/vite.config.ts`
 
@@ -230,70 +234,72 @@ server: {
 },
 ```
 
-- **`host: true`** makes Vite listen on all interfaces, not just loopback.
-  Required for the port to be reachable from outside the container.
-- **`proxy`** forwards `/api/...` to Nest. `localhost:3000` is correct here
-  because Vite and Nest run in the same container.
+- **`host: true`** gør, at Vite lytter på alle interfaces, ikke kun loopback.
+  Det er nødvendigt for, at porten kan være tilgængelig fra uden for
+  containeren.
+- **`proxy`** viderebehandler `/api/...` til Nest. `localhost:3000` er korrekt her,
+  fordi Vite og Nest kører i samme container.
 
 ### `.gitignore` (root)
 
-One ignore file for the whole repo. Ignore files only apply to their own
-directory and below, so per-app ones were removed. Includes `node_modules`,
-`dist`, `*.local`, `*.tsbuildinfo` and the usual editor noise.
+Én samlet ignore-fil for hele repoet. Ignore-filer gælder kun for deres egen mappe
+og nedad, så per-app-filer blev fjernet. Den inkluderer `node_modules`, `dist`,
+`*.local`, `*.tsbuildinfo` og den sædvanlige editor-noise.
 
-## How to change things
+## Sådan ændrer du ting
 
-**Any edit to `devcontainer.json` or `compose.yaml`** requires
-_Dev Containers: Rebuild Container_ from the command palette. A running
-container does not pick up config changes.
+**Enhver ændring i `devcontainer.json` eller `compose.yaml`** kræver
+_Dev Containers: Rebuild Container_ i kommandopalette. En kørende container
+henter ikke konfigurationsændringer ind.
 
-**Add a tool to the container** (e.g. a CLI): look for a feature at
-https://containers.dev/features and add it under `features`. If none exists,
-switch `app.image` to `build: { dockerfile: Dockerfile }` in `compose.yaml`
-and install it there.
+**Tilføj et værktøj til containeren** (fx en CLI): find en feature på
+https://containers.dev/features og tilføj den under `features`. Hvis der ikke
+findes en, skift `app.image` til `build: { dockerfile: Dockerfile }` i
+`compose.yaml` og installer den der.
 
-**Add another service** (Redis, Mailpit, ...): add it under `services:` in
-`compose.yaml`, give it a named volume if it holds data, and reference it from
-`app` by its service name. No `ports` block needed for app-to-service traffic.
+**Tilføj en ny service** (Redis, Mailpit, ...): tilføj den under `services:` i
+`compose.yaml`, giv den et navngivet volume, hvis den gemmer data, og referér
+til den fra `app` via service-navnet. Ingen `ports`-sektion er nødvendig for
+trafik mellem appen og tjenesten.
 
-**Swap the database**: change `db.image` and the three `POSTGRES_*` variables
-to the new engine's equivalents, update `DATABASE_URL` to match, and delete the
-old volume (`docker volume rm devcontainer-test_devcontainer_pgdata`) since
-engines can't share a data directory.
+**Skift databasen**: ændr `db.image` og de tre `POSTGRES_*`-variabler til den nye
+databaseengines ækvivalenter, opdater `DATABASE_URL` så den matcher, og slet det
+gamle volume (`docker volume rm devcontainer-test_devcontainer_pgdata`), fordi
+engines ikke kan dele et data-katalog.
 
-**Connect Nest to Postgres**: pick a driver or ORM (Prisma, Drizzle, TypeORM).
-All of them read `DATABASE_URL`, which is already set inside `app`. Nothing in
-the devcontainer needs to change.
+**Kobl Nest til Postgres**: vælg en driver eller ORM (Prisma, Drizzle, TypeORM).
+Alle læser `DATABASE_URL`, som allerede er sat inde i `app`. Intet i
+devcontaineren behøver at ændres.
 
-**Reach the database from a host GUI**: in the Ports panel, forward
-`db:5432` rather than relying on the `5432` entry in `forwardPorts`, which
-only looks at the `app` container and will show as unused.
+**Nå databasen fra en host-GUI**: i Ports-panelet skal du forwarde `db:5432` i
+stedet for at stole på `5432`-posten i `forwardPorts`, som kun ser på app-
+containeren og vil blive vist som ubrugt.
 
-**Add a VS Code extension**: add its ID to `customizations.vscode.extensions`
-and rebuild, or install it from the Extensions view while in the container
-and choose _Add to devcontainer.json_.
+**Tilføj en VS Code-extension**: tilføj dens ID i
+`customizations.vscode.extensions` og rebuild, eller installer den fra Extensions-
+visningen, mens du er i containeren, og vælg _Add to devcontainer.json_.
 
-**Change a port**: update it in three places: the app's own config, `forwardPorts`,
-and `portsAttributes`.
+**Skift en port**: opdater den på tre steder: appens egen konfiguration,
+`forwardPorts` og `portsAttributes`.
 
-## Gotchas met along the way
+## Faldgruber, der opstod undervejs
 
-- **Vite shows up on a different host port.** Another project on the host
-  already publishes 5173, so VS Code forwarded to 5174. Read the real port from
-  the Ports panel, or stop the other project, or move Vite to an unused port.
-- **`git rm --cached` says pathspec did not match.** Paths are relative to the
-  directory you run git from, not the repo root.
-- **Nest CLI asks about `@nestjs/observe`.** It's a hosted observability SaaS,
-  not a linter. Answer no, or pass `--no-observe`.
-- **`tsconfig.build.tsbuildinfo` was committed.** It's a build cache. Ignore
-  rules never affect already-tracked files, so after adding `*.tsbuildinfo` to
-  `.gitignore` it also had to be removed with `git rm --cached`.
-- **`devcontainer-lock.json` appeared after the first build.** Commit it. It
-  pins the exact feature version, same reasoning as `bun.lock`.
+- **Vite vises på en anden host-port.** Et andet projekt på værten udstiller
+  allerede 5173, så VS Code viderebehandlede til 5174. Læs den faktiske port i
+  Ports-panelet, eller stop det andet projekt, eller flyt Vite til en ledig port.
+- **`git rm --cached` siger "pathspec did not match".** Stier er relative til den
+  mappe, du kører git fra, ikke repo-roden.
+- **Nest CLI spørger om `@nestjs/observe`.** Det er et hostet observability SaaS,
+  ikke en linter. Svar nej, eller angiv `--no-observe`.
+- **`tsconfig.build.tsbuildinfo` blev committed.** Det er en build-cache. Ignore-
+  regler påvirker aldrig allerede trackede filer, så efter at `*.tsbuildinfo` blev
+  tilføjet til `.gitignore`, måtte filen også fjernes med `git rm --cached`.
+- **`devcontainer-lock.json` dukkede op efter den første build.** Commit den.
+  Den låser den præcise feature-version, ligesom `bun.lock`.
 
-## Versions at time of writing
+## Versioner på skrivningstidspunktet
 
-| Tool             | Version |
+| Værktøj          | Version |
 | ---------------- | ------- |
 | Node (container) | 22      |
 | bun              | 1.4.2   |
