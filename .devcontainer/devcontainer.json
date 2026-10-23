@@ -17,8 +17,12 @@
     "5432": { "label": "db (postgres)" },
     "8081": { "label": "webui (postgres)" }
   },
+  
+    "mounts": [
+    "source=codex-home,target=/home/node/.codex,type=volume"
+  ],
 
-  "postCreateCommand": "bash .devcontainer/setup-zsh.sh && bun install",
+  "postCreateCommand": "bash .devcontainer/post-create-command.sh",
 
   "customizations": {
     "vscode": {
