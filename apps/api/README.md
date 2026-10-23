@@ -31,6 +31,21 @@
 $ bun install
 ```
 
+## Database
+
+The API uses Prisma ORM with the PostgreSQL database configured by
+`DATABASE_URL`. The dev container already provides this variable.
+
+Define models in `prisma/schema.prisma`, then create and apply a development
+migration with:
+
+```bash
+bun run db:migrate
+```
+
+The API build generates Prisma Client automatically. To apply committed
+migrations in another environment, run `bun run db:deploy`.
+
 ## Compile and run the project
 
 ```bash

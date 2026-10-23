@@ -22,3 +22,11 @@ dist-ssr
 *.sw?
 
 *.tsbuildinfo
+
+# Prisma-generated API files and local setup artifacts
+/apps/api/.env
+/apps/api/src/generated/prisma/
+/apps/api/.agents/
+/apps/api/.claude/
+/apps/api/.windsurf/
+/apps/api/skills-lock.json
