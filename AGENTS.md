@@ -10,6 +10,7 @@ This repository is a Danish 5th-semester Datamatiker project for Skilteplanen. I
 - `bun run check` runs Biome checks. `bun run check:fix` writes safe fixes. App scripts and database/container commands are documented in `README.md` and `DEVCONTAINER.md`.
 - API unit and e2e tests are defined in `apps/api`; the web app currently has no test script. Run relevant checks for code changes and report what was run.
 - Do not commit secrets, local environment files, generated build output, or dependency directories.
+- For commits, preserve the configured Git author and do not add Codex as an author or co-author, or add attribution trailers, unless explicitly requested.
 - Keep this file short and repository-wide. Put detailed, task-specific procedures in skills or documentation and link them here only when useful.
 
 ## Project map
