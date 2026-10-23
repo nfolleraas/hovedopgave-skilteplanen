@@ -154,10 +154,14 @@ container-opstillingen.
 ```text
 .
 ├── .devcontainer/          # container-definition, se DEVCONTAINER.md
+├── .agents/skills/         # genbrugelige agent-workflows
+├── .codex/                 # Codex-projektopsætning og hook-scripts
 ├── apps/
 │   ├── web/                # Vite + React frontend
 │   └── api/                # NestJS backend
 ├── DEVCONTAINER.md         # detaljeret reference for container-opstillingen
+├── AGENTS.md               # fælles instruktioner til kodeagenter
+├── docs/agents/            # dokumentation for agentopsætningen
 ├── package.json            # bun workspaces root, indeholder "dev"-scriptet
 ├── bun.lock                # enkelt lockfile for alle workspaces
 └── .gitignore              # én samlet ignore-fil for hele repositoriet
