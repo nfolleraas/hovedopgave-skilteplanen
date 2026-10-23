@@ -8,7 +8,8 @@ services:
     environment:
       - DATABASE_URL=postgres://app:app@db:5432/app
     depends_on:
-      - db
+      db:
+        condition: service_healthy
   db:
     container_name: db
     image: postgres:17
@@ -18,6 +19,12 @@ services:
       - POSTGRES_DB=app
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d app"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
   pgweb:
     container_name: pgweb
     image: sosedoff/pgweb
@@ -27,7 +34,8 @@ services:
     environment:
       - PGWEB_DATABASE_URL=postgres://app:app@db:5432/app?sslmode=disable
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
 volumes:
   pgdata:

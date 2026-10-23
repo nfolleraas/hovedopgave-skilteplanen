@@ -3,6 +3,7 @@
   "dockerComposeFile": "compose.yaml",
   "service": "app",
   "workspaceFolder": "/workspaces/hovedopgave-skilteplanen",
+  "initializeCommand": "docker compose -f .devcontainer/compose.yaml down --remove-orphans",
   "features": {
     "ghcr.io/shyim/devcontainers-features/bun:0": {},
     "ghcr.io/devcontainers/features/common-utils:2": {
@@ -17,10 +18,8 @@
     "5432": { "label": "db (postgres)" },
     "8081": { "label": "webui (postgres)" }
   },
-  
-    "mounts": [
-    "source=codex-home,target=/home/node/.codex,type=volume"
-  ],
+
+  "mounts": ["source=codex-home,target=/home/node/.codex,type=volume"],
 
   "postCreateCommand": "bash .devcontainer/post-create-command.sh",
 
