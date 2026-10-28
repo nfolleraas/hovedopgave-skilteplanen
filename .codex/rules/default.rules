@@ -1,0 +1,107 @@
+# Destructive or history-rewriting Git commands are never permitted.
+
+prefix_rule(
+  pattern = ["git", "commit"],
+  decision = "prompt",
+  justification = "Run commits through the repository commit skill and review the staged changes before confirming.",
+  match = [
+    "git commit",
+    "git commit -m add-feature",
+  ],
+)
+
+prefix_rule(
+  pattern = ["git", "reset"],
+  decision = "forbidden",
+  justification = "Never reset repository state; preserve existing work and use a reversible alternative.",
+  match = [
+    "git reset --hard HEAD",
+    "git reset --soft HEAD~1",
+  ],
+)
+
+prefix_rule(
+  pattern = ["git", "clean"],
+  decision = "forbidden",
+  justification = "Never remove untracked files or directories with git clean.",
+  match = [
+    "git clean -fd",
+    "git clean -fdx",
+  ],
+)
+
+prefix_rule(
+  pattern = ["git", "restore"],
+  decision = "forbidden",
+  justification = "Never discard working-tree changes with git restore.",
+  match = [
+    "git restore .",
+    "git restore --staged src/app.ts",
+  ],
+)
+
+prefix_rule(
+  pattern = ["git", "checkout", "--"],
+  decision = "forbidden",
+  justification = "Never discard changes with git checkout --.",
+  match = [
+    "git checkout -- src/app.ts",
+  ],
+)
+
+prefix_rule(
+  pattern = ["git", "branch", "-D"],
+  decision = "forbidden",
+  justification = "Never force-delete branches.",
+  match = [
+    "git branch -D feature/example",
+  ],
+)
+
+prefix_rule(
+  pattern = ["git", "push", ["-f", "--force", "--force-with-lease"]],
+  decision = "forbidden",
+  justification = "Never force-push or rewrite remote history.",
+  match = [
+    "git push --force origin main",
+    "git push --force-with-lease origin feature/example",
+    "git push -f origin main",
+  ],
+)
+
+prefix_rule(
+  pattern = ["git", "rebase"],
+  decision = "forbidden",
+  justification = "Never rewrite commit history with rebase.",
+  match = [
+    "git rebase main",
+    "git rebase --interactive HEAD~3",
+  ],
+)
+
+prefix_rule(
+  pattern = ["git", "commit", "--amend"],
+  decision = "forbidden",
+  justification = "Never amend existing commits; create a new commit instead.",
+  match = [
+    "git commit --amend",
+  ],
+)
+
+prefix_rule(
+  pattern = ["git", "filter-branch"],
+  decision = "forbidden",
+  justification = "Never rewrite repository history with git filter-branch.",
+  match = [
+    "git filter-branch -- --all",
+  ],
+)
+
+prefix_rule(
+  pattern = ["git", "filter-repo"],
+  decision = "forbidden",
+  justification = "Never rewrite repository history with git filter-repo.",
+  match = [
+    "git filter-repo --path secrets.txt --invert-paths",
+  ],
+)

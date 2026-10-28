@@ -7,6 +7,9 @@ services:
     command: sleep infinity
     environment:
       - DATABASE_URL=postgres://app:app@db:5432/app
+    security_opt:
+      - seccomp=unconfined
+      - apparmor=unconfined
     depends_on:
       db:
         condition: service_healthy

@@ -1,0 +1,8 @@
+# Require manual confirmation before Codex performs changes or other approved actions.
+approval_policy = "on-request"
+approvals_reviewer = "user"
+sandbox_mode = "read-only"
+
+[apps._default]
+approvals_reviewer = "user"
+default_tools_approval_mode = "writes"

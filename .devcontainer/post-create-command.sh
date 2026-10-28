@@ -11,6 +11,12 @@ cd "$REPO_ROOT"
 echo "Preparing Codex home at $CODEX_HOME"
 sudo chown -R "$(id -u):$(id -g)" "$CODEX_HOME"
 
+CODEX_CONFIG="$CODEX_HOME/config.toml"
+if [[ ! -e "$CODEX_CONFIG" ]]; then
+  echo "Seeding Codex permission defaults"
+  cp "$REPO_ROOT/.codex/config.toml" "$CODEX_CONFIG"
+fi
+
 echo "Configuring Zsh"
 bash "$SCRIPT_DIR/setup-zsh.sh"
 

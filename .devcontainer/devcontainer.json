@@ -11,6 +11,7 @@
     }
   },
 
+
   "forwardPorts": [5173, 3000, 5432, 8081],
   "portsAttributes": {
     "5173": { "label": "web (vite)" },
@@ -36,8 +37,7 @@
         "usernamehw.errorlens",
         "PKief.material-icon-theme",
         "YoavBls.pretty-ts-errors",
-        "ms-azuretools.vscode-containers",
-        "openai.chatgpt"
+        "ms-azuretools.vscode-containers"
       ],
       "settings": {
         "terminal.integrated.defaultProfile.linux": "zsh",
