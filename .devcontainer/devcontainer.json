@@ -20,7 +20,10 @@
     "8081": { "label": "webui (postgres)" }
   },
 
-  "mounts": ["source=codex-home,target=/home/node/.codex,type=volume"],
+  "mounts": [
+    "source=codex-home,target=/home/node/.codex,type=volume",
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.gitconfig,target=/home/node/.gitconfig,type=bind,readonly"
+  ],
 
   "postCreateCommand": "bash .devcontainer/post-create-command.sh",
 
