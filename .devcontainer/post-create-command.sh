@@ -8,9 +8,6 @@ CODEX_HOME="${CODEX_HOME:-${HOME}/.codex}"
 
 cd "$REPO_ROOT"
 
-echo "Installing Codex runtime"
-bash "$SCRIPT_DIR/ensure-codex.sh"
-
 echo "Preparing Codex home at $CODEX_HOME"
 sudo chown -R "$(id -u):$(id -g)" "$CODEX_HOME"
 

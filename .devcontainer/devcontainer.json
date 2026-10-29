@@ -22,12 +22,7 @@
 
   "mounts": ["source=codex-home,target=/home/node/.codex,type=volume"],
 
-  "remoteEnv": {
-    "PATH": "/home/node/.local/bin:${containerEnv:PATH}"
-  },
-
   "postCreateCommand": "bash .devcontainer/post-create-command.sh",
-  "postStartCommand": "bash .devcontainer/ensure-codex.sh",
 
   "customizations": {
     "vscode": {
