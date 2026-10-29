@@ -1,3 +1,4 @@
+import { Address } from './address.js';
 import { Municipality } from './municipality.js';
 
 export class CaseWorker {
@@ -7,6 +8,7 @@ export class CaseWorker {
     public email: string,
     public passwordHash: string,
     public phoneNumber: string,
+    public address: Address,
     public isSuperUser: boolean = false,
     public municipality: Municipality,
   ) {}
