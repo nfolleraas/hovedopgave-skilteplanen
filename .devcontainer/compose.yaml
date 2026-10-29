@@ -6,7 +6,7 @@ services:
       - ..:/workspaces/hovedopgave-skilteplanen:cached
     command: sleep infinity
     environment:
-      - DATABASE_URL=postgres://app:app@db:5432/app
+      - DATABASE_URL=${DATABASE_URL}
     security_opt:
       - seccomp=unconfined
       - apparmor=unconfined
@@ -35,7 +35,7 @@ services:
     ports:
       - 8081:8081
     environment:
-      - PGWEB_DATABASE_URL=postgres://app:app@db:5432/app?sslmode=disable
+      - PGWEB_DATABASE_URL=${DATABASE_URL}
     depends_on:
       db:
         condition: service_healthy
