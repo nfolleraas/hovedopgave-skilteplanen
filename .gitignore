@@ -23,8 +23,9 @@ dist-ssr
 
 *.tsbuildinfo
 
+.env
+
 # Prisma-generated API files and local setup artifacts
-/apps/api/.env
 /apps/api/src/generated/prisma/
 /apps/api/.agents/
 /apps/api/.claude/
