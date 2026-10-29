@@ -13,8 +13,7 @@
     "format:check": "biome format"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.15",
-    "@openai/codex-sdk": "^0.1.0"
+    "@biomejs/biome": "2.5.15"
   },
   "dependencies": {
     "uuid": "^14.0.3"
