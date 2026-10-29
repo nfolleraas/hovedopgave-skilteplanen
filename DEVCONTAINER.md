@@ -125,6 +125,10 @@ kun symlinks til det, den faktisk erklærer. Kør altid `bun install` fra roden.
   hentet ændringer i en `package.json`, skal du køre `bun install` manuelt.
 - **`customizations.vscode.extensions`** installeres inde i containeren. Hostens
   extensions bliver ikke overført.
+- **`ensure-codex.sh`** downloader den officielle Codex-runtime til
+  `/home/node/.local/bin`, så den integrerede Codex-chat i VS Code kan starte
+  agenten. Den køres både efter oprettelse og ved hver containerstart, men
+  springer over installationen, hvis `codex` allerede findes.
 - **`customizations.vscode.settings`** er editor-indstillinger, der kun anvendes
   inde i containeren. `workbench.iconTheme` vælger Material Icon Theme for alle,
   fordi at installere selve extensionen alene ikke aktiverer den. Resten gør
