@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 
-export class Application {
+export abstract class Application {
   constructor(
     public caseNumber: string = uuidv4(),
     public title: string,

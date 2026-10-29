@@ -1,3 +1,7 @@
 export class Permission {
-  constructor( ) {}
+  constructor(
+    public foodSale: boolean,
+    public alcoholSale: boolean,
+    public music: boolean,
+  ) {}
 }
