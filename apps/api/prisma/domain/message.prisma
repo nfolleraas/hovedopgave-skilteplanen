@@ -1,0 +1,11 @@
+model Message {
+  uuid            String        @id @default(cuid())
+  content         String
+  date            DateTime      @default(now())
+  messageThreadId String        @unique
+  messageThread   MessageThread @relation(fields: [messageThreadId], references: [uuid])
+  applicantId     String?       @unique
+  applicant       Applicant?    @relation(fields: [applicantId], references: [uuid])
+  caseWorkerId    String?       @unique
+  caseWorker      CaseWorker?   @relation(fields: [caseWorkerId], references: [employeeNumber])
+}

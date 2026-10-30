@@ -1,0 +1,17 @@
+model Applicant {
+  uuid            String          @id @default(cuid())
+  name            String
+  type            ApplicantType
+  phoneNumber     String
+  email           String
+  cvrNumber       String?
+  mitIdKey        String
+  skilteplanenKey String?
+  isActive        Boolean         @default(true)
+  addressId       String          @unique
+  address         Address         @relation(fields: [addressId], references: [uuid])
+  notifications   Notification[]
+  applications    Application[]
+  messageThreads  MessageThread[]
+  messages        Message[]
+}

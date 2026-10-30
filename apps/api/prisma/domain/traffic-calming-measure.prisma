@@ -1,0 +1,9 @@
+model TrafficCalmingMeasure {
+  id              String                     @id @default(cuid())
+  type            String
+  protectionLevel String
+  scope           TrafficCalmingMeasureScope
+  description     String
+  applicationId   String                     @unique
+  application     Application                @relation(fields: [applicationId], references: [caseNumber])
+}

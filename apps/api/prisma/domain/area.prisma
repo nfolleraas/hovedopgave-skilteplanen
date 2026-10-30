@@ -1,0 +1,15 @@
+model Area {
+  uuid                   String        @id @default(cuid())
+  roadName               String
+  roadOwnership          RoadOwnership
+  postalCode             String
+  houseNumberTo          String?
+  houseNumberFrom        String?
+  alternativeDescription String?
+  areaDetailId           String        @unique
+  areaDetail             AreaDetail    @relation(fields: [areaDetailId], references: [uuid])
+  areaSizeId             String        @unique
+  areaSize               AreaSize      @relation(fields: [areaSizeId], references: [uuid])
+  applicationId          String        @unique
+  application            Application   @relation(fields: [applicationId], references: [caseNumber])
+}

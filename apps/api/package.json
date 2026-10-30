@@ -20,6 +20,7 @@
     "test:debug": "vitest --inspect-brk --no-file-parallelism",
     "test:e2e": "vitest run --config ./vitest.config.e2e.ts",
     "dev": "nest start --watch",
+    "db:format": "bun --bun prisma --config prisma7.config.ts format",
     "db:generate": "bun --bun prisma --config prisma7.config.ts generate",
     "db:migrate": "bun --bun prisma --config prisma7.config.ts migrate dev",
     "db:deploy": "bun --bun prisma --config prisma7.config.ts migrate deploy"

@@ -1,0 +1,175 @@
+enum ApplicantType {
+  Private
+  Business
+}
+
+enum ApplicationType {
+  ExcavationPermit
+  RoadUsePermit
+  RoadUsePermitEvent
+}
+
+enum Availability {
+  Day
+  Evening
+  Night
+  AllDay
+}
+
+enum CableSubtype {
+  MainLine
+  ServiceLine
+  StreetCabinet
+  Other
+}
+
+enum CableType {
+  Telephone
+  Water
+  Power
+  Sewage
+  Gas
+  DistrictHeating
+  Coax
+  Fiber
+  Other
+}
+
+enum DocumentType {
+  SignPlan
+  Other
+}
+
+enum Direction {
+  Along
+  Across
+}
+
+enum ExecutionMethod {
+  Excavation
+  ExistingPipe
+  Ploughing
+  ChainTrenching
+  SoilDisplacement
+  PipeCracking
+  PipeRamming
+  UndergroundDrilling
+  UndergroundDirectionalDrilling
+  Other
+}
+
+enum MaterialType {
+  Banner
+  TemporarySign
+  PermanentSign
+  DrillingRig
+  Container
+  Crane
+  Truck
+  Lift
+  OfficeCabin
+  WelfareCabin
+  TrenchlessUnit
+  ReliningUnit
+  Scaffolding
+  LoadingTower
+  Tent
+  Stage
+  Grandstand
+  Other
+}
+
+enum PermitType {
+  Application
+  Notice
+}
+
+enum QuestionType {
+  ExcavationPermit
+  RoadUsePermit
+  RoadUsePermitEvent
+  Other
+}
+
+enum RoadSection {
+  Lane
+  EmergencyLane
+  BikeLane
+  Pavement
+  Roundabout
+  RoadVerge
+  Other
+}
+
+enum RoadSide {
+  Left
+  Right
+  Both
+  Middle
+}
+
+enum RoadOwnership {
+  Private
+  Municipality
+}
+
+enum SignPlanType {
+  MarkingCityArea
+  MarkingHighway
+  MarkingRuralArea
+  AuthorityMarkingPlan
+  AttachSpecificMarkingPlan
+}
+
+enum Status {
+  Draft
+  InProgress
+  Approved
+  Rejected
+  ChangeRequired
+}
+
+enum TrafficCalmingMeasureScope {
+  OncomingTraffic
+  FollowingTraffic
+  Both
+}
+
+enum TrafficChange {
+  SpeedLimitWorkZone
+  SpeedLimitTrafficSafety
+  OnewayTraffic
+  TrafficLight
+  NoStoppingAndParking
+  UnconditionalObligationInIntersection
+}
+
+enum Usage {
+  AsphaltWork
+  Construction
+  Renovation
+  MaterialSpace
+  StreetFurnitureInstallation
+  BannerInstallation
+  SignInstallment
+  MarketStand
+  OutdoorServing
+  WaterDischarge
+  ProductDisplay
+  Other
+}
+
+enum WorkCategory {
+  Establishment
+  Repair
+  JointBay
+  CableError
+  Renovation
+  Decommission
+  AlarmError
+  Removal
+  Cleaning
+  TrialHole
+  Investigation
+  Other
+}

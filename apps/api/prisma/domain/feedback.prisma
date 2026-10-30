@@ -1,0 +1,10 @@
+model Feedback {
+  uuid          String      @id @default(cuid())
+  category      String
+  IsRead        Boolean     @default(false)
+  message       String
+  applicationId String      @unique
+  application   Application @relation(fields: [applicationId], references: [caseNumber])
+  caseWorkerId  String      @unique
+  caseWorker    CaseWorker  @relation(fields: [caseWorkerId], references: [employeeNumber])
+}

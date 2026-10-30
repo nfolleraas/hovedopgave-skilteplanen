@@ -1,0 +1,9 @@
+model Address {
+  uuid         String        @id @default(cuid())
+  street       String
+  houseNumber  String
+  postalCode   String
+  city         String
+  applicant    Applicant?
+  municipality Municipality?
+}

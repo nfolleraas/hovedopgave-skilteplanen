@@ -1,0 +1,10 @@
+model Notification {
+  uuid         String      @id @default(cuid())
+  date         DateTime    @default(now())
+  message      String
+  isRead       Boolean     @default(false)
+  applicantId  String?     @unique
+  applicant    Applicant?  @relation(fields: [applicantId], references: [uuid])
+  caseWorkerId String?     @unique
+  caseWorker   CaseWorker? @relation(fields: [caseWorkerId], references: [employeeNumber])
+}

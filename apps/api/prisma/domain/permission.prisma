@@ -1,0 +1,8 @@
+model Permission {
+  id              String        @id @default(cuid())
+  foodSale        Boolean
+  alcoholSale     Boolean
+  music           Boolean
+  roadUsePermitId String        @unique
+  roadUsePermit   RoadUsePermit @relation(fields: [roadUsePermitId], references: [caseNumber])
+}

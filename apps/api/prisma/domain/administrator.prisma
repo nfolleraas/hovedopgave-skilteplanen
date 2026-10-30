@@ -1,0 +1,6 @@
+model Administrator {
+  uuid         String @id @default(cuid())
+  name         String
+  email        String
+  passwordHash String
+}

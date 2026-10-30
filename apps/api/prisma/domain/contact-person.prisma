@@ -1,0 +1,9 @@
+model ContactPerson {
+  uuid          String       @id @default(cuid())
+  name          String
+  email         String
+  phoneNumber   String
+  availability  Availability
+  applicationId String       @unique
+  application   Application  @relation(fields: [applicationId], references: [caseNumber])
+}

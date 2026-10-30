@@ -1,0 +1,12 @@
+model ExcavationPermit {
+  caseNumber         String          @id
+  title              String
+  applicantReference String
+  type               ApplicationType
+  permitType         PermitType
+  startDate          DateTime
+  endDate            DateTime
+  trafficChange      TrafficChange
+  cableTasks         CableTask[]
+  application        Application?
+}

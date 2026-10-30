@@ -1,0 +1,8 @@
+model AreaDetail {
+  uuid                   String      @id @default(cuid())
+  roadSection            RoadSection
+  roadSectionDescription String?
+  roadSide               RoadSide
+  direction              Direction
+  area                   Area?
+}

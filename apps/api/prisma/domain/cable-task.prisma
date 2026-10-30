@@ -1,0 +1,13 @@
+model CableTask {
+  id                          String            @id
+  cableType                   CableType
+  cableTypesDescription       String?
+  cableSubtypes               CableSubtype[]
+  cableSubtypesDescription    String?
+  workCategories              WorkCategory[]
+  workCategoriesDescription   String?
+  executionMethods            ExecutionMethod[]
+  executionMethodsDescription String?
+  excavationPermitId          String            @unique
+  excavationPermit            ExcavationPermit  @relation(fields: [excavationPermitId], references: [caseNumber])
+}
