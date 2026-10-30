@@ -3,7 +3,7 @@
   "dockerComposeFile": "compose.yaml",
   "service": "app",
   "workspaceFolder": "/workspaces/hovedopgave-skilteplanen",
-  "initializeCommand": "docker compose -f .devcontainer/compose.yaml down --remove-orphans",
+  "initializeCommand": "bash .devcontainer/initialize-command.sh",
   "features": {
     "ghcr.io/shyim/devcontainers-features/bun:0": {},
     "ghcr.io/devcontainers/features/common-utils:2": {
