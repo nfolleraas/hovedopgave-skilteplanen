@@ -40,7 +40,8 @@
         "usernamehw.errorlens",
         "PKief.material-icon-theme",
         "YoavBls.pretty-ts-errors",
-        "ms-azuretools.vscode-containers"
+        "ms-azuretools.vscode-containers",
+        "Prisma.prisma"
       ],
       "settings": {
         "terminal.integrated.defaultProfile.linux": "zsh",
