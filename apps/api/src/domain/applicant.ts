@@ -1,5 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { Address } from './address.js';
+import { Application } from './application.js';
+import { MessageThread } from './message-thread.js';
 
 export class Applicant {
   public constructor(
@@ -8,10 +10,13 @@ export class Applicant {
     public type: 'Private' | 'Business',
     public phoneNumber: string,
     public email: string,
+    public cvrNumber: string | null,
     public mitIdKey: string,
+    public skilteplanenKey: string | null,
     public isActive: boolean = true,
     public address: Address,
-    public cvrNumber?: string,
-    public skilteplanenKey?: string,
+    public notifications: Notification[],
+    public messageThreads: MessageThread[],
+    public applications: Application[],
   ) {}
 }

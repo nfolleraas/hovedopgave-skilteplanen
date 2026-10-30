@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { Applicant } from './applicant.js';
-import { Municipality } from './municipality.js';
+import { CaseWorker } from './case-worker.js';
 
 export class Message {
   constructor(
@@ -8,6 +8,6 @@ export class Message {
     public content: string,
     public date: Date = new Date(),
     public applicant: Applicant,
-    public municipality: Municipality,
+    public caseWorker: CaseWorker,
   ) {}
 }

@@ -7,12 +7,12 @@ export class CableTask {
   constructor(
     public id: string,
     public cableType: CableType,
+    public cableTypesDescription: string | null,
     public cableSubtypes: CableSubtype[],
+    public cableSubtypesDescription: string | null,
     public workCategories: WorkCategory[],
+    public workCategoriesDescription: string | null,
     public executionMethods: ExecutionMethod[],
-    public cableTypesDescription?: string,
-    public cableSubtypesDescription?: string,
-    public workCategoriesDescription?: string,
-    public executionMethodsDescription?: string,
+    public executionMethodsDescription: string | null,
   ) {}
 }

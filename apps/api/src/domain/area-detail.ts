@@ -6,8 +6,8 @@ export class AreaDetail {
   constructor(
     public uuid: string = uuidv4(),
     public roadSection: RoadSection,
+    public roadSectionDescription: string | null,
     public roadSide: RoadSide,
     public direction: 'Along' | 'Across',
-    public roadSectionDescription?: string,
   ) {}
 }

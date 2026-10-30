@@ -1,8 +1,9 @@
 import { v4 as uuidv4 } from 'uuid';
 import { QuestionType } from '../enums/question-type.js';
 import { Applicant } from './applicant.js';
+import { Application } from './application.js';
+import { CaseWorker } from './case-worker.js';
 import { Message } from './message.js';
-import { Municipality } from './municipality.js';
 
 export class MessageThread {
   constructor(
@@ -12,6 +13,7 @@ export class MessageThread {
     public date: Date = new Date(),
     public messages: Message[],
     public applicant: Applicant,
-    public municipality: Municipality,
+    public caseWorker: CaseWorker,
+    public application: Application | null,
   ) {}
 }

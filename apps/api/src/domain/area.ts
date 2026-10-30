@@ -6,8 +6,8 @@ export class Area {
     public roadName: string,
     public roadOwnership: 'Private' | 'Municipality',
     public postalCode: string,
-    public houseNumberTo?: string,
-    public houseNumberFrom?: string,
-    public alternativeDescription?: string,
+    public houseNumberTo: string | null,
+    public houseNumberFrom: string | null,
+    public alternativeDescription: string | null,
   ) {}
 }

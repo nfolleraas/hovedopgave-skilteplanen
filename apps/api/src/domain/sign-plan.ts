@@ -9,7 +9,6 @@ export class SignPlan extends Document {
     url: string,
     date: Date = new Date(),
     public signPlanType: SignPlanType,
-    public area: string,
     public group: string,
     public plan: string,
   ) {

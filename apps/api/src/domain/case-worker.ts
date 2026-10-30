@@ -1,4 +1,7 @@
 import { Address } from './address.js';
+import { Application } from './application.js';
+import { Feedback } from './feedback.js';
+import { MessageThread } from './message-thread.js';
 import { Municipality } from './municipality.js';
 
 export class CaseWorker {
@@ -11,5 +14,8 @@ export class CaseWorker {
     public address: Address,
     public isSuperUser: boolean = false,
     public municipality: Municipality,
+    public messageThreads: MessageThread[],
+    public applications: Application[],
+    public feedbacks: Feedback[],
   ) {}
 }

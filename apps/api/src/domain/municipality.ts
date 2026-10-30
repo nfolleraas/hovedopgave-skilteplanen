@@ -1,3 +1,6 @@
+import { Address } from './address.js';
+import { CaseWorker } from './case-worker.js';
+
 export class Municipality {
   constructor(
     public id: number,
@@ -5,5 +8,7 @@ export class Municipality {
     public region: string,
     public email: string,
     public phoneNumber: string,
+    public address: Address,
+    public caseWorkers: CaseWorker[],
   ) {}
 }
