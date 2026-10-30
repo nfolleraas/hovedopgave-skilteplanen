@@ -76,6 +76,13 @@ git diff
 
 If there are no changes, tell the user. Do not make an empty commit.
 
+If any changes have been staged manually, focus only on committing the staged
+changes. Do not stage, unstage, or commit unstaged changes.
+
+If no changes have been staged manually, examine all changes for context,
+group them into fitting logical commits, then stage and commit each group one
+at a time.
+
 ### 3. Stage the files
 
 Put one logical change in each commit. If the staged files contain more than one change, first unstage the files of the other changes. Then stage the files for this change:
