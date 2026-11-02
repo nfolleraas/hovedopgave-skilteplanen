@@ -9,6 +9,7 @@ model Application {
   signPlans              SignPlan[]
   documents              Document[]
   areas                  Area[]
+  trafficChange          TrafficChange
   applicantId            String                  @unique
   applicant              Applicant               @relation(fields: [applicantId], references: [uuid])
   caseWorkerId           String?                 @unique

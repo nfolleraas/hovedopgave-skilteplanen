@@ -129,6 +129,18 @@ enum Status {
   ChangeRequired
 }
 
+enum TrafficCalmingMeasureType {
+  A
+  B
+  C
+  D
+  E
+  F
+  G
+  H
+  I
+}
+
 enum TrafficCalmingMeasureScope {
   OncomingTraffic
   FollowingTraffic

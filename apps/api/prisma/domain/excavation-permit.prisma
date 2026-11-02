@@ -6,7 +6,6 @@ model ExcavationPermit {
   permitType         PermitType
   startDate          DateTime
   endDate            DateTime
-  trafficChange      TrafficChange
   cableTasks         CableTask[]
   application        Application?
 }

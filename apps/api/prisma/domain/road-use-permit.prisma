@@ -10,7 +10,6 @@ model RoadUsePermit {
   eventEnd           DateTime
   usage              Usage
   usageDescription   String?
-  trafficChange      TrafficChange
   materials          Material[]
   permissions        Permission[]
   application        Application?
