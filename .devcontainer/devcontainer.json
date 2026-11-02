@@ -21,8 +21,7 @@
   },
 
   "mounts": [
-    "source=codex-home,target=/home/node/.codex,type=volume",
-    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.gitconfig,target=/home/node/.gitconfig,type=bind,readonly"
+    "source=codex-home,target=/home/node/.codex,type=volume"
   ],
 
   "postCreateCommand": "bash .devcontainer/post-create-command.sh",
