@@ -1,17 +1,23 @@
 import { Box, Container, Typography } from '@mui/material';
-
-const sections = [
-  {
-    title: 'Genveje',
-    items: ['Om os', 'Ofte stillede spørgsmål', 'Kontakt'],
-  },
-  {
-    title: 'Information',
-    items: ['Privatlivspolitik', 'Cookiepolitik', 'Vilkår og betingelser'],
-  },
-];
+import { useTranslation } from 'react-i18next';
 
 export default function Footer() {
+  const { t } = useTranslation();
+  const sections = [
+    {
+      title: t('footer.shortcuts'),
+      items: [t('footer.aboutUs'), t('footer.faq'), t('footer.contact')],
+    },
+    {
+      title: t('footer.information'),
+      items: [
+        t('footer.privacyPolicy'),
+        t('footer.cookiePolicy'),
+        t('footer.terms'),
+      ],
+    },
+  ];
+
   return (
     <Box
       component="footer"
@@ -36,10 +42,10 @@ export default function Footer() {
         >
           <Box>
             <Typography color="inherit" component="h2" variant="h6">
-              Skilteplanen
+              {t('common.brandName')}
             </Typography>
             <Typography sx={{ mt: 1 }} variant="body2">
-              [Kort beskrivelse af virksomheden]
+              {t('footer.companyDescriptionPlaceholder')}
             </Typography>
           </Box>
 
@@ -60,13 +66,17 @@ export default function Footer() {
 
           <Box component="section">
             <Typography color="inherit" component="h2" variant="subtitle1">
-              Kontakt
+              {t('footer.contact')}
             </Typography>
             <Typography sx={{ mt: 1 }} variant="body2">
-              [E-mailadresse]
+              {t('footer.emailPlaceholder')}
             </Typography>
-            <Typography variant="body2">[Telefonnummer]</Typography>
-            <Typography variant="body2">[Adresse]</Typography>
+            <Typography variant="body2">
+              {t('footer.phonePlaceholder')}
+            </Typography>
+            <Typography variant="body2">
+              {t('footer.addressPlaceholder')}
+            </Typography>
           </Box>
         </Box>
 
@@ -82,10 +92,11 @@ export default function Footer() {
           }}
         >
           <Typography variant="body2">
-            © {new Date().getFullYear()} Skilteplanen. Alle rettigheder
-            forbeholdes.
+            {t('footer.copyright', { year: new Date().getFullYear() })}
           </Typography>
-          <Typography variant="body2">[Links til sociale medier]</Typography>
+          <Typography variant="body2">
+            {t('footer.socialLinksPlaceholder')}
+          </Typography>
         </Box>
       </Container>
     </Box>

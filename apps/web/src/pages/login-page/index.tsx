@@ -1,8 +1,12 @@
+import { useTranslation } from 'react-i18next';
+
 export default function LoginPage() {
+  const { t } = useTranslation();
+
   return (
     <main>
-      <h1>Log in</h1>
-      <p>Login form placeholder.</p>
+      <h1>{t('login.title')}</h1>
+      <p>{t('login.formPlaceholder')}</p>
     </main>
   );
 }

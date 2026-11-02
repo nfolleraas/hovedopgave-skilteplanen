@@ -4,6 +4,9 @@
   "workspaces": {
     "": {
       "name": "hovedopgave-skilteplanen",
+      "dependencies": {
+        "i18next": "^26.7.1",
+      },
       "devDependencies": {
         "@biomejs/biome": "2.5.15",
       },

@@ -1,1 +1,44 @@
-{}
+{
+  "notFound": {
+    "title": "Siden blev ikke fundet"
+  },
+  "footer": {
+    "shortcuts": "Genveje",
+    "aboutUs": "Om os",
+    "faq": "Ofte stillede spørgsmål",
+    "contact": "Kontakt",
+    "information": "Information",
+    "privacyPolicy": "Privatlivspolitik",
+    "cookiePolicy": "Cookiepolitik",
+    "terms": "Vilkår og betingelser",
+    "companyDescriptionPlaceholder": "[Kort beskrivelse af virksomheden]",
+    "emailPlaceholder": "[E-mailadresse]",
+    "phonePlaceholder": "[Telefonnummer]",
+    "addressPlaceholder": "[Adresse]",
+    "copyright": "© {{year}} Skilteplanen. Alle rettigheder forbeholdes.",
+    "socialLinksPlaceholder": "[Links til sociale medier]"
+  },
+  "common": {
+    "brandName": "Skilteplanen"
+  },
+  "navigation": {
+    "home": "Hjem",
+    "application": "Ansøgning",
+    "contacts": "Kontaktpersoner",
+    "messages": "Beskeder",
+    "logoHome": "Ansøgningsplatformen – gå til forsiden",
+    "main": "Hovednavigation",
+    "openUserMenu": "Åbn brugermenu",
+    "settings": "Indstillinger",
+    "logOut": "Log af",
+    "language": "Sprog"
+  },
+  "home": {
+    "title": "Ansøgningsplatformen",
+    "intro": "Velkommen til Ansøgningsplatformen"
+  },
+  "login": {
+    "title": "Log ind",
+    "formPlaceholder": "Her kommer loginformularen."
+  }
+}

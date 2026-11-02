@@ -1,1 +1,44 @@
-{}
+{
+  "notFound": {
+    "title": "Page not found"
+  },
+  "footer": {
+    "shortcuts": "Shortcuts",
+    "aboutUs": "About us",
+    "faq": "Frequently asked questions",
+    "contact": "Contact",
+    "information": "Information",
+    "privacyPolicy": "Privacy policy",
+    "cookiePolicy": "Cookie policy",
+    "terms": "Terms and conditions",
+    "companyDescriptionPlaceholder": "[Short company description]",
+    "emailPlaceholder": "[Email address]",
+    "phonePlaceholder": "[Phone number]",
+    "addressPlaceholder": "[Address]",
+    "copyright": "© {{year}} Skilteplanen. All rights reserved.",
+    "socialLinksPlaceholder": "[Social media links]"
+  },
+  "common": {
+    "brandName": "Skilteplanen"
+  },
+  "navigation": {
+    "home": "Home",
+    "application": "Application",
+    "contacts": "Contacts",
+    "messages": "Messages",
+    "logoHome": "Applicantplatform – go to the home page",
+    "main": "Main navigation",
+    "openUserMenu": "Open user menu",
+    "settings": "Settings",
+    "logOut": "Log out",
+    "language": "Language"
+  },
+  "home": {
+    "title": "Applicantplatform",
+    "intro": "Welcome to Applicantplatform."
+  },
+  "login": {
+    "title": "Log in",
+    "formPlaceholder": "The login form will appear here."
+  }
+}

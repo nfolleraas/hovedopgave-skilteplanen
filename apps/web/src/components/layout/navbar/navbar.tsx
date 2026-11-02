@@ -2,7 +2,9 @@ import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined
 import {
   AppBar,
   Box,
+  Divider,
   IconButton,
+  ListSubheader,
   Menu,
   MenuItem,
   Tab,
@@ -10,18 +12,24 @@ import {
   Toolbar,
 } from '@mui/material';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { routes } from '../../../app/router.js';
 
-const navigationItems = [
-  { label: 'Hjem', path: routes.home },
-  { label: 'Ansøgning', path: routes.application },
-  { label: 'Kontaktpersoner', path: routes.contacts },
-  { label: 'Beskeder', path: routes.messages },
-];
-
 export default function Navbar() {
+  const { t, i18n } = useTranslation();
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
   const menuOpen = Boolean(menuAnchor);
+  const currentLanguage = i18n.resolvedLanguage ?? i18n.language;
+  const selectLanguage = (language: 'en' | 'da') => {
+    void i18n.changeLanguage(language);
+    setMenuAnchor(null);
+  };
+  const navigationItems = [
+    { label: t('navigation.home'), path: routes.home },
+    { label: t('navigation.application'), path: routes.application },
+    { label: t('navigation.contacts'), path: routes.contacts },
+    { label: t('navigation.messages'), path: routes.messages },
+  ];
   const activeTab = navigationItems.findIndex(
     (item) => item.path === window.location.pathname,
   );
@@ -43,7 +51,7 @@ export default function Navbar() {
         }}
       >
         <Box
-          aria-label="Ansøgningsplatformen – gå til forsiden"
+          aria-label={t('navigation.logoHome')}
           component="a"
           href={routes.home}
           sx={{ display: 'block', flexShrink: 0 }}
@@ -71,7 +79,7 @@ export default function Navbar() {
           }}
         >
           <Tabs
-            aria-label="Hovednavigation"
+            aria-label={t('navigation.main')}
             scrollButtons="auto"
             sx={{
               '& .MuiTab-root': {
@@ -103,7 +111,7 @@ export default function Navbar() {
           aria-controls={menuOpen ? 'user-menu' : undefined}
           aria-expanded={menuOpen ? 'true' : undefined}
           aria-haspopup="menu"
-          aria-label="Åbn brugermenu"
+          aria-label={t('navigation.openUserMenu')}
           color="inherit"
           onClick={(event) => setMenuAnchor(event.currentTarget)}
           sx={{ ml: { xs: 'auto', md: 0 } }}
@@ -116,8 +124,38 @@ export default function Navbar() {
           onClose={() => setMenuAnchor(null)}
           open={menuOpen}
         >
-          <MenuItem onClick={() => setMenuAnchor(null)}>Indstillinger</MenuItem>
-          <MenuItem onClick={() => setMenuAnchor(null)}>Log af</MenuItem>
+          <MenuItem onClick={() => setMenuAnchor(null)}>
+            {t('navigation.settings')}
+          </MenuItem>
+          <MenuItem onClick={() => setMenuAnchor(null)}>
+            {t('navigation.logOut')}
+          </MenuItem>
+          <Divider />
+          <ListSubheader>{t('navigation.language')}</ListSubheader>
+          <MenuItem
+            onClick={() => selectLanguage('da')}
+            selected={currentLanguage.startsWith('da')}
+          >
+            <Box
+              aria-hidden="true"
+              component="span"
+              sx={{ fontSize: '1.25rem', mr: 1.5 }}
+            >
+              🇩🇰
+            </Box>
+          </MenuItem>
+           <MenuItem
+            onClick={() => selectLanguage('en')}
+            selected={currentLanguage.startsWith('en')}
+          >
+            <Box
+              aria-hidden="true"
+              component="span"
+              sx={{ fontSize: '1.25rem', mr: 1.5 }}
+            >
+              🇬🇧
+            </Box>
+          </MenuItem>
         </Menu>
       </Toolbar>
     </AppBar>
