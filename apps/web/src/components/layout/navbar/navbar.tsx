@@ -27,7 +27,6 @@ export default function Navbar() {
   const navigationItems = [
     { label: t('navigation.home'), path: routes.home },
     { label: t('navigation.application'), path: routes.application },
-    { label: t('navigation.contacts'), path: routes.contacts },
     { label: t('navigation.messages'), path: routes.messages },
   ];
   const activeTab = navigationItems.findIndex(
@@ -74,7 +73,7 @@ export default function Navbar() {
           sx={{
             flex: { xs: '0 0 100%', md: '1 1 auto' },
             minWidth: 0,
-            mr: { lg: 8 },
+            mr: { lg: 12 },
             order: { xs: 3, md: 0 },
           }}
         >
@@ -144,7 +143,7 @@ export default function Navbar() {
               🇩🇰
             </Box>
           </MenuItem>
-           <MenuItem
+          <MenuItem
             onClick={() => selectLanguage('en')}
             selected={currentLanguage.startsWith('en')}
           >
