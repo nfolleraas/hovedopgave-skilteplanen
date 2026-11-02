@@ -173,3 +173,11 @@ enum WorkCategory {
   Investigation
   Other
 }
+
+enum ActorRole {
+  Supplier
+  Contractor
+  NetworkOperator
+  ProjectCoordinator
+  Private
+}

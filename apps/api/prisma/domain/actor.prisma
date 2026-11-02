@@ -1,0 +1,11 @@
+model Actor {
+  uuid              String        @id @default(cuid())
+  name              String
+  phoneNumber       String
+  email             String
+  cvrNumber         String?
+  role              ActorRole
+  department        String?
+  ContactPersonName String?
+  applications      Application[]
+}
