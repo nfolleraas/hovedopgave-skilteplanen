@@ -119,7 +119,8 @@ docs/
 ├── api/                       API documentation
 └── technical/                Cross-cutting engineering documentation
     ├── coding-convention.md   Coding and formatting conventions
-    └── file-structure.md      This file
+    ├── file-structure.md      This file
+    └── i18n.md                Frontend translation setup and usage
 ```
 
 Update this document when a new top-level application, major shared folder, or
