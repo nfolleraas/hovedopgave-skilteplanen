@@ -15,6 +15,9 @@ port `3000`.
 The app currently contains the default Vite and React starter screen. Add
 feature-specific guides here as the frontend develops.
 
+The [stylesheet](styles/stylesheet.md) documents the colours, typography, and
+component styles to use when implementing the UI.
+
 ## Common commands
 
 Run these from the repository root:
