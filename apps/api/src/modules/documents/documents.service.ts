@@ -19,7 +19,7 @@ export class DocumentsService {
 
     return this.documentsRepository.add({
       name: dto.name,
-      documentType: dto.documentType,
+      documentType,
       url: dto.url,
       application: {
         connect: {
