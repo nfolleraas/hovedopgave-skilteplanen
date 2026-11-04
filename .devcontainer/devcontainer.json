@@ -53,7 +53,8 @@
           "source.fixAll.biome": "explicit",
           "source.organizeImports.biome": "explicit",
           "source.action.useSortedAttributes.biome": "explicit"
-        }
+        },
+        "terminal.integrated.scrollback": 50000
       }
     }
   },
