@@ -7,6 +7,7 @@ This repository is a Danish 5th-semester Datamatiker project for Skilteplanen. I
 - Read the relevant app documentation and nearby code before changing behavior. Use `DEVCONTAINER.md` for container setup changes.
 - Before implementing or changing web UI components, read and follow the [web stylesheet](docs/web/styles/stylesheet.md), including its component-specific variants.
 - Keep changes focused and follow the existing TypeScript, React, NestJS, and Biome conventions.
+- For simple requests, make the smallest possible change that fully satisfies the request. Do not add unrequested features, refactors, abstractions, or broad testing. Keep verification proportional to the change; reserve larger implementations for complicated problems or explicitly requested scope.
 - Run commands from the repository root unless an app-specific command is needed. Use Bun workspaces; do not introduce another package manager or lockfile.
 - `bun run check` runs Biome checks. `bun run check:fix` writes safe fixes. App scripts and database/container commands are documented in `README.md` and `DEVCONTAINER.md`.
 - API unit and e2e tests are defined in `apps/api`; the web app currently has no test script. Run relevant checks for code changes and report what was run.
