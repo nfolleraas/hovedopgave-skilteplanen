@@ -32,6 +32,17 @@
     "logOut": "Log af",
     "language": "Sprog"
   },
+  "documents": {
+    "loadError": "Dokumenterne kunne ikke hentes.",
+    "uploadError": "Dokumentet kunne ikke uploades.",
+    "title": "Ansøgningsdokumenter",
+    "description": "Midlertidig side til test af dokumentupload for demoansøgningen.",
+    "uploading": "Uploader...",
+    "upload": "Upload dokument",
+    "listTitle": "Uploadede dokumenter",
+    "loading": "Henter dokumenter",
+    "empty": "Der er ikke uploadet dokumenter endnu."
+  },
   "home": {
     "title": "Ansøgningsplatformen",
     "intro": "Velkommen til Ansøgningsplatformen"

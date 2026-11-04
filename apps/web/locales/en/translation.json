@@ -32,6 +32,17 @@
     "logOut": "Log out",
     "language": "Language"
   },
+  "documents": {
+    "loadError": "The documents could not be loaded.",
+    "uploadError": "The document could not be uploaded.",
+    "title": "Application documents",
+    "description": "Temporary document upload page for the demo application.",
+    "uploading": "Uploading...",
+    "upload": "Upload document",
+    "listTitle": "Uploaded documents",
+    "loading": "Loading documents",
+    "empty": "No documents have been uploaded yet."
+  },
   "home": {
     "title": "Applicantplatform",
     "intro": "Welcome to Applicantplatform."
