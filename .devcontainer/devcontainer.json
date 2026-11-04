@@ -11,7 +11,6 @@
     }
   },
 
-
   "forwardPorts": [5173, 3000, 5432, 8081],
   "portsAttributes": {
     "5173": { "label": "web (vite)" },
@@ -20,9 +19,7 @@
     "8081": { "label": "webui (postgres)" }
   },
 
-  "mounts": [
-    "source=codex-home,target=/home/node/.codex,type=volume"
-  ],
+  "mounts": ["source=codex-home,target=/home/node/.codex,type=volume"],
 
   "postCreateCommand": "bash .devcontainer/post-create-command.sh",
 
@@ -40,7 +37,8 @@
         "PKief.material-icon-theme",
         "YoavBls.pretty-ts-errors",
         "ms-azuretools.vscode-containers",
-        "Prisma.prisma"
+        "Prisma.prisma",
+        "Anthropic.claude-code"
       ],
       "settings": {
         "terminal.integrated.defaultProfile.linux": "zsh",
