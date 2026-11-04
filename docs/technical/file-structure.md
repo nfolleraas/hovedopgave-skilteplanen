@@ -95,6 +95,7 @@ apps/web/
 │   ├── components/            Reusable layout and UI components
 │   ├── config/                Frontend environment configuration
 │   ├── context/               React context providers
+│   ├── features/              Feature logic shared by pages, such as areas
 │   ├── hooks/                 Reusable React hooks
 │   ├── lib/                   Shared library integrations
 │   ├── pages/                 Route-level page components and tests

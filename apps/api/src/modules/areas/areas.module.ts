@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { AreasService } from './areas.service.js';
 import { AreasController } from './areas.controller.js';
+import { AreasService } from './areas.service.js';
 
 @Module({
   controllers: [AreasController],

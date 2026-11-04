@@ -32,6 +32,74 @@
     "logOut": "Log out",
     "language": "Language"
   },
+  "applicationWizard": {
+    "stepNotBuilt": "This step has not been built yet.",
+    "stepsLabel": "Application steps",
+    "back": "Back",
+    "next": "Next",
+    "loading": "Loading the application"
+  },
+  "areas": {
+    "cardTitle": "Area {{number}} · {{road}}",
+    "missingInfo": "missing information",
+    "editArea": "Edit {{area}}",
+    "edit": "Edit",
+    "deleteAreaFor": "Delete {{area}}",
+    "delete": "Delete area",
+    "cancel": "Cancel",
+    "save": "Save area",
+    "houseNumberOrDescriptionHint": "Fill in house number from and to or an alternative description.",
+    "areaCalculated": "Calculated from length × width",
+    "fields": {
+      "areaInSquareMeters": "Area (m²)"
+    },
+    "newRoad": "New road",
+    "saved": "{{area}} was saved.",
+    "notEditable": "Areas can only be changed while the application is a draft or requires changes.",
+    "saveError": "The area could not be saved. Try again later or contact support.",
+    "lastAreaError": "The application must have at least one area.",
+    "deleted": "The area on {{road}} was deleted.",
+    "deleteError": "The area could not be deleted. Try again later or contact support.",
+    "title": "Areas",
+    "eventHint": "For events, only the selected roads are registered.",
+    "addManually": "+ Add road manually",
+    "deleteDialog": {
+      "title": "Delete area?",
+      "houseNumbers": "House no.: {{value}}",
+      "description": "Description: {{value}}",
+      "warning": "The area and its details will be deleted permanently.",
+      "confirm": "Delete"
+    },
+    "summary": {
+      "title": "You can't continue yet",
+      "noAreas": "The application must have at least one area.",
+      "missingFields": "{{area}} is missing: {{fields}}",
+      "unsaved": "{{area}} has unsaved changes."
+    },
+    "unsavedDialog": {
+      "title": "Save changes?",
+      "text": "{{area}} has unsaved changes.",
+      "discard": "Discard changes",
+      "save": "Save"
+    }
+  },
+  "mapStep": {
+    "mapPlaceholder": "Interactive map coming later",
+    "createError": "The areas could not be created. Try again later or contact support.",
+    "title": "Map",
+    "cannotFindRoad": "Can't find the road?",
+    "searchLabel": "Search road or area",
+    "searchPlaceholder": "E.g. Strandvej, 5000 or Odense",
+    "searchResults": "Search results",
+    "alreadySelected": "selected",
+    "noResults": "No roads found",
+    "resultCount_one": "{{count}} road found. Use the up and down arrows and press Enter to select.",
+    "resultCount_other": "{{count}} roads found. Use the up and down arrows and press Enter to select.",
+    "selectedRoads": "Selected roads",
+    "noSelectedRoads": "You have not selected any roads yet.",
+    "removeRoad": "Remove {{road}}",
+    "remove": "Remove"
+  },
   "home": {
     "title": "Applicantplatform",
     "intro": "Welcome to Applicantplatform."

@@ -3,6 +3,7 @@ model Application {
   title                  String
   applicantReference     String
   type                   ApplicationType
+  status                 Status                  @default(Draft)
   contactPersons         ContactPerson[]
   feedbacks              Feedback[]
   trafficCalmingMeasures TrafficCalmingMeasure[]

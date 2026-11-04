@@ -6,10 +6,11 @@ model Area {
   houseNumberTo          String?
   houseNumberFrom        String?
   alternativeDescription String?
-  areaDetailId           String        @unique
-  areaDetail             AreaDetail    @relation(fields: [areaDetailId], references: [uuid])
-  areaSizeId             String        @unique
-  areaSize               AreaSize      @relation(fields: [areaSizeId], references: [uuid])
-  applicationId          String        @unique
+  // Optional because event applications only register the road itself.
+  areaDetailId           String?       @unique
+  areaDetail             AreaDetail?   @relation(fields: [areaDetailId], references: [uuid])
+  areaSizeId             String?       @unique
+  areaSize               AreaSize?     @relation(fields: [areaSizeId], references: [uuid])
+  applicationId          String
   application            Application   @relation(fields: [applicationId], references: [caseNumber])
 }
