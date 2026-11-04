@@ -23,6 +23,17 @@ indstilling findes, og hvordan den ændres, se [DEVCONTAINER.md](DEVCONTAINER.md
 Intet andet er nødvendigt på værten. Node, bun og Postgres ligger alle i
 containerne.
 
+## ENV
+
+Når du har klonet projektet, skal du oprette en lokal `.env`-fil i `.devcontainer/`. Filen indeholder de indstillinger og hemmelige værdier, projektet skal bruge for at køre, og den bliver ikke delt via Git.
+
+### Opsætning
+
+1. Gå til mappen `.devcontainer/`.
+2. Kopiér `.env.example`, og omdøb kopien til `.env`.
+3. Åbn `.env`, og erstat alle værdier med `<>` omkring (inkl. `<` og `>`) med de rigtige værdier fra Discord.
+4. Åbn projektet i dev containeren: tryk `Ctrl+Shift+P` og vælg `Dev Containers: Open Folder in Dev Container`.
+
 ## Brug af dev containeren
 
 En dev container er en Docker-container, som VS Code åbner repoet inde i.
