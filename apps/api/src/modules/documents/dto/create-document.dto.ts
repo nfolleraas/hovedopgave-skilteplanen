@@ -5,15 +5,16 @@ export class CreateDocumentDto {
   @ApiProperty()
   name: string;
 
-  @ApiProperty({ enum: DocumentType })
-  documentType: DocumentType;
+  @ApiProperty({
+    enum: DocumentType,
+    default: DocumentType.Other,
+    required: false,
+  })
+  documentType: DocumentType = DocumentType.Other;
 
   @ApiProperty()
   url: string;
 
   @ApiProperty()
   applicationId: string;
-
-  @ApiProperty()
-  signPlanId: string;
 }

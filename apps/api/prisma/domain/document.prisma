@@ -6,6 +6,5 @@ model Document {
   date          DateTime     @default(now())
   applicationId String       @unique
   application   Application  @relation(fields: [applicationId], references: [caseNumber])
-  signPlanId    String       @unique
-  signPlan      SignPlan     @relation(fields: [signPlanId], references: [uuid])
+  signPlan      SignPlan?
 }

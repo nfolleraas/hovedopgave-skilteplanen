@@ -1,14 +1,9 @@
 model SignPlan {
-  uuid          String       @id @default(cuid())
-  name          String
-  documentType  DocumentType
-  url           String
-  date          DateTime     @default(now())
   signPlanType  SignPlanType
   group         String
   plan          String
   applicationId String       @unique
   application   Application  @relation(fields: [applicationId], references: [caseNumber])
-  document      Document?
-  documentUuid  String?
+  documentId    String       @unique
+  document      Document     @relation(fields: [documentId], references: [uuid], onDelete: Cascade)
 }
