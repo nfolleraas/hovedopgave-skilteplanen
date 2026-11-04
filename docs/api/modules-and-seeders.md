@@ -110,6 +110,24 @@ export class ModuleNameController {
 }
 ```
 
+### Validation responsibilities
+
+All validation involving the database or business rules happens in the service.
+DTOs, controllers, and repositories do not validate data:
+
+- Input validation happens in the frontend before a request is sent.
+- Business-logic validation happens in the backend service.
+- Database-related validation, such as checking whether related records exist
+  or whether a business rule is satisfied, also happens in the backend service.
+- DTOs describe the request shape, controllers translate HTTP requests, and
+  repositories perform database operations without adding validation rules.
+
+This keeps validation and business decisions in one backend layer. The service
+should validate before calling the repository and should return an appropriate
+NestJS exception when the request cannot be processed. Frontend validation
+improves the user experience, but backend service validation remains necessary
+because API requests cannot be trusted to come only from the frontend.
+
 The service coordinates validation and business behavior. The repository owns
 the Prisma calls, which keeps database details out of the service and makes
 both layers easier to test independently:
