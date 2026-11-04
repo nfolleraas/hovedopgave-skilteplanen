@@ -27,10 +27,7 @@
     },
     {
       "label": "Dev: web + API",
-      "dependsOn": [
-        "Web: dev",
-        "API: dev"
-      ],
+      "dependsOn": ["Web: dev", "API: dev"],
       "dependsOrder": "parallel",
       "problemMatcher": []
     }

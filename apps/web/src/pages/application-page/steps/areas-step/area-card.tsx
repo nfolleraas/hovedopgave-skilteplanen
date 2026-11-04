@@ -81,7 +81,14 @@ export function AreaCard({
           justifyContent: 'space-between',
         }}
       >
-        <Box>
+        <Box
+          sx={{
+            alignItems: 'baseline',
+            columnGap: 1,
+            display: 'flex',
+            flexWrap: 'wrap',
+          }}
+        >
           <Typography
             component="h2"
             id={titleId}

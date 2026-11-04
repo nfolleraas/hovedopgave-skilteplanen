@@ -37,7 +37,21 @@
     "stepsLabel": "Application steps",
     "back": "Back",
     "next": "Next",
-    "loading": "Loading the application"
+    "loading": "Loading the application",
+    "noCase": "No application is selected. Open the page with ?sag=<case number>.",
+    "caseNotFound": "The application was not found.",
+    "loadError": "The application could not be loaded. Try again later or contact support.",
+    "steps": {
+      "municipalityAndPeriod": "Municipality & period",
+      "tasks": "Tasks",
+      "otherActors": "Other actors",
+      "contactInfo": "Contact information",
+      "map": "Map",
+      "areas": "Areas",
+      "signPlanAndTraffic": "Sign plan and traffic",
+      "documents": "Documents and drawings",
+      "summary": "Summary & submission"
+    }
   },
   "areas": {
     "cardTitle": "Area {{number}} · {{road}}",
@@ -48,10 +62,24 @@
     "delete": "Delete area",
     "cancel": "Cancel",
     "save": "Save area",
+    "or": "or",
     "houseNumberOrDescriptionHint": "Fill in house number from and to or an alternative description.",
     "areaCalculated": "Calculated from length × width",
     "fields": {
-      "areaInSquareMeters": "Area (m²)"
+      "areaInSquareMeters": "Area (m²)",
+      "roadName": "Street name",
+      "roadOwnership": "Road status",
+      "postalCode": "Postal code",
+      "houseNumberFrom": "House no. from",
+      "houseNumberTo": "House no. to",
+      "alternativeDescription": "Alternative description",
+      "roadSection": "Road element",
+      "roadSectionDescription": "Describe road element",
+      "roadSide": "Road side",
+      "direction": "Direction",
+      "lengthInMeters": "Length (m)",
+      "widthInMeters": "Width (m)",
+      "depthInMeters": "Depth (m)"
     },
     "newRoad": "New road",
     "saved": "{{area}} was saved.",
@@ -68,7 +96,8 @@
       "houseNumbers": "House no.: {{value}}",
       "description": "Description: {{value}}",
       "warning": "The area and its details will be deleted permanently.",
-      "confirm": "Delete"
+      "confirm": "Delete",
+      "none": "No description"
     },
     "summary": {
       "title": "You can't continue yet",
@@ -81,6 +110,42 @@
       "text": "{{area}} has unsaved changes.",
       "discard": "Discard changes",
       "save": "Save"
+    },
+    "errors": {
+      "required": "Required",
+      "positiveNumber": "Must be a number greater than 0",
+      "postalCode": "Must be 4 digits",
+      "houseNumberOrDescription": "Fill in house number from and to or an alternative description"
+    },
+    "labels": {
+      "roadOwnership": {
+        "Municipality": "Municipal road",
+        "Private": "Private common road"
+      },
+      "roadSection": {
+        "Lane": "Lane",
+        "EmergencyLane": "Emergency lane",
+        "BikeLane": "Bike lane",
+        "Pavement": "Pavement",
+        "Roundabout": "Roundabout",
+        "RoadVerge": "Road verge",
+        "Other": "Other"
+      },
+      "roadSide": {
+        "Left": "Left",
+        "Right": "Right",
+        "Both": "Both",
+        "Middle": "Middle"
+      },
+      "direction": {
+        "Along": "Along",
+        "Across": "Across"
+      },
+      "applicationType": {
+        "ExcavationPermit": "Excavation permit",
+        "RoadUsePermit": "Road use – container etc.",
+        "RoadUsePermitEvent": "Road use – event"
+      }
     }
   },
   "mapStep": {

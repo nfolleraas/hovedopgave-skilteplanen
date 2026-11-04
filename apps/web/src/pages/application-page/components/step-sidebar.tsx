@@ -31,7 +31,10 @@ export function StepSidebar({ currentStep }: StepSidebarProps) {
               }}
             >
               <Typography
-                sx={{ fontWeight: isCurrent ? 600 : 400 }}
+                sx={{
+                  fontWeight: isCurrent ? 600 : 400,
+                  overflowWrap: 'anywhere',
+                }}
                 variant="body2"
               >
                 {t(step.labelKey)}

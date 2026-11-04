@@ -50,8 +50,13 @@ export function AreaForm({
     values.widthInMeters,
   );
 
-  // MUI links helperText to the input with aria-describedby.
-  function fieldProps(field: AreaFormField, required = false) {
+  // MUI links the label and helperText to the input, so the label stays
+  // accessible even though it is shown above the field.
+  function fieldProps(
+    field: AreaFormField,
+    required = false,
+    htmlInput?: Record<string, unknown>,
+  ) {
     const error = errors[field];
     return {
       id: `${idPrefix}-${field}`,
@@ -64,6 +69,7 @@ export function AreaForm({
       required,
       disabled,
       fullWidth: true,
+      slotProps: { ...labelAboveSlots, htmlInput },
     };
   }
 
@@ -78,7 +84,7 @@ export function AreaForm({
     ));
   }
 
-  const decimalInput = { htmlInput: { inputMode: 'decimal' as const } };
+  const decimalInput = { inputMode: 'decimal' };
 
   return (
     <Box sx={{ display: 'grid', gap: 2 }}>
@@ -86,8 +92,10 @@ export function AreaForm({
         <Row>
           <TextField {...fieldProps('roadName', true)} />
           <TextField
-            {...fieldProps('postalCode', true)}
-            slotProps={{ htmlInput: { inputMode: 'numeric', maxLength: 4 } }}
+            {...fieldProps('postalCode', true, {
+              inputMode: 'numeric',
+              maxLength: 4,
+            })}
           />
           <TextField {...fieldProps('roadOwnership', true)} select>
             {options(RoadOwnership, roadOwnershipLabelKeys)}
@@ -98,11 +106,24 @@ export function AreaForm({
       {fieldSet.details && (
         <>
           <Box>
-            <Row>
+            <Box
+              sx={{
+                display: 'grid',
+                gap: 2,
+                gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr auto 1fr' },
+              }}
+            >
               <TextField {...fieldProps('houseNumberFrom')} />
               <TextField {...fieldProps('houseNumberTo')} />
+              <Typography
+                color="text.secondary"
+                sx={{ alignSelf: 'end', pb: 2 }}
+                variant="body2"
+              >
+                {t('areas.or')}
+              </Typography>
               <TextField {...fieldProps('alternativeDescription')} />
-            </Row>
+            </Box>
             <Typography color="text.secondary" sx={{ mt: 0.5 }} variant="body2">
               {t('areas.houseNumberOrDescriptionHint')}
             </Typography>
@@ -127,26 +148,23 @@ export function AreaForm({
           )}
 
           <Row>
-            <TextField
-              {...fieldProps('lengthInMeters', true)}
-              slotProps={decimalInput}
-            />
-            <TextField
-              {...fieldProps('widthInMeters', true)}
-              slotProps={decimalInput}
-            />
+            <TextField {...fieldProps('lengthInMeters', true, decimalInput)} />
+            <TextField {...fieldProps('widthInMeters', true, decimalInput)} />
             {fieldSet.depth && (
-              <TextField
-                {...fieldProps('depthInMeters', true)}
-                slotProps={decimalInput}
-              />
+              <TextField {...fieldProps('depthInMeters', true, decimalInput)} />
             )}
             <TextField
               fullWidth
               helperText={t('areas.areaCalculated')}
               id={`${idPrefix}-area`}
               label={t('areas.fields.areaInSquareMeters')}
-              slotProps={{ htmlInput: { readOnly: true } }}
+              slotProps={{
+                ...labelAboveSlots,
+                htmlInput: { readOnly: true },
+              }}
+              sx={{
+                '& .MuiOutlinedInput-root': { backgroundColor: '#F5F5F5' },
+              }}
               value={area === undefined ? '' : formatSquareMeters(area)}
             />
           </Row>
@@ -155,6 +173,22 @@ export function AreaForm({
     </Box>
   );
 }
+
+// Shows the label above the field, as in the wireframe, instead of inside it.
+const labelAboveSlots = {
+  inputLabel: {
+    shrink: true,
+    sx: {
+      color: 'text.primary',
+      fontSize: 14,
+      fontWeight: 600,
+      mb: 0.75,
+      position: 'static',
+      transform: 'none',
+    },
+  },
+  input: { notched: false },
+};
 
 function Row({ children }: { children: ReactNode }) {
   return (

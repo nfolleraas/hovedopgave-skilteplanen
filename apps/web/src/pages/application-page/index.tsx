@@ -129,11 +129,11 @@ export default function ApplicationPage() {
             sx={{
               display: 'grid',
               gap: 4,
-              gridTemplateColumns: { xs: '1fr', md: '220px 1fr' },
+              gridTemplateColumns: { xs: '1fr', md: '220px minmax(0, 1fr)' },
             }}
           >
             <StepSidebar currentStep={step} />
-            <Box>{renderStep(load.application)}</Box>
+            <Box sx={{ minWidth: 0 }}>{renderStep(load.application)}</Box>
           </Box>
         )}
       </Container>

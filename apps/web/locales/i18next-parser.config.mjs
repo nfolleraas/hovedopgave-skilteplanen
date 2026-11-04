@@ -1,13 +1,17 @@
 export default {
   locales: ['en', 'da'],
   output: 'locales/$LOCALE/$NAMESPACE.json',
-  // Keys used through label maps or built from enum values, which the
-  // parser cannot find in the source.
+  // Keys used through label maps, variables or enum values, which the parser
+  // cannot find in the source. The parser tests keys as `translation:<key>`,
+  // and tests a whole missing group (e.g. `areas.labels`) as one key, so each
+  // pattern must match both the group and the keys inside it.
   keepRemoved: [
-    /^applicationWizard\.steps\./,
-    /^areas\.labels\./,
-    /^areas\.fields\./,
-    /^areas\.errors\./,
-    /^mapStep\.resultCount_/,
+    /^translation:applicationWizard\.steps(\.|$)/,
+    /^translation:applicationWizard\.(noCase|caseNotFound|loadError)$/,
+    /^translation:areas\.labels(\.|$)/,
+    /^translation:areas\.fields(\.|$)/,
+    /^translation:areas\.errors(\.|$)/,
+    /^translation:areas\.deleteDialog\.none$/,
+    /^translation:mapStep\.resultCount_/,
   ],
 };

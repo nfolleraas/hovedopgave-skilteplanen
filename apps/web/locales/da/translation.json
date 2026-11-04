@@ -37,7 +37,21 @@
     "stepsLabel": "Ansøgningens trin",
     "back": "Tilbage",
     "next": "Næste",
-    "loading": "Henter ansøgningen"
+    "loading": "Henter ansøgningen",
+    "noCase": "Der er ikke valgt en ansøgning. Åbn siden med ?sag=<sagsnummer>.",
+    "caseNotFound": "Ansøgningen blev ikke fundet.",
+    "loadError": "Ansøgningen kunne ikke hentes, prøv igen senere eller kontakt supporten.",
+    "steps": {
+      "municipalityAndPeriod": "Vælg kommune & periode",
+      "tasks": "Opgaver",
+      "otherActors": "Øvrige aktører",
+      "contactInfo": "Kontaktoplysninger",
+      "map": "Kort",
+      "areas": "Områder",
+      "signPlanAndTraffic": "Skilteplan og trafik",
+      "documents": "Dokumenter og tegninger",
+      "summary": "Opsummering & indsendelse"
+    }
   },
   "areas": {
     "cardTitle": "Område {{number}} · {{road}}",
@@ -48,10 +62,24 @@
     "delete": "Slet område",
     "cancel": "Annuller",
     "save": "Gem område",
+    "or": "eller",
     "houseNumberOrDescriptionHint": "Udfyld husnr. fra og til eller en alternativ beskrivelse.",
     "areaCalculated": "Beregnes ud fra længde × bredde",
     "fields": {
-      "areaInSquareMeters": "Areal (m²)"
+      "areaInSquareMeters": "Areal (m²)",
+      "roadName": "Vejnavn",
+      "roadOwnership": "Vejstatus",
+      "postalCode": "Postnr.",
+      "houseNumberFrom": "Husnr. fra",
+      "houseNumberTo": "Husnr. til",
+      "alternativeDescription": "Alternativ beskrivelse",
+      "roadSection": "Vejelement",
+      "roadSectionDescription": "Beskriv vejelement",
+      "roadSide": "Vejside",
+      "direction": "Retning",
+      "lengthInMeters": "Længde (m)",
+      "widthInMeters": "Bredde (m)",
+      "depthInMeters": "Dybde (m)"
     },
     "newRoad": "Ny vej",
     "saved": "{{area}} er gemt.",
@@ -68,7 +96,8 @@
       "houseNumbers": "Husnr.: {{value}}",
       "description": "Beskrivelse: {{value}}",
       "warning": "Området og dets oplysninger slettes permanent.",
-      "confirm": "Slet"
+      "confirm": "Slet",
+      "none": "Ingen beskrivelse"
     },
     "summary": {
       "title": "Du kan ikke gå videre endnu",
@@ -81,6 +110,42 @@
       "text": "{{area}} har ændringer, der ikke er gemt.",
       "discard": "Kassér ændringer",
       "save": "Gem"
+    },
+    "errors": {
+      "required": "Skal udfyldes",
+      "positiveNumber": "Skal være et tal større end 0",
+      "postalCode": "Skal være 4 cifre",
+      "houseNumberOrDescription": "Udfyld husnr. fra og til eller en alternativ beskrivelse"
+    },
+    "labels": {
+      "roadOwnership": {
+        "Municipality": "Kommunevej",
+        "Private": "Privat fællesvej"
+      },
+      "roadSection": {
+        "Lane": "Kørebane",
+        "EmergencyLane": "Nødspor",
+        "BikeLane": "Cykelsti",
+        "Pavement": "Fortov",
+        "Roundabout": "Rundkørsel",
+        "RoadVerge": "Rabat",
+        "Other": "Andet"
+      },
+      "roadSide": {
+        "Left": "Venstre",
+        "Right": "Højre",
+        "Both": "Begge",
+        "Middle": "Midt"
+      },
+      "direction": {
+        "Along": "På langs",
+        "Across": "På tværs"
+      },
+      "applicationType": {
+        "ExcavationPermit": "Gravetilladelse",
+        "RoadUsePermit": "Råden over vejareal – container m.m.",
+        "RoadUsePermitEvent": "Råden over vejareal – arrangement"
+      }
     }
   },
   "mapStep": {
