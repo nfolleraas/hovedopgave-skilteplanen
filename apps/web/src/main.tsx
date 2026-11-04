@@ -1,5 +1,6 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import { BrowserRouter } from 'react-router';
 import App from './app/App.js';
 import { Providers } from './app/providers.js';
 import { i18nReady } from './config/i18n.js';
@@ -15,7 +16,9 @@ if (!root) {
 createRoot(root).render(
   <StrictMode>
     <Providers>
-      <App />
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
     </Providers>
   </StrictMode>,
 );
