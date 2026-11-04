@@ -4,6 +4,7 @@ model Address {
   houseNumber  String
   postalCode   String
   city         String
-  applicant    Applicant?
-  municipality Municipality?
+  applicant    Applicant[]
+  municipality Municipality[]
+  actors       Actor[]
 }
