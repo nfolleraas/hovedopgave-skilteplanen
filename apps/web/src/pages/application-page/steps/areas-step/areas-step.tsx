@@ -1,5 +1,11 @@
 import { Alert, Box, Button, Typography } from '@mui/material';
-import { type Dispatch, useEffect, useRef, useState } from 'react';
+import {
+  type Dispatch,
+  type RefObject,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   createArea,
@@ -45,10 +51,15 @@ interface Notice {
   message: string;
 }
 
+/** Runs before the step is left. Resolves false to stay on the step. */
+export type LeaveGuard = () => Promise<boolean>;
+
 interface AreasStepProps {
   application: AreaApplication;
   state: AreaEditState;
   dispatch: Dispatch<AreaEditAction>;
+  /** Lets the page save the open area when another step is chosen. */
+  leaveGuard: RefObject<LeaveGuard | null>;
   onBack: () => void;
   onNext: () => void;
 }
@@ -57,6 +68,7 @@ export function AreasStep({
   application,
   state,
   dispatch,
+  leaveGuard,
   onBack,
   onNext,
 }: AreasStepProps) {
@@ -124,7 +136,7 @@ export function AreasStep({
   }, [showSummary]);
 
   async function save(): Promise<boolean> {
-    if (!active || !state.draft) return false;
+    if (!active || !state.draft || isSaving) return false;
 
     const includeRoad = isRoadEditable(active);
     const errors = validateArea(type, state.draft, { includeRoad });
@@ -158,6 +170,32 @@ export function AreasStep({
     } finally {
       setIsSaving(false);
     }
+  }
+
+  /**
+   * Leaving the step saves the open area to the database, so going back
+   * and forth shows what is stored. Invalid input keeps the user here.
+   */
+  async function saveIfDirty(): Promise<boolean> {
+    if (!isDirty(state)) return true;
+    const saved = await save();
+    if (!saved) setShowSummary(true);
+    return saved;
+  }
+
+  useEffect(() => {
+    leaveGuard.current = saveIfDirty;
+  });
+  // biome-ignore lint/correctness/useExhaustiveDependencies: unmount only.
+  useEffect(
+    () => () => {
+      leaveGuard.current = null;
+    },
+    [],
+  );
+
+  async function handleBack() {
+    if (await saveIfDirty()) onBack();
   }
 
   function handleDelete(entry: AreaEntry) {
@@ -216,13 +254,22 @@ export function AreasStep({
     })
     .filter((item) => item.fieldLabels.length > 0 || item.isUnsaved);
 
-  function handleNext() {
-    if (summaryItems.length > 0 || savedCount === 0) {
+  async function handleNext() {
+    const savedKey = isDirty(state) ? state.activeKey : null;
+    if (!(await saveIfDirty())) return;
+
+    // The area saved above no longer blocks the step, even though this
+    // render still shows its old state.
+    const blocking = summaryItems.filter((item) => item.key !== savedKey);
+    const savedSoFar =
+      savedCount + (savedKey !== null && !active?.saved ? 1 : 0);
+
+    if (blocking.length > 0 || savedSoFar === 0) {
       setShowSummary(true);
       summaryRef.current?.focus();
       // Show the field errors in the first area that blocks the step.
-      const first = summaryItems[0];
-      if (first && first.key !== state.activeKey && !isDirty(state)) {
+      const first = blocking[0];
+      if (first && first.key !== state.activeKey) {
         dispatch({ type: 'open', key: first.key });
       }
       dispatch({ type: 'showErrors' });
@@ -328,7 +375,11 @@ export function AreasStep({
         />
       )}
 
-      <WizardFooter busy={isSaving} onBack={onBack} onNext={handleNext} />
+      <WizardFooter
+        busy={isSaving}
+        onBack={() => void handleBack()}
+        onNext={() => void handleNext()}
+      />
 
       <DeleteAreaDialog
         area={deleteTarget}

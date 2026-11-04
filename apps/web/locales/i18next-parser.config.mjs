@@ -7,11 +7,16 @@ export default {
   // pattern must match both the group and the keys inside it.
   keepRemoved: [
     /^translation:applicationWizard\.steps(\.|$)/,
-    /^translation:applicationWizard\.(noCase|caseNotFound|loadError)$/,
+    /^translation:applicationWizard\.(caseNotFound|loadError)$/,
     /^translation:areas\.labels(\.|$)/,
     /^translation:areas\.fields(\.|$)/,
     /^translation:areas\.errors(\.|$)/,
     /^translation:areas\.deleteDialog\.none$/,
     /^translation:mapStep\.resultCount_/,
+    /^translation:devApplications\.statuses(\.|$)/,
+    /^translation:wizard\.enums(\.|$)/,
+    /^translation:wizard\.errors(\.|$)/,
+    /^translation:wizard\.period\.intro(\.|$)/,
+    /^translation:wizard\.period\.(foodSale|alcoholSale|music)$/,
   ],
 };

@@ -6,6 +6,8 @@ interface WizardFooterProps {
   onNext: () => void;
   nextDisabled?: boolean;
   busy?: boolean;
+  /** Text for the next button, e.g. "Indsend" on the last step. */
+  nextLabel?: string;
 }
 
 export function WizardFooter({
@@ -13,6 +15,7 @@ export function WizardFooter({
   onNext,
   nextDisabled = false,
   busy = false,
+  nextLabel,
 }: WizardFooterProps) {
   const { t } = useTranslation();
 
@@ -32,7 +35,7 @@ export function WizardFooter({
         onClick={onNext}
         variant="contained"
       >
-        {t('applicationWizard.next')}
+        {nextLabel ?? t('applicationWizard.next')}
       </Button>
     </Box>
   );

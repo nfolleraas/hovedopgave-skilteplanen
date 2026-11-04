@@ -24,6 +24,7 @@ import {
   RoadSection,
   RoadSide,
 } from '../../../../types/prisma-enums.js';
+import { labelAboveSlots } from '../../components/form-fields.js';
 
 interface AreaFormProps {
   idPrefix: string;
@@ -173,22 +174,6 @@ export function AreaForm({
     </Box>
   );
 }
-
-// Shows the label above the field, as in the wireframe, instead of inside it.
-const labelAboveSlots = {
-  inputLabel: {
-    shrink: true,
-    sx: {
-      color: 'text.primary',
-      fontSize: 14,
-      fontWeight: 600,
-      mb: 0.75,
-      position: 'static',
-      transform: 'none',
-    },
-  },
-  input: { notched: false },
-};
 
 function Row({ children }: { children: ReactNode }) {
   return (
