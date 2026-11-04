@@ -1,5 +1,6 @@
 import { Container, Typography } from '@mui/material';
 import { useTranslation } from 'react-i18next';
+import { Route, Routes } from 'react-router';
 import Footer from '../components/layout/footer/footer.js';
 import Navbar from '../components/layout/navbar/navbar.js';
 import { pages } from './router.js';
@@ -19,12 +20,15 @@ function NotFoundPage() {
 }
 
 export default function App() {
-  const CurrentPage = pages[window.location.pathname] ?? NotFoundPage;
-
   return (
     <>
       <Navbar />
-      <CurrentPage />
+      <Routes>
+        {Object.entries(pages).map(([path, Page]) => (
+          <Route element={<Page />} key={path} path={path} />
+        ))}
+        <Route element={<NotFoundPage />} path="*" />
+      </Routes>
       <Footer />
     </>
   );
