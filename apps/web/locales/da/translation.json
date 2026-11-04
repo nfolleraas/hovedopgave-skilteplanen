@@ -33,6 +33,9 @@
     "language": "Sprog"
   },
   "home": {
+    "createRoadPermit": "Opret tilladelse til råden over vej",
+    "createRoadPermitEvent": "Opret tilladelse til råden over vej til begivenhed",
+    "createDiggingPermit": "Opret gravetilladelse",
     "title": "Ansøgningsplatformen",
     "intro": "Velkommen til Ansøgningsplatformen"
   },

@@ -33,6 +33,9 @@
     "language": "Language"
   },
   "home": {
+    "createRoadPermit": "Apply for a road occupancy permit",
+    "createRoadPermitEvent": "Apply for a road occupancy permit for event",
+    "createDiggingPermit": "Apply for a digging permit",
     "title": "Applicantplatform",
     "intro": "Welcome to Applicantplatform."
   },

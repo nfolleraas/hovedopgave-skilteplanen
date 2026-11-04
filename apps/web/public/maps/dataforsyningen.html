@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="da">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Kort over anvendelsesområdet</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+    <style>
+      html, body, #map { height: 100%; margin: 0; }
+      body { font-family: system-ui, sans-serif; background: #f7f9fc; }
+      #status {
+        position: absolute;
+        inset: 16px 16px auto;
+        z-index: 1000;
+        margin: 0;
+        padding: 16px;
+        border-radius: 4px;
+        background: white;
+        color: #212121;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map" role="region" aria-label="Kort fra Dataforsyningen"></div>
+    <p id="status" role="status" hidden>Kortet kunne ikke indlæses. Prøv igen senere.</p>
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+    <script>
+      const token = new URLSearchParams(location.hash.slice(1)).get('token');
+      const status = document.getElementById('status');
+
+      if (!token || !window.L) {
+        status.hidden = false;
+      } else {
+        const map = L.map('map', { scrollWheelZoom: false }).setView([55.7, 10.4], 7);
+        L.control.scale({ imperial: false }).addTo(map);
+        L.tileLayer.wms('https://api.dataforsyningen.dk/forvaltning2', {
+          token,
+          layers: 'Basis_kort,Vejnavne_basiskort,Stednavne_basiskort',
+          format: 'image/png',
+          version: '1.1.1',
+          maxZoom: 20,
+          attribution: '&copy; <a href="https://www.klimadatastyrelsen.dk/" target="_blank" rel="noopener noreferrer">Klimadatastyrelsen</a>',
+        })
+          .on('tileerror', () => { status.hidden = false; })
+          .on('tileload', () => { status.hidden = true; })
+          .addTo(map);
+      }
+    </script>
+  </body>
+</html>
