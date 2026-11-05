@@ -42,6 +42,7 @@ describe('DocumentsRepository', () => {
       name: 'Traffic plan',
       documentType: DocumentType.Other,
       url: 'https://example.com/traffic-plan.pdf',
+      r2ObjectKey: 'applications/APP-123/documents/document-1.pdf',
       application: { connect: { caseNumber: 'APP-123' } },
     };
     const result = { uuid: 'document-1' };

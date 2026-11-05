@@ -3,6 +3,7 @@ model Document {
   name          String
   documentType  DocumentType
   url           String
+  r2ObjectKey   String
   date          DateTime     @default(now())
   applicationId String       @unique
   application   Application  @relation(fields: [applicationId], references: [caseNumber])

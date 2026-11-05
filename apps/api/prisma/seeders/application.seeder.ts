@@ -2,7 +2,6 @@ import type { PrismaClient } from '../../src/generated/prisma/client.js';
 import {
   ApplicantType,
   ApplicationType,
-  PermitType,
   TrafficChange,
   Usage,
 } from '../../src/generated/prisma/client.js';
@@ -38,27 +37,12 @@ export async function seedApplication(prisma: PrismaClient) {
       },
       roadUsePermit: {
         create: {
-          caseNumber: demoCaseNumber,
-          title: 'Demo road use permit',
-          applicantReference: 'DEMO-APPLICANT-0001',
-          type: ApplicationType.RoadUsePermit,
           isEvent: false,
           startDate: new Date('2026-01-01T08:00:00.000Z'),
           endDate: new Date('2026-12-31T17:00:00.000Z'),
           eventStart: new Date('2026-01-01T08:00:00.000Z'),
           eventEnd: new Date('2026-12-31T17:00:00.000Z'),
           usage: Usage.SignInstallment,
-        },
-      },
-      excavationPermit: {
-        create: {
-          caseNumber: demoCaseNumber,
-          title: 'Demo excavation permit',
-          applicantReference: 'DEMO-APPLICANT-0001',
-          type: ApplicationType.ExcavationPermit,
-          permitType: PermitType.Application,
-          startDate: new Date('2026-01-01T08:00:00.000Z'),
-          endDate: new Date('2026-12-31T17:00:00.000Z'),
         },
       },
     },

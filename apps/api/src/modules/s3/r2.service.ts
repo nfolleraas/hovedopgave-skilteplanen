@@ -46,11 +46,12 @@ export class R2Service {
     );
   }
 
-  async list(prefix?: string) {
+  async list(prefix?: string, continuationToken?: string) {
     return this.client.send(
       new ListObjectsV2Command({
         Bucket: this.bucket,
         Prefix: prefix,
+        ContinuationToken: continuationToken,
       }),
     );
   }

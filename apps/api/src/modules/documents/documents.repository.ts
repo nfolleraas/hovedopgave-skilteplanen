@@ -7,15 +7,15 @@ export class DocumentsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async add(document: Prisma.DocumentCreateInput): Promise<Document> {
-    return this.prisma.document.create({ data: document });
+    return await this.prisma.document.create({ data: document });
   }
 
   async getAll(): Promise<Document[]> {
-    return this.prisma.document.findMany();
+    return await this.prisma.document.findMany();
   }
 
   async getById(uuid: string): Promise<Document> {
-    return this.prisma.document.findUniqueOrThrow({
+    return await this.prisma.document.findUniqueOrThrow({
       where: { uuid },
     });
   }
@@ -24,13 +24,13 @@ export class DocumentsRepository {
     uuid: string,
     updatedDocument: Prisma.DocumentUpdateInput,
   ): Promise<Document> {
-    return this.prisma.document.update({
+    return await this.prisma.document.update({
       where: { uuid },
       data: updatedDocument,
     });
   }
 
   async delete(uuid: string): Promise<Document> {
-    return this.prisma.document.delete({ where: { uuid } });
+    return await this.prisma.document.delete({ where: { uuid } });
   }
 }

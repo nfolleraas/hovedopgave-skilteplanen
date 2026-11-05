@@ -13,8 +13,5 @@ export class CreateDocumentDto {
   documentType: DocumentType = DocumentType.Other;
 
   @ApiProperty()
-  url: string;
-
-  @ApiProperty()
   applicationId: string;
 }

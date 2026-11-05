@@ -1,6 +1,7 @@
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { DocumentType } from '../../generated/prisma/enums.js';
+import { R2Service } from '../s3/r2.service.js';
 import { DocumentsRepository } from './documents.repository.js';
 import { DocumentsService } from './documents.service.js';
 import { CreateDocumentDto } from './dto/create-document.dto.js';
@@ -15,6 +16,10 @@ describe('DocumentsService', () => {
     update: ReturnType<typeof vi.fn>;
     delete: ReturnType<typeof vi.fn>;
   };
+  let r2Service: {
+    upload: ReturnType<typeof vi.fn>;
+    delete: ReturnType<typeof vi.fn>;
+  };
 
   beforeEach(async () => {
     repository = {
@@ -24,11 +29,13 @@ describe('DocumentsService', () => {
       update: vi.fn(),
       delete: vi.fn(),
     };
+    r2Service = { upload: vi.fn(), delete: vi.fn() };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         DocumentsService,
         { provide: DocumentsRepository, useValue: repository },
+        { provide: R2Service, useValue: r2Service },
       ],
     }).compile();
 
@@ -42,20 +49,35 @@ describe('DocumentsService', () => {
   it('creates a non-sign-plan document with its application relation', async () => {
     const dto = new CreateDocumentDto();
     dto.name = 'Traffic plan';
-    dto.url = 'https://example.com/traffic-plan.pdf';
     dto.applicationId = 'APP-123';
+    const file = {
+      buffer: Buffer.from('pdf'),
+      mimetype: 'application/pdf',
+      originalname: 'traffic-plan.pdf',
+    } as Express.Multer.File;
     repository.add.mockResolvedValue({ uuid: 'document-1' });
+    r2Service.upload.mockResolvedValue({});
 
-    await expect(service.create(dto)).resolves.toEqual({ uuid: 'document-1' });
+    await expect(service.create(dto, file)).resolves.toEqual({
+      uuid: 'document-1',
+    });
     expect(repository.add).toHaveBeenCalledWith({
       name: 'Traffic plan',
       documentType: DocumentType.Other,
-      url: 'https://example.com/traffic-plan.pdf',
+      url: expect.stringContaining('/applications/APP-123/documents/'),
+      r2ObjectKey: expect.stringMatching(
+        /^applications\/APP-123\/documents\/.*\.pdf$/,
+      ),
       application: { connect: { caseNumber: 'APP-123' } },
     });
+    expect(r2Service.upload).toHaveBeenCalledWith(
+      expect.stringMatching(/^applications\/APP-123\/documents\/.*\.pdf$/),
+      file.buffer,
+      file.mimetype,
+    );
   });
 
-  it('rejects sign plans', () => {
+  it('rejects sign plans', async () => {
     const dto = {
       name: 'Sign plan',
       documentType: DocumentType.SignPlan,
@@ -63,7 +85,12 @@ describe('DocumentsService', () => {
       applicationId: 'APP-123',
     } as CreateDocumentDto;
 
-    expect(() => service.create(dto)).toThrow(
+    await expect(
+      service.create(dto, {
+        mimetype: 'application/pdf',
+        originalname: 'sign-plan.pdf',
+      } as Express.Multer.File),
+    ).rejects.toThrow(
       new BadRequestException(
         'Sign plans must be created through the sign plans module',
       ),
@@ -73,17 +100,18 @@ describe('DocumentsService', () => {
 
   it('delegates reads, updates, and deletes to the repository', async () => {
     const documents = [{ uuid: 'document-1' }];
-    const document = { uuid: 'document-1' };
+    const document = { uuid: 'document-1', r2ObjectKey: 'documents/file.pdf' };
     const update = { name: 'Updated plan' } as UpdateDocumentDto;
     repository.getAll.mockResolvedValue(documents);
     repository.getById.mockResolvedValue(document);
     repository.update.mockResolvedValue(document);
     repository.delete.mockResolvedValue(document);
+    r2Service.delete.mockResolvedValue({});
 
     await expect(service.findAll()).resolves.toBe(documents);
     await expect(service.findOne('document-1')).resolves.toBe(document);
     await expect(service.update('document-1', update)).resolves.toBe(document);
-    await expect(service.remove('document-1')).resolves.toBe(document);
+    await expect(service.remove('document-1')).resolves.toBeUndefined();
 
     expect(repository.getAll).toHaveBeenCalledOnce();
     expect(repository.getById).toHaveBeenCalledWith('document-1');
@@ -92,5 +120,6 @@ describe('DocumentsService', () => {
       url: undefined,
     });
     expect(repository.delete).toHaveBeenCalledWith('document-1');
+    expect(r2Service.delete).toHaveBeenCalledWith('documents/file.pdf');
   });
 });

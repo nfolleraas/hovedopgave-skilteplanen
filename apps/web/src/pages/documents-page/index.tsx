@@ -71,6 +71,7 @@ export default function DocumentsPage() {
         demoApplicationId,
         'Other',
       );
+
       setDocuments((currentDocuments) => [
         ...currentDocuments,
         uploadedDocument,
@@ -111,7 +112,7 @@ export default function DocumentsPage() {
           >
             {isUploading ? t('documents.uploading') : t('documents.upload')}
             <input
-              accept="application/pdf,image/*,.doc,.docx"
+              accept="application/pdf,.pdf"
               hidden
               onChange={handleFileSelected}
               ref={fileInputRef}

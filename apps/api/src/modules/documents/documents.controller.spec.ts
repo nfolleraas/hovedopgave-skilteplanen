@@ -43,11 +43,12 @@ describe('DocumentsController', () => {
       url: 'https://example.com/traffic-plan.pdf',
       applicationId: 'APP-123',
     } as CreateDocumentDto;
+    const file = { originalname: 'traffic-plan.pdf' } as Express.Multer.File;
     const result = { uuid: 'document-1' };
     service.create.mockReturnValue(result);
 
-    expect(controller.create(dto)).toBe(result);
-    expect(service.create).toHaveBeenCalledWith(dto);
+    expect(controller.create(file, dto)).toBe(result);
+    expect(service.create).toHaveBeenCalledWith(dto, file);
   });
 
   it('returns all documents from the service', () => {
