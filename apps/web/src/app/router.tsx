@@ -1,6 +1,8 @@
 import type { ComponentType } from 'react';
 import ApplicationPage from '../pages/application-page';
 import ContactsPage from '../pages/contacts-page';
+import BusinessApplicantPage from '../pages/create-applicant-page/business';
+import PrivateApplicantPage from '../pages/create-applicant-page/private';
 import HomePage from '../pages/home-page';
 import LoginPage from '../pages/login-page';
 import MessagesPage from '../pages/messages-page';
@@ -11,6 +13,8 @@ export const routes = {
   contacts: '/kontaktpersoner',
   messages: '/beskeder',
   login: '/login',
+  createBusinessApplicant: '/opret-erhverv',
+  createPrivateApplicant: '/opret-privat',
 } as const;
 
 export const pages: Record<string, ComponentType> = {
@@ -19,4 +23,6 @@ export const pages: Record<string, ComponentType> = {
   [routes.contacts]: ContactsPage,
   [routes.messages]: MessagesPage,
   [routes.login]: LoginPage,
+  [routes.createBusinessApplicant]: BusinessApplicantPage,
+  [routes.createPrivateApplicant]: PrivateApplicantPage,
 } as const;
