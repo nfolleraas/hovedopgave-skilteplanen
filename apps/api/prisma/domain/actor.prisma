@@ -1,5 +1,5 @@
 model Actor {
-  uuid              String        @id @default(cuid())
+  uuid              String        @id @default(uuid())
   name              String
   phoneNumber       String
   email             String

@@ -13,8 +13,8 @@ const prisma = new PrismaClient({
 });
 
 export async function seed() {
+  // Application
   const application = await seedApplication(prisma);
-
   console.log('Seeded application:', application.caseNumber);
 }
 

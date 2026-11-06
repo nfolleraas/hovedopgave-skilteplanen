@@ -2,6 +2,7 @@ import type { PrismaClient } from '../../src/generated/prisma/client.js';
 import {
   ApplicantType,
   ApplicationType,
+  Status,
   TrafficChange,
   Usage,
 } from '../../src/generated/prisma/client.js';
@@ -17,12 +18,13 @@ export async function seedApplication(prisma: PrismaClient) {
       title: 'Demo skilteplan',
       applicantReference: 'DEMO-APPLICANT-0001',
       type: ApplicationType.RoadUsePermit,
+      status: Status.Draft,
       trafficChange: TrafficChange.SpeedLimitWorkZone,
       applicant: {
         create: {
           name: 'Demo Applicant',
           type: ApplicantType.Business,
-          phoneNumber: '+45 12 34 56 78',
+          phoneNumber: '12345678',
           email: 'demo@example.com',
           mitIdKey: 'demo-mitid-key',
           address: {
@@ -37,6 +39,7 @@ export async function seedApplication(prisma: PrismaClient) {
       },
       roadUsePermit: {
         create: {
+          applicationId: demoCaseNumber,
           isEvent: false,
           startDate: new Date('2026-01-01T08:00:00.000Z'),
           endDate: new Date('2026-12-31T17:00:00.000Z'),

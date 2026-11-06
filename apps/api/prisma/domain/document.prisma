@@ -1,5 +1,5 @@
 model Document {
-  uuid          String       @id @default(cuid())
+  uuid          String       @id @default(uuid())
   name          String
   documentType  DocumentType
   url           String
