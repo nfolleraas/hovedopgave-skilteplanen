@@ -1,4 +1,12 @@
-import { Autocomplete, Box, TextField, Typography } from '@mui/material';
+import {
+  Box,
+  InputBase,
+  MenuItem,
+  MenuList,
+  TextField,
+  Typography,
+} from '@mui/material';
+import { useState } from 'react';
 
 import { municipalities } from '../../../../data/municipalities';
 
@@ -15,6 +23,13 @@ export function ChooseMunicipalityAndTitlePage({
   onTitleChange,
   onMunicipalityChange,
 }: ChooseMunicipalityAndTitlePageProps) {
+  const [search, setSearch] = useState('');
+  const filteredMunicipalities = municipalities.filter((municipality) =>
+    municipality.name
+      .toLocaleLowerCase('da')
+      .includes(search.trim().toLocaleLowerCase('da')),
+  );
+
   return (
     <Box
       sx={{
@@ -38,35 +53,65 @@ export function ChooseMunicipalityAndTitlePage({
         placeholder="Indtast en titel på ansøgningen"
         value={title}
       />
-      <Autocomplete
-        clearText="Ryd"
-        closeText="Luk"
-        disablePortal
-        fullWidth
-        getOptionKey={(option) => option.id}
-        getOptionLabel={(option) => option.name}
-        id="municipality"
-        isOptionEqualToValue={(option, value) => option.id === value.id}
-        noOptionsText="Ingen kommuner fundet"
-        onChange={(_, municipality) =>
-          onMunicipalityChange(municipality?.id ?? null)
-        }
-        openText="Åbn"
-        options={municipalities}
-        renderInput={(params) => (
-          <TextField
-            {...params}
-            label="Kommune"
-            name="municipality"
-            placeholder="Søg efter kommune"
-          />
-        )}
-        value={
-          municipalities.find(
-            (municipality) => municipality.id === municipalityId,
-          ) ?? null
-        }
-      />
+      <Box
+        sx={{
+          border: 1,
+          borderColor: 'divider',
+          borderRadius: 1,
+          overflow: 'hidden',
+          '&:focus-within': { borderColor: 'primary.main' },
+        }}
+      >
+        <InputBase
+          fullWidth
+          id="municipality-search"
+          inputProps={{
+            'aria-label': 'Søg efter kommune',
+            'aria-controls': 'municipality-list',
+          }}
+          onChange={(event) => setSearch(event.target.value)}
+          placeholder="Søg efter kommune"
+          sx={{
+            minHeight: 56,
+            px: 2,
+            py: 1,
+            borderBottom: 1,
+            borderColor: 'divider',
+          }}
+          type="search"
+          value={search}
+        />
+        <MenuList
+          aria-label="Kommune"
+          disablePadding
+          id="municipality-list"
+          role="listbox"
+          sx={{
+            height: { xs: 320, md: 'max(360px, calc(80svh - 400px))' },
+            overflowY: 'auto',
+          }}
+        >
+          {filteredMunicipalities.map((municipality) => (
+            <MenuItem
+              aria-selected={municipality.id === municipalityId}
+              key={municipality.id}
+              onClick={() => {
+                onMunicipalityChange(municipality.id)
+                setSearch(municipality.name)
+              }}
+              role="option"
+              selected={municipality.id === municipalityId}
+            >
+              {municipality.name}
+            </MenuItem>
+          ))}
+          {filteredMunicipalities.length === 0 && (
+            <Typography color="text.secondary" sx={{ p: 2 }}>
+              Ingen kommuner fundet
+            </Typography>
+          )}
+        </MenuList>
+      </Box>
     </Box>
   );
 }

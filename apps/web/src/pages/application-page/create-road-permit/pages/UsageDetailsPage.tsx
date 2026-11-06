@@ -1,4 +1,5 @@
 import { Box, MenuItem, TextField, Typography } from '@mui/material';
+import { DataforsyningenMap } from '../../../../components/ui/map/DataforsyningenMap';
 import type { UsageDetails } from '../formTypes';
 
 type UsageDetailsPageProps = {
@@ -8,11 +9,6 @@ type UsageDetailsPageProps = {
 
 // Example choices until the application requirements define the usage types.
 const usageTypes = ['Byggearbejde', 'Arrangement', 'Andet'];
-const mapUrl = `${import.meta.env.BASE_URL}maps/dataforsyningen.html#${new URLSearchParams(
-  {
-    token: import.meta.env.VITE_DATAFORSYNINGEN_TOKEN ?? '',
-  },
-)}`;
 
 export function UsageDetailsPage({ value, onChange }: UsageDetailsPageProps) {
   return (
@@ -22,7 +18,7 @@ export function UsageDetailsPage({ value, onChange }: UsageDetailsPageProps) {
         flexDirection: 'column',
         gap: 3,
         width: '100%',
-        maxWidth: 640,
+        maxWidth: 816,
         mx: 'auto',
       }}
     >
@@ -82,18 +78,7 @@ export function UsageDetailsPage({ value, onChange }: UsageDetailsPageProps) {
           value={value.endDate}
         />
       </Box>
-      <Box
-        component="iframe"
-        loading="lazy"
-        src={mapUrl}
-        sx={{
-          width: '100%',
-          height: { xs: 360, sm: 480 },
-          border: 0,
-          borderRadius: 1,
-        }}
-        title="Kort over anvendelsesområdet"
-      />
+      <DataforsyningenMap title="Kort over anvendelsesområdet" />
       <Typography component="h3" variant="h6">
         Steddetaljer
       </Typography>
@@ -105,13 +90,21 @@ export function UsageDetailsPage({ value, onChange }: UsageDetailsPageProps) {
         onChange={(event) => onChange({ ...value, road: event.target.value })}
         value={value.road}
       />
-      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 3 }}>
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+          gap: 3,
+        }}
+      >
         <TextField
           fullWidth
           id="usage-house-number-from"
           label="Husnr. fra"
           name="houseNumberFrom"
-          onChange={(event) => onChange({ ...value, houseNumberFrom: event.target.value })}
+          onChange={(event) =>
+            onChange({ ...value, houseNumberFrom: event.target.value })
+          }
           value={value.houseNumberFrom}
         />
         <TextField
@@ -119,7 +112,9 @@ export function UsageDetailsPage({ value, onChange }: UsageDetailsPageProps) {
           id="usage-house-number-to"
           label="Husnr. til"
           name="houseNumberTo"
-          onChange={(event) => onChange({ ...value, houseNumberTo: event.target.value })}
+          onChange={(event) =>
+            onChange({ ...value, houseNumberTo: event.target.value })
+          }
           value={value.houseNumberTo}
         />
       </Box>
@@ -130,7 +125,9 @@ export function UsageDetailsPage({ value, onChange }: UsageDetailsPageProps) {
         minRows={2}
         multiline
         name="locationDescription"
-        onChange={(event) => onChange({ ...value, locationDescription: event.target.value })}
+        onChange={(event) =>
+          onChange({ ...value, locationDescription: event.target.value })
+        }
         value={value.locationDescription}
       />
     </Box>

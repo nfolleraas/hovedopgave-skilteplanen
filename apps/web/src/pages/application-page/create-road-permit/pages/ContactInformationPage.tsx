@@ -1,4 +1,4 @@
-import { Box, TextField, Typography } from '@mui/material';
+import { Box, Divider, TextField, Typography } from '@mui/material';
 import type { ContactInformation } from '../formTypes';
 
 type ContactInformationPageProps = {
@@ -17,7 +17,6 @@ export function ContactInformationPage({
         flexDirection: 'column',
         gap: 3,
         width: '100%',
-        maxWidth: 640,
         mx: 'auto',
       }}
     >
@@ -30,7 +29,7 @@ export function ContactInformationPage({
       <Box
         sx={{
           display: 'grid',
-          gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+          gridTemplateColumns: 'minmax(0, 1fr)',
           gap: 3,
         }}
       >
@@ -71,6 +70,7 @@ export function ContactInformationPage({
             value={value.email}
           />
         </Box>
+        <Divider></Divider>
         <Box
           aria-labelledby="contact-availability-heading"
           component="section"
@@ -79,9 +79,9 @@ export function ContactInformationPage({
           <Typography
             component="h4"
             id="contact-availability-heading"
-            variant="body1"
+            variant="h6"
           >
-            Tilgængelig
+            Tilgængelighed
           </Typography>
           <Box
             sx={{

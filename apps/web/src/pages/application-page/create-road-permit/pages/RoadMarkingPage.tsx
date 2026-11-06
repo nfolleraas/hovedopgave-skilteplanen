@@ -1,98 +1,192 @@
+import CloseIcon from '@mui/icons-material/Close';
 import {
-  Box, Checkbox, Table, TableBody, TableCell, TableContainer, TableHead,
-  TableRow, TextField, Typography,
+  Box,
+  Checkbox,
+  IconButton,
+  List,
+  ListItem,
+  ListItemText,
+  MenuItem,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TextField,
+  Typography,
 } from '@mui/material';
-import type { RoadMarking } from '../formTypes';
-import { trafficMeasures } from '../trafficMeasures';
+import type { RoadMarkingDetails } from '../formTypes';
+import { type TrafficMeasure, trafficMeasures } from '../trafficMeasures';
 
-type RoadMarkingPageProps = {
-  value: RoadMarking;
-  onChange: (value: RoadMarking) => void;
+const trafficChangeOptions = [
+  'Hastighedsbegrænsning - hensyn til vejarbejder',
+  'Hastighedsbegrænsning - hensyn til trafikanter',
+  'Hastighedsbegrænsning - hensyn til trafikanter og vejarbejder',
+  'Ubetinget vigepligt i vejkryds',
+  'Standsning og Parkering',
+  'Påbud om ensrettet færdsel',
+];
+
+export type RoadMarkingProps = {
+  value: RoadMarkingDetails;
+  onChange: (value: RoadMarkingDetails) => void;
 };
 
-export function RoadMarkingPage({ value, onChange }: RoadMarkingPageProps) {
+export function RoadMarkingPage({ value, onChange }: RoadMarkingProps) {
+  const {
+    trafficChanges: selectedTrafficChanges,
+    accessWays,
+    trafficPrecautions,
+  } = value;
+
+  const handleCheckboxChange = (measure: TrafficMeasure, checked: boolean) => {
+    onChange({
+      ...value,
+      trafficPrecautions: checked
+        ? [
+            ...trafficPrecautions,
+            {
+              type: measure.type,
+              protectionLevel: measure.protection,
+              scope: measure.scope,
+              description: measure.description,
+            },
+          ]
+        : trafficPrecautions.filter((item) => item.type !== measure.type),
+    });
+  };
+
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <Typography component="h2" variant="h5">Afmærkning</Typography>
-      <Typography color="text.secondary" variant="body2">
-        Her vælges afmærkning af vejarbejdet, herunder om nedsættelsen af
-        hastighedsbegrænsningen skyldes hensynet til trafikanterne eller
-        vejarbejdernes sikkerhed.
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0 }}>
+      <Typography component={'h2'} variant="h5">
+        Afmærkning
       </Typography>
+      <Box
+        sx={{
+          position: 'relative',
+        }}
+      >
+        <TextField
+          fullWidth
+          helperText="Du kan vælge flere trafikale ændringer."
+          id="traffic-changes"
+          label="Trafikale ændringer"
+          name="trafficChanges"
+          onChange={(event) => {
+            const selected = event.target.value;
+            onChange({
+              ...value,
+              trafficChanges:
+                typeof selected === 'string' ? selected.split(',') : selected,
+            });
+          }}
+          select
+          slotProps={{
+            select: {
+              multiple: true,
+              renderValue: () =>
+                `${selectedTrafficChanges.length} ${selectedTrafficChanges.length === 1 ? 'ændring valgt' : 'ændringer valgt'}`,
+            },
+          }}
+          value={selectedTrafficChanges}
+        >
+          {trafficChangeOptions.map((option) => (
+            <MenuItem key={option} value={option}>
+              <Checkbox checked={selectedTrafficChanges.includes(option)} />
+              <ListItemText primary={option} />
+            </MenuItem>
+          ))}
+        </TextField>
+        {selectedTrafficChanges.length > 0 && (
+          <List
+            aria-label="Valgte trafikale ændringer"
+            disablePadding
+            sx={{
+              position: { xs: 'static', xl: 'absolute' },
+              top: 0,
+              left: 'calc(100% + 48px)',
+              width: { xs: '100%', xl: 320 },
+              mt: { xs: 2, xl: 0 },
+            }}
+          >
+            {selectedTrafficChanges.map((option) => (
+              <ListItem
+                key={option}
+                sx={{
+                  gap: 1,
+                  px: 1.5,
+                  py: 1,
+                  bgcolor: '#F7F9FC',
+                  borderRadius: 1,
+                  '& + &': { mt: 1 },
+                }}
+              >
+                <Typography
+                  sx={{ flex: 1, minWidth: 0, overflowWrap: 'anywhere' }}
+                  variant="body2"
+                >
+                  {option}
+                </Typography>
+                <IconButton
+                  aria-label={`Fjern ${option}`}
+                  onClick={() =>
+                    onChange({
+                      ...value,
+                      trafficChanges: selectedTrafficChanges.filter(
+                        (item) => item !== option,
+                      ),
+                    })
+                  }
+                  size="small"
+                >
+                  <CloseIcon fontSize="small" />
+                </IconButton>
+              </ListItem>
+            ))}
+          </List>
+        )}
+      </Box>
       <TextField
-        fullWidth
-        id="traffic-changes"
-        label="Trafikale ændringer"
-        onChange={(event) => onChange({ ...value, trafficChanges: event.target.value })}
-        value={value.trafficChanges}
-      />
-      <TextField
-        fullWidth
-        id="access-description"
         label="Beskrivelse af adgangsveje"
-        minRows={3}
-        multiline
-        onChange={(event) => onChange({ ...value, accessDescription: event.target.value })}
-        value={value.accessDescription}
+        onChange={(event) =>
+          onChange({ ...value, accessWays: event.target.value })
+        }
+        value={accessWays}
       />
-      <TableContainer sx={{ border: 1, borderColor: 'divider', borderRadius: 2 }}>
-        <Table aria-label="Trafikforanstaltninger" size="small" sx={{ minWidth: 680 }}>
-          <TableHead sx={{ bgcolor: '#F7F9FC' }}>
+      <TableContainer sx={{ width: '100%' }}>
+        <Table>
+          <TableHead>
             <TableRow>
               <TableCell>Trafikforanstaltning</TableCell>
-              <TableCell>Beskyttelsesgrad</TableCell>
+              <TableCell>Beskyttelsegrad</TableCell>
               <TableCell>Virkeområde</TableCell>
               <TableCell>Foranstaltning</TableCell>
-              <TableCell align="center">Valg</TableCell>
+              <TableCell>Valg</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {trafficMeasures.map((measure) => (
-              <TableRow key={measure.id} selected={value.measures.includes(measure.id)}>
-                <TableCell component="th" scope="row">{measure.id}</TableCell>
-                <TableCell>{measure.protection}</TableCell>
-                <TableCell>{measure.scope}</TableCell>
-                <TableCell sx={{ minWidth: 260 }}>{measure.description}</TableCell>
-                <TableCell align="center">
+            {trafficMeasures.map((RowDetails) => (
+              <TableRow key={'RowTrafficMeasure_' + RowDetails.type}>
+                <TableCell>{RowDetails.type}</TableCell>
+                <TableCell>{RowDetails.protection}</TableCell>
+                <TableCell>{RowDetails.scope}</TableCell>
+                <TableCell>{RowDetails.description}</TableCell>
+                <TableCell>
                   <Checkbox
-                    checked={value.measures.includes(measure.id)}
-                    onChange={(_, checked) => onChange({
-                      ...value,
-                      measures: checked ? [...value.measures, measure.id] : value.measures.filter((id) => id !== measure.id),
-                    })}
-                    slotProps={{ input: { 'aria-label': `Vælg trafikforanstaltning ${measure.id}` } }}
-                  />
+                    checked={trafficPrecautions.some(
+                      (item) => item.type === RowDetails.type,
+                    )}
+                    onChange={(e) =>
+                      handleCheckboxChange(RowDetails, e.target.checked)
+                    }
+                  ></Checkbox>
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </TableContainer>
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 3 }}>
-        <TextField
-          fullWidth
-          id="first-sign-location"
-          label="Første tavlenists placering"
-          onChange={(event) => onChange({ ...value, firstSignLocation: event.target.value })}
-          value={value.firstSignLocation}
-        />
-        <TextField
-          fullWidth
-          id="last-sign-location"
-          label="Sidste tavlenists placering"
-          onChange={(event) => onChange({ ...value, lastSignLocation: event.target.value })}
-          value={value.lastSignLocation}
-        />
-      </Box>
-      <TextField
-        fullWidth
-        id="working-hours"
-        label="Beskrivelse af daglig arbejdstid"
-        minRows={2}
-        multiline
-        onChange={(event) => onChange({ ...value, workingHours: event.target.value })}
-        value={value.workingHours}
-      />
     </Box>
   );
 }

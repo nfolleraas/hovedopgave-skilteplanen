@@ -38,15 +38,6 @@ export const emptyMaterialDraft: MaterialDraft = {
   editingId: null,
 };
 
-export type RoadMarking = {
-  trafficChanges: string;
-  accessDescription: string;
-  firstSignLocation: string;
-  lastSignLocation: string;
-  workingHours: string;
-  measures: string[];
-};
-
 export type ApplicationDocument = {
   id: string;
   file: File;
@@ -87,4 +78,17 @@ export type SubmissionDetails = {
   usesSupplier: boolean;
   supplier: CompanyInformation;
   confirmed: boolean;
+};
+
+export type TrafficMeasuresDetails = {
+  type: string;
+  protectionLevel: string;
+  scope: string;
+  description: string;
+};
+
+export type RoadMarkingDetails = {
+  trafficChanges: string[];
+  accessWays: string;
+  trafficPrecautions: TrafficMeasuresDetails[];
 };

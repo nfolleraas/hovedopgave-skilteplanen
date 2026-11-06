@@ -20,12 +20,15 @@ component styles to use when implementing the UI.
 
 ## Map configuration
 
+Use the shared [`DataforsyningenMap`](../../apps/web/src/components/ui/map/DataforsyningenMap.tsx)
+component to embed the map. Its optional `title` prop sets the map's accessible label.
+
 Copy [`apps/web/.env.example`](../../apps/web/.env.example) to
 `apps/web/.env.local`, set `VITE_DATAFORSYNINGEN_TOKEN` to your own
 [Dataforsyningen token](https://dataforsyningen.dk/), and restart Vite.
 The token is used in browser requests and is visible to visitors.
-The usage-details iframe loads Leaflet 1.9.4 from unpkg and requests WMS tiles
-from `https://api.dataforsyningen.dk/forvaltning2` using the `Basis_kort`,
+The component uses OpenLayers and requests WMS tiles
+from `https://api.dataforsyningen.dk/wms/forvaltning2` using the `Basis_kort`,
 `Vejnavne_basiskort`, and `Stednavne_basiskort` layers. Without a token, it
 shows an unavailable-map message. This displays a map; it does not save a location.
 

@@ -20,14 +20,16 @@ export type DetailItem = {
 
 type MasterDetailGridProps = {
   items: DetailItem[];
+  onSubmit?: () => void;
 };
 
-export function MasterDetailGrid({ items }: MasterDetailGridProps) {
+export function MasterDetailGrid({ items, onSubmit }: MasterDetailGridProps) {
   const [selectedId, setSelectedId] = useState(items[0]?.id);
   const [mobileListOpen, setMobileListOpen] = useState(false);
   const listId = useId();
   const selectedIndex = items.findIndex((item) => item.id === selectedId);
   const selectedItem = items[selectedIndex];
+  const isLastStep = selectedIndex === items.length - 1;
 
   return (
     <Box>
@@ -44,9 +46,13 @@ export function MasterDetailGrid({ items }: MasterDetailGridProps) {
       </IconButton>
       <Box
         sx={{
-          display: 'flex',
-          flexDirection: { xs: 'column', md: 'row' },
-          alignItems: 'flex-start',
+          display: 'grid',
+          gridTemplateColumns: {
+            xs: 'minmax(0, 1fr)',
+            md: 'clamp(280px, 24vw, 360px) minmax(0, 1fr)',
+            lg: 'minmax(clamp(280px, 24vw, 360px), 1fr) minmax(0, 880px) minmax(0, 1fr)',
+          },
+          alignItems: 'start',
           gap: { xs: 2, md: 4 },
           width: '100%',
         }}
@@ -58,7 +64,11 @@ export function MasterDetailGrid({ items }: MasterDetailGridProps) {
           id={listId}
           sx={{
             display: { xs: mobileListOpen ? 'block' : 'none', md: 'block' },
-            width: { xs: '100%', md: 280 },
+            width: { xs: '100%', md: 'clamp(280px, 24vw, 360px)' },
+            ml: {
+              xs: 0,
+              lg: 'min(96px, max(0px, calc(100% - 360px)))',
+            },
             flexShrink: 0,
             border: '1px solid',
             borderColor: 'divider',
@@ -93,10 +103,10 @@ export function MasterDetailGrid({ items }: MasterDetailGridProps) {
                   onClick={() => setSelectedId(item.id)}
                   selected={item.id === selectedId}
                   sx={{
-                    minHeight: 56,
+                    minHeight: { xs: 56, md: 72 },
                     gap: 2,
                     px: 2,
-                    py: 1.5,
+                    py: { xs: 1.5, md: 2 },
                     borderRadius: 2,
                     '&:hover': { bgcolor: '#F7F9FC' },
                     '&.Mui-selected': {
@@ -112,8 +122,8 @@ export function MasterDetailGrid({ items }: MasterDetailGridProps) {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      width: 32,
-                      height: 32,
+                      width: { xs: 32, md: 40 },
+                      height: { xs: 32, md: 40 },
                       flexShrink: 0,
                       borderRadius: '50%',
                       bgcolor:
@@ -122,13 +132,16 @@ export function MasterDetailGrid({ items }: MasterDetailGridProps) {
                           : '#F5F5F5',
                       color:
                         item.id === selectedId ? 'inherit' : 'text.secondary',
-                      fontSize: 14,
+                      fontSize: { xs: 14, md: 16 },
                       fontWeight: 600,
                     }}
                   >
                     {index + 1}
                   </Box>
-                  <Typography sx={{ fontWeight: 600 }} variant="body2">
+                  <Typography
+                    sx={{ fontWeight: 600, fontSize: { md: 16 } }}
+                    variant="body2"
+                  >
                     {item.label}
                   </Typography>
                 </ListItemButton>
@@ -139,9 +152,10 @@ export function MasterDetailGrid({ items }: MasterDetailGridProps) {
         <Paper
           elevation={0}
           sx={{
-            flex: 1,
             minWidth: 0,
             width: '100%',
+            maxWidth: { md: 880 },
+            justifySelf: 'center',
             display: 'flex',
             flexDirection: 'column',
             minHeight: { xs: 480, md: 560 },
@@ -161,7 +175,7 @@ export function MasterDetailGrid({ items }: MasterDetailGridProps) {
           <Box
             sx={{
               display: 'flex',
-              justifyContent: "end",
+              justifyContent: 'end',
               gap: 2,
               mt: 4,
               pt: 3,
@@ -177,11 +191,17 @@ export function MasterDetailGrid({ items }: MasterDetailGridProps) {
               Tilbage
             </Button>
             <Button
-              disabled={selectedIndex < 0 || selectedIndex >= items.length - 1}
-              onClick={() => setSelectedId(items[selectedIndex + 1]?.id)}
+              disabled={selectedIndex < 0 || (isLastStep && !onSubmit)}
+              onClick={() => {
+                if (isLastStep) {
+                  onSubmit?.();
+                } else {
+                  setSelectedId(items[selectedIndex + 1]?.id);
+                }
+              }}
               variant="contained"
             >
-              Næste
+              {isLastStep ? 'Indsend ansøgning' : 'Næste'}
             </Button>
           </Box>
         </Paper>
