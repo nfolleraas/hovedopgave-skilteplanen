@@ -12,10 +12,10 @@ the global `/api` route prefix and listens on port `3000` by default. The
 current `GET /api` route returns a greeting. The web app's Vite server proxies
 `/api` requests to this service during development.
 
-The API can connect to the development PostgreSQL service at hostname `db`
-using `DATABASE_URL`; the connection details and container setup are described
-in [DEVCONTAINER.md](../../DEVCONTAINER.md). The API does not currently use the
-database.
+The API connects to the development PostgreSQL service at hostname `db` using
+`DATABASE_URL`; the connection details and container setup are described in
+[DEVCONTAINER.md](../../DEVCONTAINER.md). Prisma models, migrations, and
+development seeders live under [`apps/api/prisma/`](../../apps/api/prisma/).
 
 ## Common commands
 
@@ -32,3 +32,9 @@ bun run --filter api lint
 The generated NestJS starter README is at
 [`apps/api/README.md`](../../apps/api/README.md). The root README is the source
 for shared development instructions.
+
+## Guides
+
+- [Modules and seeders](modules-and-seeders.md): feature module structure,
+  dependency injection, root-module registration, and generic Prisma seeder
+  examples.
