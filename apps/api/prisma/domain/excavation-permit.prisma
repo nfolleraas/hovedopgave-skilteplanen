@@ -1,8 +1,9 @@
 model ExcavationPermit {
-  caseNumber  String      @id
-  application Application @relation(fields: [caseNumber], references: [caseNumber], onDelete: Cascade)
-  permitType  PermitType
-  startDate   DateTime
-  endDate     DateTime
-  cableTasks  CableTask[]
+  caseNumber    String      @id
+  applicationId String      @unique
+  application   Application @relation(fields: [caseNumber], references: [caseNumber], onDelete: Cascade)
+  permitType    PermitType
+  startDate     DateTime
+  endDate       DateTime
+  cableTasks    CableTask[]
 }

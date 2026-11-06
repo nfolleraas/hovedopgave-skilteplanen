@@ -1,5 +1,5 @@
 model Material {
-  uuid            String        @id @default(cuid())
+  uuid            String        @id @default(uuid())
   type            MaterialType
   amount          Float
   description     String

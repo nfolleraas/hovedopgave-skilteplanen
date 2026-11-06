@@ -1,15 +1,13 @@
 model CaseWorker {
-  employeeNumber String          @id
+  employeeNumber String         @id
   name           String
   email          String
   passwordHash   String
   phoneNumber    String
-  isSuperUser    Boolean         @default(false)
-  municipalityId Int             @unique
-  municipality   Municipality    @relation(fields: [municipalityId], references: [id])
+  isSuperUser    Boolean        @default(false)
+  municipalityId Int            @unique
+  municipality   Municipality   @relation(fields: [municipalityId], references: [id])
   notifications  Notification[]
   applications   Application[]
   feedbacks      Feedback[]
-  messageThreads MessageThread[]
-  messages       Message[]
 }
