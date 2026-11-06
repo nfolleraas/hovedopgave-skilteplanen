@@ -1,5 +1,5 @@
 model Feedback {
-  uuid          String      @id @default(cuid())
+  uuid          String      @id @default(uuid())
   category      String
   IsRead        Boolean     @default(false)
   message       String
