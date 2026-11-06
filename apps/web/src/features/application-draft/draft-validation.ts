@@ -56,7 +56,7 @@ function requireText(
   if (isEmpty) errors[path] = 'required';
 }
 
-/** UC-004 F1–F5, UC-006 F1–F2, UC-007 F1–F2. */
+/** UC-004 F1–F5, UC-007 F1–F2. */
 export function validatePeriod(
   type: ApplicationType,
   period: PeriodDraft,
@@ -77,37 +77,14 @@ export function validatePeriod(
       errors['period.startDate'] = 'startInPast';
     }
   } else {
+    requireText(errors, 'period.title', period.title);
     requireText(errors, 'period.usage', period.usage);
     if (period.usage === Usage.Other) {
       requireText(errors, 'period.usageDescription', period.usageDescription);
     }
   }
 
-  if (type === ApplicationType.RoadUsePermit) {
-    requireText(errors, 'period.title', period.title);
-  }
-
-  if (type === ApplicationType.RoadUsePermitEvent) {
-    requireText(errors, 'period.eventName', period.eventName);
-    requireText(errors, 'period.eventStartTime', period.eventStartTime);
-    requireText(errors, 'period.eventEndTime', period.eventEndTime);
-    // Date and time are compared together (UC-006 F1).
-    const start = `${period.startDate}T${period.eventStartTime}`;
-    const end = `${period.endDate}T${period.eventEndTime}`;
-    if (
-      period.startDate &&
-      period.endDate &&
-      period.eventStartTime &&
-      period.eventEndTime &&
-      end <= start
-    ) {
-      errors['period.endDate'] = 'endBeforeStart';
-    }
-  } else if (
-    period.startDate &&
-    period.endDate &&
-    period.endDate < period.startDate
-  ) {
+  if (period.startDate && period.endDate && period.endDate < period.startDate) {
     errors['period.endDate'] = 'endBeforeStart';
   }
 
@@ -160,10 +137,6 @@ function validateMaterial(errors: DraftErrors, material: MaterialDraft): void {
   }
 }
 
-function isBlankMaterial(material: MaterialDraft): boolean {
-  return !material.type && !material.amount.trim() && !material.description;
-}
-
 /** Tasks for excavation permits, materials for road use permits. */
 export function validateTasks(
   type: ApplicationType,
@@ -176,15 +149,9 @@ export function validateTasks(
     return errors;
   }
 
-  // Materials are required for containers (UC-007) and optional for events.
-  const materials =
-    type === ApplicationType.RoadUsePermitEvent
-      ? draft.materials.filter((material) => !isBlankMaterial(material))
-      : draft.materials;
-  if (type === ApplicationType.RoadUsePermit && materials.length === 0) {
-    errors.materials = 'atLeastOneMaterial';
-  }
-  for (const material of materials) validateMaterial(errors, material);
+  // At least one material is required (UC-007 F2).
+  if (draft.materials.length === 0) errors.materials = 'atLeastOneMaterial';
+  for (const material of draft.materials) validateMaterial(errors, material);
   return errors;
 }
 

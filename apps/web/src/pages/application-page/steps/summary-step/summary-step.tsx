@@ -81,20 +81,14 @@ export function SummaryStep({
             <Row label={t('wizard.period.municipality')}>
               {text(period.municipality)}
             </Row>
-            {type === ApplicationType.RoadUsePermitEvent ? (
-              <Row label={t('wizard.period.eventName')}>
-                {text(period.eventName)}
-              </Row>
-            ) : (
-              <Row label={t('wizard.period.title')}>{text(period.title)}</Row>
-            )}
+            <Row label={t('wizard.period.title')}>{text(period.title)}</Row>
             {type === ApplicationType.ExcavationPermit && (
               <Row label={t('wizard.period.permitType')}>
                 {enumLabel('PermitType', period.permitType)}
               </Row>
             )}
             <Row label={t('wizard.summary.period')}>
-              {`${text(period.startDate)} ${period.eventStartTime} – ${text(period.endDate)} ${period.eventEndTime}`}
+              {`${text(period.startDate)} – ${text(period.endDate)}`}
             </Row>
             {type !== ApplicationType.ExcavationPermit && (
               <Row label={t('wizard.period.usage')}>

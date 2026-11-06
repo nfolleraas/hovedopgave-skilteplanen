@@ -1,6 +1,6 @@
+import type { SupportedApplicationType } from '../../types/application.types.js';
 import type { AreaFormField } from '../../types/area.types.js';
 import type {
-  ApplicationType,
   Direction,
   RoadOwnership,
   RoadSection,
@@ -36,10 +36,12 @@ export const directionLabelKeys: Record<Direction, string> = {
   Across: 'areas.labels.direction.Across',
 };
 
-export const applicationTypeLabelKeys: Record<ApplicationType, string> = {
+export const applicationTypeLabelKeys: Record<
+  SupportedApplicationType,
+  string
+> = {
   ExcavationPermit: 'areas.labels.applicationType.ExcavationPermit',
   RoadUsePermit: 'areas.labels.applicationType.RoadUsePermit',
-  RoadUsePermitEvent: 'areas.labels.applicationType.RoadUsePermitEvent',
 };
 
 export const areaFieldLabelKeys: Record<AreaFormField, string> = {

@@ -19,7 +19,6 @@ interface AreaCardProps {
   roadOwnership: RoadOwnership | '';
   isExpanded: boolean;
   isMissingFields: boolean;
-  isEditable: boolean;
   canEditApplication: boolean;
   roadEditable: boolean;
   fieldSet: AreaFieldSet;
@@ -41,7 +40,6 @@ export function AreaCard({
   roadOwnership,
   isExpanded,
   isMissingFields,
-  isEditable,
   canEditApplication,
   roadEditable,
   fieldSet,
@@ -111,7 +109,7 @@ export function AreaCard({
         </Box>
         {canEditApplication && (
           <Box sx={{ display: 'flex', gap: 1 }}>
-            {!isExpanded && isEditable && (
+            {!isExpanded && (
               <Button
                 aria-label={t('areas.editArea', { area: title })}
                 onClick={onEdit}

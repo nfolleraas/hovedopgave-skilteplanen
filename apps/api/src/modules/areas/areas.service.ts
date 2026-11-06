@@ -208,7 +208,6 @@ export class AreasService {
     const fieldSet = getAreaFieldSet(type);
     const unused = detailFields.filter((field) => {
       if (fields[field] === undefined || fields[field] === null) return false;
-      if (!fieldSet.details) return true;
       if (field === 'direction') return !fieldSet.direction;
       if (field === 'depthInMeters') return !fieldSet.depth;
       return false;
@@ -299,10 +298,6 @@ export class AreasService {
   }
 
   private toDetailUpsert(type: ApplicationType, input: AreaRuleInput) {
-    if (!getAreaFieldSet(type).details) {
-      return {};
-    }
-
     const { detail, size } = this.toDetailValues(type, input);
     return {
       areaDetail: { upsert: { create: detail, update: detail } },

@@ -102,24 +102,16 @@ describe('fields per application type', () => {
     expect(input).not.toHaveProperty('depthInMeters');
   });
 
-  test('events need no detail fields (UC-034 A2)', () => {
-    expect(
-      validateArea(
-        ApplicationType.RoadUsePermitEvent,
-        emptyAreaFormValues,
-        searched,
-      ),
-    ).toEqual({});
-    expect(
-      toAreaInput(ApplicationType.RoadUsePermitEvent, complete, searched),
-    ).toEqual({});
-  });
-
   test('manual roads require street name, road status and postal code', () => {
     expect(
       validateArea(
-        ApplicationType.RoadUsePermitEvent,
-        { ...emptyAreaFormValues, postalCode: '50' },
+        ApplicationType.RoadUsePermit,
+        {
+          ...withoutDirectionAndDepth,
+          roadName: '',
+          roadOwnership: '',
+          postalCode: '50',
+        },
         { includeRoad: true },
       ),
     ).toEqual({

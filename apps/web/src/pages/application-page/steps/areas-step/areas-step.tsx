@@ -106,10 +106,6 @@ export function AreasStep({
     return validateArea(type, values, { includeRoad: isRoadEditable(entry) });
   }
 
-  function isEditable(entry: AreaEntry): boolean {
-    return fieldSet.details || isRoadEditable(entry);
-  }
-
   function titleFor(entry: AreaEntry): string {
     const number = state.entries.indexOf(entry) + 1;
     const road =
@@ -125,9 +121,8 @@ export function AreasStep({
     if (state.activeKey || !canEdit) return;
     const first =
       state.entries.find(
-        (entry) =>
-          isEditable(entry) && Object.keys(savedErrorsFor(entry)).length > 0,
-      ) ?? state.entries.find(isEditable);
+        (entry) => Object.keys(savedErrorsFor(entry)).length > 0,
+      ) ?? state.entries[0];
     if (first) dispatch({ type: 'open', key: first.key });
   }, []);
 
@@ -285,14 +280,9 @@ export function AreasStep({
 
   return (
     <section aria-labelledby="step-title">
-      <Typography component="h1" id="step-title" sx={{ mb: 1 }} variant="h5">
+      <Typography component="h1" id="step-title" sx={{ mb: 2 }} variant="h5">
         {t('areas.title')}
       </Typography>
-      {!fieldSet.details && (
-        <Typography color="text.secondary" sx={{ mb: 2 }}>
-          {t('areas.eventHint')}
-        </Typography>
-      )}
       {!canEdit && (
         <Alert severity="info" sx={{ mb: 2 }}>
           {t('areas.notEditable')}
@@ -321,7 +311,6 @@ export function AreasStep({
               draft={isExpanded ? state.draft : null}
               errors={isExpanded && state.showErrors ? errorsFor(entry) : {}}
               fieldSet={fieldSet}
-              isEditable={isEditable(entry)}
               isExpanded={isExpanded}
               isMissingFields={Object.keys(savedErrorsFor(entry)).length > 0}
               isSaving={isSaving}

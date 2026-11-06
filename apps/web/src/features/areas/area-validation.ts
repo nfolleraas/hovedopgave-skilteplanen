@@ -14,21 +14,18 @@ import {
 // enforces them again on the server.
 
 export interface AreaFieldSet {
-  details: boolean;
   direction: boolean;
   depth: boolean;
 }
 
-/** Which detail fields an application type uses (UC-034 A1 and A2). */
+/**
+ * Which detail fields an application type uses. Excavation permits use all
+ * of them (UC-034); road use permits have no direction or depth (UC-034 A1).
+ */
 export function getAreaFieldSet(type: ApplicationType): AreaFieldSet {
-  switch (type) {
-    case ApplicationType.ExcavationPermit:
-      return { details: true, direction: true, depth: true };
-    case ApplicationType.RoadUsePermit:
-      return { details: true, direction: false, depth: false };
-    case ApplicationType.RoadUsePermitEvent:
-      return { details: false, direction: false, depth: false };
-  }
+  return type === ApplicationType.ExcavationPermit
+    ? { direction: true, depth: true }
+    : { direction: false, depth: false };
 }
 
 export function canEditAreas(status: Status): boolean {
@@ -119,9 +116,6 @@ export function validateArea(
   }
 
   const fieldSet = getAreaFieldSet(type);
-  if (!fieldSet.details) {
-    return errors;
-  }
 
   // Either both house numbers or an alternative description (UC-034 F1).
   const hasFrom = hasText(values.houseNumberFrom);
@@ -214,10 +208,6 @@ export function toAreaInput(
   }
 
   const fieldSet = getAreaFieldSet(type);
-  if (!fieldSet.details) {
-    return input;
-  }
-
   input.houseNumberFrom = textOrNull(values.houseNumberFrom);
   input.houseNumberTo = textOrNull(values.houseNumberTo);
   input.alternativeDescription = textOrNull(values.alternativeDescription);

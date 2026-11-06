@@ -104,73 +104,69 @@ export function AreaForm({
         </Row>
       )}
 
-      {fieldSet.details && (
-        <>
-          <Box>
-            <Box
-              sx={{
-                display: 'grid',
-                gap: 2,
-                gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr auto 1fr' },
-              }}
-            >
-              <TextField {...fieldProps('houseNumberFrom')} />
-              <TextField {...fieldProps('houseNumberTo')} />
-              <Typography
-                color="text.secondary"
-                sx={{ alignSelf: 'end', pb: 2 }}
-                variant="body2"
-              >
-                {t('areas.or')}
-              </Typography>
-              <TextField {...fieldProps('alternativeDescription')} />
-            </Box>
-            <Typography color="text.secondary" sx={{ mt: 0.5 }} variant="body2">
-              {t('areas.houseNumberOrDescriptionHint')}
-            </Typography>
-          </Box>
+      <Box>
+        <Box
+          sx={{
+            display: 'grid',
+            gap: 2,
+            gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr auto 1fr' },
+          }}
+        >
+          <TextField {...fieldProps('houseNumberFrom')} />
+          <TextField {...fieldProps('houseNumberTo')} />
+          <Typography
+            color="text.secondary"
+            sx={{ alignSelf: 'end', pb: 2 }}
+            variant="body2"
+          >
+            {t('areas.or')}
+          </Typography>
+          <TextField {...fieldProps('alternativeDescription')} />
+        </Box>
+        <Typography color="text.secondary" sx={{ mt: 0.5 }} variant="body2">
+          {t('areas.houseNumberOrDescriptionHint')}
+        </Typography>
+      </Box>
 
-          <Row>
-            <TextField {...fieldProps('roadSection', true)} select>
-              {options(RoadSection, roadSectionLabelKeys)}
-            </TextField>
-            <TextField {...fieldProps('roadSide', true)} select>
-              {options(RoadSide, roadSideLabelKeys)}
-            </TextField>
-            {fieldSet.direction && (
-              <TextField {...fieldProps('direction', true)} select>
-                {options(Direction, directionLabelKeys)}
-              </TextField>
-            )}
-          </Row>
+      <Row>
+        <TextField {...fieldProps('roadSection', true)} select>
+          {options(RoadSection, roadSectionLabelKeys)}
+        </TextField>
+        <TextField {...fieldProps('roadSide', true)} select>
+          {options(RoadSide, roadSideLabelKeys)}
+        </TextField>
+        {fieldSet.direction && (
+          <TextField {...fieldProps('direction', true)} select>
+            {options(Direction, directionLabelKeys)}
+          </TextField>
+        )}
+      </Row>
 
-          {values.roadSection === RoadSection.Other && (
-            <TextField {...fieldProps('roadSectionDescription', true)} />
-          )}
-
-          <Row>
-            <TextField {...fieldProps('lengthInMeters', true, decimalInput)} />
-            <TextField {...fieldProps('widthInMeters', true, decimalInput)} />
-            {fieldSet.depth && (
-              <TextField {...fieldProps('depthInMeters', true, decimalInput)} />
-            )}
-            <TextField
-              fullWidth
-              helperText={t('areas.areaCalculated')}
-              id={`${idPrefix}-area`}
-              label={t('areas.fields.areaInSquareMeters')}
-              slotProps={{
-                ...labelAboveSlots,
-                htmlInput: { readOnly: true },
-              }}
-              sx={{
-                '& .MuiOutlinedInput-root': { backgroundColor: '#F5F5F5' },
-              }}
-              value={area === undefined ? '' : formatSquareMeters(area)}
-            />
-          </Row>
-        </>
+      {values.roadSection === RoadSection.Other && (
+        <TextField {...fieldProps('roadSectionDescription', true)} />
       )}
+
+      <Row>
+        <TextField {...fieldProps('lengthInMeters', true, decimalInput)} />
+        <TextField {...fieldProps('widthInMeters', true, decimalInput)} />
+        {fieldSet.depth && (
+          <TextField {...fieldProps('depthInMeters', true, decimalInput)} />
+        )}
+        <TextField
+          fullWidth
+          helperText={t('areas.areaCalculated')}
+          id={`${idPrefix}-area`}
+          label={t('areas.fields.areaInSquareMeters')}
+          slotProps={{
+            ...labelAboveSlots,
+            htmlInput: { readOnly: true },
+          }}
+          sx={{
+            '& .MuiOutlinedInput-root': { backgroundColor: '#F5F5F5' },
+          }}
+          value={area === undefined ? '' : formatSquareMeters(area)}
+        />
+      </Row>
     </Box>
   );
 }

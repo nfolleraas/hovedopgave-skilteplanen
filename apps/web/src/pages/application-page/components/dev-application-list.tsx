@@ -21,6 +21,10 @@ import {
   type DevApplication,
   getDevApplications,
 } from '../../../api/dev-applications.api.js';
+import {
+  type SupportedApplicationType,
+  supportedApplicationTypes,
+} from '../../../types/application.types.js';
 import { ApplicationType } from '../../../types/prisma-enums.js';
 import { labelAboveSlots } from './form-fields.js';
 
@@ -37,7 +41,7 @@ export function DevApplicationList() {
   const [applications, setApplications] = useState<DevApplication[] | null>(
     null,
   );
-  const [type, setType] = useState<ApplicationType>(
+  const [type, setType] = useState<SupportedApplicationType>(
     ApplicationType.ExcavationPermit,
   );
   const [isCreating, setIsCreating] = useState(false);
@@ -90,13 +94,15 @@ export function DevApplicationList() {
         <TextField
           id="dev-application-type"
           label={t('devApplications.type')}
-          onChange={(event) => setType(event.target.value as ApplicationType)}
+          onChange={(event) =>
+            setType(event.target.value as SupportedApplicationType)
+          }
           select
           slotProps={labelAboveSlots}
           sx={{ minWidth: 260 }}
           value={type}
         >
-          {Object.values(ApplicationType).map((value) => (
+          {supportedApplicationTypes.map((value) => (
             <MenuItem key={value} value={value}>
               {t(`areas.labels.applicationType.${value}`)}
             </MenuItem>

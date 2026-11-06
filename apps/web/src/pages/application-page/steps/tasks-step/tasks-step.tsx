@@ -240,10 +240,9 @@ function OtherDescriptions({
   );
 }
 
-function MaterialList({ application, draft, update, errors }: ListProps) {
+function MaterialList({ draft, update, errors }: ListProps) {
   const { t } = useTranslation();
   const typeOptions = useEnumOptions('MaterialType', MaterialType);
-  const isRequired = application.type === ApplicationType.RoadUsePermit;
 
   function set(id: string, patch: Partial<MaterialDraft>) {
     update((current) => ({
@@ -262,7 +261,7 @@ function MaterialList({ application, draft, update, errors }: ListProps) {
             deleteLabel={t('wizard.deleteItem', { item: title })}
             key={material.id}
             onDelete={
-              !isRequired || draft.materials.length > 1
+              draft.materials.length > 1
                 ? () =>
                     update((current) => ({
                       ...current,
@@ -283,7 +282,7 @@ function MaterialList({ application, draft, update, errors }: ListProps) {
                 }
                 options={typeOptions}
                 path={`${path}.type`}
-                required={isRequired}
+                required
                 value={material.type}
               />
               <TextInput
@@ -292,7 +291,7 @@ function MaterialList({ application, draft, update, errors }: ListProps) {
                 label={t('wizard.tasks.amount')}
                 onChange={(value) => set(material.id, { amount: value })}
                 path={`${path}.amount`}
-                required={isRequired}
+                required
                 value={material.amount}
               />
             </FieldRow>

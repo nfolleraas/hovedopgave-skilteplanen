@@ -14,7 +14,6 @@ import {
 const draftApplications = [
   { caseNumber: 'DEV-GRAVE-1', type: ApplicationType.ExcavationPermit },
   { caseNumber: 'DEV-ROV-1', type: ApplicationType.RoadUsePermit },
-  { caseNumber: 'DEV-EVENT-1', type: ApplicationType.RoadUsePermitEvent },
 ] as const;
 
 export async function seed(prisma: PrismaClient) {
@@ -70,7 +69,8 @@ export async function seed(prisma: PrismaClient) {
         title,
         applicantReference: caseNumber,
         type,
-        isEvent: type === ApplicationType.RoadUsePermitEvent,
+        // Events are not supported, so this is always false.
+        isEvent: false,
         startDate: start,
         endDate: end,
         eventStart: start,

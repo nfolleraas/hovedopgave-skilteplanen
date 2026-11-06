@@ -88,25 +88,17 @@
     },
     "period": {
       "municipality": "Kommune",
-      "eventName": "Arrangementets navn",
       "title": "Titel",
       "permitType": "Type",
       "noticeInfo": "Ved en anmeldelse kan der komme ekstra betingelser fra kommunen. Henvend dig til kommunen, hvis du har spørgsmål.",
       "startDate": "Startdato",
       "endDate": "Slutdato",
-      "eventStartTime": "Starttidspunkt",
-      "eventEndTime": "Sluttidspunkt",
-      "permission": "Arrangementet",
       "usage": "Anvendelse af vejarealet",
       "usageDescription": "Beskriv anvendelsen",
       "intro": {
         "ExcavationPermit": "Vælg kommune, type og periode for gravetilladelsen.",
-        "RoadUsePermit": "Vælg kommune, titel, anvendelse og periode for råden over vejarealet.",
-        "RoadUsePermitEvent": "Vælg kommune og angiv arrangementets navn, tidspunkt og anvendelse."
-      },
-      "foodSale": "Der sælges mad",
-      "alcoholSale": "Der sælges alkohol",
-      "music": "Der afspilles musik"
+        "RoadUsePermit": "Vælg kommune, titel, anvendelse og periode for råden over vejarealet."
+      }
     },
     "signPlan": {
       "signPlanTitle": "Skilteplan",
@@ -353,7 +345,6 @@
     "deleted": "Området på {{road}} er slettet.",
     "deleteError": "Området kunne ikke slettes, prøv igen senere eller kontakt supporten.",
     "title": "Områder",
-    "eventHint": "Ved arrangementer registreres kun de valgte veje.",
     "addManually": "+ Opret vej manuelt",
     "deleteDialog": {
       "title": "Slet område?",
@@ -407,8 +398,7 @@
       },
       "applicationType": {
         "ExcavationPermit": "Gravetilladelse",
-        "RoadUsePermit": "Råden over vejareal – container m.m.",
-        "RoadUsePermitEvent": "Råden over vejareal – arrangement"
+        "RoadUsePermit": "Råden over vejareal"
       }
     }
   },
