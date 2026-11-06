@@ -1,11 +1,10 @@
 model Municipality {
-  id             Int             @id
-  name           String
-  region         String
-  email          String
-  phoneNumber    String
-  addressId      String          @unique
-  address        Address         @relation(fields: [addressId], references: [uuid])
-  caseWorkers    CaseWorker[]
-  messageThreads MessageThread[]
+  id          Int          @id
+  name        String
+  region      String
+  email       String
+  phoneNumber String
+  addressId   String       @unique
+  address     Address      @relation(fields: [addressId], references: [uuid])
+  caseWorkers CaseWorker[]
 }

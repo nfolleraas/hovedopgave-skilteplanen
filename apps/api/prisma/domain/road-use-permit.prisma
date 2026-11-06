@@ -1,5 +1,6 @@
 model RoadUsePermit {
   caseNumber       String       @id
+  applicationId    String       @unique
   application      Application  @relation(fields: [caseNumber], references: [caseNumber], onDelete: Cascade)
   isEvent          Boolean
   startDate        DateTime
