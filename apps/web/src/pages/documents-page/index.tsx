@@ -17,7 +17,7 @@ import type { ChangeEvent } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { createDocument, getDocuments } from '../../api/documents.api.js';
-import type { Document } from '../../types/document.types.js';
+import type { Document } from './document.types.js';
 
 const demoApplicationId = 'DEMO-2026-0001';
 
@@ -69,7 +69,7 @@ export default function DocumentsPage() {
       const uploadedDocument = await createDocument(
         file,
         demoApplicationId,
-        'Other',
+        "Other",
       );
 
       setDocuments((currentDocuments) => [

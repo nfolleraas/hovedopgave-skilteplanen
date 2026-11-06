@@ -1,5 +1,8 @@
-import type { Document, DocumentType } from '../types/document.types.js';
-import { apiClient } from './client.js';
+import type {
+  Document,
+  DocumentType,
+} from '../pages/documents-page/document.types.js';
+import { apiClient } from './client.api.js';
 
 export async function getDocuments(): Promise<Document[]> {
   return apiClient.get<Document[]>('/documents');
