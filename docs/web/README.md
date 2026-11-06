@@ -18,6 +18,10 @@ feature-specific guides here as the frontend develops.
 The [stylesheet](styles/stylesheet.md) documents the colours, typography, and
 component styles to use when implementing the UI.
 
+The [accessibility requirements](accessibility.md) define the minimum standard
+for accessible pages and components, including screen readers, keyboard-only
+navigation, visual accessibility, and clear language for non-technical users.
+
 ## Common commands
 
 Run these from the repository root:
