@@ -1,5 +1,8 @@
 import { Box, Button, Container, TextField, Typography } from '@mui/material';
 import { useState } from 'react';
+import { useNavigate } from 'react-router';
+import type { AddressSuggestion } from '../../api/addresses.api';
+import AddressAutocomplete from '../../components/address/address-autocomplete';
 
 type ApplicantType = 'business' | 'private';
 
@@ -9,10 +12,17 @@ interface ApplicantFormProps {
 
 export default function ApplicantForm({ applicantType }: ApplicantFormProps) {
   const isBusiness = applicantType === 'business';
+  const [selectedAddress, setSelectedAddress] =
+    useState<AddressSuggestion | null>(null);
+  const navigate = useNavigate();
   const [phoneError, setPhoneError] = useState(false);
   const [cvrError, setCvrError] = useState(false);
   function handleSubmit(event: React.SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!selectedAddress) {
+      alert('Du skal vælge en adresse fra listen');
+      return;
+    }
 
     const formData = new FormData(event.currentTarget);
 
@@ -20,7 +30,7 @@ export default function ApplicantForm({ applicantType }: ApplicantFormProps) {
       name: formData.get('name'),
       phone: formData.get('phone'),
       email: formData.get('email'),
-      address: formData.get('address'),
+      address: selectedAddress,
       cvr: isBusiness ? formData.get('cvr') : null,
     });
   }
@@ -92,12 +102,7 @@ export default function ApplicantForm({ applicantType }: ApplicantFormProps) {
             type="email"
           />
 
-          <TextField
-            label="Adresse"
-            name="address"
-            placeholder="Søg efter adresse..."
-            required
-          />
+          <AddressAutocomplete onChange={setSelectedAddress} />
 
           {isBusiness && (
             <TextField
@@ -136,7 +141,13 @@ export default function ApplicantForm({ applicantType }: ApplicantFormProps) {
             mt: 5,
           }}
         >
-          <Button variant="outlined">Annuller</Button>
+          <Button
+            onClick={() => navigate('/')}
+            type="button"
+            variant="outlined"
+          >
+            Annuller
+          </Button>
 
           <Button type="submit" variant="contained">
             Gem ansøger

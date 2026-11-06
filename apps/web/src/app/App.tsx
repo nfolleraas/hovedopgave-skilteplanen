@@ -1,9 +1,9 @@
 import { Container, Typography } from '@mui/material';
 import { useTranslation } from 'react-i18next';
-import { Route, Routes } from 'react-router';
+import { Route, Routes, useLocation } from 'react-router';
 import Footer from '../components/layout/footer/footer.js';
 import Navbar from '../components/layout/navbar/navbar.js';
-import { pages } from './router.js';
+import { pages, routes } from './router.js';
 
 function NotFoundPage() {
   const { t } = useTranslation();
@@ -20,16 +20,22 @@ function NotFoundPage() {
 }
 
 export default function App() {
+  const location = useLocation();
+
+  const isCreateApplicantPage =
+    location.pathname === routes.createPrivateApplicant ||
+    location.pathname === routes.createBusinessApplicant;
   return (
     <>
-      <Navbar />
+      {!isCreateApplicantPage && <Navbar />}
+
       <Routes>
         {Object.entries(pages).map(([path, Page]) => (
           <Route element={<Page />} key={path} path={path} />
         ))}
         <Route element={<NotFoundPage />} path="*" />
       </Routes>
-      <Footer />
+      {!isCreateApplicantPage && <Footer />}
     </>
   );
 }
