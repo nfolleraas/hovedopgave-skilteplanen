@@ -1,16 +1,13 @@
 model RoadUsePermit {
-  caseNumber         String          @id
-  title              String
-  applicantReference String
-  type               ApplicationType
-  isEvent            Boolean
-  startDate          DateTime
-  endDate            DateTime
-  eventStart         DateTime
-  eventEnd           DateTime
-  usage              Usage
-  usageDescription   String?
-  materials          Material[]
-  permissions        Permission[]
-  application        Application?
+  caseNumber       String       @id
+  application      Application  @relation(fields: [caseNumber], references: [caseNumber], onDelete: Cascade)
+  isEvent          Boolean
+  startDate        DateTime
+  endDate          DateTime
+  eventStart       DateTime
+  eventEnd         DateTime
+  usage            Usage
+  usageDescription String?
+  materials        Material[]
+  permissions      Permission[]
 }
