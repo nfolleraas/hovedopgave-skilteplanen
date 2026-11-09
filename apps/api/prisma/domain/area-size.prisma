@@ -1,9 +1,9 @@
-            model AreaSize {
-  uuid              String @id @default(uuid())
-  lengthInMeters    Float
-  widthInMeters     Float
-  depthInMeters     Float
-  areaInCubicMeters Float
-  areaId            String @unique
-  area              Area?
+model AreaSize {
+  uuid               String @id @default(uuid())
+  lengthInMeters     Float
+  widthInMeters      Float
+  // Optional because road use (container) applications have no depth.
+  depthInMeters      Float?
+  areaInSquareMeters Float
+  area               Area?
 }

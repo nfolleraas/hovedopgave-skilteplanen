@@ -3,6 +3,7 @@ model AreaDetail {
   roadSection            RoadSection
   roadSectionDescription String?
   roadSide               RoadSide
-  direction              Direction
+  // Optional because road use (container) applications have no direction.
+  direction              Direction?
   area                   Area?
 }

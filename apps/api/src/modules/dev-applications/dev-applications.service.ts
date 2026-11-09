@@ -76,33 +76,7 @@ export class DevApplicationsService {
           },
         },
       });
-      // An application currently requires both permit records.
-      await tx.excavationPermit.create({
-        data: {
-          caseNumber: `${caseNumber}-GT`,
-          title,
-          applicantReference: caseNumber,
-          type,
-          permitType: PermitType.Application,
-          startDate: start,
-          endDate: end,
-        },
-      });
-      await tx.roadUsePermit.create({
-        data: {
-          caseNumber: `${caseNumber}-ROV`,
-          title,
-          applicantReference: caseNumber,
-          type,
-          // Events are not supported, so this is always false.
-          isEvent: false,
-          startDate: start,
-          endDate: end,
-          eventStart: start,
-          eventEnd: end,
-          usage: Usage.Construction,
-        },
-      });
+      // Each permit shares the application's case number.
       await tx.application.create({
         data: {
           caseNumber,
@@ -111,9 +85,32 @@ export class DevApplicationsService {
           type,
           status: Status.Draft,
           trafficChange: TrafficChange.SpeedLimitWorkZone,
-          applicantId: applicant.uuid,
-          excavationPermitId: `${caseNumber}-GT`,
-          roadUsePermitId: `${caseNumber}-ROV`,
+          applicant: { connect: { uuid: applicant.uuid } },
+          ...(type === ApplicationType.ExcavationPermit
+            ? {
+                excavationPermit: {
+                  create: {
+                    applicationId: caseNumber,
+                    permitType: PermitType.Application,
+                    startDate: start,
+                    endDate: end,
+                  },
+                },
+              }
+            : {
+                roadUsePermit: {
+                  create: {
+                    applicationId: caseNumber,
+                    // Events are not supported, so this is always false.
+                    isEvent: false,
+                    startDate: start,
+                    endDate: end,
+                    eventStart: start,
+                    eventEnd: end,
+                    usage: Usage.Construction,
+                  },
+                },
+              }),
         },
       });
     });
