@@ -1,4 +1,4 @@
-model AreaSize {
+            model AreaSize {
   uuid              String @id @default(uuid())
   lengthInMeters    Float
   widthInMeters     Float
