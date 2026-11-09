@@ -6,8 +6,8 @@ model Actor {
   cvrNumber         String?
   role              ActorRole
   department        String?
-  ContactPersonName String?
   addressId         String
   address           Address       @relation(fields: [addressId], references: [uuid])
   applications      Application[]
+  contactPersons    ContactPerson[]
 }

@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+} from '@nestjs/common';
 import { ActorsService } from './actors.service.js';
 import { CreateActorDto } from './dto/create-actor.dto.js';
 import { UpdateActorDto } from './dto/update-actor.dto.js';
@@ -15,6 +23,11 @@ export class ActorsController {
   @Get()
   findAll() {
     return this.actorsService.findAll();
+  }
+
+  @Get('application/:caseNumber')
+  findForApplication(@Param('caseNumber') caseNumber: string) {
+    return this.actorsService.findForApplication(caseNumber);
   }
 
   @Get(':id')

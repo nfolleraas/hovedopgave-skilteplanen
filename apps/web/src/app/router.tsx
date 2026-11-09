@@ -8,6 +8,7 @@ import MessagesPage from '../pages/messages-page';
 export const routes = {
   home: '/',
   application: '/ansoegning',
+  selectedApplication: '/ansoegning/:caseNumber',
   contacts: '/kontaktpersoner',
   messages: '/beskeder',
   login: '/login',
@@ -16,6 +17,7 @@ export const routes = {
 export const pages: Record<string, ComponentType> = {
   [routes.home]: HomePage,
   [routes.application]: ApplicationPage,
+  [routes.selectedApplication]: ApplicationPage,
   [routes.contacts]: ContactsPage,
   [routes.messages]: MessagesPage,
   [routes.login]: LoginPage,

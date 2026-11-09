@@ -39,5 +39,66 @@
   "login": {
     "title": "Log in",
     "formPlaceholder": "The login form will appear here."
+  },
+  "actors": {
+    "pageTitle": "Other actors",
+    "listTitle": "Actors on the application",
+    "emptyList": "There are no actors on the application yet.",
+    "selectOrCreate": "Select an actor or create a new one.",
+    "localDraftNotice": "Actors are stored only temporarily on this page. They have not been saved to the system.",
+    "create": "Create actor",
+    "createTitle": "Create other actor",
+    "saveDraft": "Save actor",
+    "noApplicationSelected": "Select an application before creating an actor.",
+    "loading": "Loading application actors",
+    "loadFailed": "The application and its actors could not be loaded.",
+    "saveFailed": "The actor could not be saved. Please try again.",
+    "cancel": "Cancel",
+    "role": "Role",
+    "name": "Name",
+    "phoneNumber": "Phone number",
+    "email": "Email",
+    "cvrNumber": "CVR number",
+    "department": "Department",
+    "contactPerson": "Contact person",
+    "contactPersonName": "Contact person's name",
+    "contactPersonEmail": "Contact person's email",
+    "contactPersonPhoneNumber": "Contact person's phone number",
+    "contactAvailability": "Contact person's availability",
+    "availability": {
+      "Day": "Day",
+      "Evening": "Evening",
+      "Night": "Night",
+      "AllDay": "All day"
+    },
+    "address": "Address",
+    "addressSearch": "Search for address",
+    "addressSearchHint": "Enter at least 3 characters to search.",
+    "addressSearching": "Searching for addresses…",
+    "addressNoMatches": "No addresses found. Try a more specific search.",
+    "street": "Street",
+    "houseNumber": "House number",
+    "postalCode": "Postal code",
+    "city": "City",
+    "roles": {
+      "Supplier": "Supplier",
+      "Contractor": "Contractor",
+      "NetworkOperator": "Network operator",
+      "ProjectCoordinator": "Project coordinator",
+      "Private": "Private"
+    },
+    "errors": {
+      "role": "Choose a role.",
+      "name": "Name may only contain letters.",
+      "phoneNumber": "Phone number must contain exactly 8 digits.",
+      "email": "Enter a valid email address.",
+      "cvrNumber": "CVR number must contain exactly 8 digits.",
+      "department": "Enter a department.",
+      "contactPersonName": "Contact person's name may only contain letters.",
+      "contactAvailability": "Choose the contact person's availability.",
+      "address": "Choose an address from the search results.",
+      "addressLookup": "The address could not be verified. Try again.",
+      "required": "This field is required."
+    }
   }
 }

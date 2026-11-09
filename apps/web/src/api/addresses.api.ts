@@ -1,0 +1,89 @@
+export interface AddressSuggestion {
+  id: string;
+  title: string;
+}
+
+export interface VerifiedAddress {
+  street: string;
+  houseNumber: string;
+  postalCode: string;
+  city: string;
+}
+
+// KDS's public token is required until Adressevælger introduces user accounts.
+const baseUrl = 'https://adressevaelger.dk';
+const publicToken = 'adressevaelger123';
+
+function isObject(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === 'object';
+}
+
+export function parseAddressSuggestions(data: unknown): AddressSuggestion[] {
+  if (!isObject(data) || data.status !== 'ok' || !Array.isArray(data.fund)) {
+    throw new Error('Invalid address search response.');
+  }
+
+  return data.fund.flatMap((item: unknown) => {
+    if (
+      isObject(item) &&
+      item.type === 'husnummer' &&
+      typeof item.id === 'string' &&
+      typeof item.titel === 'string'
+    ) {
+      return [{ id: item.id, title: item.titel }];
+    }
+    return [];
+  });
+}
+
+export function parseAddressLookup(data: unknown): VerifiedAddress {
+  if (!isObject(data) || data.status !== 'ok' || !isObject(data.husnummer)) {
+    throw new Error('Invalid address lookup response.');
+  }
+
+  const address = data.husnummer;
+  const postal = address.postnummer;
+  if (
+    address.status !== '3' ||
+    typeof address.vejnavn !== 'string' ||
+    typeof address.husnummertekst !== 'string' ||
+    !isObject(postal) ||
+    typeof postal.postnr !== 'string' ||
+    typeof postal.navn !== 'string'
+  ) {
+    throw new Error('Address is not current or is incomplete.');
+  }
+
+  return {
+    street: address.vejnavn,
+    houseNumber: address.husnummertekst,
+    postalCode: postal.postnr,
+    city: postal.navn,
+  };
+}
+
+export async function searchAddresses(
+  query: string,
+  signal?: AbortSignal,
+): Promise<AddressSuggestion[]> {
+  const url = new URL('/husnumre/soeg', baseUrl);
+  url.searchParams.set('tekst', query);
+  url.searchParams.set('maksimum', '10');
+  url.searchParams.set('token', publicToken);
+
+  const response = await fetch(url, { signal });
+  if (!response.ok) throw new Error('Address search failed.');
+  return parseAddressSuggestions(await response.json());
+}
+
+export async function lookupAddress(
+  id: string,
+  signal?: AbortSignal,
+): Promise<VerifiedAddress> {
+  const url = new URL(`/husnumre/${encodeURIComponent(id)}`, baseUrl);
+  url.searchParams.set('token', publicToken);
+
+  const response = await fetch(url, { signal });
+  if (!response.ok) throw new Error('Address lookup failed.');
+  return parseAddressLookup(await response.json());
+}
