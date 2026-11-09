@@ -89,7 +89,7 @@ function SummarySection({
 
 function formatDate(date: string) {
   return date.split('-').reverse().join('-');
-}
+}  
 
 export function SummaryAndSubmissionPage({
   title,
