@@ -1,5 +1,5 @@
 model Permission {
-  id              String        @id @default(cuid())
+  id              String        @id @default(uuid())
   foodSale        Boolean
   alcoholSale     Boolean
   music           Boolean

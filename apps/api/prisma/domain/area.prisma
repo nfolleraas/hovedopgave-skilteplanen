@@ -1,5 +1,5 @@
 model Area {
-  uuid                   String        @id @default(cuid())
+  uuid                   String        @id @default(uuid())
   roadName               String
   roadOwnership          RoadOwnership
   postalCode             String

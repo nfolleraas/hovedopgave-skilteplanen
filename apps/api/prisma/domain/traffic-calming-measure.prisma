@@ -1,5 +1,5 @@
 model TrafficCalmingMeasure {
-  id              String                     @id @default(cuid())
+  id              String                     @id @default(uuid())
   type            TrafficCalmingMeasureType
   protectionLevel String
   scope           TrafficCalmingMeasureScope

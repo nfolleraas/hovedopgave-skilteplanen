@@ -18,19 +18,9 @@ how to register and link to new paths.
 The [stylesheet](styles/stylesheet.md) documents the colours, typography, and
 component styles to use when implementing the UI.
 
-## Map configuration
-
-Use the shared [`DataforsyningenMap`](../../apps/web/src/components/ui/map/DataforsyningenMap.tsx)
-component to embed the map. Its optional `title` prop sets the map's accessible label.
-
-Copy [`apps/web/.env.example`](../../apps/web/.env.example) to
-`apps/web/.env.local`, set `VITE_DATAFORSYNINGEN_TOKEN` to your own
-[Dataforsyningen token](https://dataforsyningen.dk/), and restart Vite.
-The token is used in browser requests and is visible to visitors.
-The component uses OpenLayers and requests WMS tiles
-from `https://api.dataforsyningen.dk/wms/forvaltning2` using the `Basis_kort`,
-`Vejnavne_basiskort`, and `Stednavne_basiskort` layers. Without a token, it
-shows an unavailable-map message. This displays a map; it does not save a location.
+The [accessibility requirements](accessibility.md) define the minimum standard
+for accessible pages and components, including screen readers, keyboard-only
+navigation, visual accessibility, and clear language for non-technical users.
 
 ## Common commands
 
