@@ -18,7 +18,10 @@ interface DeleteAreaDialogProps {
   onConfirm: () => void;
 }
 
-/** MUI Dialog traps focus and closes on Escape (UC-035). */
+/**
+ * MUI Dialog traps focus and closes on Escape (UC-035). The areas step moves
+ * focus after closing, because a deleted area's button no longer exists.
+ */
 export function DeleteAreaDialog({
   area,
   isDeleting,
@@ -36,6 +39,7 @@ export function DeleteAreaDialog({
     <Dialog
       aria-describedby="delete-area-description"
       aria-labelledby="delete-area-title"
+      disableRestoreFocus
       onClose={isDeleting ? undefined : onCancel}
       open={area !== null}
     >

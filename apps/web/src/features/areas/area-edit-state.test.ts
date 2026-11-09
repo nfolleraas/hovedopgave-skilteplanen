@@ -105,6 +105,29 @@ describe('update area (UC-036)', () => {
     expect(state.activeKey).toBe('a3');
   });
 
+  test('closing removes an untouched manual area and collapses all', () => {
+    let state = areaEditReducer(loaded(), { type: 'addManual' });
+    state = areaEditReducer(state, { type: 'close' });
+    expect(state.entries).toHaveLength(2);
+    expect(state.activeKey).toBeNull();
+
+    state = areaEditReducer(state, { type: 'open', key: 'a1' });
+    state = areaEditReducer(state, { type: 'close' });
+    expect(state.activeKey).toBeNull();
+  });
+
+  test('closing keeps an area with unsaved changes open', () => {
+    let state = areaEditReducer(loaded(), { type: 'addManual' });
+    state = areaEditReducer(state, {
+      type: 'change',
+      field: 'roadName',
+      value: 'Ny vej',
+    });
+    state = areaEditReducer(state, { type: 'close' });
+    expect(state.entries).toHaveLength(3);
+    expect(state.draft?.roadName).toBe('Ny vej');
+  });
+
   test('cancelling an unsaved manual area removes it', () => {
     let state = areaEditReducer(loaded(), { type: 'addManual' });
     state = areaEditReducer(state, { type: 'cancel' });

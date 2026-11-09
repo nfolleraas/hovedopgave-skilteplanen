@@ -19,7 +19,8 @@
     "socialLinksPlaceholder": "[Social media links]"
   },
   "common": {
-    "brandName": "Skilteplanen"
+    "brandName": "Skilteplanen",
+    "skipToContent": "Skip to main content"
   },
   "navigation": {
     "home": "Home",
@@ -294,6 +295,7 @@
     "stepsLabel": "Application steps",
     "back": "Back",
     "next": "Next",
+    "documentTitle": "{{step}} – Application platform",
     "loading": "Loading the application",
     "steps": {
       "otherActors": "Other actors",

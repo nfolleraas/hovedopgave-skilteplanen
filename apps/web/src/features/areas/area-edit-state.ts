@@ -34,6 +34,7 @@ export type AreaEditAction =
   | { type: 'cancelPending' }
   | { type: 'change'; field: AreaFormField; value: string }
   | { type: 'cancel' }
+  | { type: 'close' }
   | { type: 'showErrors' }
   | { type: 'saved'; key: string; area: Area }
   | { type: 'removed'; key: string };
@@ -46,6 +47,11 @@ export const initialAreaEditState: AreaEditState = {
   pendingKey: null,
   nextTempId: 1,
 };
+
+/** The key the next manually added area gets. */
+export function nextManualKey(state: AreaEditState): string {
+  return `new-${state.nextTempId}`;
+}
 
 export function isRoadEditable(entry: AreaEntry): boolean {
   return entry.source === 'manual';
@@ -122,7 +128,7 @@ export function areaEditReducer(
       if (isDirty(state)) {
         return state;
       }
-      const key = `new-${state.nextTempId}`;
+      const key = nextManualKey(state);
       const base = dropUnsavedActive(state);
       return open(
         {
@@ -164,6 +170,13 @@ export function areaEditReducer(
       }
       return open(state, active.key);
     }
+    case 'close':
+      // Used when the step is left. Unsaved input is kept, but an untouched
+      // manual area is removed so no empty form is left in the list.
+      if (isDirty(state)) {
+        return state;
+      }
+      return open(dropUnsavedActive(state), null);
     case 'showErrors':
       return { ...state, showErrors: true };
     case 'saved': {

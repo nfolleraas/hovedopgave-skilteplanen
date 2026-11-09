@@ -19,7 +19,8 @@
     "socialLinksPlaceholder": "[Links til sociale medier]"
   },
   "common": {
-    "brandName": "Skilteplanen"
+    "brandName": "Skilteplanen",
+    "skipToContent": "Spring til indhold"
   },
   "navigation": {
     "home": "Hjem",
@@ -294,6 +295,7 @@
     "stepsLabel": "Ansøgningens trin",
     "back": "Tilbage",
     "next": "Næste",
+    "documentTitle": "{{step}} – Ansøgningsplatformen",
     "loading": "Henter ansøgningen",
     "steps": {
       "otherActors": "Øvrige aktører",

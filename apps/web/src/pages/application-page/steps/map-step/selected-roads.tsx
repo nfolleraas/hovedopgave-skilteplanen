@@ -7,6 +7,11 @@ import {
 import type { SelectedRoad } from '../../../../types/area.types.js';
 import { RoadOwnership } from '../../../../types/prisma-enums.js';
 
+/** Id of a road's ownership field, so the map step can focus it. */
+export function roadOwnershipId(roadId: string): string {
+  return `road-ownership-${roadId}`;
+}
+
 interface SelectedRoadsProps {
   roads: SelectedRoad[];
   /** Marks roads without an ownership after the user tried to continue. */
@@ -88,7 +93,7 @@ export function SelectedRoads({
                   helperText={
                     missingOwnership ? t('mapStep.ownershipRequired') : ' '
                   }
-                  id={`road-ownership-${road.id}`}
+                  id={roadOwnershipId(road.id)}
                   label={t(areaFieldLabelKeys.roadOwnership)}
                   onChange={(event) =>
                     onOwnershipChange(road, event.target.value as RoadOwnership)

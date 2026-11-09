@@ -71,6 +71,30 @@ export default function ApplicationPage() {
   );
   // Set by the areas step so leaving it saves the open area first.
   const leaveGuard = useRef<LeaveGuard | null>(null);
+  // True after the user changes step, so the first load keeps focus as is.
+  const focusStepTitle = useRef(false);
+
+  const stepLabelKey = applicationSteps.find(
+    (item) => item.id === step,
+  )?.labelKey;
+  useEffect(() => {
+    if (!stepLabelKey) return;
+    const previousTitle = document.title;
+    document.title = t('applicationWizard.documentTitle', {
+      step: t(stepLabelKey),
+    });
+    return () => {
+      document.title = previousTitle;
+    };
+  }, [stepLabelKey, t]);
+
+  // Move focus to the new step's heading, so screen readers announce it.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: runs per step.
+  useEffect(() => {
+    if (!focusStepTitle.current) return;
+    focusStepTitle.current = false;
+    document.getElementById('step-title')?.focus();
+  }, [step]);
 
   useEffect(() => {
     if (caseNumber && draft) saveApplicationDraft(caseNumber, draft);
@@ -78,7 +102,12 @@ export default function ApplicationPage() {
 
   // The browser's back and forward buttons move between steps.
   useEffect(() => {
-    const onPopState = () => setStep(getStepFromUrl());
+    const onPopState = () => {
+      const target = getStepFromUrl();
+      if (target !== 'areas') dispatch({ type: 'close' });
+      focusStepTitle.current = true;
+      setStep(target);
+    };
     window.addEventListener('popstate', onPopState);
     return () => window.removeEventListener('popstate', onPopState);
   }, []);
@@ -115,6 +144,9 @@ export default function ApplicationPage() {
     applicationSteps[Math.min(stepIndex + 1, applicationSteps.length - 1)].id;
 
   function showStep(target: ApplicationStepId) {
+    // Collapse the areas and drop an untouched manual area when leaving.
+    if (target !== 'areas') dispatch({ type: 'close' });
+    focusStepTitle.current = true;
     setStep(target);
     writeStepToUrl(target);
     window.scrollTo({ top: 0 });

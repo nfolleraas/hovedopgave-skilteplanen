@@ -1,5 +1,5 @@
 import { Alert, Box, Button, Typography } from '@mui/material';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { createAreas } from '../../../../api/areas.api.js';
 import type {
@@ -8,10 +8,11 @@ import type {
   SelectedRoad,
 } from '../../../../types/area.types.js';
 import type { RoadOwnership } from '../../../../types/prisma-enums.js';
+import { focusById } from '../../../../utils/focus-by-id.js';
 import { WizardFooter } from '../../components/wizard-footer.js';
 import { MapPlaceholder } from './map-placeholder.js';
 import { RoadSearch } from './road-search.js';
-import { SelectedRoads } from './selected-roads.js';
+import { roadOwnershipId, SelectedRoads } from './selected-roads.js';
 
 interface MapStepProps {
   application: AreaApplication;
@@ -36,6 +37,17 @@ export function MapStep({
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const selectedIds = new Set(selected.map((road) => road.id));
+  // Counts blocked attempts to continue, so each one moves focus again.
+  const [ownershipCheck, setOwnershipCheck] = useState(0);
+
+  // Focus the first missing road status after its error text is rendered,
+  // so screen readers read the field together with the error.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: per attempt only.
+  useEffect(() => {
+    if (ownershipCheck === 0) return;
+    const missing = selected.find((road) => !road.roadOwnership);
+    if (missing) focusById(roadOwnershipId(missing.id));
+  }, [ownershipCheck]);
 
   async function handleNext() {
     // Going back and forth keeps existing areas without new roads.
@@ -48,6 +60,7 @@ export function MapStep({
     const roads = selected.filter(hasOwnership);
     if (roads.length < selected.length) {
       setShowErrors(true);
+      setOwnershipCheck((count) => count + 1);
       return;
     }
 
@@ -75,7 +88,13 @@ export function MapStep({
 
   return (
     <section aria-labelledby="step-title">
-      <Typography component="h1" id="step-title" sx={{ mb: 3 }} variant="h5">
+      <Typography
+        component="h1"
+        id="step-title"
+        sx={{ mb: 3 }}
+        tabIndex={-1}
+        variant="h5"
+      >
         {t('mapStep.title')}
       </Typography>
 

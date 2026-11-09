@@ -59,7 +59,13 @@ export function StepShell({
 
   return (
     <section aria-labelledby="step-title">
-      <Typography component="h1" id="step-title" sx={{ mb: 1 }} variant="h5">
+      <Typography
+        component="h1"
+        id="step-title"
+        sx={{ mb: 1 }}
+        tabIndex={-1}
+        variant="h5"
+      >
         {title}
       </Typography>
       {intro && (

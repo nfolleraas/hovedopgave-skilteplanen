@@ -12,6 +12,13 @@ import type {
 import type { RoadOwnership } from '../../../../types/prisma-enums.js';
 import { AreaForm } from './area-form.js';
 
+/** Element ids, so the areas step can move focus to a card. */
+export const areaCardIds = {
+  title: (areaKey: string) => `area-${areaKey}-title`,
+  edit: (areaKey: string) => `area-${areaKey}-edit`,
+  delete: (areaKey: string) => `area-${areaKey}-delete`,
+};
+
 interface AreaCardProps {
   areaKey: string;
   number: number;
@@ -54,7 +61,7 @@ export function AreaCard({
   onCancel,
 }: AreaCardProps) {
   const { t } = useTranslation();
-  const titleId = `area-${areaKey}-title`;
+  const titleId = areaCardIds.title(areaKey);
   const title = t('areas.cardTitle', {
     number,
     road: roadName || t('areas.newRoad'),
@@ -91,6 +98,7 @@ export function AreaCard({
             component="h2"
             id={titleId}
             sx={{ fontWeight: 600 }}
+            tabIndex={-1}
             variant="body1"
           >
             {title}
@@ -112,6 +120,7 @@ export function AreaCard({
             {!isExpanded && (
               <Button
                 aria-label={t('areas.editArea', { area: title })}
+                id={areaCardIds.edit(areaKey)}
                 onClick={onEdit}
                 size="small"
                 variant="outlined"
@@ -122,6 +131,7 @@ export function AreaCard({
             <Button
               aria-label={t('areas.deleteAreaFor', { area: title })}
               color="error"
+              id={areaCardIds.delete(areaKey)}
               onClick={onDelete}
               size="small"
               variant="outlined"

@@ -26,6 +26,15 @@ import {
 } from '../../../../types/prisma-enums.js';
 import { labelAboveSlots } from '../../components/form-fields.js';
 
+/** The description box grows with its text up to this height. */
+const descriptionMaxHeight = '100px';
+/** MUI's vertical padding inside an outlined input. */
+const outlinedInputPadding = '16.5px';
+/** Height of a single-line outlined input: one 16px line + padding. */
+const singleLineInputHeight = `calc(16px * 1.4375 + 2 * ${outlinedInputPadding})`;
+/** Label above a field: 14px text, 1.4375em line height, 6px margin. */
+const labelAboveHeight = 'calc(14px * 1.4375 + 6px)';
+
 interface AreaFormProps {
   idPrefix: string;
   values: AreaFormValues;
@@ -59,8 +68,9 @@ export function AreaForm({
     htmlInput?: Record<string, unknown>,
   ) {
     const error = errors[field];
+    const id = `${idPrefix}-${field}`;
     return {
-      id: `${idPrefix}-${field}`,
+      id,
       label: t(areaFieldLabelKeys[field]),
       value: values[field],
       onChange: (event: { target: { value: string } }) =>
@@ -87,6 +97,16 @@ export function AreaForm({
 
   const decimalInput = { inputMode: 'decimal' };
 
+  // The hint below the house number fields is read with each of them. This
+  // replaces MUI's own aria-describedby, so the error text is added too.
+  const hintId = `${idPrefix}-house-number-hint`;
+  function withHint(field: AreaFormField) {
+    const describedBy = errors[field]
+      ? `${idPrefix}-${field}-helper-text ${hintId}`
+      : hintId;
+    return fieldProps(field, false, { 'aria-describedby': describedBy });
+  }
+
   return (
     <Box sx={{ display: 'grid', gap: 2 }}>
       {roadEditable && (
@@ -105,25 +125,51 @@ export function AreaForm({
       )}
 
       <Box>
+        {/* Top-aligned, so a taller description box does not move the
+            other fields or the "eller" text. */}
         <Box
           sx={{
+            alignItems: 'start',
             display: 'grid',
             gap: 2,
-            gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr auto 1fr' },
+            // The description gets twice the width of a house number field.
+            gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr auto 2fr' },
           }}
         >
-          <TextField {...fieldProps('houseNumberFrom')} />
-          <TextField {...fieldProps('houseNumberTo')} />
+          <TextField {...withHint('houseNumberFrom')} />
+          <TextField {...withHint('houseNumberTo')} />
           <Typography
             color="text.secondary"
-            sx={{ alignSelf: 'end', pb: 2 }}
+            sx={{
+              alignItems: 'center',
+              display: 'flex',
+              // Next to the fields, centred on a single-line input box.
+              height: { sm: singleLineInputHeight },
+              mt: { sm: labelAboveHeight },
+            }}
             variant="body2"
           >
             {t('areas.or')}
           </Typography>
-          <TextField {...fieldProps('alternativeDescription')} />
+          <TextField
+            {...withHint('alternativeDescription')}
+            minRows={1}
+            multiline
+            sx={{
+              '& textarea': {
+                maxHeight: `calc(${descriptionMaxHeight} - 2 * ${outlinedInputPadding})`,
+                // MUI sets overflow inline while it resizes the box.
+                overflowY: 'auto !important',
+              },
+            }}
+          />
         </Box>
-        <Typography color="text.secondary" sx={{ mt: 0.5 }} variant="body2">
+        <Typography
+          color="text.secondary"
+          id={hintId}
+          sx={{ mt: 0.5 }}
+          variant="body2"
+        >
           {t('areas.houseNumberOrDescriptionHint')}
         </Typography>
       </Box>

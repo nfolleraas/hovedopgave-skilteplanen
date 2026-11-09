@@ -16,7 +16,10 @@ interface UnsavedChangesDialogProps {
   onCancel: () => void;
 }
 
-/** Asked before another area is expanded over unsaved changes (UC-036). */
+/**
+ * Asked before another area is expanded over unsaved changes (UC-036).
+ * The areas step moves focus after closing, as the trigger may be gone.
+ */
 export function UnsavedChangesDialog({
   open,
   areaTitle,
@@ -30,6 +33,7 @@ export function UnsavedChangesDialog({
     <Dialog
       aria-describedby="unsaved-changes-description"
       aria-labelledby="unsaved-changes-title"
+      disableRestoreFocus
       onClose={onCancel}
       open={open}
     >
