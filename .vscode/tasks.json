@@ -1,0 +1,35 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Web: dev",
+      "type": "shell",
+      "command": "bun run dev web",
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated",
+        "group": "dev",
+        "reveal": "always"
+      }
+    },
+    {
+      "label": "API: dev",
+      "type": "shell",
+      "command": "bun run dev api",
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated",
+        "group": "dev",
+        "reveal": "always"
+      }
+    },
+    {
+      "label": "Dev: web + API",
+      "dependsOn": ["Web: dev", "API: dev"],
+      "dependsOrder": "parallel",
+      "problemMatcher": []
+    }
+  ]
+}
