@@ -77,6 +77,15 @@ Flow i wizarden (`/ansoegning?sag=<sagsnummer>`):
 1. Siden henter ansøgningen og dens områder én gang.
 2. **Kort**: ansøgeren søger og vælger veje. Ved "Næste" oprettes ét område
    pr. vej. "Opret vej manuelt" åbner et tomt område (UC-034 A3).
+   - Vejsøgningen kalder Dataforsyningens GSearch (`navngivenvej`) direkte fra
+     browseren i
+     [`road-search.api.ts`](../../apps/web/src/api/road-search.api.ts).
+     Tokenet ligger i `VITE_DATAFORSYNINGEN_TOKEN`. Vite lægger det i
+     browserkoden, så det er synligt for brugerne af siden.
+   - En vej, der krydser flere postnumre, vises én gang pr. postnummer, fordi
+     et område kun har ét postnummer.
+   - Dataforsyningen oplyser ikke, om vejen er kommunal eller privat. Ansøgeren
+     vælger vejstatus for hver valgt vej, før der kan gås videre.
 3. **Områder**: hvert område er et kort, og kun ét er åbent ad gangen.
    - Veje fra søgningen kan ikke omdøbes. Kun manuelle veje kan.
    - "Gem" validerer først lokalt og gemmer derefter.
@@ -88,9 +97,9 @@ Flow i wizarden (`/ansoegning?sag=<sagsnummer>`):
 
 ## Ikke bygget endnu
 
-- Vejsøgningen er en mock med faste veje
-  ([`mock-road-search.ts`](../../apps/web/src/api/mock-road-search.ts)).
-  Kortet er en pladsholder, så man kan hverken tegne på det (UC-004 trin 15)
+- Vejstatus (kommunal eller privat) hentes ikke automatisk. Den skal på sigt
+  komme fra en datakilde, så ansøgeren ikke selv skal vælge den.
+- Kortet er en pladsholder, så man kan hverken tegne på det (UC-004 trin 15)
   eller vælge et område direkte på kortet (UC-035 A2).
 - Sagsbehandleren får ikke besked, når et område ændres eller slettes under
   `ChangeRequired` (UC-035 A3, UC-017). Det er markeret med TODO i

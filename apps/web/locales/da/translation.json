@@ -407,17 +407,19 @@
     "createError": "Områderne kunne ikke oprettes, prøv igen senere eller kontakt supporten.",
     "title": "Kort",
     "cannotFindRoad": "Kan du ikke finde vejen?",
-    "searchLabel": "Søg vej eller område",
-    "searchPlaceholder": "Fx Strandvej, 5000 eller Odense",
+    "searchLabel": "Søg vej",
+    "searchPlaceholder": "Fx Strandvej eller Strandvej 5000",
     "searchResults": "Søgeresultater",
     "alreadySelected": "valgt",
+    "searchError": "Vejsøgningen virker ikke lige nu. Prøv igen senere, eller tilføj vejen manuelt.",
     "noResults": "Ingen veje fundet",
     "resultCount_one": "{{count}} vej fundet. Brug pil op og ned og tryk Enter for at vælge.",
     "resultCount_other": "{{count}} veje fundet. Brug pil op og ned og tryk Enter for at vælge.",
     "selectedRoads": "Valgte veje",
     "noSelectedRoads": "Du har ikke valgt nogen veje endnu.",
     "removeRoad": "Fjern {{road}}",
-    "remove": "Fjern"
+    "remove": "Fjern",
+    "ownershipRequired": "Vælg om vejen er en kommunevej eller privat fællesvej."
   },
   "home": {
     "title": "Ansøgningsplatformen",

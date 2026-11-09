@@ -17,6 +17,11 @@ if [[ ! -e "$CODEX_CONFIG" ]]; then
   cp "$REPO_ROOT/.codex/config.toml" "$CODEX_CONFIG"
 fi
 
+CLAUDE_HOME="${CLAUDE_CONFIG_DIR:-${HOME}/.claude}"
+echo "Preparing Claude Code home at $CLAUDE_HOME"
+sudo mkdir -p "$CLAUDE_HOME"
+sudo chown -R "$(id -u):$(id -g)" "$CLAUDE_HOME"
+
 echo "Configuring Zsh"
 bash "$SCRIPT_DIR/setup-zsh.sh"
 

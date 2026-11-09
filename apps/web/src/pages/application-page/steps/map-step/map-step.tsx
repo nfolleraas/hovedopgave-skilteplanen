@@ -5,8 +5,9 @@ import { createAreas } from '../../../../api/areas.api.js';
 import type {
   Area,
   AreaApplication,
-  RoadSearchResult,
+  SelectedRoad,
 } from '../../../../types/area.types.js';
+import type { RoadOwnership } from '../../../../types/prisma-enums.js';
 import { WizardFooter } from '../../components/wizard-footer.js';
 import { MapPlaceholder } from './map-placeholder.js';
 import { RoadSearch } from './road-search.js';
@@ -30,7 +31,8 @@ export function MapStep({
   onNext,
 }: MapStepProps) {
   const { t } = useTranslation();
-  const [selected, setSelected] = useState<RoadSearchResult[]>([]);
+  const [selected, setSelected] = useState<SelectedRoad[]>([]);
+  const [showErrors, setShowErrors] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const selectedIds = new Set(selected.map((road) => road.id));
@@ -42,12 +44,19 @@ export function MapStep({
       return;
     }
 
+    // Dataforsyningen has no ownership, so the user must choose it (F3).
+    const roads = selected.filter(hasOwnership);
+    if (roads.length < selected.length) {
+      setShowErrors(true);
+      return;
+    }
+
     setIsSaving(true);
     setError(null);
     try {
       const areas = await createAreas(
         application.caseNumber,
-        selected.map((road) => ({
+        roads.map((road) => ({
           roadName: road.roadName,
           roadOwnership: road.roadOwnership,
           postalCode: road.postalCode,
@@ -55,6 +64,7 @@ export function MapStep({
       );
       onAreasCreated(areas);
       setSelected([]);
+      setShowErrors(false);
       onNext();
     } catch {
       setError(t('mapStep.createError'));
@@ -78,7 +88,9 @@ export function MapStep({
       >
         <Box sx={{ display: 'grid', gap: 2 }}>
           <RoadSearch
-            onSelect={(road) => setSelected((roads) => [...roads, road])}
+            onSelect={(road) =>
+              setSelected((roads) => [...roads, { ...road, roadOwnership: '' }])
+            }
             selectedIds={selectedIds}
           />
           <MapPlaceholder />
@@ -86,12 +98,22 @@ export function MapStep({
 
         <Box sx={{ display: 'grid', alignContent: 'start', gap: 3 }}>
           <SelectedRoads
+            onOwnershipChange={(road, roadOwnership) =>
+              setSelected((roads) =>
+                roads.map((candidate) =>
+                  candidate.id === road.id
+                    ? { ...candidate, roadOwnership }
+                    : candidate,
+                ),
+              )
+            }
             onRemove={(road) =>
               setSelected((roads) =>
                 roads.filter((candidate) => candidate.id !== road.id),
               )
             }
             roads={selected}
+            showErrors={showErrors}
           />
           <Box>
             <Typography sx={{ fontWeight: 600, mb: 1 }} variant="body2">
@@ -118,4 +140,10 @@ export function MapStep({
       />
     </section>
   );
+}
+
+function hasOwnership(
+  road: SelectedRoad,
+): road is SelectedRoad & { roadOwnership: RoadOwnership } {
+  return road.roadOwnership !== '';
 }

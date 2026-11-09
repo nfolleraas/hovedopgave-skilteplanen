@@ -19,7 +19,14 @@
     "8081": { "label": "webui (postgres)" }
   },
 
-  "mounts": ["source=codex-home,target=/home/node/.codex,type=volume"],
+  "mounts": [
+    "source=codex-home,target=/home/node/.codex,type=volume",
+    "source=claude-home,target=/home/node/.claude,type=volume"
+  ],
+
+  "containerEnv": {
+    "CLAUDE_CONFIG_DIR": "/home/node/.claude"
+  },
 
   "postCreateCommand": "bash .devcontainer/post-create-command.sh",
 

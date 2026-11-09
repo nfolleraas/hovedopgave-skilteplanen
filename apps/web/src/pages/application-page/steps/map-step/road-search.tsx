@@ -2,7 +2,6 @@ import { Box, TextField, Typography } from '@mui/material';
 import { type KeyboardEvent, useEffect, useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { roadSearchService } from '../../../../api/road-search.api.js';
-import { roadOwnershipLabelKeys } from '../../../../features/areas/area-labels.js';
 import { useDebouncedValue } from '../../../../hooks/use-debounced-value.js';
 import type { RoadSearchResult } from '../../../../types/area.types.js';
 
@@ -22,12 +21,14 @@ export function RoadSearch({ selectedIds, onSelect }: RoadSearchProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const [searchedQuery, setSearchedQuery] = useState('');
+  const [searchFailed, setSearchFailed] = useState(false);
   const debouncedQuery = useDebouncedValue(query.trim(), searchDelayMs);
 
   useEffect(() => {
     if (!debouncedQuery) {
       setResults([]);
       setSearchedQuery('');
+      setSearchFailed(false);
       return;
     }
 
@@ -39,12 +40,14 @@ export function RoadSearch({ selectedIds, onSelect }: RoadSearchProps) {
         if (!isCurrent) return;
         setResults(found);
         setSearchedQuery(debouncedQuery);
+        setSearchFailed(false);
         setActiveIndex(found.length > 0 ? 0 : -1);
       })
       .catch(() => {
         if (!isCurrent) return;
         setResults([]);
         setSearchedQuery(debouncedQuery);
+        setSearchFailed(true);
       });
 
     return () => {
@@ -155,8 +158,7 @@ export function RoadSearch({ selectedIds, onSelect }: RoadSearchProps) {
                 {isSelected && ` · ${t('mapStep.alreadySelected')}`}
               </Typography>
               <Typography color="text.secondary" variant="body2">
-                {road.postalCode} {road.city} ·{' '}
-                {t(roadOwnershipLabelKeys[road.roadOwnership])}
+                {road.postalCode} {road.city}
               </Typography>
             </Box>
           );
@@ -164,7 +166,12 @@ export function RoadSearch({ selectedIds, onSelect }: RoadSearchProps) {
       </Box>
 
       <Box aria-live="polite" role="status" sx={{ mt: 1 }}>
-        {searchedQuery !== '' && results.length === 0 && (
+        {searchFailed && (
+          <Typography color="error" variant="body2">
+            {t('mapStep.searchError')}
+          </Typography>
+        )}
+        {!searchFailed && searchedQuery !== '' && results.length === 0 && (
           <Typography color="text.secondary" variant="body2">
             {t('mapStep.noResults')}
           </Typography>

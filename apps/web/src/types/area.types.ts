@@ -62,11 +62,18 @@ export interface AreaFormValues {
 
 export type AreaFormField = keyof AreaFormValues;
 
-/** A road found by the road search. */
+/**
+ * A road found by the road search. Dataforsyningen does not say whether a
+ * road is municipal or private, so the applicant chooses it after selecting.
+ */
 export interface RoadSearchResult {
   id: string;
   roadName: string;
   postalCode: string;
   city: string;
-  roadOwnership: RoadOwnership;
+}
+
+/** A road the applicant has selected, with the ownership they chose. */
+export interface SelectedRoad extends RoadSearchResult {
+  roadOwnership: RoadOwnership | '';
 }

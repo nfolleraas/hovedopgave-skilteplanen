@@ -407,17 +407,19 @@
     "createError": "The areas could not be created. Try again later or contact support.",
     "title": "Map",
     "cannotFindRoad": "Can't find the road?",
-    "searchLabel": "Search road or area",
-    "searchPlaceholder": "E.g. Strandvej, 5000 or Odense",
+    "searchLabel": "Search road",
+    "searchPlaceholder": "E.g. Strandvej or Strandvej 5000",
     "searchResults": "Search results",
     "alreadySelected": "selected",
+    "searchError": "The road search is not working right now. Try again later, or add the road manually.",
     "noResults": "No roads found",
     "resultCount_one": "{{count}} road found. Use the up and down arrows and press Enter to select.",
     "resultCount_other": "{{count}} roads found. Use the up and down arrows and press Enter to select.",
     "selectedRoads": "Selected roads",
     "noSelectedRoads": "You have not selected any roads yet.",
     "removeRoad": "Remove {{road}}",
-    "remove": "Remove"
+    "remove": "Remove",
+    "ownershipRequired": "Choose whether the road is a municipal road or a private road."
   },
   "home": {
     "title": "Applicantplatform",
