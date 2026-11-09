@@ -6,6 +6,12 @@ import { DocumentsRepository } from './documents.repository.js';
 import { CreateDocumentDto } from './dto/create-document.dto.js';
 import { UpdateDocumentDto } from './dto/update-document.dto.js';
 
+const allowedFileExtensions = new Map<string, ReadonlySet<string>>([
+  ['application/pdf', new Set(['pdf'])],
+  ['image/jpeg', new Set(['jpg', 'jpeg'])],
+  ['image/png', new Set(['png'])],
+]);
+
 @Injectable()
 export class DocumentsService {
   constructor(
@@ -16,11 +22,13 @@ export class DocumentsService {
   async create(dto: CreateDocumentDto, file: Express.Multer.File) {
     if (!file) throw new BadRequestException('A document file is required.');
 
-    if (
-      file.mimetype !== 'application/pdf' ||
-      !file.originalname.toLowerCase().endsWith('.pdf')
-    ) {
-      throw new BadRequestException('Only PDF files are allowed.');
+    const extension = file.originalname.toLowerCase().split('.').pop();
+    const validExtensions = allowedFileExtensions.get(file.mimetype);
+
+    if (!extension || !validExtensions?.has(extension)) {
+      throw new BadRequestException(
+        'Only PDF, JPG, and PNG files are allowed.',
+      );
     }
 
     const documentType = dto.documentType ?? DocumentType.Other;
@@ -30,7 +38,7 @@ export class DocumentsService {
       );
     }
 
-    const key = `applications/${dto.applicationId}/documents/${randomUUID()}.pdf`;
+    const key = `applications/${dto.applicationId}/documents/${randomUUID()}.${extension}`;
 
     try {
       await this.r2Service.upload(key, file.buffer, file.mimetype);

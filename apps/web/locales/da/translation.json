@@ -30,13 +30,19 @@
     "openUserMenu": "Åbn brugermenu",
     "settings": "Indstillinger",
     "logOut": "Log af",
-    "language": "Sprog"
+    "language": "Sprog",
+    "back": "Tilbage",
+    "next": "Næste"
   },
   "documents": {
     "loadError": "Dokumenterne kunne ikke hentes.",
     "uploadError": "Dokumentet kunne ikke uploades.",
+    "deleteError": "Dokumentet kunne ikke slettes.",
+    "delete": "Slet {{name}}",
     "title": "Ansøgningsdokumenter",
-    "description": "Midlertidig side til test af dokumentupload for demoansøgningen.",
+    "description": "Upload og administrer de dokumenter, der kræves til din ansøgning.",
+    "dropPrompt": "Træk og slip dokumenter her, eller vælg filer",
+    "supportedFileTypes": "Understøttede formater: PDF, JPG og PNG",
     "uploading": "Uploader...",
     "upload": "Upload dokument",
     "listTitle": "Uploadede dokumenter",

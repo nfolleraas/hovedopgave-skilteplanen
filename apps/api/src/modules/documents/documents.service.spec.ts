@@ -46,35 +46,66 @@ describe('DocumentsService', () => {
     expect(service).toBeDefined();
   });
 
-  it('creates a non-sign-plan document with its application relation', async () => {
-    const dto = new CreateDocumentDto();
-    dto.name = 'Traffic plan';
-    dto.applicationId = 'APP-123';
-    const file = {
-      buffer: Buffer.from('pdf'),
-      mimetype: 'application/pdf',
-      originalname: 'traffic-plan.pdf',
-    } as Express.Multer.File;
-    repository.add.mockResolvedValue({ uuid: 'document-1' });
-    r2Service.upload.mockResolvedValue({});
+  it.each([
+    ['PDF', 'application/pdf', 'traffic-plan.pdf', 'pdf'],
+    ['JPG', 'image/jpeg', 'traffic-plan.jpg', 'jpg'],
+    ['JPEG', 'image/jpeg', 'traffic-plan.jpeg', 'jpeg'],
+    ['PNG', 'image/png', 'traffic-plan.png', 'png'],
+  ])(
+    'creates a non-sign-plan %s document with its application relation',
+    async (_fileType, mimetype, originalname, extension) => {
+      const dto = new CreateDocumentDto();
+      dto.name = 'Traffic plan';
+      dto.applicationId = 'APP-123';
+      const file = {
+        buffer: Buffer.from('document'),
+        mimetype,
+        originalname,
+      } as Express.Multer.File;
+      repository.add.mockResolvedValue({ uuid: 'document-1' });
+      r2Service.upload.mockResolvedValue({});
 
-    await expect(service.create(dto, file)).resolves.toEqual({
-      uuid: 'document-1',
-    });
-    expect(repository.add).toHaveBeenCalledWith({
+      await expect(service.create(dto, file)).resolves.toEqual({
+        uuid: 'document-1',
+      });
+      expect(repository.add).toHaveBeenCalledWith({
+        name: 'Traffic plan',
+        documentType: DocumentType.Other,
+        url: expect.stringContaining('/applications/APP-123/documents/'),
+        r2ObjectKey: expect.stringMatching(
+          new RegExp(`^applications/APP-123/documents/.*\\.${extension}$`),
+        ),
+        application: { connect: { caseNumber: 'APP-123' } },
+      });
+      expect(r2Service.upload).toHaveBeenCalledWith(
+        expect.stringMatching(
+          new RegExp(`^applications/APP-123/documents/.*\\.${extension}$`),
+        ),
+        file.buffer,
+        file.mimetype,
+      );
+    },
+  );
+
+  it.each([
+    ['an unsupported file type', 'text/plain', 'notes.txt'],
+    ['a mismatched extension', 'image/png', 'traffic-plan.jpg'],
+  ])('rejects %s', async (_scenario, mimetype, originalname) => {
+    const dto = {
       name: 'Traffic plan',
-      documentType: DocumentType.Other,
-      url: expect.stringContaining('/applications/APP-123/documents/'),
-      r2ObjectKey: expect.stringMatching(
-        /^applications\/APP-123\/documents\/.*\.pdf$/,
-      ),
-      application: { connect: { caseNumber: 'APP-123' } },
-    });
-    expect(r2Service.upload).toHaveBeenCalledWith(
-      expect.stringMatching(/^applications\/APP-123\/documents\/.*\.pdf$/),
-      file.buffer,
-      file.mimetype,
+      applicationId: 'APP-123',
+    } as CreateDocumentDto;
+
+    await expect(
+      service.create(dto, {
+        mimetype,
+        originalname,
+      } as Express.Multer.File),
+    ).rejects.toThrow(
+      new BadRequestException('Only PDF, JPG, and PNG files are allowed.'),
     );
+    expect(r2Service.upload).not.toHaveBeenCalled();
+    expect(repository.add).not.toHaveBeenCalled();
   });
 
   it('rejects sign plans', async () => {

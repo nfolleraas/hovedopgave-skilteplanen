@@ -34,4 +34,8 @@ export const apiClient = {
         'Content-Type': undefined,
       },
     }),
+  delete: <T>(path: string) =>
+    request<T>(path, {
+      method: 'DELETE',
+    }),
 };

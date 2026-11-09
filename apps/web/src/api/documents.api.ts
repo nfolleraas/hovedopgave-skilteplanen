@@ -21,3 +21,7 @@ export async function createDocument(
 
   return apiClient.postForm<Document>('/documents', formData);
 }
+
+export async function deleteDocument(uuid: string): Promise<void> {
+  await apiClient.delete<void>(`/documents/${uuid}`);
+}

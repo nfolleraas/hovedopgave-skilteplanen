@@ -13,10 +13,9 @@
     "format:check": "biome format"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.15"
+    "@biomejs/biome": "2.6.4"
   },
   "dependencies": {
-    "axios": "^1.21.0",
     "i18next": "^26.7.1"
   }
 }

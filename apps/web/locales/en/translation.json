@@ -30,13 +30,19 @@
     "openUserMenu": "Open user menu",
     "settings": "Settings",
     "logOut": "Log out",
-    "language": "Language"
+    "language": "Language",
+    "back": "Back",
+    "next": "Next"
   },
   "documents": {
     "loadError": "The documents could not be loaded.",
     "uploadError": "The document could not be uploaded.",
+    "deleteError": "The document could not be deleted.",
+    "delete": "Delete {{name}}",
     "title": "Application documents",
-    "description": "Temporary document upload page for the demo application.",
+    "description": "Upload and manage the documents required for your application.",
+    "dropPrompt": "Drag and drop documents here, or choose files",
+    "supportedFileTypes": "Supported formats: PDF, JPG, and PNG",
     "uploading": "Uploading...",
     "upload": "Upload document",
     "listTitle": "Uploaded documents",
