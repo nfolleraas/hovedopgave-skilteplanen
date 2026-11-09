@@ -1,5 +1,5 @@
 model ContactPerson {
-  uuid          String       @id @default(cuid())
+  uuid          String       @id @default(uuid())
   name          String
   email         String
   phoneNumber   String

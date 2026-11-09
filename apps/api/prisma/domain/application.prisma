@@ -3,6 +3,7 @@ model Application {
   title                  String
   applicantReference     String
   type                   ApplicationType
+  status                 Status                  @default(Draft)
   contactPersons         ContactPerson[]
   feedbacks              Feedback[]
   trafficCalmingMeasures TrafficCalmingMeasure[]
@@ -14,9 +15,7 @@ model Application {
   applicant              Applicant               @relation(fields: [applicantId], references: [uuid])
   caseWorkerId           String?                 @unique
   caseWorker             CaseWorker?             @relation(fields: [caseWorkerId], references: [employeeNumber])
-  roadUsePermitId        String                  @unique
-  roadUsePermit          RoadUsePermit           @relation(fields: [roadUsePermitId], references: [caseNumber])
-  excavationPermitId     String                  @unique
-  excavationPermit       ExcavationPermit        @relation(fields: [excavationPermitId], references: [caseNumber])
+  roadUsePermit          RoadUsePermit?
+  excavationPermit       ExcavationPermit?
   actors                 Actor[]
 }
