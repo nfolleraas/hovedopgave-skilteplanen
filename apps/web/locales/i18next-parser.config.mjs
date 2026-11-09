@@ -17,6 +17,5 @@ export default {
     /^translation:wizard\.enums(\.|$)/,
     /^translation:wizard\.errors(\.|$)/,
     /^translation:wizard\.period\.intro(\.|$)/,
-    /^translation:wizard\.period\.(foodSale|alcoholSale|music)$/,
   ],
 };

@@ -18,16 +18,13 @@ import type {
 // Field names follow the Prisma domain models so the draft can be sent to
 // the API once those endpoints exist. Values are kept as text while editing.
 
-/** Fields from ExcavationPermit and RoadUsePermit (UC-004, UC-006, UC-007). */
+/** Fields from ExcavationPermit and RoadUsePermit (UC-004, UC-007). */
 export interface PeriodDraft {
   municipality: string;
   title: string;
   permitType: PermitType | '';
   startDate: string;
   endDate: string;
-  eventName: string;
-  eventStartTime: string;
-  eventEndTime: string;
   usage: Usage | '';
   usageDescription: string;
 }
@@ -45,7 +42,7 @@ export interface CableTaskDraft {
   executionMethodsDescription: string;
 }
 
-/** Material on a road use permit (UC-006, UC-007). */
+/** Material on a road use permit (UC-007). */
 export interface MaterialDraft {
   id: string;
   type: MaterialType | '';
@@ -91,13 +88,6 @@ export interface SignPlanDraft {
   fileName: string;
 }
 
-/** Permission on an event (UC-006 steps 24–26). */
-export interface PermissionDraft {
-  foodSale: boolean;
-  alcoholSale: boolean;
-  music: boolean;
-}
-
 /** Document (UC-019). Only the file name is kept until upload exists. */
 export interface DocumentDraft {
   id: string;
@@ -114,7 +104,6 @@ export interface ApplicationDraft {
   signPlan: SignPlanDraft;
   trafficChanges: TrafficChange[];
   trafficCalmingMeasures: TrafficCalmingMeasureDraft[];
-  permission: PermissionDraft;
   documents: DocumentDraft[];
 }
 
@@ -181,9 +170,6 @@ export function emptyApplicationDraft(): ApplicationDraft {
       permitType: '',
       startDate: '',
       endDate: '',
-      eventName: '',
-      eventStartTime: '',
-      eventEndTime: '',
       usage: '',
       usageDescription: '',
     },
@@ -194,7 +180,6 @@ export function emptyApplicationDraft(): ApplicationDraft {
     signPlan: { signPlanType: '', group: '', plan: '', fileName: '' },
     trafficChanges: [],
     trafficCalmingMeasures: [],
-    permission: { foodSale: false, alcoholSale: false, music: false },
     documents: [],
   };
 }

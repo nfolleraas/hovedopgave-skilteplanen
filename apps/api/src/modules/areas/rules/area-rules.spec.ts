@@ -78,7 +78,6 @@ describe('area rules', () => {
 
     it('does not require direction and depth for containers (UC-034 A1)', () => {
       expect(getAreaFieldSet(ApplicationType.RoadUsePermit)).toEqual({
-        details: true,
         direction: false,
         depth: false,
       });
@@ -88,12 +87,6 @@ describe('area rules', () => {
           direction: null,
           depthInMeters: null,
         }),
-      ).toEqual([]);
-    });
-
-    it('requires no detail fields for events (UC-034 A2)', () => {
-      expect(
-        findInvalidAreaFields(ApplicationType.RoadUsePermitEvent, {}),
       ).toEqual([]);
     });
 

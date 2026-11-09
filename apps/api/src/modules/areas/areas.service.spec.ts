@@ -100,10 +100,10 @@ describe('AreasService', () => {
       expect(areas[0]).not.toHaveProperty('areaDetail');
     });
 
-    it('rejects detail fields for event applications', async () => {
+    it('rejects depth for road use applications (UC-034 A1)', async () => {
       repository.getApplication.mockResolvedValue({
         caseNumber: 'APP-1',
-        type: ApplicationType.RoadUsePermitEvent,
+        type: ApplicationType.RoadUsePermit,
         status: Status.Draft,
       });
 
@@ -115,7 +115,7 @@ describe('AreasService', () => {
               roadName: 'Strandvej',
               roadOwnership: RoadOwnership.Municipality,
               postalCode: '5000',
-              lengthInMeters: 4,
+              depthInMeters: 1,
             },
           ],
         }),

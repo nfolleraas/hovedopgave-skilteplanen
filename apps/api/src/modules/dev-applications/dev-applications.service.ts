@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import type { SupportedApplicationType } from '../../common/application-types.js';
 import {
   ApplicantType,
   ApplicationType,
@@ -17,10 +18,9 @@ export interface DevApplicationSummary {
   areaCount: number;
 }
 
-const caseNumberPrefix: Record<ApplicationType, string> = {
+const caseNumberPrefix: Record<SupportedApplicationType, string> = {
   ExcavationPermit: 'DEV-GRAVE',
   RoadUsePermit: 'DEV-ROV',
-  RoadUsePermitEvent: 'DEV-EVENT',
 };
 
 /**
@@ -48,7 +48,7 @@ export class DevApplicationsService {
     }));
   }
 
-  async create(type: ApplicationType): Promise<DevApplicationSummary> {
+  async create(type: SupportedApplicationType): Promise<DevApplicationSummary> {
     const caseNumber = await this.nextCaseNumber(type);
     const title = `Testansøgning ${caseNumber}`;
     // Placeholder period until the period step is saved to the database.
@@ -94,7 +94,8 @@ export class DevApplicationsService {
           title,
           applicantReference: caseNumber,
           type,
-          isEvent: type === ApplicationType.RoadUsePermitEvent,
+          // Events are not supported, so this is always false.
+          isEvent: false,
           startDate: start,
           endDate: end,
           eventStart: start,
@@ -121,7 +122,9 @@ export class DevApplicationsService {
   }
 
   /** The next free number, e.g. DEV-GRAVE-4 when DEV-GRAVE-1..3 exist. */
-  private async nextCaseNumber(type: ApplicationType): Promise<string> {
+  private async nextCaseNumber(
+    type: SupportedApplicationType,
+  ): Promise<string> {
     const prefix = caseNumberPrefix[type];
     const existing = await this.prisma.application.findMany({
       where: { caseNumber: { startsWith: `${prefix}-` } },

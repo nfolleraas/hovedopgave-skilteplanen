@@ -33,21 +33,18 @@ export type AreaRuleField =
   | 'depthInMeters';
 
 export interface AreaFieldSet {
-  details: boolean;
   direction: boolean;
   depth: boolean;
 }
 
-/** Which detail fields an application type uses (UC-034 A1 and A2). */
+/**
+ * Which detail fields an application type uses. Excavation permits use all
+ * of them (UC-034); road use permits have no direction or depth (UC-034 A1).
+ */
 export function getAreaFieldSet(type: ApplicationType): AreaFieldSet {
-  switch (type) {
-    case ApplicationType.ExcavationPermit:
-      return { details: true, direction: true, depth: true };
-    case ApplicationType.RoadUsePermit:
-      return { details: true, direction: false, depth: false };
-    case ApplicationType.RoadUsePermitEvent:
-      return { details: false, direction: false, depth: false };
-  }
+  return type === ApplicationType.ExcavationPermit
+    ? { direction: true, depth: true }
+    : { direction: false, depth: false };
 }
 
 const editableStatuses: readonly Status[] = [
@@ -77,10 +74,6 @@ export function findInvalidAreaFields(
   input: AreaRuleInput,
 ): AreaRuleField[] {
   const fields = getAreaFieldSet(type);
-  if (!fields.details) {
-    return [];
-  }
-
   const invalid: AreaRuleField[] = [];
   const hasFrom = hasText(input.houseNumberFrom);
   const hasTo = hasText(input.houseNumberTo);

@@ -88,25 +88,17 @@
     },
     "period": {
       "municipality": "Municipality",
-      "eventName": "Event name",
       "title": "Title",
       "permitType": "Type",
       "noticeInfo": "A notice can come with extra terms from the municipality. Contact the municipality if you have questions.",
       "startDate": "Start date",
       "endDate": "End date",
-      "eventStartTime": "Start time",
-      "eventEndTime": "End time",
-      "permission": "The event",
       "usage": "Use of the road area",
       "usageDescription": "Describe the usage",
       "intro": {
         "ExcavationPermit": "Choose the municipality, type and period of the excavation permit.",
-        "RoadUsePermit": "Choose the municipality, title, usage and period of the road use.",
-        "RoadUsePermitEvent": "Choose the municipality and enter the event's name, time and usage."
-      },
-      "foodSale": "Food is sold",
-      "alcoholSale": "Alcohol is sold",
-      "music": "Music is played"
+        "RoadUsePermit": "Choose the municipality, title, usage and period of the road use."
+      }
     },
     "signPlan": {
       "signPlanTitle": "Sign plan",
@@ -353,7 +345,6 @@
     "deleted": "The area on {{road}} was deleted.",
     "deleteError": "The area could not be deleted. Try again later or contact support.",
     "title": "Areas",
-    "eventHint": "For events, only the selected roads are registered.",
     "addManually": "+ Add road manually",
     "deleteDialog": {
       "title": "Delete area?",
@@ -407,8 +398,7 @@
       },
       "applicationType": {
         "ExcavationPermit": "Excavation permit",
-        "RoadUsePermit": "Road use – container etc.",
-        "RoadUsePermitEvent": "Road use – event"
+        "RoadUsePermit": "Road use permit"
       }
     }
   },
