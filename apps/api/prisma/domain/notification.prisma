@@ -1,5 +1,5 @@
 model Notification {
-  uuid         String      @id @default(cuid())
+  uuid         String      @id @default(uuid())
   date         DateTime    @default(now())
   message      String
   isRead       Boolean     @default(false)

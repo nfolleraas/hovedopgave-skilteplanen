@@ -1,9 +1,8 @@
 model AreaDetail {
-  uuid                   String      @id @default(cuid())
+  uuid                   String      @id @default(uuid())
   roadSection            RoadSection
   roadSectionDescription String?
   roadSide               RoadSide
-  // Optional because road use (container) applications have no direction.
-  direction              Direction?
+  direction              Direction
   area                   Area?
 }

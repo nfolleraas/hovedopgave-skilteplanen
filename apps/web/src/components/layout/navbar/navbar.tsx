@@ -13,10 +13,12 @@ import {
 } from '@mui/material';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Link, matchPath, useLocation } from 'react-router';
 import { routes } from '../../../app/router.js';
 
 export default function Navbar() {
   const { t, i18n } = useTranslation();
+  const { pathname } = useLocation();
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
   const menuOpen = Boolean(menuAnchor);
   const currentLanguage = i18n.resolvedLanguage ?? i18n.language;
@@ -30,7 +32,11 @@ export default function Navbar() {
     { label: t('navigation.messages'), path: routes.messages },
   ];
   const activeTab = navigationItems.findIndex(
-    (item) => item.path === window.location.pathname,
+    (item) =>
+      matchPath(
+        { path: item.path, end: item.path === routes.home },
+        pathname,
+      ) !== null,
   );
 
   return (
@@ -51,9 +57,9 @@ export default function Navbar() {
       >
         <Box
           aria-label={t('navigation.logoHome')}
-          component="a"
-          href={routes.home}
+          component={Link}
           sx={{ display: 'block', flexShrink: 0 }}
+          to={routes.home}
         >
           <Box
             alt=""
@@ -89,7 +95,7 @@ export default function Navbar() {
               },
               '& .MuiTab-root.Mui-selected': { color: 'common.white' },
               '& .MuiTabs-indicator': { backgroundColor: 'common.white' },
-              '& .MuiTabs-list': { justifyContent: { md: 'center' } },
+              '& .MuiTabs-list': { justifyContent: 'flex-start' },
             }}
             textColor="inherit"
             value={activeTab === -1 ? false : activeTab}
@@ -97,10 +103,10 @@ export default function Navbar() {
           >
             {navigationItems.map((item) => (
               <Tab
-                component="a"
-                href={item.path}
+                component={Link}
                 key={item.path}
                 label={item.label}
+                to={item.path}
               />
             ))}
           </Tabs>

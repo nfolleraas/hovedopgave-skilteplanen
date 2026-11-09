@@ -1,5 +1,5 @@
 model Applicant {
-  uuid            String          @id @default(cuid())
+  uuid            String         @id @default(uuid())
   name            String
   type            ApplicantType
   phoneNumber     String
@@ -7,11 +7,9 @@ model Applicant {
   cvrNumber       String?
   mitIdKey        String
   skilteplanenKey String?
-  isActive        Boolean         @default(true)
-  addressId       String          @unique
-  address         Address         @relation(fields: [addressId], references: [uuid])
+  isActive        Boolean        @default(true)
+  addressId       String         @unique
+  address         Address        @relation(fields: [addressId], references: [uuid])
   notifications   Notification[]
   applications    Application[]
-  messageThreads  MessageThread[]
-  messages        Message[]
 }

@@ -121,7 +121,6 @@ CREATE TABLE "Application" (
     "title" TEXT NOT NULL,
     "applicantReference" TEXT NOT NULL,
     "type" "ApplicationType" NOT NULL,
-    "status" "Status" NOT NULL DEFAULT 'Draft',
     "trafficChange" "TrafficChange" NOT NULL,
     "applicantId" TEXT NOT NULL,
     "caseWorkerId" TEXT,
@@ -137,7 +136,7 @@ CREATE TABLE "AreaDetail" (
     "roadSection" "RoadSection" NOT NULL,
     "roadSectionDescription" TEXT,
     "roadSide" "RoadSide" NOT NULL,
-    "direction" "Direction",
+    "direction" "Direction" NOT NULL,
 
     CONSTRAINT "AreaDetail_pkey" PRIMARY KEY ("uuid")
 );
@@ -147,8 +146,9 @@ CREATE TABLE "AreaSize" (
     "uuid" TEXT NOT NULL,
     "lengthInMeters" DOUBLE PRECISION NOT NULL,
     "widthInMeters" DOUBLE PRECISION NOT NULL,
-    "depthInMeters" DOUBLE PRECISION,
-    "areaInSquareMeters" DOUBLE PRECISION NOT NULL,
+    "depthInMeters" DOUBLE PRECISION NOT NULL,
+    "areaInCubicMeters" DOUBLE PRECISION NOT NULL,
+    "areaId" TEXT NOT NULL,
 
     CONSTRAINT "AreaSize_pkey" PRIMARY KEY ("uuid")
 );
@@ -162,8 +162,8 @@ CREATE TABLE "Area" (
     "houseNumberTo" TEXT,
     "houseNumberFrom" TEXT,
     "alternativeDescription" TEXT,
-    "areaDetailId" TEXT,
-    "areaSizeId" TEXT,
+    "areaDetailId" TEXT NOT NULL,
+    "areaSizeId" TEXT NOT NULL,
     "applicationId" TEXT NOT NULL,
 
     CONSTRAINT "Area_pkey" PRIMARY KEY ("uuid")
@@ -388,10 +388,16 @@ CREATE UNIQUE INDEX "Application_roadUsePermitId_key" ON "Application"("roadUseP
 CREATE UNIQUE INDEX "Application_excavationPermitId_key" ON "Application"("excavationPermitId");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "AreaSize_areaId_key" ON "AreaSize"("areaId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Area_areaDetailId_key" ON "Area"("areaDetailId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Area_areaSizeId_key" ON "Area"("areaSizeId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Area_applicationId_key" ON "Area"("applicationId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "CableTask_excavationPermitId_key" ON "CableTask"("excavationPermitId");
@@ -472,10 +478,10 @@ ALTER TABLE "Application" ADD CONSTRAINT "Application_roadUsePermitId_fkey" FORE
 ALTER TABLE "Application" ADD CONSTRAINT "Application_excavationPermitId_fkey" FOREIGN KEY ("excavationPermitId") REFERENCES "ExcavationPermit"("caseNumber") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Area" ADD CONSTRAINT "Area_areaDetailId_fkey" FOREIGN KEY ("areaDetailId") REFERENCES "AreaDetail"("uuid") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "Area" ADD CONSTRAINT "Area_areaDetailId_fkey" FOREIGN KEY ("areaDetailId") REFERENCES "AreaDetail"("uuid") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Area" ADD CONSTRAINT "Area_areaSizeId_fkey" FOREIGN KEY ("areaSizeId") REFERENCES "AreaSize"("uuid") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "Area" ADD CONSTRAINT "Area_areaSizeId_fkey" FOREIGN KEY ("areaSizeId") REFERENCES "AreaSize"("uuid") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Area" ADD CONSTRAINT "Area_applicationId_fkey" FOREIGN KEY ("applicationId") REFERENCES "Application"("caseNumber") ON DELETE RESTRICT ON UPDATE CASCADE;
