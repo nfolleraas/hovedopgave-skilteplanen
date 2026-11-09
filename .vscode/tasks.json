@@ -4,7 +4,7 @@
     {
       "label": "Web: dev",
       "type": "shell",
-      "command": "bun run --filter web dev",
+      "command": "bun run dev web",
       "isBackground": true,
       "problemMatcher": [],
       "presentation": {
@@ -16,7 +16,7 @@
     {
       "label": "API: dev",
       "type": "shell",
-      "command": "bun run --filter api dev",
+      "command": "bun run dev api",
       "isBackground": true,
       "problemMatcher": [],
       "presentation": {
@@ -27,10 +27,7 @@
     },
     {
       "label": "Dev: web + API",
-      "dependsOn": [
-        "Web: dev",
-        "API: dev"
-      ],
+      "dependsOn": ["Web: dev", "API: dev"],
       "dependsOrder": "parallel",
       "problemMatcher": []
     }

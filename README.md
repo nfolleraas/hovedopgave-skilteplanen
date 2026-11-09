@@ -104,7 +104,7 @@ Alle kommandoer køres fra repo-roden, inde i containeren.
 
 ```bash
 bun install        # én gang, eller efter ændringer i afhængigheder
-bun run dev        # starter web og api parallelt
+bun run dev        # starter api, venter på et sundhedstjek og starter derefter web
 bun run check      # lint + format + import-sortering, rapportér kun; bruges i CI
 bun run check:fix  # samme, men skriver alle sikre rettelser
 bun run lint       # kun lint
@@ -115,10 +115,10 @@ bun run format:check  # kun format, rapportér
 Biome dækker TypeScript, JSX, CSS og JSON. Markdown-, YAML-, HTML- og SVG-filer
 lades uberørt.
 
-`bun run dev` kører `dev`-scriptet for hver workspace-pakke og sætter
-outputtet foran med pakkenavnet. Åbn derefter porten for **web** i
-**Ports**-panelet. Vite viderestiller alle `/api/...`-anmodninger til Nest, så
-browseren kun nogensinde taler med én enkelt origin. API'et eksponerer
+`bun run dev` starter først API'ets `dev`-script og venter på et vellykket svar
+fra `GET /api`, før web-appens `dev`-script startes. Åbn derefter porten for
+**web** i **Ports**-panelet. Vite viderestiller alle `/api/...`-anmodninger til
+Nest, så browseren kun nogensinde taler med én enkelt origin. API'et eksponerer
 i øjeblikket en enkelt `GET /api`-rute, der returnerer en hilsen.
 
 For at køre én app for sig:
