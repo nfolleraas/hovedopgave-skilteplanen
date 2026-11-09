@@ -119,6 +119,62 @@ describe('area rules', () => {
     });
   });
 
+  describe('edge cases', () => {
+    it('treats a blank description as missing', () => {
+      expect(
+        findInvalidAreaFields(ApplicationType.ExcavationPermit, {
+          ...completeExcavationArea,
+          houseNumberFrom: null,
+          houseNumberTo: null,
+          alternativeDescription: '   ',
+        }),
+      ).toEqual(['houseNumberFrom', 'houseNumberTo', 'alternativeDescription']);
+    });
+
+    it('accepts Other with a description', () => {
+      expect(
+        findInvalidAreaFields(ApplicationType.ExcavationPermit, {
+          ...completeExcavationArea,
+          roadSection: RoadSection.Other,
+          roadSectionDescription: 'Parkeringsplads',
+        }),
+      ).toEqual([]);
+    });
+
+    it('rejects sizes that are not finite numbers', () => {
+      expect(
+        findInvalidAreaFields(ApplicationType.ExcavationPermit, {
+          ...completeExcavationArea,
+          lengthInMeters: Number.NaN,
+          widthInMeters: Number.POSITIVE_INFINITY,
+        }),
+      ).toEqual(['lengthInMeters', 'widthInMeters']);
+    });
+
+    it('treats unsupported application types like road use permits', () => {
+      expect(getAreaFieldSet(ApplicationType.RoadUsePermitEvent)).toEqual({
+        direction: false,
+        depth: false,
+      });
+    });
+
+    it('lists every field of an empty excavation area', () => {
+      expect(
+        findInvalidAreaFields(ApplicationType.ExcavationPermit, {}),
+      ).toEqual([
+        'houseNumberFrom',
+        'houseNumberTo',
+        'alternativeDescription',
+        'roadSection',
+        'roadSide',
+        'direction',
+        'lengthInMeters',
+        'widthInMeters',
+        'depthInMeters',
+      ]);
+    });
+  });
+
   it('calculates the area as length times width', () => {
     expect(calculateAreaInSquareMeters(18, 0.6)).toBeCloseTo(10.8);
   });

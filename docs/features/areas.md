@@ -95,6 +95,23 @@ Flow i wizarden (`/ansoegning?sag=<sagsnummer>`):
    - Når man forlader trinnet, gemmes det åbne område. Mangler der felter,
      vises en oversigt, og man bliver på trinnet.
 
+## Test
+
+| Slags | Hvor | Kør |
+| --- | --- | --- |
+| API unittest (regler, DTO'er, mapper, service, repository, controller) | `apps/api/src/modules/areas/**/*.spec.ts` | `bun run --filter api test` |
+| API funktionstest (HTTP + database, UC-034/035/036) | [`apps/api/test/areas.e2e-spec.ts`](../../apps/api/test/areas.e2e-spec.ts) | `bun run --filter api test:e2e` |
+| Web unittest (validering, reducer, API-kald, vejsøgning, labels) | `apps/web/src/{api,features/areas}/*.test.ts` | `bun run --filter web test` |
+| Web funktionstest (Kort- og Områder-trinnet i en DOM) | `apps/web/src/pages/application-page/steps/{map-step,areas-step}/*.test.tsx` | `bun run --filter web test` |
+
+- API-funktionstestene kræver databasen fra dev containeren. De opretter
+  egne ansøgninger med sagsnummer `E2E-AREAS-…` og sletter dem igen bagefter.
+- Web-funktionstestene kører med happy-dom (se
+  [`apps/web/bunfig.toml`](../../apps/web/bunfig.toml)) og en falsk udgave af
+  område-API'et i
+  [`src/test/fake-areas-api.ts`](../../apps/web/src/test/fake-areas-api.ts).
+  Vejsøgningen hos Dataforsyningen kaldes ikke.
+
 ## Ikke bygget endnu
 
 - Vejstatus (kommunal eller privat) hentes ikke automatisk. Den skal på sigt
