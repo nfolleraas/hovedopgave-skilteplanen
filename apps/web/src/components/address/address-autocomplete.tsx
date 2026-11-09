@@ -1,6 +1,7 @@
 import { Autocomplete, TextField } from '@mui/material';
 import { useEffect, useState } from 'react';
 import {
+  type AddressOption,
   type AddressSuggestion,
   searchAddresses,
 } from '../../api/addresses.api';
@@ -13,7 +14,7 @@ export default function AddressAutocomplete({
   onChange,
 }: AddressAutocompleteProps) {
   const [inputValue, setInputValue] = useState('');
-  const [options, setOptions] = useState<AddressSuggestion[]>([]);
+  const [options, setOptions] = useState<AddressOption[]>([]);
   const [selectedAddress, setSelectedAddress] =
     useState<AddressSuggestion | null>(null);
 
@@ -47,6 +48,7 @@ export default function AddressAutocomplete({
       filterOptions={(options) => options}
       getOptionLabel={(option) => option.titel}
       inputValue={inputValue}
+      noOptionsText="Ingen forslag. Prøv vejnavn, husnummer og postnummer."
       onChange={(_, value) => {
         setSelectedAddress(value);
         setInputValue(value?.titel ?? '');
@@ -63,6 +65,7 @@ export default function AddressAutocomplete({
       renderInput={(params) => (
         <TextField
           {...params}
+          helperText="Vælg en adresse eller et vejforslag."
           label="Adresse"
           placeholder="Søg efter adresse..."
           required

@@ -37,4 +37,8 @@ export function validateCreateApplicant(data: CreateApplicantDto): void {
   ) {
     throw new BadRequestException('Address is required');
   }
+
+  if (typeof data.houseNumber !== 'string' || !data.houseNumber.trim()) {
+    throw new BadRequestException('House number is required');
+  }
 }

@@ -1,14 +1,16 @@
-export interface AddressSuggestion {
+export interface AddressOption {
   id: string;
   titel: string;
-  type: string;
-  husnummerId: string;
+  type: 'adresse' | 'husnummer' | 'navngivenvejpostnummer';
+  husnummerId?: string;
 }
+
+export type AddressSuggestion = AddressOption;
 
 export async function searchAddresses(
   text: string,
   signal?: AbortSignal,
-): Promise<AddressSuggestion[]> {
+): Promise<AddressOption[]> {
   const params = new URLSearchParams({ text });
 
   const response = await fetch(`/api/addresses/search?${params}`, { signal });
