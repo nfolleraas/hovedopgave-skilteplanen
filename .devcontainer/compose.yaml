@@ -5,6 +5,21 @@ services:
     restart: unless-stopped
     volumes:
       - ..:/workspaces/hovedopgave-skilteplanen:cached
+      - type: volume
+        source: root-node-modules
+        target: /workspaces/hovedopgave-skilteplanen/node_modules
+        volume:
+          nocopy: true
+      - type: volume
+        source: api-node-modules
+        target: /workspaces/hovedopgave-skilteplanen/apps/api/node_modules
+        volume:
+          nocopy: true
+      - type: volume
+        source: web-node-modules
+        target: /workspaces/hovedopgave-skilteplanen/apps/web/node_modules
+        volume:
+          nocopy: true
     command: sleep infinity
     env_file:
       - .env
@@ -49,4 +64,7 @@ services:
         condition: service_healthy
 
 volumes:
+  root-node-modules:
+  api-node-modules:
+  web-node-modules:
   pgdata:
