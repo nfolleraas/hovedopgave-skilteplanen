@@ -4,8 +4,9 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { Prisma } from '../../generated/prisma/client.js';
 import { type ApplicationType, Status } from '../../generated/prisma/enums.js';
-import { PrismaService } from '../../prisma/prisma.service.js';
+import { type AreaApplication, AreasRepository } from './areas.repository.js';
 import { AreaFieldsDto, CreateAreaDto } from './dto/create-area.dto.js';
 import { CreateAreasDto } from './dto/create-areas.dto.js';
 import { UpdateAreaDto } from './dto/update-area.dto.js';
@@ -22,8 +23,6 @@ import {
   getAreaFieldSet,
 } from './rules/area-rules.js';
 
-const areaInclude = { areaDetail: true, areaSize: true } as const;
-
 const detailFields = [
   'roadSection',
   'roadSectionDescription',
@@ -34,42 +33,24 @@ const detailFields = [
   'depthInMeters',
 ] as const;
 
-interface EditableApplication {
-  caseNumber: string;
-  type: ApplicationType;
-  status: Status;
-}
-
 export interface ApplicationAreas {
-  application: EditableApplication;
+  application: AreaApplication;
   areas: AreaResponse[];
 }
 
 @Injectable()
 export class AreasService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly areas: AreasRepository) {}
 
   async findByApplication(applicationId: string): Promise<ApplicationAreas> {
     const application = await this.getApplication(applicationId);
-    const areas = await this.prisma.area.findMany({
-      where: { applicationId },
-      include: areaInclude,
-      orderBy: { uuid: 'asc' },
-    });
+    const areas = await this.areas.getAllByApplication(applicationId);
 
     return { application, areas: areas.map(toAreaResponse) };
   }
 
   async findOne(id: string): Promise<AreaResponse> {
-    const area = await this.prisma.area.findUnique({
-      where: { uuid: id },
-      include: areaInclude,
-    });
-    if (!area) {
-      throw this.areaNotFound(id);
-    }
-
-    return toAreaResponse(area);
+    return toAreaResponse(await this.getArea(id));
   }
 
   async create(dto: CreateAreaDto): Promise<AreaResponse> {
@@ -83,13 +64,8 @@ export class AreasService {
     const application = await this.getApplication(dto.applicationId);
     this.assertEditable(application);
 
-    const created = await this.prisma.$transaction(
-      dto.areas.map((fields) =>
-        this.prisma.area.create({
-          data: this.toCreateData(application, fields),
-          include: areaInclude,
-        }),
-      ),
+    const created = await this.areas.addMany(
+      dto.areas.map((fields) => this.toCreateData(application, fields)),
     );
 
     return created.map(toAreaResponse);
@@ -97,14 +73,7 @@ export class AreasService {
 
   /** Updates an area and its details (UC-036). */
   async update(id: string, dto: UpdateAreaDto): Promise<AreaResponse> {
-    const existing = await this.prisma.area.findUnique({
-      where: { uuid: id },
-      include: { ...areaInclude, application: true },
-    });
-    if (!existing) {
-      throw this.areaNotFound(id);
-    }
-
+    const existing = await this.getArea(id);
     const { application } = existing;
     this.assertEditable(application);
     this.assertNoUnusedFields(application.type, dto);
@@ -112,18 +81,14 @@ export class AreasService {
     const merged = { ...flattenRuleInput(existing), ...stripUndefined(dto) };
     this.assertValid(application.type, merged);
 
-    const updated = await this.prisma.area.update({
-      where: { uuid: id },
-      data: {
-        roadName: dto.roadName,
-        roadOwnership: dto.roadOwnership,
-        postalCode: dto.postalCode,
-        houseNumberFrom: dto.houseNumberFrom,
-        houseNumberTo: dto.houseNumberTo,
-        alternativeDescription: dto.alternativeDescription,
-        ...this.toDetailUpsert(application.type, merged),
-      },
-      include: areaInclude,
+    const updated = await this.areas.update(id, {
+      roadName: dto.roadName,
+      roadOwnership: dto.roadOwnership,
+      postalCode: dto.postalCode,
+      houseNumberFrom: dto.houseNumberFrom,
+      houseNumberTo: dto.houseNumberTo,
+      alternativeDescription: dto.alternativeDescription,
+      ...this.toDetailUpsert(application.type, merged),
     });
 
     if (application.status === Status.ChangeRequired) {
@@ -136,60 +101,56 @@ export class AreasService {
 
   /** Deletes an area with its detail and size records (UC-035). */
   async remove(id: string): Promise<void> {
-    await this.prisma.$transaction(async (tx) => {
-      const area = await tx.area.findUnique({
-        where: { uuid: id },
-        include: { application: true },
+    const area = await this.getArea(id);
+    this.assertEditable(area.application);
+
+    const areaCount = await this.areas.countByApplication(area.applicationId);
+    if (areaCount <= 1) {
+      throw new BadRequestException({
+        code: 'LAST_AREA',
+        message: 'An application must have at least one area.',
       });
-      if (!area) {
-        throw this.areaNotFound(id);
-      }
-      this.assertEditable(area.application);
+    }
 
-      const areaCount = await tx.area.count({
-        where: { applicationId: area.applicationId },
-      });
-      if (areaCount <= 1) {
-        throw new BadRequestException({
-          code: 'LAST_AREA',
-          message: 'An application must have at least one area.',
-        });
-      }
+    await this.areas.delete(id);
 
-      // The area holds the foreign keys, so it is deleted first.
-      await tx.area.delete({ where: { uuid: id } });
-      if (area.areaDetailId) {
-        await tx.areaDetail.delete({ where: { uuid: area.areaDetailId } });
-      }
-      if (area.areaSizeId) {
-        await tx.areaSize.delete({ where: { uuid: area.areaSizeId } });
-      }
-
-      if (area.application.status === Status.ChangeRequired) {
-        // TODO(UC-017): Notify the case worker that an area was deleted when
-        // a notification service exists.
-      }
-    });
+    if (area.application.status === Status.ChangeRequired) {
+      // TODO(UC-017): Notify the case worker that an area was deleted when a
+      // notification service exists.
+    }
   }
 
   private async getApplication(
     applicationId: string,
-  ): Promise<EditableApplication> {
-    const application = await this.prisma.application.findUnique({
-      where: { caseNumber: applicationId },
-      select: { caseNumber: true, type: true, status: true },
-    });
-    if (!application) {
-      throw new NotFoundException({
-        code: 'APPLICATION_NOT_FOUND',
-        message: `Application ${applicationId} was not found.`,
-      });
+  ): Promise<AreaApplication> {
+    try {
+      return await this.areas.getApplication(applicationId);
+    } catch (error) {
+      if (isRecordNotFound(error)) {
+        throw new NotFoundException({
+          code: 'APPLICATION_NOT_FOUND',
+          message: `Application ${applicationId} was not found.`,
+        });
+      }
+      throw error;
     }
-
-    return application;
   }
 
-  private assertEditable(application: EditableApplication): void {
+  private async getArea(id: string) {
+    try {
+      return await this.areas.getById(id);
+    } catch (error) {
+      if (isRecordNotFound(error)) {
+        throw new NotFoundException({
+          code: 'AREA_NOT_FOUND',
+          message: `Area ${id} was not found.`,
+        });
+      }
+      throw error;
+    }
+  }
+
+  private assertEditable(application: AreaApplication): void {
     if (!canEditAreas(application.status)) {
       throw new ConflictException({
         code: 'APPLICATION_NOT_EDITABLE',
@@ -239,9 +200,9 @@ export class AreasService {
    * sent, the whole area must be valid so no half-filled details are stored.
    */
   private toCreateData(
-    application: EditableApplication,
+    application: AreaApplication,
     fields: AreaFieldsDto,
-  ) {
+  ): Prisma.AreaCreateInput {
     this.assertNoUnusedFields(application.type, fields);
 
     const hasDetails = detailFields.some(
@@ -309,13 +270,14 @@ export class AreasService {
       areaSize: { upsert: { create: size, update: size } },
     };
   }
+}
 
-  private areaNotFound(id: string): NotFoundException {
-    return new NotFoundException({
-      code: 'AREA_NOT_FOUND',
-      message: `Area ${id} was not found.`,
-    });
-  }
+/** Prisma's error code when findUniqueOrThrow finds no record. */
+function isRecordNotFound(error: unknown): boolean {
+  return (
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    error.code === 'P2025'
+  );
 }
 
 function flattenRuleInput(area: AreaWithRelations): AreaRuleInput {

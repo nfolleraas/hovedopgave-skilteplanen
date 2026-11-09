@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { Prisma } from '../../generated/prisma/client.js';
 import {
   ApplicationType,
   RoadOwnership,
@@ -11,7 +12,7 @@ import {
   RoadSide,
   Status,
 } from '../../generated/prisma/enums.js';
-import { PrismaService } from '../../prisma/prisma.service.js';
+import { AreasRepository } from './areas.repository.js';
 import { AreasService } from './areas.service.js';
 
 function buildArea(overrides: Record<string, unknown> = {}) {
@@ -37,34 +38,38 @@ function buildArea(overrides: Record<string, unknown> = {}) {
   };
 }
 
-function createPrismaMock() {
-  const prisma = {
-    application: { findUnique: vi.fn() },
-    area: {
-      findUnique: vi.fn(),
-      findMany: vi.fn(),
-      create: vi.fn((args) => ({ ...buildArea(), ...args.data })),
-      update: vi.fn(),
-      delete: vi.fn(),
-      count: vi.fn(),
-    },
-    areaDetail: { delete: vi.fn() },
-    areaSize: { delete: vi.fn() },
-    $transaction: vi.fn(async (input: unknown) =>
-      typeof input === 'function' ? input(prisma) : Promise.all(input as []),
+function createRepositoryMock() {
+  return {
+    addMany: vi.fn(async (areas: Record<string, unknown>[]) =>
+      areas.map((data) => ({ ...buildArea(), ...data })),
     ),
+    getAllByApplication: vi.fn(),
+    getById: vi.fn(),
+    countByApplication: vi.fn(),
+    update: vi.fn(),
+    delete: vi.fn(),
+    getApplication: vi.fn(),
   };
-  return prisma;
+}
+
+function notFoundError() {
+  return new Prisma.PrismaClientKnownRequestError('No record was found.', {
+    code: 'P2025',
+    clientVersion: 'test',
+  });
 }
 
 describe('AreasService', () => {
   let service: AreasService;
-  let prisma: ReturnType<typeof createPrismaMock>;
+  let repository: ReturnType<typeof createRepositoryMock>;
 
   beforeEach(async () => {
-    prisma = createPrismaMock();
+    repository = createRepositoryMock();
     const module: TestingModule = await Test.createTestingModule({
-      providers: [AreasService, { provide: PrismaService, useValue: prisma }],
+      providers: [
+        AreasService,
+        { provide: AreasRepository, useValue: repository },
+      ],
     }).compile();
 
     service = module.get<AreasService>(AreasService);
@@ -72,7 +77,7 @@ describe('AreasService', () => {
 
   describe('createMany', () => {
     it('creates one area per road without details', async () => {
-      prisma.application.findUnique.mockResolvedValue(buildArea().application);
+      repository.getApplication.mockResolvedValue(buildArea().application);
 
       await service.createMany({
         applicationId: 'APP-1',
@@ -90,14 +95,13 @@ describe('AreasService', () => {
         ],
       });
 
-      expect(prisma.area.create).toHaveBeenCalledTimes(2);
-      expect(prisma.area.create.mock.calls[0][0].data).not.toHaveProperty(
-        'areaDetail',
-      );
+      const [areas] = repository.addMany.mock.calls[0];
+      expect(areas).toHaveLength(2);
+      expect(areas[0]).not.toHaveProperty('areaDetail');
     });
 
     it('rejects detail fields for event applications', async () => {
-      prisma.application.findUnique.mockResolvedValue({
+      repository.getApplication.mockResolvedValue({
         caseNumber: 'APP-1',
         type: ApplicationType.RoadUsePermitEvent,
         status: Status.Draft,
@@ -119,7 +123,7 @@ describe('AreasService', () => {
     });
 
     it('rejects a missing application', async () => {
-      prisma.application.findUnique.mockResolvedValue(null);
+      repository.getApplication.mockRejectedValue(notFoundError());
 
       await expect(
         service.create({
@@ -129,6 +133,16 @@ describe('AreasService', () => {
           postalCode: '5000',
         }),
       ).rejects.toBeInstanceOf(NotFoundException);
+    });
+  });
+
+  describe('findOne', () => {
+    it('rejects a missing area', async () => {
+      repository.getById.mockRejectedValue(notFoundError());
+
+      await expect(service.findOne('missing')).rejects.toMatchObject({
+        response: { code: 'AREA_NOT_FOUND' },
+      });
     });
   });
 
@@ -145,27 +159,27 @@ describe('AreasService', () => {
     };
 
     it('saves the details and recalculates the area', async () => {
-      prisma.area.findUnique.mockResolvedValue(buildArea());
-      prisma.area.update.mockImplementation(async () => buildArea());
+      repository.getById.mockResolvedValue(buildArea());
+      repository.update.mockResolvedValue(buildArea());
 
       await service.update('area-1', validUpdate);
 
-      const data = prisma.area.update.mock.calls[0][0].data;
+      const data = repository.update.mock.calls[0][1];
       expect(data.areaSize.upsert.update.areaInSquareMeters).toBeCloseTo(10.8);
       expect(data.areaDetail.upsert.update.roadSide).toBe(RoadSide.Right);
     });
 
     it('rejects an incomplete area', async () => {
-      prisma.area.findUnique.mockResolvedValue(buildArea());
+      repository.getById.mockResolvedValue(buildArea());
 
       await expect(
         service.update('area-1', { lengthInMeters: 5 }),
       ).rejects.toBeInstanceOf(BadRequestException);
-      expect(prisma.area.update).not.toHaveBeenCalled();
+      expect(repository.update).not.toHaveBeenCalled();
     });
 
     it('rejects direction and depth for container applications', async () => {
-      prisma.area.findUnique.mockResolvedValue(
+      repository.getById.mockResolvedValue(
         buildArea({
           application: {
             caseNumber: 'APP-1',
@@ -181,7 +195,7 @@ describe('AreasService', () => {
     });
 
     it('rejects changes when the application is not editable', async () => {
-      prisma.area.findUnique.mockResolvedValue(
+      repository.getById.mockResolvedValue(
         buildArea({
           application: {
             caseNumber: 'APP-1',
@@ -198,35 +212,28 @@ describe('AreasService', () => {
   });
 
   describe('remove', () => {
-    it('deletes the area with its detail and size records', async () => {
-      prisma.area.findUnique.mockResolvedValue(buildArea());
-      prisma.area.count.mockResolvedValue(2);
+    it('deletes the area', async () => {
+      repository.getById.mockResolvedValue(buildArea());
+      repository.countByApplication.mockResolvedValue(2);
 
       await service.remove('area-1');
 
-      expect(prisma.area.delete).toHaveBeenCalledWith({
-        where: { uuid: 'area-1' },
-      });
-      expect(prisma.areaDetail.delete).toHaveBeenCalledWith({
-        where: { uuid: 'detail-1' },
-      });
-      expect(prisma.areaSize.delete).toHaveBeenCalledWith({
-        where: { uuid: 'size-1' },
-      });
+      expect(repository.countByApplication).toHaveBeenCalledWith('APP-1');
+      expect(repository.delete).toHaveBeenCalledWith('area-1');
     });
 
     it('does not delete the last area', async () => {
-      prisma.area.findUnique.mockResolvedValue(buildArea());
-      prisma.area.count.mockResolvedValue(1);
+      repository.getById.mockResolvedValue(buildArea());
+      repository.countByApplication.mockResolvedValue(1);
 
       await expect(service.remove('area-1')).rejects.toMatchObject({
         response: { code: 'LAST_AREA' },
       });
-      expect(prisma.area.delete).not.toHaveBeenCalled();
+      expect(repository.delete).not.toHaveBeenCalled();
     });
 
     it('does not delete when the application is not editable', async () => {
-      prisma.area.findUnique.mockResolvedValue(
+      repository.getById.mockResolvedValue(
         buildArea({
           application: {
             caseNumber: 'APP-1',
@@ -239,7 +246,7 @@ describe('AreasService', () => {
       await expect(service.remove('area-1')).rejects.toBeInstanceOf(
         ConflictException,
       );
-      expect(prisma.area.delete).not.toHaveBeenCalled();
+      expect(repository.delete).not.toHaveBeenCalled();
     });
   });
 });
