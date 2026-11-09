@@ -24,6 +24,7 @@ import {
   deleteDocument,
   getDocuments,
 } from '../../api/documents.api.js';
+import AddSignplanModal from './add-signplan-modal.js';
 import type { Document } from './document.types.js';
 
 const demoApplicationId = 'DEMO-2026-0001';
@@ -38,6 +39,7 @@ export default function DocumentsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [isAddSignplanModalOpen, setIsAddSignplanModalOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -175,50 +177,74 @@ export default function DocumentsPage() {
 
           {error && <Alert severity="error">{error}</Alert>}
 
-          <Paper
-            aria-busy={isUploading}
-            component="section"
-            onDragEnter={handleDragEnter}
-            onDragLeave={handleDragLeave}
-            onDragOver={handleDragOver}
-            onDrop={handleDrop}
-            sx={{
-              bgcolor: isDragging ? 'action.hover' : 'background.paper',
-              borderColor: isDragging ? 'primary.main' : 'divider',
-              borderStyle: 'dashed',
-              p: { xs: 3, sm: 4 },
-              textAlign: 'center',
-              transition: (theme) =>
-                theme.transitions.create(['background-color', 'border-color']),
-            }}
-            variant="outlined"
-          >
-            <Stack spacing={1.5} sx={{ alignItems: 'center' }}>
-              <CloudUploadOutlinedIcon color="primary" fontSize="large" />
-              <Typography>{t('documents.dropPrompt')}</Typography>
-              <Typography color="text.secondary" variant="body2">
-                {t('documents.supportedFileTypes')}
-              </Typography>
+          <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
+            <Box sx={{ flex: 1, minWidth: 0 }}>
               <Button
-                component="label"
-                disabled={isUploading}
-                startIcon={
-                  isUploading ? <CircularProgress size={20} /> : undefined
-                }
-                variant="contained"
+                fullWidth
+                onClick={() => setIsAddSignplanModalOpen(true)}
+                variant="outlined"
               >
-                {isUploading ? t('documents.uploading') : t('documents.upload')}
-                <input
-                  accept={acceptedFileTypes}
-                  hidden
-                  multiple
-                  onChange={handleFileSelected}
-                  ref={fileInputRef}
-                  type="file"
-                />
+                {t('documents.addSignplan')}
               </Button>
-            </Stack>
-          </Paper>
+            </Box>
+
+            <Paper
+              aria-busy={isUploading}
+              component="section"
+              onDragEnter={handleDragEnter}
+              onDragLeave={handleDragLeave}
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+              sx={{
+                bgcolor: isDragging ? 'action.hover' : 'background.paper',
+                borderColor: isDragging ? 'primary.main' : 'divider',
+                borderStyle: 'dashed',
+                flex: 1,
+                minWidth: 0,
+                p: { xs: 3, sm: 4 },
+                textAlign: 'center',
+                transition: (theme) =>
+                  theme.transitions.create([
+                    'background-color',
+                    'border-color',
+                  ]),
+              }}
+              variant="outlined"
+            >
+              <Stack spacing={1.5} sx={{ alignItems: 'center' }}>
+                <CloudUploadOutlinedIcon color="primary" fontSize="large" />
+                <Typography>{t('documents.dropPrompt')}</Typography>
+                <Typography color="text.secondary" variant="body2">
+                  {t('documents.supportedFileTypes')}
+                </Typography>
+                <Button
+                  component="label"
+                  disabled={isUploading}
+                  startIcon={
+                    isUploading ? <CircularProgress size={20} /> : undefined
+                  }
+                  variant="contained"
+                >
+                  {isUploading
+                    ? t('documents.uploading')
+                    : t('documents.upload')}
+                  <input
+                    accept={acceptedFileTypes}
+                    hidden
+                    multiple
+                    onChange={handleFileSelected}
+                    ref={fileInputRef}
+                    type="file"
+                  />
+                </Button>
+              </Stack>
+            </Paper>
+          </Stack>
+
+          <AddSignplanModal
+            onClose={() => setIsAddSignplanModalOpen(false)}
+            open={isAddSignplanModalOpen}
+          />
 
           <Paper elevation={1} sx={{ overflow: 'hidden' }}>
             <Typography component="h2" sx={{ px: 3, py: 2 }} variant="h6">

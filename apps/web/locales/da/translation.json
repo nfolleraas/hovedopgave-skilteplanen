@@ -35,6 +35,8 @@
     "next": "Næste"
   },
   "documents": {
+    "addSignplan": "Tilføj skilteplan",
+    "closeAddSignplan": "Luk tilføj skilteplan",
     "loadError": "Dokumenterne kunne ikke hentes.",
     "uploadError": "Dokumentet kunne ikke uploades.",
     "deleteError": "Dokumentet kunne ikke slettes.",

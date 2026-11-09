@@ -35,6 +35,8 @@
     "next": "Next"
   },
   "documents": {
+    "addSignplan": "Add signplan",
+    "closeAddSignplan": "Close add signplan",
     "loadError": "The documents could not be loaded.",
     "uploadError": "The document could not be uploaded.",
     "deleteError": "The document could not be deleted.",
