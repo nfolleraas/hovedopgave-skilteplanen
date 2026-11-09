@@ -38,7 +38,6 @@
     "loadError": "The documents could not be loaded.",
     "uploadError": "The document could not be uploaded.",
     "deleteError": "The document could not be deleted.",
-    "delete": "Delete {{name}}",
     "title": "Application documents",
     "description": "Upload and manage the documents required for your application.",
     "dropPrompt": "Drag and drop documents here, or choose files",
@@ -47,7 +46,8 @@
     "upload": "Upload document",
     "listTitle": "Uploaded documents",
     "loading": "Loading documents",
-    "empty": "No documents have been uploaded yet."
+    "empty": "No documents have been uploaded yet.",
+    "delete": "Delete {{name}}"
   },
   "home": {
     "title": "Applicantplatform",

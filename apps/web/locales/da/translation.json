@@ -38,7 +38,6 @@
     "loadError": "Dokumenterne kunne ikke hentes.",
     "uploadError": "Dokumentet kunne ikke uploades.",
     "deleteError": "Dokumentet kunne ikke slettes.",
-    "delete": "Slet {{name}}",
     "title": "Ansøgningsdokumenter",
     "description": "Upload og administrer de dokumenter, der kræves til din ansøgning.",
     "dropPrompt": "Træk og slip dokumenter her, eller vælg filer",
@@ -47,7 +46,8 @@
     "upload": "Upload dokument",
     "listTitle": "Uploadede dokumenter",
     "loading": "Henter dokumenter",
-    "empty": "Der er ikke uploadet dokumenter endnu."
+    "empty": "Der er ikke uploadet dokumenter endnu.",
+    "delete": "Slet {{name}}"
   },
   "home": {
     "title": "Ansøgningsplatformen",
