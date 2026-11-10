@@ -15,7 +15,6 @@ WORKSPACE_VOLUME_DIRS=(
   "$REPO_ROOT/node_modules"
   "$REPO_ROOT/apps/api/node_modules"
   "$REPO_ROOT/apps/web/node_modules"
-  "$REPO_ROOT/apps/api/dist"
 )
 sudo mkdir -p "${WORKSPACE_VOLUME_DIRS[@]}"
 sudo chown "$(id -u):$(id -g)" "${WORKSPACE_VOLUME_DIRS[@]}"

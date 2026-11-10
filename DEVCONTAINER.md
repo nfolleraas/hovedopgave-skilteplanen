@@ -192,11 +192,6 @@ services:
         target: /workspaces/hovedopgave-skilteplanen/apps/web/node_modules
         volume:
           nocopy: true
-      - type: volume
-        source: api-dist
-        target: /workspaces/hovedopgave-skilteplanen/apps/api/dist
-        volume:
-          nocopy: true
     command: sleep infinity
     environment:
       - DATABASE_URL=postgres://app:app@db:5432/app
@@ -226,7 +221,6 @@ volumes:
   root-node-modules:
   api-node-modules:
   web-node-modules:
-  api-dist:
 ```
 
 - **`app.build`** bygger `.devcontainer/Dockerfile`, som tager udgangspunkt i
@@ -236,10 +230,12 @@ volumes:
   Node 22 bruges, fordi Vite 8 kræver mindst 20.19.
 - **`app.volumes`** bind-mounts repoet. Compose-filen ligger i
   `.devcontainer/`, så `..` er repo-roden. `node_modules` for roden og begge
-  apps samt API'ens `dist` ligger i navngivne Docker-volumes. De tunge
-  afhængighedsopslag og Nest-builds bruger derfor Docker-VM'ens Linux-filsystem
-  i stedet for Windows-bind-mountet. `nocopy` forhindrer Docker i at kopiere
-  eksisterende host-indhold ind i et tomt volume ved første oprettelse.
+  apps ligger i navngivne Docker-volumes. De tunge afhængighedsopslag bruger
+  derfor Docker-VM'ens Linux-filsystem i stedet for Windows-bind-mountet.
+  `nocopy` forhindrer Docker i at kopiere eksisterende host-indhold ind i et
+  tomt volume ved første oprettelse. API'ens `dist` må ikke være et separat
+  mount, fordi Nest sletter hele outputmappen ved starten af et build, og et
+  Docker-mountpoint kan ikke fjernes.
 - **`app.command: sleep infinity`** holder containeren i live. Billedet har ingen
   langvarig proces, så uden dette lukker den med det samme og VS Code har
   intet at tilslutte sig til.
@@ -254,10 +250,10 @@ volumes:
   der kræves ingen direkte værtseksponering af Postgres.
 - **De navngivne volumes** overlever `docker compose down` og
   container-rebuilds. `pgdata` bevarer databasen, mens de øvrige bevarer
-  installerede afhængigheder og API-buildoutput. De slettes kun, hvis volumes
-  udtrykkeligt fjernes. Bemærk de to forskellige `volumes:`-former: en _liste_
-  inde i en service og et _mapping_ øverst. Hvis dette gøres forkert, får man
-  fejlen `volumes must be a mapping`.
+  installerede afhængigheder. De slettes kun, hvis volumes udtrykkeligt
+  fjernes. Bemærk de to forskellige `volumes:`-former: en _liste_ inde i en
+  service og et _mapping_ øverst. Hvis dette gøres forkert, får man fejlen
+  `volumes must be a mapping`.
 
 Valider efter redigering, inde fra `.devcontainer/`:
 

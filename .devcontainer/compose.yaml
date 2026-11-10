@@ -22,11 +22,6 @@ services:
         target: /workspaces/hovedopgave-skilteplanen/apps/web/node_modules
         volume:
           nocopy: true
-      - type: volume
-        source: api-dist
-        target: /workspaces/hovedopgave-skilteplanen/apps/api/dist
-        volume:
-          nocopy: true
     command: sleep infinity
     env_file:
       - .env
@@ -75,4 +70,3 @@ volumes:
   root-node-modules:
   api-node-modules:
   web-node-modules:
-  api-dist:
