@@ -1,0 +1,38 @@
+{
+  "navigation": {
+    "home": "Hjem",
+    "application": "Ansøgning",
+    "messages": "Beskeder",
+    "logoHome": "Ansøgningsplatformen – gå til forsiden",
+    "main": "Hovednavigation",
+    "openUserMenu": "Åbn brugermenu",
+    "settings": "Indstillinger",
+    "logOut": "Log af",
+    "language": "Sprog"
+  },
+  "actors": {
+    "pageTitle": "Øvrige aktører",
+    "listTitle": "Aktører på ansøgningen",
+    "emptyList": "Der er endnu ingen aktører på ansøgningen.",
+    "selectOrCreate": "Vælg en aktør, eller opret en ny.",
+    "localDraftNotice": "Aktører gemmes kun midlertidigt på denne side. De er endnu ikke gemt i systemet.",
+    "create": "Opret aktør",
+    "noApplicationSelected": "Vælg en ansøgning, før du opretter en aktør.",
+    "loading": "Henter ansøgningens aktører",
+    "loadFailed": "Ansøgningen og dens aktører kunne ikke hentes.",
+    "saveFailed": "Aktøren kunne ikke gemmes. Prøv igen.",
+    "availability": {
+      "Day": "Dag",
+      "Evening": "Aften",
+      "Night": "Nat",
+      "AllDay": "Hele døgnet"
+    },
+    "street": "Vejnavn",
+    "houseNumber": "Husnummer",
+    "postalCode": "Postnummer",
+    "city": "By",
+    "errors": {
+      "required": "Dette felt er påkrævet."
+    }
+  }
+}
