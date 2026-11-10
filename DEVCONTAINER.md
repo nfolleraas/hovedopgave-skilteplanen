@@ -31,6 +31,7 @@ viderebehandles af Vite til Nest, så browseren kun kommunikerer med én oprinde
 .
 ├── .devcontainer/
 │   ├── devcontainer.json       # hvad VS Code tilslutter sig og installerer
+│   ├── Dockerfile              # app-image og systempakker som ripgrep
 │   ├── compose.yaml            # containere: app + db + pgweb
 │   ├── devcontainer-lock.json  # låste feature-versioner, kom det med i repoet
 │   └── setup-zsh.sh            # Oh My Zsh plugins og tema
@@ -151,7 +152,9 @@ kloner kun plugins, der ikke allerede findes, så genkørsel er sikker.
 ```yaml
 services:
   app:
-    image: mcr.microsoft.com/devcontainers/typescript-node:22-bookworm
+    build:
+      context: .
+      dockerfile: Dockerfile
     volumes:
       - ..:/workspaces/devcontainer-test:cached
     command: sleep infinity
@@ -182,8 +185,11 @@ volumes:
   pgdata:
 ```
 
-- **`app.image`** er Microsofts forbyggede Node 22-image på Debian bookworm med
-  git, zsh og `node`-brugeren. Node 22, fordi Vite 8 kræver mindst 20.19.
+- **`app.build`** bygger `.devcontainer/Dockerfile`, som tager udgangspunkt i
+  Microsofts forbyggede Node 22-image på Debian bookworm med git, zsh og
+  `node`-brugeren. Dockerfilen installerer også `ripgrep`, så kommandoen `rg` er
+  tilgængelig for terminaler og udviklingsværktøjer efter et container-rebuild.
+  Node 22 bruges, fordi Vite 8 kræver mindst 20.19.
 - **`app.volumes`** bind-mounts repoet. Compose-filen ligger i
   `.devcontainer/`, så `..` er repo-roden.
 - **`app.command: sleep infinity`** holder containeren i live. Billedet har ingen
