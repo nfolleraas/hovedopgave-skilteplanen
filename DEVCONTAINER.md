@@ -72,7 +72,13 @@ kun symlinks til det, den faktisk erklærer. Kør altid `bun install` fra roden.
     "8081": { "label": "webui (postgres)" }
   },
 
-  "postCreateCommand": "bash .devcontainer/setup-zsh.sh && bun install",
+  "mounts": [
+    "source=codex-home,target=/home/node/.codex,type=volume",
+    "source=codex-sdk-cache,target=/home/node/.vscode-server/data/agent-host/sdk-cache,type=volume",
+    "source=claude-home,target=/home/node/.claude,type=volume"
+  ],
+
+  "postCreateCommand": "bash .devcontainer/post-create-command.sh",
 
   "customizations": {
     "vscode": {
@@ -87,8 +93,7 @@ kun symlinks til det, den faktisk erklærer. Kør altid `bun install` fra roden.
         "usernamehw.errorlens",
         "PKief.material-icon-theme",
         "YoavBls.pretty-ts-errors",
-        "ms-azuretools.vscode-containers",
-        "openai.chatgpt"
+        "ms-azuretools.vscode-containers"
       ],
       "settings": {
         "terminal.integrated.defaultProfile.linux": "zsh",
@@ -121,13 +126,28 @@ kun symlinks til det, den faktisk erklærer. Kør altid `bun install` fra roden.
   allerede er optaget, vælger VS Code den næste ledige port, og Ports-panelet
   viser den faktiske port.
 - **`portsAttributes`** sætter kun labels i Ports-panelet.
-- **`postCreateCommand`** konfigurerer Zsh og kører `bun install`, når
-  devcontaineren oprettes. Zsh-scriptet kan køres igen sikkert. Når du har
-  hentet ændringer i en `package.json`, skal du køre `bun install` manuelt.
+- **`postCreateCommand`** klargør ejerskab for de navngivne volumes,
+  konfigurerer Zsh og kører `bun install`, når devcontaineren oprettes.
+  Zsh-scriptet kan køres igen sikkert. Når du har hentet ændringer i en
+  `package.json`, skal du køre `bun install` manuelt.
+- **`mounts`** bevarer både Codex-brugerdata i `codex-home` og VS Code Agent
+  Hosts versionsbestemte Codex SDK-cache i `codex-sdk-cache`. SDK-cachen ligger
+  ellers i containerens midlertidige filsystem og skal hentes igen efter hvert
+  rebuild. Begge er Docker-volumes uden host-stier og fungerer derfor med
+  Docker Engine på Linux samt Docker Desktop på Windows og macOS. Kun SDK-cachen
+  bevares; resten af VS Code Server genoprettes stadig ved behov.
+- **Claude Code-volumes** bevarer samtaletranskripter, brugerindstillinger og
+  hukommelse fra `~/.claude` i `claude-home`. Den indbyggede VS Code Agent Host
+  bruger denne mappe til Claude Code-sessioner. Volumes bruger kun Linux-stier
+  inde i devcontaineren og Docker-navne på værten, så opsætningen er ens på
+  Linux, Windows og macOS.
 - **`customizations.vscode.extensions`** installeres inde i containeren. Hostens
   extensions bliver ikke overført.
-- Codex Agent SDK installeres som rootens udviklingsafhængighed via `bun install`.
-  Det er SDK'et (`@openai/codex-sdk`), ikke den separate Codex-runtime/CLI.
+- **Agent Host-harnesses** aktiveres via de indbyggede VS Code-indstillinger
+  `chat.agentHost.claudeAgent.enabled`, `chat.agentHost.codexAgent.enabled` og
+  `chat.editor.codex.preferAgentHost`. Codex bruger den persistente
+  `/home/node/.codex`-mappe, mens den neddownloadede Agent SDK bevares i
+  `codex-sdk-cache`.
 - **`customizations.vscode.settings`** er editor-indstillinger, der kun anvendes
   inde i containeren. `workbench.iconTheme` vælger Material Icon Theme for alle,
   fordi at installere selve extensionen alene ikke aktiverer den. Resten gør
@@ -156,7 +176,27 @@ services:
       context: .
       dockerfile: Dockerfile
     volumes:
-      - ..:/workspaces/devcontainer-test:cached
+      - ..:/workspaces/hovedopgave-skilteplanen:cached
+      - type: volume
+        source: root-node-modules
+        target: /workspaces/hovedopgave-skilteplanen/node_modules
+        volume:
+          nocopy: true
+      - type: volume
+        source: api-node-modules
+        target: /workspaces/hovedopgave-skilteplanen/apps/api/node_modules
+        volume:
+          nocopy: true
+      - type: volume
+        source: web-node-modules
+        target: /workspaces/hovedopgave-skilteplanen/apps/web/node_modules
+        volume:
+          nocopy: true
+      - type: volume
+        source: api-dist
+        target: /workspaces/hovedopgave-skilteplanen/apps/api/dist
+        volume:
+          nocopy: true
     command: sleep infinity
     environment:
       - DATABASE_URL=postgres://app:app@db:5432/app
@@ -183,6 +223,10 @@ services:
 
 volumes:
   pgdata:
+  root-node-modules:
+  api-node-modules:
+  web-node-modules:
+  api-dist:
 ```
 
 - **`app.build`** bygger `.devcontainer/Dockerfile`, som tager udgangspunkt i
@@ -191,7 +235,11 @@ volumes:
   tilgængelig for terminaler og udviklingsværktøjer efter et container-rebuild.
   Node 22 bruges, fordi Vite 8 kræver mindst 20.19.
 - **`app.volumes`** bind-mounts repoet. Compose-filen ligger i
-  `.devcontainer/`, så `..` er repo-roden.
+  `.devcontainer/`, så `..` er repo-roden. `node_modules` for roden og begge
+  apps samt API'ens `dist` ligger i navngivne Docker-volumes. De tunge
+  afhængighedsopslag og Nest-builds bruger derfor Docker-VM'ens Linux-filsystem
+  i stedet for Windows-bind-mountet. `nocopy` forhindrer Docker i at kopiere
+  eksisterende host-indhold ind i et tomt volume ved første oprettelse.
 - **`app.command: sleep infinity`** holder containeren i live. Billedet har ingen
   langvarig proces, så uden dette lukker den med det samme og VS Code har
   intet at tilslutte sig til.
@@ -204,10 +252,12 @@ volumes:
 - **`pgweb`** er en let webklient til databasen. Åbn `http://localhost:8081`
   på værten. Dens `PGWEB_DATABASE_URL` bruger Compose-servicenavnet `db`;
   der kræves ingen direkte værtseksponering af Postgres.
-- **`pgdata`** er et navngivet volume, så data overlever
-  container-rebuilds. Bemærk de to forskellige `volumes:`-former: en _liste_ inde i
-  en service og et _mapping_ øverst. Hvis dette gøres forkert, får man fejlen
-  `volumes must be a mapping`.
+- **De navngivne volumes** overlever `docker compose down` og
+  container-rebuilds. `pgdata` bevarer databasen, mens de øvrige bevarer
+  installerede afhængigheder og API-buildoutput. De slettes kun, hvis volumes
+  udtrykkeligt fjernes. Bemærk de to forskellige `volumes:`-former: en _liste_
+  inde i en service og et _mapping_ øverst. Hvis dette gøres forkert, får man
+  fejlen `volumes must be a mapping`.
 
 Valider efter redigering, inde fra `.devcontainer/`:
 
