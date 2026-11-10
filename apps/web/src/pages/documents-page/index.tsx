@@ -1,31 +1,22 @@
 import CloudUploadOutlinedIcon from '@mui/icons-material/CloudUploadOutlined';
-import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import {
   Alert,
   Box,
   Button,
   CircularProgress,
   Container,
-  IconButton,
-  Link,
-  List,
-  ListItem,
-  ListItemText,
   Paper,
   Stack,
-  Tooltip,
   Typography,
 } from '@mui/material';
 import type { ChangeEvent, DragEvent } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  createDocument,
-  deleteDocument,
-  getDocuments,
-} from '../../api/documents.api.js';
+import { createDocument, getDocuments } from '../../api/documents.api.js';
+import DeleteConfirmationModal from '../../components/ui/modals/delete-confirmation-modal.js';
 import AddSignplanModal from './add-signplan-modal.js';
 import type { Document } from './document.types.js';
+import DocumentsTable from './documents-table.js';
 
 const demoApplicationId = 'DEMO-2026-0001';
 const acceptedFileTypes =
@@ -40,6 +31,9 @@ export default function DocumentsPage() {
   const [isUploading, setIsUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [isAddSignplanModalOpen, setIsAddSignplanModalOpen] = useState(false);
+  const [documentToDelete, setDocumentToDelete] = useState<Document | null>(
+    null,
+  );
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -141,19 +135,6 @@ export default function DocumentsPage() {
     await uploadFiles(Array.from(event.dataTransfer.files));
   };
 
-  const handleDelete = async (uuid: string) => {
-    setError(null);
-
-    try {
-      await deleteDocument(uuid);
-      setDocuments((currentDocuments) =>
-        currentDocuments.filter((document) => document.uuid !== uuid),
-      );
-    } catch {
-      setError(t('documents.deleteError'));
-    }
-  };
-
   return (
     <Box component="main" sx={{ display: 'flex' }}>
       <Container
@@ -246,6 +227,22 @@ export default function DocumentsPage() {
             open={isAddSignplanModalOpen}
           />
 
+          {documentToDelete && (
+            <DeleteConfirmationModal
+              endpoint={`/documents/${documentToDelete.uuid}`}
+              entityName={documentToDelete.name}
+              onClose={() => setDocumentToDelete(null)}
+              onDeleted={() => {
+                setDocuments((currentDocuments) =>
+                  currentDocuments.filter(
+                    (document) => document.uuid !== documentToDelete.uuid,
+                  ),
+                );
+              }}
+              open
+            />
+          )}
+
           <Paper elevation={1} sx={{ overflow: 'hidden' }}>
             <Typography component="h2" sx={{ px: 3, py: 2 }} variant="h6">
               {t('documents.listTitle')}
@@ -259,42 +256,10 @@ export default function DocumentsPage() {
                 {t('documents.empty')}
               </Typography>
             ) : (
-              <List disablePadding>
-                {documents.map((document) => (
-                  <ListItem divider key={document.uuid}>
-                    <ListItemText
-                      primary={
-                        <Link
-                          href={document.url}
-                          rel="noreferrer"
-                          target="_blank"
-                        >
-                          {document.name}
-                        </Link>
-                      }
-                      secondary={new Date(document.date).toLocaleString()}
-                    />
-                    <Tooltip
-                      title={t('documents.delete', { name: document.name })}
-                    >
-                      <IconButton
-                        aria-label={t('documents.delete', {
-                          name: document.name,
-                        })}
-                        onClick={() => handleDelete(document.uuid)}
-                        sx={{
-                          '&:hover': {
-                            bgcolor: 'transparent',
-                            color: 'error.main',
-                          },
-                        }}
-                      >
-                        <DeleteForeverIcon />
-                      </IconButton>
-                    </Tooltip>
-                  </ListItem>
-                ))}
-              </List>
+              <DocumentsTable
+                documents={documents}
+                onDelete={setDocumentToDelete}
+              />
             )}
           </Paper>
         </Stack>

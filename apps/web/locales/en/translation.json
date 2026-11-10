@@ -34,12 +34,26 @@
     "back": "Back",
     "next": "Next"
   },
+  "deleteConfirmation": {
+    "title": "Confirm deletion",
+    "description": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
+    "error": "The item could not be deleted. Try again.",
+    "cancel": "Cancel",
+    "deleting": "Deleting...",
+    "delete": "Delete"
+  },
   "documents": {
     "addSignplan": "Add signplan",
     "closeAddSignplan": "Close add signplan",
+    "table": {
+      "name": "Name",
+      "documentType": "Document type",
+      "createdAt": "Created",
+      "actions": "Actions"
+    },
+    "delete": "Delete {{name}}",
     "loadError": "The documents could not be loaded.",
     "uploadError": "The document could not be uploaded.",
-    "deleteError": "The document could not be deleted.",
     "title": "Application documents",
     "description": "Upload and manage the documents required for your application.",
     "dropPrompt": "Drag and drop documents here, or choose files",
@@ -48,8 +62,7 @@
     "upload": "Upload document",
     "listTitle": "Uploaded documents",
     "loading": "Loading documents",
-    "empty": "No documents have been uploaded yet.",
-    "delete": "Delete {{name}}"
+    "empty": "No documents have been uploaded yet."
   },
   "home": {
     "title": "Applicantplatform",

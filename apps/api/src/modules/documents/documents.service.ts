@@ -1,15 +1,10 @@
 import { randomUUID } from 'node:crypto';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { DocumentType } from '../../generated/prisma/enums.js';
+import { getAllowedDocumentFileExtension } from '../../utils/allowed-document-file-extensions.js';
 import { R2Service } from '../s3/r2.service.js';
 import { DocumentsRepository } from './documents.repository.js';
 import { CreateDocumentDto } from './dto/create-document.dto.js';
-
-const allowedFileExtensions = new Map<string, ReadonlySet<string>>([
-  ['application/pdf', new Set(['pdf'])],
-  ['image/jpeg', new Set(['jpg', 'jpeg'])],
-  ['image/png', new Set(['png'])],
-]);
 
 @Injectable()
 export class DocumentsService {
@@ -21,10 +16,12 @@ export class DocumentsService {
   async create(dto: CreateDocumentDto, file: Express.Multer.File) {
     if (!file) throw new BadRequestException('A document file is required.');
 
-    const extension = file.originalname.toLowerCase().split('.').pop();
-    const validExtensions = allowedFileExtensions.get(file.mimetype);
+    const extension = getAllowedDocumentFileExtension(
+      file.originalname,
+      file.mimetype,
+    );
 
-    if (!extension || !validExtensions?.has(extension)) {
+    if (!extension) {
       throw new BadRequestException(
         'Only PDF, JPG, and PNG files are allowed.',
       );
@@ -33,7 +30,7 @@ export class DocumentsService {
     const documentType = dto.documentType ?? DocumentType.Other;
     if (documentType === DocumentType.SignPlan) {
       throw new BadRequestException(
-        'Sign plans must be created through the sign plans module',
+        'Sign plans must be created through the sign plans module.',
       );
     }
 
@@ -64,7 +61,10 @@ export class DocumentsService {
       try {
         await this.r2Service.delete(key);
       } catch (error) {
-        console.error('Failed to delete document from R2.\n\n', error);
+        console.error(
+          'Failed to delete document from R2 after unsuccessfully trying to create a document.\n\n',
+          error,
+        );
         throw error;
       }
       console.error(

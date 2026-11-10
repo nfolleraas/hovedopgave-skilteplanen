@@ -8,7 +8,7 @@ export class CreateDocumentDto {
   @ApiProperty({
     enum: DocumentType,
     default: DocumentType.Other,
-    required: false,
+    required: true,
   })
   documentType: DocumentType = DocumentType.Other;
 
