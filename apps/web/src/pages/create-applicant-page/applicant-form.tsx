@@ -18,7 +18,14 @@ interface ApplicantFormProps {
   applicantType: ApplicantType;
 }
 
-export function parseAddress(address: AddressSuggestion) {
+interface ParsedAddress {
+  street: string;
+  houseNumber: string;
+  postalCode: string;
+  city: string;
+}
+
+export function parseAddress(address: AddressSuggestion): ParsedAddress {
   if (address.type !== 'adresse' && address.type !== 'husnummer') {
     throw new Error('Vælg en adresse med husnummer fra listen.');
   }

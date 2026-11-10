@@ -10,8 +10,12 @@ export interface CreateApplicantInput {
   city: string;
 }
 
-export function useApplicants() {
-  async function createApplicant(data: CreateApplicantInput) {
+export interface ApplicantsActions {
+  createApplicant(data: CreateApplicantInput): Promise<unknown>;
+}
+
+export function useApplicants(): ApplicantsActions {
+  async function createApplicant(data: CreateApplicantInput): Promise<unknown> {
     const response = await fetch('/api/applicants', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

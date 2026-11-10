@@ -26,7 +26,6 @@ describe('Applicants (e2e)', () => {
 
   it('creates an applicant and its address', async () => {
     const email = `applicant-e2e-${randomUUID()}@example.com`;
-    let applicantUuid: string | undefined;
 
     try {
       const response = await request(app.getHttpServer())
@@ -43,8 +42,7 @@ describe('Applicants (e2e)', () => {
         })
         .expect(201);
 
-      applicantUuid = response.body.uuid as string;
-      expect(applicantUuid).toBeTruthy();
+      const applicantUuid = response.body.uuid as string;
       expect(response.body).toMatchObject({
         name: 'E2E Test Applicant',
         type: 'Private',
@@ -68,17 +66,16 @@ describe('Applicants (e2e)', () => {
         },
       });
     } finally {
-      if (applicantUuid) {
-        const savedApplicant = await prisma.applicant.findUnique({
-          where: { uuid: applicantUuid },
-        });
+      const savedApplicant = await prisma.applicant.findFirst({
+        where: { email },
+        select: { uuid: true, addressId: true },
+      });
 
-        if (savedApplicant) {
-          await prisma.applicant.delete({ where: { uuid: applicantUuid } });
-          await prisma.address.delete({
-            where: { uuid: savedApplicant.addressId },
-          });
-        }
+      if (savedApplicant) {
+        await prisma.applicant.delete({ where: { uuid: savedApplicant.uuid } });
+        await prisma.address.delete({
+          where: { uuid: savedApplicant.addressId },
+        });
       }
     }
   });
