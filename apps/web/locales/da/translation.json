@@ -21,73 +21,9 @@
   "common": {
     "brandName": "Skilteplanen"
   },
-  "navigation": {
-    "home": "Hjem",
-    "application": "Ansøgning",
-    "messages": "Beskeder",
-    "logoHome": "Ansøgningsplatformen – gå til forsiden",
-    "main": "Hovednavigation",
-    "openUserMenu": "Åbn brugermenu",
-    "settings": "Indstillinger",
-    "logOut": "Log af",
-    "language": "Sprog"
-  },
-  "home": {
-    "title": "Ansøgningsplatformen",
-    "intro": "Velkommen til Ansøgningsplatformen"
-  },
-  "login": {
-    "title": "Log ind",
-    "formPlaceholder": "Her kommer loginformularen."
-  },
   "actors": {
-    "pageTitle": "Øvrige aktører",
-    "listTitle": "Aktører på ansøgningen",
-    "emptyList": "Der er endnu ingen aktører på ansøgningen.",
-    "selectOrCreate": "Vælg en aktør, eller opret en ny.",
-    "localDraftNotice": "Aktører gemmes kun midlertidigt på denne side. De er endnu ikke gemt i systemet.",
-    "create": "Opret aktør",
-    "createTitle": "Opret øvrig aktør",
-    "saveDraft": "Gem aktør",
-    "noApplicationSelected": "Vælg en ansøgning, før du opretter en aktør.",
-    "loading": "Henter ansøgningens aktører",
-    "loadFailed": "Ansøgningen og dens aktører kunne ikke hentes.",
-    "saveFailed": "Aktøren kunne ikke gemmes. Prøv igen.",
-    "cancel": "Annuller",
-    "role": "Rolle",
-    "name": "Navn",
-    "phoneNumber": "Telefonnummer",
-    "email": "E-mail",
-    "cvrNumber": "CVR-nummer",
-    "department": "Afdeling",
-    "contactPerson": "Kontaktperson",
-    "contactPersonName": "Kontaktpersonens navn",
-    "contactPersonEmail": "Kontaktpersonens e-mail",
-    "contactPersonPhoneNumber": "Kontaktpersonens telefonnummer",
-    "contactAvailability": "Kontaktpersonens tilgængelighed",
-    "availability": {
-      "Day": "Dag",
-      "Evening": "Aften",
-      "Night": "Nat",
-      "AllDay": "Hele døgnet"
-    },
-    "address": "Adresse",
-    "addressSearch": "Søg efter adresse",
-    "addressSearchHint": "Skriv mindst 3 tegn for at søge.",
-    "addressSearching": "Søger efter adresser…",
-    "addressNoMatches": "Ingen adresser fundet. Prøv en mere præcis søgning.",
-    "street": "Vejnavn",
-    "houseNumber": "Husnummer",
-    "postalCode": "Postnummer",
-    "city": "By",
-    "roles": {
-      "Supplier": "Leverandør",
-      "Contractor": "Entreprenør",
-      "NetworkOperator": "Ledningsejer",
-      "ProjectCoordinator": "Projektkoordinator",
-      "Private": "Privat"
-    },
     "errors": {
+      "addressLookup": "Adressen kunne ikke verificeres. Prøv igen.",
       "role": "Vælg en rolle.",
       "name": "Navn må kun indeholde bogstaver.",
       "phoneNumber": "Telefonnummer skal være præcis 8 cifre.",
@@ -96,9 +32,45 @@
       "department": "Indtast en afdeling.",
       "contactPersonName": "Kontaktpersonens navn må kun indeholde bogstaver.",
       "contactAvailability": "Vælg kontaktpersonens tilgængelighed.",
-      "address": "Vælg en adresse fra søgeresultaterne.",
-      "addressLookup": "Adressen kunne ikke verificeres. Prøv igen.",
-      "required": "Dette felt er påkrævet."
+      "address": "Vælg en adresse fra søgeresultaterne."
+    },
+    "addressSearching": "Søger efter adresser…",
+    "addressSearchHint": "Skriv mindst 3 tegn for at søge.",
+    "addressClear": "Ryd adresse",
+    "addressClose": "Luk adresseforslag",
+    "addressNoMatches": "Ingen adresser fundet. Prøv en mere præcis søgning.",
+    "addressOpen": "Vis adresseforslag",
+    "address": "Adresse",
+    "addressPlaceholder": "Vejnavn, nr., postnr. og by",
+    "createTitle": "Opret øvrig aktør",
+    "role": "Rolle",
+    "name": "Navn",
+    "phoneNumber": "Telefonnummer",
+    "email": "E-mail",
+    "cvrNumber": "CVR-nummer",
+    "department": "Afdeling",
+    "contactPerson": "Kontaktperson",
+    "contactPersonName": "Kontaktpersonens navn",
+    "contactPersonPhoneNumber": "Kontaktpersonens telefonnummer",
+    "contactPersonEmail": "Kontaktpersonens e-mail",
+    "contactAvailability": "Kontaktpersonens tilgængelighed",
+    "addressSearch": "Søg efter adresse",
+    "cancel": "Annuller",
+    "saveDraft": "Gem aktør",
+    "roles": {
+      "Supplier": "Leverandør",
+      "Contractor": "Entreprenør",
+      "NetworkOperator": "Ledningsejer",
+      "ProjectCoordinator": "Projektkoordinator",
+      "Private": "Privat"
     }
+  },
+  "home": {
+    "title": "Ansøgningsplatformen",
+    "intro": "Velkommen til Ansøgningsplatformen"
+  },
+  "login": {
+    "title": "Log ind",
+    "formPlaceholder": "Her kommer loginformularen."
   }
 }

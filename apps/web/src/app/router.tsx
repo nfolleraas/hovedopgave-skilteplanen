@@ -1,5 +1,5 @@
 import type { ComponentType } from 'react';
-import ApplicationPage from '../pages/application-page';
+import ActorsPage from '../pages/actors-page';
 import ContactsPage from '../pages/contacts-page';
 import HomePage from '../pages/home-page';
 import LoginPage from '../pages/login-page';
@@ -16,8 +16,8 @@ export const routes = {
 
 export const pages: Record<string, ComponentType> = {
   [routes.home]: HomePage,
-  [routes.application]: ApplicationPage,
-  [routes.selectedApplication]: ApplicationPage,
+  [routes.application]: ActorsPage,
+  [routes.selectedApplication]: ActorsPage,
   [routes.contacts]: ContactsPage,
   [routes.messages]: MessagesPage,
   [routes.login]: LoginPage,

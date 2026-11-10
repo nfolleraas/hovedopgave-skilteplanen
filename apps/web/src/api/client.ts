@@ -1,5 +1,42 @@
-export const apiClient = {
-  get: async <T>(_path: string): Promise<T> => {
-    throw new Error('apiClient placeholder is not implemented');
+import axios, { type AxiosRequestConfig } from 'axios';
+
+const axiosClient = axios.create({
+  baseURL: '/api',
+  timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json',
   },
+});
+
+async function request<T>(
+  path: string,
+  config?: AxiosRequestConfig,
+): Promise<T> {
+  const response = await axiosClient.request<T>({
+    ...config,
+    url: path,
+  });
+
+  return response.data;
+}
+
+export const apiClient = {
+  get: <T>(path: string, signal?: AbortSignal): Promise<T> =>
+    request<T>(path, {
+      method: 'GET',
+      signal,
+    }),
+  post: <T>(path: string, body: unknown) =>
+    request<T>(path, {
+      method: 'POST',
+      data: body,
+    }),
+  postForm: <T>(path: string, body: FormData) =>
+    request<T>(path, {
+      method: 'POST',
+      data: body,
+      headers: {
+        'Content-Type': undefined,
+      },
+    }),
 };

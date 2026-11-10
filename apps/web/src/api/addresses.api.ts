@@ -10,9 +10,8 @@ export interface VerifiedAddress {
   city: string;
 }
 
-// KDS's public token is required until Adressevælger introduces user accounts.
-const baseUrl = 'https://adressevaelger.dk';
-const publicToken = 'adressevaelger123';
+// The development proxy adds the configured token outside the browser.
+const baseUrl = '/address-lookup';
 
 function isObject(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object';
@@ -66,12 +65,11 @@ export async function searchAddresses(
   query: string,
   signal?: AbortSignal,
 ): Promise<AddressSuggestion[]> {
-  const url = new URL('/husnumre/soeg', baseUrl);
+  const url = new URL(`${baseUrl}/husnumre/soeg`, 'http://localhost');
   url.searchParams.set('tekst', query);
   url.searchParams.set('maksimum', '10');
-  url.searchParams.set('token', publicToken);
 
-  const response = await fetch(url, { signal });
+  const response = await fetch(`${url.pathname}${url.search}`, { signal });
   if (!response.ok) throw new Error('Address search failed.');
   return parseAddressSuggestions(await response.json());
 }
@@ -80,8 +78,7 @@ export async function lookupAddress(
   id: string,
   signal?: AbortSignal,
 ): Promise<VerifiedAddress> {
-  const url = new URL(`/husnumre/${encodeURIComponent(id)}`, baseUrl);
-  url.searchParams.set('token', publicToken);
+  const url = `${baseUrl}/husnumre/${encodeURIComponent(id)}`;
 
   const response = await fetch(url, { signal });
   if (!response.ok) throw new Error('Address lookup failed.');

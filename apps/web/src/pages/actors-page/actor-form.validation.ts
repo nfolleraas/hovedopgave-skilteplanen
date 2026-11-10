@@ -1,62 +1,11 @@
-export const actorRoles = [
-  'Supplier',
-  'Contractor',
-  'NetworkOperator',
-  'ProjectCoordinator',
-  'Private',
-] as const;
+import {
+  type ActorFormErrors,
+  type ActorFormValues,
+  ActorRole,
+  type ApplicationType,
+} from './actor.types.js';
 
-export type ActorRole = (typeof actorRoles)[number];
-export type ApplicationType =
-  | 'ExcavationPermit'
-  | 'RoadUsePermit'
-  | 'RoadUsePermitEvent';
-export type ContactAvailability = 'Day' | 'Evening' | 'Night' | 'AllDay';
-
-interface ContactPersonDraft {
-  name: string;
-  email: string;
-  phoneNumber: string;
-  availability?: ContactAvailability;
-}
-
-export interface ActorDraft {
-  role: ActorRole;
-  name: string;
-  phoneNumber: string;
-  email: string;
-  cvrNumber: string;
-  department: string;
-  contactPerson?: ContactPersonDraft;
-  address: {
-    street: string;
-    houseNumber: string;
-    postalCode: string;
-    city: string;
-  };
-}
-
-export type ActorFormValues = Omit<ActorDraft, 'role' | 'contactPerson'> & {
-  role: ActorRole | '';
-  contactPerson: Omit<ContactPersonDraft, 'availability'> & {
-    availability: ContactAvailability | '';
-  };
-};
-
-type Field =
-  | 'role'
-  | 'name'
-  | 'phoneNumber'
-  | 'email'
-  | 'cvrNumber'
-  | 'department'
-  | 'contactPersonName'
-  | 'contactPersonEmail'
-  | 'contactPersonPhoneNumber'
-  | 'contactAvailability'
-  | 'address';
-
-export type ActorFormErrors = Partial<Record<Field, string>>;
+export const actorRoles = Object.values(ActorRole);
 
 const namePattern = /^[\p{L}]+(?:[ '-][\p{L}]+)*$/u;
 const eightDigitPattern = /^\d{8}$/;
@@ -97,7 +46,7 @@ export function validateActorForm(
   if (!emailPattern.test(draft.email.trim())) {
     errors.email = t('actors.errors.email');
   }
-  if (draft.role !== 'Private') {
+  if (draft.role !== ActorRole.Private) {
     if (!eightDigitPattern.test(draft.cvrNumber)) {
       errors.cvrNumber = t('actors.errors.cvrNumber');
     }

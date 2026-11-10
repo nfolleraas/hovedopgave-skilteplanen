@@ -1,9 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import {
-  type ActorFormValues,
-  validateActorForm,
-} from './actor-form.validation.js';
+import type { ActorFormValues } from './actor.types.js';
+import { validateActorForm } from './actor-form.validation.js';
 
 const translate = (key: string) => key;
 const verifiedAddressId = '0a3f507a-eedb-32b8-e044-0003ba298018';

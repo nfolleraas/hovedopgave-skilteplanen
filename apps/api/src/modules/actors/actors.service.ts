@@ -9,6 +9,7 @@ import {
   Availability,
 } from '../../generated/prisma/enums.js';
 import { PrismaService } from '../../prisma.service.js';
+import { ActorsRepository } from './actors.repository.js';
 import { CreateActorDto } from './dto/create-actor.dto.js';
 import { UpdateActorDto } from './dto/update-actor.dto.js';
 import { ActorMapper } from './mappers/actor.mapper.js';
@@ -17,6 +18,7 @@ import { ActorMapper } from './mappers/actor.mapper.js';
 export class ActorsService {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly actorsRepository: ActorsRepository,
     private readonly actorMapper: ActorMapper,
   ) {}
 
@@ -42,37 +44,29 @@ export class ActorsService {
       }
     }
 
-    return this.prisma.actor.create({
-      data: this.actorMapper.toCreateInput(createActorDto, contactAvailability),
-      include: { address: true, contactPersons: true },
-    });
+    return this.actorsRepository.create(
+      this.actorMapper.toCreateInput(createActorDto, contactAvailability),
+    );
   }
 
-  async findForApplication(caseNumber: string) {
-    const application = await this.prisma.application.findUnique({
-      where: { caseNumber },
-      select: {
-        type: true,
-        actors: {
-          include: {
-            address: true,
-            contactPersons: { where: { applicationId: caseNumber } },
-          },
-        },
-      },
-    });
-    if (!application) {
-      throw new NotFoundException('Application not found');
+  getAll() {
+    return this.actorsRepository.getAll();
+  }
+
+  async get(uuid: string) {
+    const actor = await this.actorsRepository.get(uuid);
+    if (!actor) {
+      throw new NotFoundException('Actor not found');
     }
-    return application;
+    return actor;
   }
 
   findAll() {
-    return `This action returns all actors`;
+    return this.getAll();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} actor`;
+  findOne(uuid: string) {
+    return this.get(uuid);
   }
 
   update(id: number, _updateActorDto: UpdateActorDto) {

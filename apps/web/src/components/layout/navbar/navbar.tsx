@@ -1,35 +1,14 @@
 import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined';
-import {
-  AppBar,
-  Box,
-  Divider,
-  IconButton,
-  ListSubheader,
-  Menu,
-  MenuItem,
-  Tab,
-  Tabs,
-  Toolbar,
-} from '@mui/material';
-import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import { AppBar, Box, Button, Tab, Tabs, Toolbar } from '@mui/material';
 import { Link, matchPath, useLocation } from 'react-router';
 import { routes } from '../../../app/router.js';
 
 export default function Navbar() {
-  const { t, i18n } = useTranslation();
   const { pathname } = useLocation();
-  const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
-  const menuOpen = Boolean(menuAnchor);
-  const currentLanguage = i18n.resolvedLanguage ?? i18n.language;
-  const selectLanguage = (language: 'en' | 'da') => {
-    void i18n.changeLanguage(language);
-    setMenuAnchor(null);
-  };
   const navigationItems = [
-    { label: t('navigation.home'), path: routes.home },
-    { label: t('navigation.application'), path: routes.application },
-    { label: t('navigation.messages'), path: routes.messages },
+    { label: 'Dashboard', path: routes.home },
+    { label: 'Ansøgning', path: routes.application },
   ];
   const activeTab = navigationItems.findIndex(
     (item) =>
@@ -49,53 +28,49 @@ export default function Navbar() {
     >
       <Toolbar
         sx={{
-          columnGap: 2,
-          flexWrap: { xs: 'wrap', md: 'nowrap' },
+          columnGap: { xs: 1, md: 3 },
+          minHeight: 72,
           justifyContent: 'space-between',
           px: { xs: 2, sm: 3 },
         }}
       >
         <Box
-          aria-label={t('navigation.logoHome')}
+          aria-label="Gå til dashboard"
           component={Link}
           sx={{ display: 'block', flexShrink: 0 }}
           to={routes.home}
         >
           <Box
-            alt=""
+            alt="Skilteplanen"
             component="img"
             src="/Logo/Logo.webp"
             sx={{
               display: 'block',
-              height: 'clamp(40px, 5vw, 60px)',
-              objectFit: 'cover',
-              width: 'clamp(160px, 25vw, 300px)',
+              height: 42,
+              objectFit: 'contain',
+              width: { xs: 150, sm: 190 },
             }}
           />
         </Box>
 
-        <Box
-          component="nav"
-          sx={{
-            flex: { xs: '0 0 100%', md: '1 1 auto' },
-            minWidth: 0,
-            mr: { lg: 12 },
-            order: { xs: 3, md: 0 },
-          }}
-        >
+        <Box component="nav" sx={{ flex: '1 1 auto', minWidth: 0 }}>
           <Tabs
-            aria-label={t('navigation.main')}
+            aria-label="Hovednavigation"
             scrollButtons="auto"
             sx={{
               '& .MuiTab-root': {
+                borderRadius: 1,
                 color: 'common.white',
                 fontWeight: 600,
                 minWidth: 'auto',
+                px: { xs: 1.5, sm: 2 },
                 textTransform: 'none',
               },
-              '& .MuiTab-root.Mui-selected': { color: 'common.white' },
-              '& .MuiTabs-indicator': { backgroundColor: 'common.white' },
-              '& .MuiTabs-list': { justifyContent: 'flex-start' },
+              '& .MuiTab-root.Mui-selected': {
+                bgcolor: 'rgba(255, 255, 255, 0.16)',
+                color: 'common.white',
+              },
+              '& .MuiTabs-indicator': { display: 'none' },
             }}
             textColor="inherit"
             value={activeTab === -1 ? false : activeTab}
@@ -112,56 +87,23 @@ export default function Navbar() {
           </Tabs>
         </Box>
 
-        <IconButton
-          aria-controls={menuOpen ? 'user-menu' : undefined}
-          aria-expanded={menuOpen ? 'true' : undefined}
-          aria-haspopup="menu"
-          aria-label={t('navigation.openUserMenu')}
+        <Button
           color="inherit"
-          onClick={(event) => setMenuAnchor(event.currentTarget)}
-          sx={{ ml: { xs: 'auto', md: 0 } }}
+          endIcon={<KeyboardArrowDownIcon />}
+          startIcon={<AccountCircleOutlinedIcon />}
+          sx={{
+            '& .MuiButton-startIcon': { mr: 0.75 },
+            color: 'common.white',
+            flexShrink: 0,
+            fontWeight: 600,
+            minWidth: 'auto',
+            px: { xs: 0.5, sm: 1 },
+          }}
         >
-          <AccountCircleOutlinedIcon fontSize="large" />
-        </IconButton>
-        <Menu
-          anchorEl={menuAnchor}
-          id="user-menu"
-          onClose={() => setMenuAnchor(null)}
-          open={menuOpen}
-        >
-          <MenuItem onClick={() => setMenuAnchor(null)}>
-            {t('navigation.settings')}
-          </MenuItem>
-          <MenuItem onClick={() => setMenuAnchor(null)}>
-            {t('navigation.logOut')}
-          </MenuItem>
-          <Divider />
-          <ListSubheader>{t('navigation.language')}</ListSubheader>
-          <MenuItem
-            onClick={() => selectLanguage('da')}
-            selected={currentLanguage.startsWith('da')}
-          >
-            <Box
-              aria-hidden="true"
-              component="span"
-              sx={{ fontSize: '1.25rem', mr: 1.5 }}
-            >
-              🇩🇰
-            </Box>
-          </MenuItem>
-          <MenuItem
-            onClick={() => selectLanguage('en')}
-            selected={currentLanguage.startsWith('en')}
-          >
-            <Box
-              aria-hidden="true"
-              component="span"
-              sx={{ fontSize: '1.25rem', mr: 1.5 }}
-            >
-              🇬🇧
-            </Box>
-          </MenuItem>
-        </Menu>
+          <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
+            Profil
+          </Box>
+        </Button>
       </Toolbar>
     </AppBar>
   );

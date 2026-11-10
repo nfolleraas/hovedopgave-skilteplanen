@@ -12,6 +12,7 @@ import {
   Usage,
 } from '../src/generated/prisma/enums.js';
 import { ActorsModule } from '../src/modules/actors/actors.module.js';
+import { ActorsRepository } from '../src/modules/actors/actors.repository.js';
 import { ActorsService } from '../src/modules/actors/actors.service.js';
 import type { CreateActorDto } from '../src/modules/actors/dto/create-actor.dto.js';
 import { ActorMapper } from '../src/modules/actors/mappers/actor.mapper.js';
@@ -23,8 +24,9 @@ describe('ActorsService database write', () => {
   const roadUsePermitCaseNumber = `ROAD-${marker}`;
   const excavationPermitCaseNumber = `EXC-${marker}`;
   const prisma = new PrismaService();
+  const repository = new ActorsRepository(prisma);
   const mapper = new ActorMapper();
-  const service = new ActorsService(prisma, mapper);
+  const service = new ActorsService(prisma, repository, mapper);
   const dto: CreateActorDto = {
     applicationCaseNumber: caseNumber,
     role: ActorRole.Contractor,
@@ -188,12 +190,6 @@ describe('ActorsService database write', () => {
         where: { applicationId: caseNumber },
       }),
     ).toBe(2);
-    const listing = await service.findForApplication(caseNumber);
-    expect(listing.type).toBe(ApplicationType.RoadUsePermit);
-    expect(listing.actors.map((actor) => actor.uuid)).toEqual(
-      expect.arrayContaining([saved.uuid, second.uuid]),
-    );
-
     const failedStreet = `Failed street ${marker}`;
     const duplicateIdMapper = {
       toCreateInput: (input: CreateActorDto) => ({
@@ -201,7 +197,11 @@ describe('ActorsService database write', () => {
         uuid: saved.uuid,
       }),
     };
-    const duplicateIdService = new ActorsService(prisma, duplicateIdMapper);
+    const duplicateIdService = new ActorsService(
+      prisma,
+      repository,
+      duplicateIdMapper,
+    );
 
     await expect(
       duplicateIdService.create({

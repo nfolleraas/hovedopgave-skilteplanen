@@ -3,6 +3,8 @@ import {
   ActorRole,
   type Availability,
 } from '../../../generated/prisma/enums.js';
+import type { CreateAddressDto } from '../../address/dto/create-address.dto.js';
+import type { CreateContactPersonDto } from '../../contact-person/dto/create-contact-person.dto.js';
 import type { CreateActorDto } from '../dto/create-actor.dto.js';
 
 export class ActorMapper {
@@ -24,25 +26,41 @@ export class ActorMapper {
       ...(dto.role !== ActorRole.Private && dto.contactPerson
         ? {
             contactPersons: {
-              create: {
-                name: dto.contactPerson.name.trim(),
-                email: dto.contactPerson.email.trim(),
-                phoneNumber: dto.contactPerson.phoneNumber,
-                availability: contactAvailability,
-                application: {
-                  connect: { caseNumber: dto.applicationCaseNumber },
-                },
-              },
+              create: this.toContactPersonCreateInput(
+                dto.contactPerson,
+                contactAvailability,
+                dto.applicationCaseNumber,
+              ),
             },
           }
         : {}),
       address: {
-        create: {
-          street: dto.address.street.trim(),
-          houseNumber: dto.address.houseNumber.trim(),
-          postalCode: dto.address.postalCode.trim(),
-          city: dto.address.city.trim(),
-        },
+        create: this.toAddressCreateInput(dto.address),
+      },
+    };
+  }
+
+  private toAddressCreateInput(dto: CreateAddressDto) {
+    return {
+      street: dto.street.trim(),
+      houseNumber: dto.houseNumber.trim(),
+      postalCode: dto.postalCode.trim(),
+      city: dto.city.trim(),
+    };
+  }
+
+  private toContactPersonCreateInput(
+    dto: CreateContactPersonDto,
+    availability: Availability,
+    applicationCaseNumber: string,
+  ) {
+    return {
+      name: dto.name.trim(),
+      email: dto.email.trim(),
+      phoneNumber: dto.phoneNumber,
+      availability,
+      application: {
+        connect: { caseNumber: applicationCaseNumber },
       },
     };
   }

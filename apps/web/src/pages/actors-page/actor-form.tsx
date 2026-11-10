@@ -15,21 +15,16 @@ import {
   searchAddresses,
 } from '../../api/addresses.api.js';
 import {
-  type ActorDraft,
   type ActorFormErrors,
+  type ActorFormProps,
   type ActorFormValues,
-  type ApplicationType,
+  ActorRole,
+} from './actor.types.js';
+import {
   actorRoles,
   emptyActorForm,
   validateActorForm,
 } from './actor-form.validation.js';
-
-interface ActorFormProps {
-  applicationType?: ApplicationType;
-  isSubmitting?: boolean;
-  onCancel: () => void;
-  onSubmit: (draft: ActorDraft) => void | Promise<void>;
-}
 
 export function ActorForm({
   applicationType,
@@ -51,7 +46,7 @@ export function ActorForm({
   const [resolvingAddress, setResolvingAddress] = useState(false);
   const [addressRequestFailed, setAddressRequestFailed] = useState(false);
   const lookupController = useRef<AbortController | null>(null);
-  const isPrivate = draft.role === 'Private';
+  const isPrivate = draft.role === ActorRole.Private;
 
   useEffect(() => {
     if (selectedAddress || resolvingAddress || addressQuery.trim().length < 3) {
@@ -89,7 +84,7 @@ export function ActorForm({
     setDraft((current) => ({
       ...current,
       [field]: value,
-      ...(field === 'role' && value === 'Private'
+      ...(field === 'role' && value === ActorRole.Private
         ? { cvrNumber: '', department: '' }
         : {}),
     }));

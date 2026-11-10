@@ -1,11 +1,49 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
+  lookupAddress,
   parseAddressLookup,
   parseAddressSuggestions,
+  searchAddresses,
 } from './addresses.api.js';
 
 describe('Adressevælger response mapping', () => {
+  it('searches through the local proxy without exposing a token', async () => {
+    const originalFetch = globalThis.fetch;
+    const controller = new AbortController();
+    try {
+      globalThis.fetch = async (input, options) => {
+        const url = new URL(String(input), 'http://localhost');
+        assert.equal(url.pathname, '/address-lookup/husnumre/soeg');
+        assert.equal(url.searchParams.get('tekst'), 'Testvej 1');
+        assert.equal(url.searchParams.has('token'), false);
+        assert.equal(options?.signal, controller.signal);
+        return Response.json({ status: 'ok', fund: [] });
+      };
+      assert.deepEqual(
+        await searchAddresses('Testvej 1', controller.signal),
+        [],
+      );
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  it('rejects a failed address lookup instead of accepting an unverified address', async () => {
+    const originalFetch = globalThis.fetch;
+    try {
+      globalThis.fetch = async (input) => {
+        assert.equal(input, '/address-lookup/husnumre/address-id');
+        return new Response(null, { status: 503 });
+      };
+      await assert.rejects(
+        lookupAddress('address-id'),
+        /Address lookup failed/,
+      );
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
   it('only offers complete husnummer hits', () => {
     assert.deepEqual(
       parseAddressSuggestions({

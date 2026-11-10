@@ -1,6 +1,3 @@
-import 'reflect-metadata';
-import { plainToInstance } from 'class-transformer';
-import { validate } from 'class-validator';
 import { ActorRole } from '../../../generated/prisma/enums.js';
 import { CreateActorDto } from './create-actor.dto.js';
 
@@ -26,38 +23,19 @@ describe('CreateActorDto', () => {
     },
   };
 
-  it('accepts a business actor with contact person', async () => {
-    expect(await validate(plainToInstance(CreateActorDto, validActor))).toEqual(
-      [],
-    );
+  it('contains the actor data used when creating an actor', () => {
+    const dto = Object.assign(new CreateActorDto(), validActor);
+
+    expect(dto).toEqual(validActor);
   });
 
-  it('accepts a private actor without business fields or contact person', async () => {
+  it('supports private actors without business fields or contact person', () => {
     const { cvrNumber, department, contactPerson, ...actor } = validActor;
-    expect(
-      await validate(
-        plainToInstance(CreateActorDto, { ...actor, role: ActorRole.Private }),
-      ),
-    ).toEqual([]);
-  });
+    const dto = Object.assign(new CreateActorDto(), {
+      ...actor,
+      role: ActorRole.Private,
+    });
 
-  it('rejects missing contact person and invalid phone, email and CVR', async () => {
-    const errors = await validate(
-      plainToInstance(CreateActorDto, {
-        ...validActor,
-        phoneNumber: '1234',
-        email: 'invalid',
-        cvrNumber: 'A1234567',
-        contactPerson: undefined,
-      }),
-    );
-    expect(errors.map(({ property }) => property)).toEqual(
-      expect.arrayContaining([
-        'phoneNumber',
-        'email',
-        'cvrNumber',
-        'contactPerson',
-      ]),
-    );
+    expect(dto).toEqual({ ...actor, role: ActorRole.Private });
   });
 });

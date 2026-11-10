@@ -4,12 +4,15 @@ import {
   Availability,
 } from '../../generated/prisma/enums.js';
 import { PrismaService } from '../../prisma.service.js';
+import { ActorsRepository } from './actors.repository.js';
 import { ActorsService } from './actors.service.js';
 import type { CreateActorDto } from './dto/create-actor.dto.js';
 import { ActorMapper } from './mappers/actor.mapper.js';
 
 describe('ActorsService', () => {
   const create = vi.fn();
+  const get = vi.fn();
+  const getAll = vi.fn();
   const findApplication = vi.fn();
   let service: ActorsService;
 
@@ -36,13 +39,15 @@ describe('ActorsService', () => {
 
   beforeEach(() => {
     create.mockReset();
+    get.mockReset();
+    getAll.mockReset();
     findApplication.mockReset();
     findApplication.mockResolvedValue({ type: ApplicationType.RoadUsePermit });
     service = new ActorsService(
       {
         application: { findUnique: findApplication },
-        actor: { create },
       } as unknown as PrismaService,
+      { create, get, getAll } as unknown as ActorsRepository,
       new ActorMapper(),
     );
   });
@@ -89,6 +94,28 @@ describe('ActorsService', () => {
       },
       include: { address: true, contactPersons: true },
     });
+  });
+
+  it('gets an actor through the repository', async () => {
+    const actor = { uuid: 'actor-id' };
+    get.mockResolvedValue(actor);
+
+    await expect(service.get('actor-id')).resolves.toBe(actor);
+    expect(get).toHaveBeenCalledExactlyOnceWith('actor-id');
+  });
+
+  it('throws when the repository cannot find an actor', async () => {
+    get.mockResolvedValue(null);
+
+    await expect(service.get('missing-id')).rejects.toThrow('Actor not found');
+  });
+
+  it('gets all actors through the repository', async () => {
+    const actors = [{ uuid: 'actor-id' }];
+    getAll.mockResolvedValue(actors);
+
+    await expect(service.getAll()).resolves.toBe(actors);
+    expect(getAll).toHaveBeenCalledExactlyOnceWith();
   });
 
   it('propagates a failed nested write without starting a separate address write', async () => {
