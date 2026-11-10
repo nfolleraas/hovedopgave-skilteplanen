@@ -1,8 +1,16 @@
-import { Box, Button, Container, TextField, Typography } from '@mui/material';
+import {
+  Alert,
+  Box,
+  Button,
+  Container,
+  TextField,
+  Typography,
+} from '@mui/material';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import type { AddressSuggestion } from '../../api/addresses.api';
 import AddressAutocomplete from '../../components/address/address-autocomplete';
+import { useApplicants } from '../../hooks/use-applicants';
 
 type ApplicantType = 'business' | 'private';
 
@@ -10,29 +18,76 @@ interface ApplicantFormProps {
   applicantType: ApplicantType;
 }
 
+export function parseAddress(address: AddressSuggestion) {
+  if (address.type !== 'adresse' && address.type !== 'husnummer') {
+    throw new Error('Vælg en adresse med husnummer fra listen.');
+  }
+
+  const parts = address.titel.split(',').map((part) => part.trim());
+  const addressLine = parts[0];
+  const postalCity = parts[parts.length - 1];
+  const addressMatch = addressLine?.match(
+    /^(.*?)\s+(\d+[A-Za-z]?(?:[-/]\d+[A-Za-z]?)?)$/,
+  );
+  const postalMatch = postalCity?.match(/^(\d{4})\s+(.+)$/);
+
+  if (!addressMatch || !postalMatch) {
+    throw new Error(
+      'Kunne ikke læse den valgte adresse. Vælg en anden adresse.',
+    );
+  }
+
+  return {
+    street: addressMatch[1].trim(),
+    houseNumber: addressMatch[2].trim(),
+    postalCode: postalMatch[1],
+    city: postalMatch[2].trim(),
+  };
+}
+
 export default function ApplicantForm({ applicantType }: ApplicantFormProps) {
   const isBusiness = applicantType === 'business';
   const [selectedAddress, setSelectedAddress] =
     useState<AddressSuggestion | null>(null);
   const navigate = useNavigate();
+  const { createApplicant } = useApplicants();
   const [phoneError, setPhoneError] = useState(false);
   const [cvrError, setCvrError] = useState(false);
-  function handleSubmit(event: React.SubmitEvent<HTMLFormElement>) {
+  const [isSaving, setIsSaving] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  async function handleSubmit(event: React.SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!selectedAddress) {
-      alert('Du skal vælge en adresse fra listen');
+      setSubmitError('Du skal vælge en adresse fra listen.');
       return;
     }
 
     const formData = new FormData(event.currentTarget);
 
-    console.log({
-      name: formData.get('name'),
-      phone: formData.get('phone'),
-      email: formData.get('email'),
-      address: selectedAddress,
-      cvr: isBusiness ? formData.get('cvr') : null,
-    });
+    setSubmitError(null);
+    setIsSaving(true);
+
+    try {
+      await createApplicant({
+        name: String(formData.get('name') ?? '').trim(),
+        type: applicantType,
+        phoneNumber: String(formData.get('phone') ?? '').trim(),
+        email: String(formData.get('email') ?? '').trim(),
+        ...(isBusiness
+          ? { cvrNumber: String(formData.get('cvr') ?? '').trim() }
+          : {}),
+        ...parseAddress(selectedAddress),
+      });
+
+      navigate('/');
+    } catch (error) {
+      setSubmitError(
+        error instanceof Error ? error.message : 'Kunne ikke gemme ansøger.',
+      );
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   return (
@@ -133,6 +188,12 @@ export default function ApplicantForm({ applicantType }: ApplicantFormProps) {
           )}
         </Box>
 
+        {submitError && (
+          <Alert severity="error" sx={{ mt: 3 }}>
+            {submitError}
+          </Alert>
+        )}
+
         <Box
           sx={{
             display: 'flex',
@@ -149,8 +210,8 @@ export default function ApplicantForm({ applicantType }: ApplicantFormProps) {
             Annuller
           </Button>
 
-          <Button type="submit" variant="contained">
-            Gem ansøger
+          <Button disabled={isSaving} type="submit" variant="contained">
+            {isSaving ? 'Gemmer...' : 'Gem ansøger'}
           </Button>
         </Box>
       </Box>

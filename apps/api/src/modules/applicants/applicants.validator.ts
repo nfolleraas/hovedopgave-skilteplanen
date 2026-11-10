@@ -31,14 +31,19 @@ export function validateCreateApplicant(data: CreateApplicantDto): void {
     throw new BadRequestException('CVR number must contain 8 digits');
   }
 
-  if (
-    typeof data.addressLookupId !== 'string' ||
-    !data.addressLookupId.trim()
-  ) {
-    throw new BadRequestException('Address is required');
+  if (typeof data.street !== 'string' || !data.street.trim()) {
+    throw new BadRequestException('Street is required');
   }
 
   if (typeof data.houseNumber !== 'string' || !data.houseNumber.trim()) {
     throw new BadRequestException('House number is required');
+  }
+
+  if (typeof data.postalCode !== 'string' || !data.postalCode.trim()) {
+    throw new BadRequestException('Postal code is required');
+  }
+
+  if (typeof data.city !== 'string' || !data.city.trim()) {
+    throw new BadRequestException('City is required');
   }
 }

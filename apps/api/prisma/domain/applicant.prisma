@@ -5,7 +5,7 @@ model Applicant {
   phoneNumber     String
   email           String
   cvrNumber       String?
-  mitIdKey        String
+  mitIdKey        String?
   skilteplanenKey String?
   isActive        Boolean        @default(true)
   addressId       String         @unique
