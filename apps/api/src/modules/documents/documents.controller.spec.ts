@@ -3,7 +3,6 @@ import { DocumentType } from '../../generated/prisma/enums.js';
 import { DocumentsController } from './documents.controller.js';
 import { DocumentsService } from './documents.service.js';
 import { CreateDocumentDto } from './dto/create-document.dto.js';
-import { UpdateDocumentDto } from './dto/update-document.dto.js';
 
 describe('DocumentsController', () => {
   let controller: DocumentsController;
@@ -65,15 +64,6 @@ describe('DocumentsController', () => {
 
     expect(controller.findOne('document-1')).toBe(result);
     expect(service.findOne).toHaveBeenCalledWith('document-1');
-  });
-
-  it('updates a document through the service', () => {
-    const dto = { name: 'Updated plan' } as UpdateDocumentDto;
-    const result = { uuid: 'document-1', name: 'Updated plan' };
-    service.update.mockReturnValue(result);
-
-    expect(controller.update('document-1', dto)).toBe(result);
-    expect(service.update).toHaveBeenCalledWith('document-1', dto);
   });
 
   it('removes a document through the service', () => {

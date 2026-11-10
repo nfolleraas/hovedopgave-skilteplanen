@@ -20,16 +20,6 @@ export class DocumentsRepository {
     });
   }
 
-  async update(
-    uuid: string,
-    updatedDocument: Prisma.DocumentUpdateInput,
-  ): Promise<Document> {
-    return await this.prisma.document.update({
-      where: { uuid },
-      data: updatedDocument,
-    });
-  }
-
   async delete(uuid: string): Promise<Document> {
     return await this.prisma.document.delete({ where: { uuid } });
   }

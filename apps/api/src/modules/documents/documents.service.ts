@@ -4,7 +4,6 @@ import { DocumentType } from '../../generated/prisma/enums.js';
 import { R2Service } from '../s3/r2.service.js';
 import { DocumentsRepository } from './documents.repository.js';
 import { CreateDocumentDto } from './dto/create-document.dto.js';
-import { UpdateDocumentDto } from './dto/update-document.dto.js';
 
 const allowedFileExtensions = new Map<string, ReadonlySet<string>>([
   ['application/pdf', new Set(['pdf'])],
@@ -82,13 +81,6 @@ export class DocumentsService {
 
   async findOne(uuid: string) {
     return await this.documentsRepository.getById(uuid);
-  }
-
-  async update(uuid: string, dto: UpdateDocumentDto) {
-    return await this.documentsRepository.update(uuid, {
-      name: dto.name,
-      url: dto.url,
-    });
   }
 
   async remove(uuid: string) {

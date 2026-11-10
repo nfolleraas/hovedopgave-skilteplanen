@@ -5,7 +5,6 @@ import { R2Service } from '../s3/r2.service.js';
 import { DocumentsRepository } from './documents.repository.js';
 import { DocumentsService } from './documents.service.js';
 import { CreateDocumentDto } from './dto/create-document.dto.js';
-import { UpdateDocumentDto } from './dto/update-document.dto.js';
 
 describe('DocumentsService', () => {
   let service: DocumentsService;
@@ -13,7 +12,6 @@ describe('DocumentsService', () => {
     add: ReturnType<typeof vi.fn>;
     getAll: ReturnType<typeof vi.fn>;
     getById: ReturnType<typeof vi.fn>;
-    update: ReturnType<typeof vi.fn>;
     delete: ReturnType<typeof vi.fn>;
   };
   let r2Service: {
@@ -26,7 +24,6 @@ describe('DocumentsService', () => {
       add: vi.fn(),
       getAll: vi.fn(),
       getById: vi.fn(),
-      update: vi.fn(),
       delete: vi.fn(),
     };
     r2Service = { upload: vi.fn(), delete: vi.fn() };
@@ -132,24 +129,17 @@ describe('DocumentsService', () => {
   it('delegates reads, updates, and deletes to the repository', async () => {
     const documents = [{ uuid: 'document-1' }];
     const document = { uuid: 'document-1', r2ObjectKey: 'documents/file.pdf' };
-    const update = { name: 'Updated plan' } as UpdateDocumentDto;
     repository.getAll.mockResolvedValue(documents);
     repository.getById.mockResolvedValue(document);
-    repository.update.mockResolvedValue(document);
     repository.delete.mockResolvedValue(document);
     r2Service.delete.mockResolvedValue({});
 
     await expect(service.findAll()).resolves.toBe(documents);
     await expect(service.findOne('document-1')).resolves.toBe(document);
-    await expect(service.update('document-1', update)).resolves.toBe(document);
     await expect(service.remove('document-1')).resolves.toBeUndefined();
 
     expect(repository.getAll).toHaveBeenCalledOnce();
     expect(repository.getById).toHaveBeenCalledWith('document-1');
-    expect(repository.update).toHaveBeenCalledWith('document-1', {
-      name: 'Updated plan',
-      url: undefined,
-    });
     expect(repository.delete).toHaveBeenCalledWith('document-1');
     expect(r2Service.delete).toHaveBeenCalledWith('documents/file.pdf');
   });
