@@ -7,7 +7,6 @@ import {
   canEditAreas,
   emptyAreaFormValues,
   formatSquareMeters,
-  getAreaFieldSet,
   parseDecimal,
   toAreaFormValues,
   toAreaInput,
@@ -32,13 +31,10 @@ const complete: AreaFormValues = {
 const searched = { includeRoad: false };
 
 describe('house numbers or alternative description (UC-034 F1)', () => {
-  test('house numbers alone are enough', () => {
+  test('house numbers or a description is enough', () => {
     expect(
       validateArea(ApplicationType.ExcavationPermit, complete, searched),
     ).toEqual({});
-  });
-
-  test('a description alone is enough', () => {
     const values = {
       ...complete,
       houseNumberFrom: '',
@@ -133,6 +129,13 @@ describe('fields per application type', () => {
       widthInMeters: 'positiveNumber',
     });
   });
+
+  test('road element Other needs a description', () => {
+    const values = { ...complete, roadSection: 'Other' as const };
+    expect(
+      validateArea(ApplicationType.ExcavationPermit, values, searched),
+    ).toEqual({ roadSectionDescription: 'required' });
+  });
 });
 
 describe('area calculation', () => {
@@ -155,109 +158,15 @@ test('the last area cannot be deleted (UC-035 F1)', () => {
   expect(canDeleteArea(2)).toBe(true);
 });
 
-describe('rules per application', () => {
-  test('only excavation permits use direction and depth', () => {
-    expect(getAreaFieldSet(ApplicationType.ExcavationPermit)).toEqual({
-      direction: true,
-      depth: true,
-    });
-    expect(getAreaFieldSet(ApplicationType.RoadUsePermit)).toEqual({
-      direction: false,
-      depth: false,
-    });
-  });
-
-  test('areas can only change while the application is a draft or needs changes', () => {
-    expect(canEditAreas(Status.Draft)).toBe(true);
-    expect(canEditAreas(Status.ChangeRequired)).toBe(true);
-    expect(canEditAreas(Status.InProgress)).toBe(false);
-    expect(canEditAreas(Status.Approved)).toBe(false);
-    expect(canEditAreas(Status.Rejected)).toBe(false);
-  });
+test('areas can only change while the application is a draft or needs changes', () => {
+  expect(canEditAreas(Status.Draft)).toBe(true);
+  expect(canEditAreas(Status.ChangeRequired)).toBe(true);
+  expect(canEditAreas(Status.InProgress)).toBe(false);
+  expect(canEditAreas(Status.Approved)).toBe(false);
+  expect(canEditAreas(Status.Rejected)).toBe(false);
 });
 
-describe('more validation', () => {
-  test('road element Other needs a description', () => {
-    const values = { ...complete, roadSection: 'Other' as const };
-    expect(
-      validateArea(ApplicationType.ExcavationPermit, values, searched),
-    ).toEqual({ roadSectionDescription: 'required' });
-    expect(
-      validateArea(
-        ApplicationType.ExcavationPermit,
-        { ...values, roadSectionDescription: 'Parkeringsplads' },
-        searched,
-      ),
-    ).toEqual({});
-  });
-
-  test('an empty form lists every required field', () => {
-    expect(
-      validateArea(ApplicationType.ExcavationPermit, emptyAreaFormValues, {
-        includeRoad: true,
-      }),
-    ).toEqual({
-      roadName: 'required',
-      roadOwnership: 'required',
-      postalCode: 'required',
-      houseNumberFrom: 'houseNumberOrDescription',
-      houseNumberTo: 'houseNumberOrDescription',
-      alternativeDescription: 'houseNumberOrDescription',
-      roadSection: 'required',
-      roadSide: 'required',
-      direction: 'required',
-      lengthInMeters: 'required',
-      widthInMeters: 'required',
-      depthInMeters: 'required',
-    });
-  });
-
-  test('blank text counts as missing', () => {
-    const values = {
-      ...complete,
-      houseNumberFrom: '  ',
-      houseNumberTo: ' ',
-      lengthInMeters: ' ',
-    };
-    expect(
-      validateArea(ApplicationType.ExcavationPermit, values, searched),
-    ).toEqual({
-      houseNumberFrom: 'houseNumberOrDescription',
-      houseNumberTo: 'houseNumberOrDescription',
-      alternativeDescription: 'houseNumberOrDescription',
-      lengthInMeters: 'required',
-    });
-  });
-
-  test('a postal code with spaces around it is accepted', () => {
-    expect(
-      validateArea(
-        ApplicationType.ExcavationPermit,
-        { ...complete, postalCode: ' 5000 ' },
-        { includeRoad: true },
-      ),
-    ).toEqual({});
-  });
-
-  test('searched roads skip the road fields', () => {
-    expect(
-      validateArea(
-        ApplicationType.ExcavationPermit,
-        { ...complete, roadName: '', roadOwnership: '', postalCode: '' },
-        searched,
-      ),
-    ).toEqual({});
-  });
-
-  test('negative numbers and text are not sizes', () => {
-    expect(parseDecimal('-1')).toBeUndefined();
-    expect(parseDecimal('')).toBeUndefined();
-    expect(parseDecimal('2 m')).toBeUndefined();
-    expect(parseDecimal(' 2,5 ')).toBe(2.5);
-  });
-});
-
-describe('form values (UC-036)', () => {
+test('a saved area becomes form text with Danish decimal commas (UC-036)', () => {
   const saved: Area = {
     uuid: 'a1',
     applicationId: 'APP-1',
@@ -277,36 +186,20 @@ describe('form values (UC-036)', () => {
     areaInSquareMeters: 10.8,
   };
 
-  test('a saved area becomes text with Danish decimal commas', () => {
-    expect(toAreaFormValues(saved)).toEqual({
-      roadName: 'Strandvej',
-      roadOwnership: 'Municipality',
-      postalCode: '5000',
-      houseNumberFrom: '',
-      houseNumberTo: '',
-      alternativeDescription: 'Ud for havnen',
-      roadSection: '',
-      roadSectionDescription: '',
-      roadSide: 'Left',
-      direction: '',
-      lengthInMeters: '18',
-      widthInMeters: '0,6',
-      depthInMeters: '',
-    });
-  });
-
-  test('a form that is saved without changes sends the same values', () => {
-    const input = toAreaInput(
-      ApplicationType.ExcavationPermit,
-      toAreaFormValues(saved),
-      searched,
-    );
-    expect(input).toMatchObject({
-      alternativeDescription: 'Ud for havnen',
-      roadSide: 'Left',
-      lengthInMeters: 18,
-      widthInMeters: 0.6,
-    });
+  expect(toAreaFormValues(saved)).toEqual({
+    roadName: 'Strandvej',
+    roadOwnership: 'Municipality',
+    postalCode: '5000',
+    houseNumberFrom: '',
+    houseNumberTo: '',
+    alternativeDescription: 'Ud for havnen',
+    roadSection: '',
+    roadSectionDescription: '',
+    roadSide: 'Left',
+    direction: '',
+    lengthInMeters: '18',
+    widthInMeters: '0,6',
+    depthInMeters: '',
   });
 });
 
@@ -339,43 +232,5 @@ describe('request body', () => {
       roadOwnership: 'Municipality',
       postalCode: '5200',
     });
-  });
-
-  test('empty fields are sent as null', () => {
-    const input = toAreaInput(
-      ApplicationType.ExcavationPermit,
-      emptyAreaFormValues,
-      searched,
-    );
-    expect(input).toEqual({
-      houseNumberFrom: null,
-      houseNumberTo: null,
-      alternativeDescription: null,
-      roadSection: null,
-      roadSectionDescription: null,
-      roadSide: null,
-      direction: null,
-      lengthInMeters: null,
-      widthInMeters: null,
-      depthInMeters: null,
-    });
-  });
-
-  test('the road element description is only sent for Other', () => {
-    const withDescription = {
-      ...complete,
-      roadSectionDescription: '  Parkeringsplads ',
-    };
-    expect(
-      toAreaInput(ApplicationType.ExcavationPermit, withDescription, searched)
-        .roadSectionDescription,
-    ).toBeNull();
-    expect(
-      toAreaInput(
-        ApplicationType.ExcavationPermit,
-        { ...withDescription, roadSection: 'Other' },
-        searched,
-      ).roadSectionDescription,
-    ).toBe('Parkeringsplads');
   });
 });

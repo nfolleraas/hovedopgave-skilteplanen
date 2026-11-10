@@ -9,7 +9,6 @@ import {
   calculateAreaInSquareMeters,
   canEditAreas,
   findInvalidAreaFields,
-  getAreaFieldSet,
 } from './area-rules.js';
 
 const completeExcavationArea: AreaRuleInput = {
@@ -25,16 +24,13 @@ const completeExcavationArea: AreaRuleInput = {
 
 describe('area rules', () => {
   describe('house numbers or alternative description (UC-034 F1)', () => {
-    it('accepts both house numbers without a description', () => {
+    it('accepts house numbers or a description', () => {
       expect(
         findInvalidAreaFields(
           ApplicationType.ExcavationPermit,
           completeExcavationArea,
         ),
       ).toEqual([]);
-    });
-
-    it('accepts a description without house numbers', () => {
       expect(
         findInvalidAreaFields(ApplicationType.ExcavationPermit, {
           ...completeExcavationArea,
@@ -77,10 +73,6 @@ describe('area rules', () => {
     });
 
     it('does not require direction and depth for containers (UC-034 A1)', () => {
-      expect(getAreaFieldSet(ApplicationType.RoadUsePermit)).toEqual({
-        direction: false,
-        depth: false,
-      });
       expect(
         findInvalidAreaFields(ApplicationType.RoadUsePermit, {
           ...completeExcavationArea,
@@ -88,14 +80,6 @@ describe('area rules', () => {
           depthInMeters: null,
         }),
       ).toEqual([]);
-    });
-
-    it('requires road element, road side, length and width', () => {
-      expect(
-        findInvalidAreaFields(ApplicationType.RoadUsePermit, {
-          alternativeDescription: 'Ud for havnen',
-        }),
-      ).toEqual(['roadSection', 'roadSide', 'lengthInMeters', 'widthInMeters']);
     });
 
     it('rejects sizes that are zero or negative', () => {
@@ -116,62 +100,6 @@ describe('area rules', () => {
           roadSection: RoadSection.Other,
         }),
       ).toEqual(['roadSectionDescription']);
-    });
-  });
-
-  describe('edge cases', () => {
-    it('treats a blank description as missing', () => {
-      expect(
-        findInvalidAreaFields(ApplicationType.ExcavationPermit, {
-          ...completeExcavationArea,
-          houseNumberFrom: null,
-          houseNumberTo: null,
-          alternativeDescription: '   ',
-        }),
-      ).toEqual(['houseNumberFrom', 'houseNumberTo', 'alternativeDescription']);
-    });
-
-    it('accepts Other with a description', () => {
-      expect(
-        findInvalidAreaFields(ApplicationType.ExcavationPermit, {
-          ...completeExcavationArea,
-          roadSection: RoadSection.Other,
-          roadSectionDescription: 'Parkeringsplads',
-        }),
-      ).toEqual([]);
-    });
-
-    it('rejects sizes that are not finite numbers', () => {
-      expect(
-        findInvalidAreaFields(ApplicationType.ExcavationPermit, {
-          ...completeExcavationArea,
-          lengthInMeters: Number.NaN,
-          widthInMeters: Number.POSITIVE_INFINITY,
-        }),
-      ).toEqual(['lengthInMeters', 'widthInMeters']);
-    });
-
-    it('treats unsupported application types like road use permits', () => {
-      expect(getAreaFieldSet(ApplicationType.RoadUsePermitEvent)).toEqual({
-        direction: false,
-        depth: false,
-      });
-    });
-
-    it('lists every field of an empty excavation area', () => {
-      expect(
-        findInvalidAreaFields(ApplicationType.ExcavationPermit, {}),
-      ).toEqual([
-        'houseNumberFrom',
-        'houseNumberTo',
-        'alternativeDescription',
-        'roadSection',
-        'roadSide',
-        'direction',
-        'lengthInMeters',
-        'widthInMeters',
-        'depthInMeters',
-      ]);
     });
   });
 

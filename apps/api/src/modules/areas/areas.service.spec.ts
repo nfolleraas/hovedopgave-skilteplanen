@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  ConflictException,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, ConflictException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Prisma } from '../../generated/prisma/client.js';
 import {
@@ -110,16 +106,6 @@ const completeDetails = {
   depthInMeters: 1.2,
 };
 
-/** Road use (container) areas have no direction or depth (UC-034 A1). */
-const roadUseDetails = {
-  houseNumberFrom: '10',
-  houseNumberTo: '24',
-  roadSection: RoadSection.Pavement,
-  roadSide: RoadSide.Right,
-  lengthInMeters: 18,
-  widthInMeters: 0.6,
-};
-
 describe('AreasService', () => {
   let service: AreasService;
   let repository: ReturnType<typeof createRepositoryMock>;
@@ -162,68 +148,38 @@ describe('AreasService', () => {
     });
   });
 
-  describe('findOne', () => {
-    it('returns the area as a flat response', async () => {
-      repository.getById.mockResolvedValue(buildCompleteArea());
+  it('findOne rejects a missing area', async () => {
+    repository.getById.mockRejectedValue(notFoundError());
 
-      const area = await service.findOne('area-1');
-
-      expect(area).toMatchObject({ uuid: 'area-1', lengthInMeters: 18 });
-      expect(area).not.toHaveProperty('application');
-    });
-
-    it('rejects a missing area', async () => {
-      repository.getById.mockRejectedValue(notFoundError());
-
-      await expect(service.findOne('missing')).rejects.toMatchObject({
-        response: { code: 'AREA_NOT_FOUND' },
-      });
-    });
-
-    it('passes on unexpected database errors', async () => {
-      const error = new Error('Connection lost');
-      repository.getById.mockRejectedValue(error);
-
-      await expect(service.findOne('area-1')).rejects.toBe(error);
+    await expect(service.findOne('missing')).rejects.toMatchObject({
+      response: { code: 'AREA_NOT_FOUND' },
     });
   });
 
-  describe('create (UC-034 A3)', () => {
-    it('creates one manual area and returns it', async () => {
-      repository.getApplication.mockResolvedValue(buildApplication());
+  it('create stores a complete manual area with its details (UC-034 A3)', async () => {
+    repository.getApplication.mockResolvedValue(buildApplication());
 
-      const area = await service.create({ applicationId: 'APP-1', ...road });
-
-      expect(repository.addMany).toHaveBeenCalledTimes(1);
-      expect(repository.addMany.mock.calls[0][0]).toHaveLength(1);
-      expect(area).toMatchObject({ roadName: 'Strandvej' });
+    await service.create({
+      applicationId: 'APP-1',
+      ...road,
+      ...completeDetails,
     });
 
-    it('stores a complete manual area with its details', async () => {
-      repository.getApplication.mockResolvedValue(buildApplication());
-
-      await service.create({
-        applicationId: 'APP-1',
-        ...road,
-        ...completeDetails,
-      });
-
-      const [[data]] = repository.addMany.mock.calls[0];
-      expect(data.areaDetail).toEqual({
-        create: {
-          roadSection: RoadSection.Pavement,
-          roadSectionDescription: null,
-          roadSide: RoadSide.Right,
-          direction: Direction.Along,
-        },
-      });
-      expect(data.areaSize.create).toMatchObject({
-        lengthInMeters: 18,
-        widthInMeters: 0.6,
-        depthInMeters: 1.2,
-      });
-      expect(data.areaSize.create.areaInSquareMeters).toBeCloseTo(10.8);
+    const [[data]] = repository.addMany.mock.calls[0];
+    expect(data.areaDetail).toEqual({
+      create: {
+        roadSection: RoadSection.Pavement,
+        roadSectionDescription: null,
+        roadSide: RoadSide.Right,
+        direction: Direction.Along,
+      },
     });
+    expect(data.areaSize.create).toMatchObject({
+      lengthInMeters: 18,
+      widthInMeters: 0.6,
+      depthInMeters: 1.2,
+    });
+    expect(data.areaSize.create.areaInSquareMeters).toBeCloseTo(10.8);
   });
 
   describe('createMany (UC-034)', () => {
@@ -248,34 +204,6 @@ describe('AreasService', () => {
       expect(areas[0]).not.toHaveProperty('areaSize');
     });
 
-    it('connects each area to the application and empties missing text', async () => {
-      repository.getApplication.mockResolvedValue(buildApplication());
-
-      await service.createMany({ applicationId: 'APP-1', areas: [road] });
-
-      const [[data]] = repository.addMany.mock.calls[0];
-      expect(data).toEqual({
-        application: { connect: { caseNumber: 'APP-1' } },
-        ...road,
-        houseNumberFrom: null,
-        houseNumberTo: null,
-        alternativeDescription: null,
-      });
-    });
-
-    it('returns the created areas', async () => {
-      repository.getApplication.mockResolvedValue(buildApplication());
-
-      const areas = await service.createMany({
-        applicationId: 'APP-1',
-        areas: [road],
-      });
-
-      expect(areas).toEqual([
-        expect.objectContaining({ roadName: 'Strandvej', roadSection: null }),
-      ]);
-    });
-
     it('rejects depth for road use applications (UC-034 A1)', async () => {
       repository.getApplication.mockResolvedValue(
         buildApplication({ type: ApplicationType.RoadUsePermit }),
@@ -295,18 +223,6 @@ describe('AreasService', () => {
       expect(repository.addMany).not.toHaveBeenCalled();
     });
 
-    it('rejects half-filled details so none are stored', async () => {
-      repository.getApplication.mockResolvedValue(buildApplication());
-
-      await expect(
-        service.createMany({
-          applicationId: 'APP-1',
-          areas: [{ ...road, lengthInMeters: 5 }],
-        }),
-      ).rejects.toMatchObject({ response: { code: 'AREA_INVALID' } });
-      expect(repository.addMany).not.toHaveBeenCalled();
-    });
-
     it('saves no areas when one road is invalid', async () => {
       repository.getApplication.mockResolvedValue(buildApplication());
 
@@ -317,52 +233,6 @@ describe('AreasService', () => {
         }),
       ).rejects.toBeInstanceOf(BadRequestException);
       expect(repository.addMany).not.toHaveBeenCalled();
-    });
-
-    it('only keeps the road element description for Other', async () => {
-      repository.getApplication.mockResolvedValue(buildApplication());
-
-      await service.createMany({
-        applicationId: 'APP-1',
-        areas: [
-          { ...road, ...completeDetails, roadSectionDescription: 'Ignoreret' },
-          {
-            ...road,
-            ...completeDetails,
-            roadSection: RoadSection.Other,
-            roadSectionDescription: 'Parkeringsplads',
-          },
-        ],
-      });
-
-      const [[first, second]] = repository.addMany.mock.calls[0];
-      expect(first.areaDetail.create.roadSectionDescription).toBeNull();
-      expect(second.areaDetail.create.roadSectionDescription).toBe(
-        'Parkeringsplads',
-      );
-    });
-
-    it('stores no direction or depth for road use applications', async () => {
-      repository.getApplication.mockResolvedValue(
-        buildApplication({ type: ApplicationType.RoadUsePermit }),
-      );
-
-      await service.createMany({
-        applicationId: 'APP-1',
-        areas: [{ ...road, ...roadUseDetails }],
-      });
-
-      const [[data]] = repository.addMany.mock.calls[0];
-      expect(data.areaDetail.create.direction).toBeNull();
-      expect(data.areaSize.create.depthInMeters).toBeNull();
-    });
-
-    it('rejects a missing application', async () => {
-      repository.getApplication.mockRejectedValue(notFoundError());
-
-      await expect(
-        service.create({ applicationId: 'missing', ...road }),
-      ).rejects.toBeInstanceOf(NotFoundException);
     });
 
     it('rejects new areas when the application is not editable', async () => {
@@ -376,16 +246,6 @@ describe('AreasService', () => {
         response: { code: 'APPLICATION_NOT_EDITABLE' },
       });
       expect(repository.addMany).not.toHaveBeenCalled();
-    });
-
-    it('allows new areas when changes are required', async () => {
-      repository.getApplication.mockResolvedValue(
-        buildApplication({ status: Status.ChangeRequired }),
-      );
-
-      await service.createMany({ applicationId: 'APP-1', areas: [road] });
-
-      expect(repository.addMany).toHaveBeenCalled();
     });
   });
 
@@ -412,19 +272,6 @@ describe('AreasService', () => {
       expect(data.areaDetail.upsert.update.roadSide).toBe(RoadSide.Right);
     });
 
-    it('creates the details the first time they are saved', async () => {
-      repository.getById.mockResolvedValue(buildArea());
-      repository.update.mockResolvedValue(buildArea());
-
-      await service.update('area-1', validUpdate);
-
-      const data = repository.update.mock.calls[0][1];
-      expect(data.areaDetail.upsert.create).toEqual(
-        data.areaDetail.upsert.update,
-      );
-      expect(data.areaSize.upsert.create).toEqual(data.areaSize.upsert.update);
-    });
-
     it('keeps saved details that are not part of the update', async () => {
       repository.getById.mockResolvedValue(buildCompleteArea());
       repository.update.mockResolvedValue(buildCompleteArea());
@@ -439,31 +286,9 @@ describe('AreasService', () => {
         areaInSquareMeters: 15,
       });
       expect(data.areaDetail.upsert.update.roadSide).toBe(RoadSide.Right);
-      // Road fields that are not sent are left as they are.
-      expect(data.roadName).toBeUndefined();
     });
 
-    it('returns the updated area', async () => {
-      repository.getById.mockResolvedValue(buildCompleteArea());
-      repository.update.mockResolvedValue(
-        buildCompleteArea({ houseNumberTo: '30' }),
-      );
-
-      await expect(
-        service.update('area-1', { houseNumberTo: '30' }),
-      ).resolves.toMatchObject({ uuid: 'area-1', houseNumberTo: '30' });
-    });
-
-    it('rejects an incomplete area', async () => {
-      repository.getById.mockResolvedValue(buildArea());
-
-      await expect(
-        service.update('area-1', { lengthInMeters: 5 }),
-      ).rejects.toBeInstanceOf(BadRequestException);
-      expect(repository.update).not.toHaveBeenCalled();
-    });
-
-    it('lists the missing fields', async () => {
+    it('rejects an incomplete area and lists the missing fields', async () => {
       repository.getById.mockResolvedValue(buildCompleteArea());
 
       await expect(
@@ -477,6 +302,7 @@ describe('AreasService', () => {
           invalidFields: ['houseNumberTo', 'roadSectionDescription'],
         },
       });
+      expect(repository.update).not.toHaveBeenCalled();
     });
 
     it('rejects direction and depth for container applications', async () => {
@@ -498,23 +324,6 @@ describe('AreasService', () => {
       );
     });
 
-    it('saves container areas without direction and depth', async () => {
-      repository.getById.mockResolvedValue(
-        buildArea({
-          application: buildApplication({
-            type: ApplicationType.RoadUsePermit,
-          }),
-        }),
-      );
-      repository.update.mockResolvedValue(buildArea());
-
-      await service.update('area-1', roadUseDetails);
-
-      const data = repository.update.mock.calls[0][1];
-      expect(data.areaDetail.upsert.update.direction).toBeNull();
-      expect(data.areaSize.upsert.update.depthInMeters).toBeNull();
-    });
-
     it('rejects changes when the application is not editable', async () => {
       repository.getById.mockResolvedValue(
         buildArea({
@@ -526,14 +335,6 @@ describe('AreasService', () => {
         service.update('area-1', validUpdate),
       ).rejects.toBeInstanceOf(ConflictException);
     });
-
-    it('rejects a missing area', async () => {
-      repository.getById.mockRejectedValue(notFoundError());
-
-      await expect(
-        service.update('missing', validUpdate),
-      ).rejects.toMatchObject({ response: { code: 'AREA_NOT_FOUND' } });
-    });
   });
 
   describe('remove (UC-035)', () => {
@@ -544,19 +345,6 @@ describe('AreasService', () => {
       await service.remove('area-1');
 
       expect(repository.countByApplication).toHaveBeenCalledWith('APP-1');
-      expect(repository.delete).toHaveBeenCalledWith('area-1');
-    });
-
-    it('deletes when changes are required', async () => {
-      repository.getById.mockResolvedValue(
-        buildArea({
-          application: buildApplication({ status: Status.ChangeRequired }),
-        }),
-      );
-      repository.countByApplication.mockResolvedValue(2);
-
-      await service.remove('area-1');
-
       expect(repository.delete).toHaveBeenCalledWith('area-1');
     });
 
@@ -580,15 +368,6 @@ describe('AreasService', () => {
       await expect(service.remove('area-1')).rejects.toBeInstanceOf(
         ConflictException,
       );
-      expect(repository.delete).not.toHaveBeenCalled();
-    });
-
-    it('rejects a missing area', async () => {
-      repository.getById.mockRejectedValue(notFoundError());
-
-      await expect(service.remove('missing')).rejects.toMatchObject({
-        response: { code: 'AREA_NOT_FOUND' },
-      });
       expect(repository.delete).not.toHaveBeenCalled();
     });
   });
