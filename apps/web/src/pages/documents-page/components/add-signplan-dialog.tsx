@@ -1,13 +1,17 @@
 import CloseIcon from '@mui/icons-material/Close';
 import DirectionsOutlinedIcon from '@mui/icons-material/DirectionsOutlined';
 import {
+  Box,
   Button,
-  Container,
   Dialog,
   DialogContent,
+  DialogContentText,
   DialogTitle,
+  Divider,
   IconButton,
   Link,
+  Stack,
+  Typography,
   useMediaQuery,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
@@ -30,11 +34,15 @@ export default function AddSignplanDialog({
 }: AddSignplanDialogProps) {
   const { t } = useTranslation();
   const theme = useTheme();
+  const descriptionId = useId();
+  const createTitleId = useId();
   const titleId = useId();
+  const uploadTitleId = useId();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
   return (
     <Dialog
+      aria-describedby={descriptionId}
       aria-labelledby={titleId}
       fullScreen={isSmallScreen}
       fullWidth
@@ -52,29 +60,58 @@ export default function AddSignplanDialog({
       >
         <CloseIcon />
       </IconButton>
-      <DialogContent sx={{ display: 'flex' }}>
-        <Container
-          sx={{
-            gap: 2,
-            display: 'flex',
-            alignItems: 'center',
-            flexDirection: 'column',
-          }}
-        >
-          <DocumentDropZone
-            applicationId={demoApplicationId}
-            documentType="SignPlan"
-            onDocumentsUploaded={onDocumentsUploaded}
-          />
+      <DialogContent>
+        <Stack spacing={3}>
+          <DialogContentText id={descriptionId}>
+            {t('documents.addSignplanDescription')}
+          </DialogContentText>
 
-          <Button
-            component={Link}
-            startIcon={<DirectionsOutlinedIcon />}
-            variant="contained"
-          >
-            {t('signPlan.createSignPlan')}
-          </Button>
-        </Container>
+          <Box aria-labelledby={uploadTitleId} component="section">
+            <Stack spacing={2}>
+              <Box>
+                <Typography component="h3" id={uploadTitleId} variant="h6">
+                  {t('documents.uploadExistingSignplanTitle')}
+                </Typography>
+                <Typography color="text.secondary" variant="body2">
+                  {t('documents.uploadExistingSignplanDescription')}
+                </Typography>
+              </Box>
+
+              <DocumentDropZone
+                applicationId={demoApplicationId}
+                documentType="SignPlan"
+                onDocumentsUploaded={onDocumentsUploaded}
+              />
+            </Stack>
+          </Box>
+
+          <Divider />
+
+          <Box aria-labelledby={createTitleId} component="section">
+            <Stack spacing={2}>
+              <Box>
+                <Typography component="h3" id={createTitleId} variant="h6">
+                  {t('documents.createSignplanTitle')}
+                </Typography>
+                <Typography color="text.secondary" variant="body2">
+                  {t('documents.createSignplanDescription')}
+                </Typography>
+              </Box>
+
+              <Button
+                component={Link}
+                startIcon={<DirectionsOutlinedIcon />}
+                sx={{
+                  alignSelf: { xs: 'stretch', sm: 'flex-start' },
+                  width: { xs: '100%', sm: 'auto' },
+                }}
+                variant="contained"
+              >
+                {t('signPlan.createSignPlan')}
+              </Button>
+            </Stack>
+          </Box>
+        </Stack>
       </DialogContent>
     </Dialog>
   );

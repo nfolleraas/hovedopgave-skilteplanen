@@ -44,7 +44,12 @@
   },
   "documents": {
     "addSignplan": "Add signplan",
+    "addSignplanDescription": "Choose whether to upload an existing sign plan or create a new one.",
     "closeAddSignplan": "Close add signplan",
+    "uploadExistingSignplanTitle": "Upload an existing sign plan",
+    "uploadExistingSignplanDescription": "If you already have a sign plan, you can upload it here from your device.",
+    "createSignplanTitle": "Create a new sign plan",
+    "createSignplanDescription": "If you do not have a sign plan yet, you can create one here.",
     "signPlanDropPrompt": "Drag and drop a sign plan here, or choose a file",
     "dropPrompt": "Drag and drop documents here, or choose files",
     "uploadingSignPlan": "Uploading sign plan...",

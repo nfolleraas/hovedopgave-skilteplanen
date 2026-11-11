@@ -44,7 +44,12 @@
   },
   "documents": {
     "addSignplan": "Tilføj skilteplan",
+    "addSignplanDescription": "Vælg, om du vil uploade en eksisterende skilteplan eller oprette en ny.",
     "closeAddSignplan": "Luk tilføj skilteplan",
+    "uploadExistingSignplanTitle": "Upload en eksisterende skilteplan",
+    "uploadExistingSignplanDescription": "Har du allerede en skilteplan, kan du uploade den her fra din enhed.",
+    "createSignplanTitle": "Opret en ny skilteplan",
+    "createSignplanDescription": "Har du ikke en skilteplan endnu, kan du oprette en her.",
     "signPlanDropPrompt": "Træk og slip en skilteplan her, eller vælg en fil",
     "dropPrompt": "Træk og slip dokumenter her, eller vælg filer",
     "uploadingSignPlan": "Uploader skilteplan...",
