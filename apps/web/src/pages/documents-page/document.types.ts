@@ -8,9 +8,3 @@ export type Document = {
   date: string;
   applicationId: string;
 };
-
-export type CreateDocument = {
-  name: string;
-  documentType: DocumentType;
-  applicationId: string;
-};
