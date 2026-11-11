@@ -1,3 +1,4 @@
+import DirectionsOutlinedIcon from '@mui/icons-material/DirectionsOutlined';
 import {
   Alert,
   Box,
@@ -109,12 +110,12 @@ export default function DocumentsPage() {
                 alignItems: 'center',
                 display: 'flex',
                 flex: 1,
-                minWidth: 0,
               }}
             >
               <Button
                 fullWidth
                 onClick={() => setIsAddSignplanDialogOpen(true)}
+                startIcon={<DirectionsOutlinedIcon />}
                 variant="outlined"
               >
                 {t('documents.addSignplan')}

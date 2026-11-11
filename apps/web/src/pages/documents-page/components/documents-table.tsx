@@ -1,4 +1,4 @@
-import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
+import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import {
   Box,
   Button,
@@ -124,7 +124,7 @@ export default function DocumentsTable({
                 aria-label={t('documents.delete', { name: document.name })}
                 color="error"
                 onClick={() => onDelete(document)}
-                startIcon={<DeleteForeverIcon />}
+                startIcon={<DeleteOutlinedIcon />}
                 sx={{ alignSelf: 'flex-end' }}
                 variant="text"
               >
@@ -196,7 +196,7 @@ export default function DocumentsTable({
                     })}
                     color="error"
                     onClick={() => onDelete(document)}
-                    startIcon={<DeleteForeverIcon />}
+                    startIcon={<DeleteOutlinedIcon />}
                     variant="text"
                   >
                     {t('documents.deleteAction')}
