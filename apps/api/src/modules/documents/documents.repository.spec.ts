@@ -11,7 +11,6 @@ describe('DocumentsRepository', () => {
       create: ReturnType<typeof vi.fn>;
       findMany: ReturnType<typeof vi.fn>;
       findUniqueOrThrow: ReturnType<typeof vi.fn>;
-      update: ReturnType<typeof vi.fn>;
       delete: ReturnType<typeof vi.fn>;
     };
   };
@@ -22,7 +21,6 @@ describe('DocumentsRepository', () => {
         create: vi.fn(),
         findMany: vi.fn(),
         findUniqueOrThrow: vi.fn(),
-        update: vi.fn(),
         delete: vi.fn(),
       },
     };
@@ -57,7 +55,9 @@ describe('DocumentsRepository', () => {
     prisma.document.findMany.mockResolvedValue(result);
 
     await expect(repository.getAll()).resolves.toBe(result);
-    expect(prisma.document.findMany).toHaveBeenCalledWith();
+    expect(prisma.document.findMany).toHaveBeenCalledWith({
+      include: { signPlan: true },
+    });
   });
 
   it('gets a document by uuid', async () => {
@@ -67,18 +67,6 @@ describe('DocumentsRepository', () => {
     await expect(repository.get('document-1')).resolves.toBe(result);
     expect(prisma.document.findUniqueOrThrow).toHaveBeenCalledWith({
       where: { uuid: 'document-1' },
-    });
-  });
-
-  it('updates a document by uuid', async () => {
-    const data = { name: 'Updated plan' };
-    const result = { uuid: 'document-1' };
-    prisma.document.update.mockResolvedValue(result);
-
-    await expect(repository.update('document-1', data)).resolves.toBe(result);
-    expect(prisma.document.update).toHaveBeenCalledWith({
-      where: { uuid: 'document-1' },
-      data,
     });
   });
 
