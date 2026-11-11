@@ -70,9 +70,11 @@ export function useDocumentUpload({
 
   return {
     error,
+    setError,
     handleFileSelected,
     isUploading,
     successMessage,
+    setSuccessMessage,
     uploadFiles,
   };
 }

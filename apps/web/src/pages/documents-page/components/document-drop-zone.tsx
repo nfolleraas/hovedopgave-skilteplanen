@@ -37,9 +37,11 @@ export default function DocumentDropZone({
     : t('documents.dropPrompt');
   const {
     error,
+    setError,
     handleFileSelected,
     isUploading,
     successMessage,
+    setSuccessMessage,
     uploadFiles,
   } = useDocumentUpload({
     applicationId,
@@ -63,9 +65,17 @@ export default function DocumentDropZone({
 
   return (
     <Stack spacing={2} sx={{ flex: 1, minWidth: 0, width: '100%' }}>
-      {error && <Alert severity="error">{error}</Alert>}
+      {error && (
+        <Alert onClose={() => setError(null)} severity="error">
+          {error}
+        </Alert>
+      )}
       {successMessage && (
-        <Alert role="status" severity="success">
+        <Alert
+          onClose={() => setSuccessMessage(null)}
+          role="status"
+          severity="success"
+        >
           {successMessage}
         </Alert>
       )}
@@ -111,7 +121,9 @@ export default function DocumentDropZone({
         startIcon={
           isUploading ? (
             <CircularProgress aria-hidden="true" size={20} />
-          ) : <CloudUploadOutlinedIcon />
+          ) : (
+            <CloudUploadOutlinedIcon />
+          )
         }
         sx={{ display: { xs: 'inline-flex', md: 'none' } }}
         type="button"
