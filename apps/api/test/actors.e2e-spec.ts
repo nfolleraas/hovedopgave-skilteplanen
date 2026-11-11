@@ -16,6 +16,7 @@ import { ActorsRepository } from '../src/modules/actors/actors.repository.js';
 import { ActorsService } from '../src/modules/actors/actors.service.js';
 import type { CreateActorDto } from '../src/modules/actors/dto/create-actor.dto.js';
 import { ActorMapper } from '../src/modules/actors/mappers/actor.mapper.js';
+import { ApplicationsRepository } from '../src/modules/applications/applications.repository.js';
 import { PrismaService } from '../src/prisma.service.js';
 
 describe('ActorsService database write', () => {
@@ -26,7 +27,8 @@ describe('ActorsService database write', () => {
   const prisma = new PrismaService();
   const repository = new ActorsRepository(prisma);
   const mapper = new ActorMapper();
-  const service = new ActorsService(prisma, repository, mapper);
+  const applicationsRepository = new ApplicationsRepository(prisma);
+  const service = new ActorsService(applicationsRepository, repository, mapper);
   const dto: CreateActorDto = {
     applicationCaseNumber: caseNumber,
     role: ActorRole.Contractor,
@@ -198,7 +200,7 @@ describe('ActorsService database write', () => {
       }),
     };
     const duplicateIdService = new ActorsService(
-      prisma,
+      applicationsRepository,
       repository,
       duplicateIdMapper,
     );

@@ -42,28 +42,14 @@
     "addressOpen": "Vis adresseforslag",
     "address": "Adresse",
     "addressPlaceholder": "Vejnavn, nr., postnr. og by",
-    "createTitle": "Opret øvrig aktør",
-    "role": "Rolle",
-    "name": "Navn",
-    "phoneNumber": "Telefonnummer",
-    "email": "E-mail",
-    "cvrNumber": "CVR-nummer",
-    "department": "Afdeling",
-    "contactPerson": "Kontaktperson",
-    "contactPersonName": "Kontaktpersonens navn",
-    "contactPersonPhoneNumber": "Kontaktpersonens telefonnummer",
-    "contactPersonEmail": "Kontaktpersonens e-mail",
-    "contactAvailability": "Kontaktpersonens tilgængelighed",
-    "addressSearch": "Søg efter adresse",
-    "cancel": "Annuller",
-    "saveDraft": "Gem aktør",
     "roles": {
       "Supplier": "Leverandør",
       "Contractor": "Entreprenør",
       "NetworkOperator": "Ledningsejer",
       "ProjectCoordinator": "Projektkoordinator",
       "Private": "Privat"
-    }
+    },
+    "role": "Rolle"
   },
   "home": {
     "title": "Ansøgningsplatformen",

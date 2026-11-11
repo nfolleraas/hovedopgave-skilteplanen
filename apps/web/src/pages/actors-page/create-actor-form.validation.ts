@@ -13,7 +13,7 @@ export function validateCreateActor(
   const required: Exclude<keyof CreateActorValues, 'address' | 'addressId'>[] =
     ['role', 'name', 'phoneNumber', 'email'];
   if (values.role && values.role !== ActorRole.Private) {
-    required.push('cvrNumber', 'department', 'contactPerson');
+    required.push('cvrNumber', 'department');
   }
   for (const field of required) {
     if (!values[field].trim()) errors[field] = 'Udfyld feltet.';
@@ -27,11 +27,9 @@ export function validateCreateActor(
   ) {
     errors.address = 'Vælg en adresse fra søgeresultaterne.';
   }
-  const digitFields: ('phoneNumber' | 'cvrNumber' | 'department')[] = [
-    'phoneNumber',
-  ];
+  const digitFields: ('phoneNumber' | 'cvrNumber')[] = ['phoneNumber'];
   if (values.role && values.role !== ActorRole.Private)
-    digitFields.push('cvrNumber', 'department');
+    digitFields.push('cvrNumber');
   for (const field of digitFields) {
     if (values[field].trim() && !/^\d{8}$/.test(values[field].trim())) {
       errors[field] = 'Angiv præcis 8 cifre.';
@@ -72,7 +70,6 @@ export function toActorSubmission(values: CreateActorValues): ActorSubmission {
       ? {
           cvrNumber: values.cvrNumber.trim(),
           department: values.department.trim(),
-          contactPerson: values.contactPerson.trim(),
         }
       : {}),
   };

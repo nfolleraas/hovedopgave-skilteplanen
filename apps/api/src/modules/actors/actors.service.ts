@@ -8,7 +8,7 @@ import {
   ApplicationType,
   Availability,
 } from '../../generated/prisma/enums.js';
-import { PrismaService } from '../../prisma.service.js';
+import { ApplicationsRepository } from '../applications/applications.repository.js';
 import { ActorsRepository } from './actors.repository.js';
 import { CreateActorDto } from './dto/create-actor.dto.js';
 import { UpdateActorDto } from './dto/update-actor.dto.js';
@@ -17,30 +17,33 @@ import { ActorMapper } from './mappers/actor.mapper.js';
 @Injectable()
 export class ActorsService {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly applicationsRepository: ApplicationsRepository,
     private readonly actorsRepository: ActorsRepository,
     private readonly actorMapper: ActorMapper,
   ) {}
 
   async create(createActorDto: CreateActorDto) {
-    const application = await this.prisma.application.findUnique({
-      where: { caseNumber: createActorDto.applicationCaseNumber },
-      select: { type: true },
-    });
+    const application = await this.applicationsRepository.get(
+      createActorDto.applicationCaseNumber,
+    );
     if (!application) {
       throw new NotFoundException('Application not found');
     }
 
     let contactAvailability: Availability = Availability.Day;
-    if (createActorDto.role !== ActorRole.Private) {
-      if (!createActorDto.contactPerson) {
-        throw new BadRequestException('Contact person is required');
+    if (createActorDto.role === ActorRole.Private) {
+      if (createActorDto.contactPerson) {
+        throw new BadRequestException(
+          'Private actors cannot have contact persons',
+        );
       }
-      const requestedAvailability = createActorDto.contactPerson.availability;
-      if (requestedAvailability) {
+    } else if (createActorDto.contactPerson) {
+      if (application.type === ApplicationType.ExcavationPermit) {
+        const requestedAvailability = createActorDto.contactPerson.availability;
+        if (!requestedAvailability) {
+          throw new BadRequestException('Contact availability is required');
+        }
         contactAvailability = requestedAvailability;
-      } else if (application.type === ApplicationType.ExcavationPermit) {
-        throw new BadRequestException('Contact availability is required');
       }
     }
 
@@ -49,11 +52,11 @@ export class ActorsService {
     );
   }
 
-  getAll() {
+  findAll() {
     return this.actorsRepository.getAll();
   }
 
-  async get(uuid: string) {
+  async findOne(uuid: string) {
     const actor = await this.actorsRepository.get(uuid);
     if (!actor) {
       throw new NotFoundException('Actor not found');
@@ -61,19 +64,53 @@ export class ActorsService {
     return actor;
   }
 
-  findAll() {
-    return this.getAll();
+  async update(uuid: string, updateActorDto: UpdateActorDto) {
+    if ('role' in updateActorDto) {
+      throw new BadRequestException(
+        'Actor role can only be set during creation',
+      );
+    }
+    let dto = updateActorDto;
+    if (dto.contactPerson !== undefined) {
+      const actor = await this.findOne(uuid);
+      if (actor.role === ActorRole.Private) {
+        throw new BadRequestException(
+          'Private actors cannot have contact persons',
+        );
+      }
+
+      const contactPerson = actor.contactPersons[0];
+      if (!contactPerson) {
+        throw new NotFoundException('Contact person not found');
+      }
+      const application = await this.applicationsRepository.get(
+        contactPerson.applicationId,
+      );
+      if (!application) {
+        throw new NotFoundException('Application not found');
+      }
+      if (application.type !== ApplicationType.ExcavationPermit) {
+        dto = {
+          ...dto,
+          contactPerson: {
+            ...dto.contactPerson,
+            availability: Availability.Day,
+          },
+        };
+      }
+    }
+
+    return this.actorsRepository.update(
+      uuid,
+      this.actorMapper.toUpdateInput(uuid, dto),
+    );
   }
 
-  findOne(uuid: string) {
-    return this.get(uuid);
-  }
-
-  update(id: number, _updateActorDto: UpdateActorDto) {
-    return `This action updates a #${id} actor`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} actor`;
+  async delete(uuid: string) {
+    const actor = await this.actorsRepository.delete(uuid);
+    if (!actor) {
+      throw new NotFoundException('Actor not found');
+    }
+    return actor;
   }
 }

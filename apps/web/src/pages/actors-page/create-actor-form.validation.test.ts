@@ -20,7 +20,6 @@ const privateActor: CreateActorValues = {
   addressId: 'selected-address-id',
   cvrNumber: '',
   department: '',
-  contactPerson: '',
 };
 
 describe('create actor form', () => {
@@ -29,7 +28,6 @@ describe('create actor form', () => {
       ...privateActor,
       cvrNumber: '12345678',
       department: '87654321',
-      contactPerson: 'John',
     };
     assert.deepEqual(validateCreateActor(values), {});
     assert.deepEqual(toActorSubmission(values), {
@@ -83,14 +81,8 @@ describe('create actor form', () => {
       phoneNumber: '1234567',
       cvrNumber: '123456789',
       department: 'abcdefgh',
-      contactPerson: ' ',
     });
-    for (const field of [
-      'phoneNumber',
-      'cvrNumber',
-      'department',
-      'contactPerson',
-    ] as const) {
+    for (const field of ['phoneNumber', 'cvrNumber'] as const) {
       assert.ok(errors[field]);
     }
   });
@@ -101,11 +93,37 @@ describe('create actor form', () => {
       role: 'Supplier',
       cvrNumber: '00123456',
       department: '00001234',
-      contactPerson: ' John Doe ',
     };
     assert.deepEqual(validateCreateActor(values), {});
     assert.equal(toActorSubmission(values).department, '00001234');
-    assert.equal(toActorSubmission(values).contactPerson, 'John Doe');
+    assert.equal(
+      Object.hasOwn(toActorSubmission(values), 'contactPerson'),
+      false,
+    );
     assert.ok(validateCreateActor({ ...values, email: 'invalid' }).email);
+  });
+
+  it('saves a business actor without contact details', () => {
+    const values: CreateActorValues = {
+      ...privateActor,
+      role: 'Contractor',
+      cvrNumber: '12345678',
+      department: 'Anlæg',
+    };
+    assert.deepEqual(validateCreateActor(values), {});
+    assert.deepEqual(toActorSubmission(values), {
+      role: 'Contractor',
+      name: 'Jane Doe',
+      phoneNumber: '01234567',
+      email: 'jane@example.com',
+      address: {
+        street: 'Testvej',
+        houseNumber: '1',
+        postalCode: '5000',
+        city: 'Odense',
+      },
+      cvrNumber: '12345678',
+      department: 'Anlæg',
+    });
   });
 });

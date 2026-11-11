@@ -84,7 +84,6 @@ export type CreateActorValues = {
   addressId: string | null;
   cvrNumber: string;
   department: string;
-  contactPerson: string;
 };
 
 export type ActorSubmission = {
@@ -95,7 +94,7 @@ export type ActorSubmission = {
   address: VerifiedAddress;
   cvrNumber?: string;
   department?: string;
-  contactPerson?: string;
+  contactPerson?: ContactPersonDraft;
 };
 
 export type CreateActorErrors = Partial<
@@ -103,13 +102,7 @@ export type CreateActorErrors = Partial<
 >;
 
 export type ActorFormProps = {
-  applicationType?: ApplicationType;
-  isSubmitting?: boolean;
-  onCancel: () => void;
-  onSubmit: (draft: ActorDraft) => void | Promise<void>;
-};
-
-export type CreateActorFormProps = {
+  initialActor?: SavedActor;
   onCancel: () => void;
   onSave: (actor: ActorSubmission) => void | Promise<void>;
 };
@@ -117,5 +110,7 @@ export type CreateActorFormProps = {
 export type ActorAddressFieldProps = {
   disabled?: boolean;
   error?: string;
+  initialAddress?: VerifiedAddress;
+  initialAddressId?: string;
   onChange: (address: VerifiedAddress | null, id: string | null) => void;
 };

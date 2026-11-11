@@ -7,6 +7,8 @@ import type { CreateAddressDto } from '../../address/dto/create-address.dto.js';
 import type { CreateContactPersonDto } from '../../contact-person/dto/create-contact-person.dto.js';
 import type { CreateActorDto } from '../dto/create-actor.dto.js';
 
+import type { UpdateActorDto } from '../dto/update-actor.dto.js';
+
 export class ActorMapper {
   toCreateInput(
     dto: CreateActorDto,
@@ -37,6 +39,54 @@ export class ActorMapper {
       address: {
         create: this.toAddressCreateInput(dto.address),
       },
+    };
+  }
+
+  toUpdateInput(uuid: string, dto: UpdateActorDto): Prisma.ActorUpdateInput {
+    return {
+      ...(dto.cvrNumber !== undefined ? { cvrNumber: dto.cvrNumber } : {}),
+      ...(dto.department !== undefined
+        ? { department: dto.department.trim() }
+        : {}),
+      ...(dto.name !== undefined ? { name: dto.name.trim() } : {}),
+      ...(dto.phoneNumber !== undefined
+        ? { phoneNumber: dto.phoneNumber }
+        : {}),
+      ...(dto.email !== undefined ? { email: dto.email.trim() } : {}),
+      ...(dto.contactPerson !== undefined
+        ? {
+            contactPersons: {
+              update: {
+                where: { actorId: uuid },
+                data: {
+                  ...(dto.contactPerson.name !== undefined
+                    ? { name: dto.contactPerson.name.trim() }
+                    : {}),
+                  ...(dto.contactPerson.email !== undefined
+                    ? { email: dto.contactPerson.email.trim() }
+                    : {}),
+                  ...(dto.contactPerson.phoneNumber !== undefined
+                    ? {
+                        phoneNumber: dto.contactPerson.phoneNumber,
+                      }
+                    : {}),
+                  ...(dto.contactPerson.availability !== undefined
+                    ? {
+                        availability: dto.contactPerson.availability,
+                      }
+                    : {}),
+                },
+              },
+            },
+          }
+        : {}),
+      ...(dto.address
+        ? {
+            address: {
+              update: this.toAddressCreateInput(dto.address),
+            },
+          }
+        : {}),
     };
   }
 

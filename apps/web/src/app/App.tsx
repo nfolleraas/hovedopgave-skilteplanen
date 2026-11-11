@@ -3,7 +3,11 @@ import { useTranslation } from 'react-i18next';
 import { Route, Routes } from 'react-router';
 import Footer from '../components/layout/footer/footer.js';
 import Navbar from '../components/layout/navbar/navbar.js';
-import { pages } from './router.js';
+import ActorsLayout from '../pages/actors-page/actors-layout.js';
+import ActorsPage from '../pages/actors-page/index.js';
+import CreateActorPage from '../pages/create-actor-page/index.js';
+import UpdateActorPage from '../pages/update-actor-page/index.js';
+import { pages, routes } from './router.js';
 
 function NotFoundPage() {
   const { t } = useTranslation();
@@ -24,6 +28,13 @@ export default function App() {
     <>
       <Navbar />
       <Routes>
+        {[routes.application, routes.selectedApplication].map((path) => (
+          <Route element={<ActorsLayout />} key={path} path={path}>
+            <Route element={<ActorsPage />} index />
+            <Route element={<CreateActorPage />} path="actors/create" />
+            <Route element={<UpdateActorPage />} path="actors/:uuid/edit" />
+          </Route>
+        ))}
         {Object.entries(pages).map(([path, Page]) => (
           <Route element={<Page />} key={path} path={path} />
         ))}

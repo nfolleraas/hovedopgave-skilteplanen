@@ -11,12 +11,22 @@ import type { ActorAddressFieldProps } from './actor.types.js';
 export function ActorAddressField({
   disabled,
   error,
+  initialAddress,
+  initialAddressId,
   onChange,
 }: ActorAddressFieldProps) {
   const { t } = useTranslation();
-  const [query, setQuery] = useState('');
+  const initialAddressOption = initialAddress
+    ? {
+        id: initialAddressId ?? 'saved-address',
+        title: `${initialAddress.street} ${initialAddress.houseNumber}, ${initialAddress.postalCode} ${initialAddress.city}`,
+      }
+    : null;
+  const [query, setQuery] = useState(initialAddressOption?.title ?? '');
   const [options, setOptions] = useState<AddressSuggestion[]>([]);
-  const [selected, setSelected] = useState<AddressSuggestion | null>(null);
+  const [selected, setSelected] = useState<AddressSuggestion | null>(
+    initialAddressOption,
+  );
   const [searching, setSearching] = useState(false);
   const [resolving, setResolving] = useState(false);
   const [failed, setFailed] = useState(false);

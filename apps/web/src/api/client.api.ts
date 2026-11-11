@@ -21,6 +21,10 @@ async function request<T>(
 }
 
 export const apiClient = {
+  delete: <T>(path: string): Promise<T> =>
+    request<T>(path, {
+      method: 'DELETE',
+    }),
   get: <T>(path: string, signal?: AbortSignal): Promise<T> =>
     request<T>(path, {
       method: 'GET',
@@ -38,5 +42,10 @@ export const apiClient = {
       headers: {
         'Content-Type': undefined,
       },
+    }),
+  patch: <T>(path: string, body: unknown) =>
+    request<T>(path, {
+      method: 'PATCH',
+      data: body,
     }),
 };

@@ -1,3 +1,4 @@
+import { ValidationPipe } from '@nestjs/common';
 import { ActorRole } from '../../../generated/prisma/enums.js';
 import { CreateActorDto } from './create-actor.dto.js';
 
@@ -27,6 +28,27 @@ describe('CreateActorDto', () => {
     const dto = Object.assign(new CreateActorDto(), validActor);
 
     expect(dto).toEqual(validActor);
+  });
+
+  it('accepts the frontend payload through the global validation settings', async () => {
+    const pipe = new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    });
+    const metadata = { type: 'body' as const, metatype: CreateActorDto };
+    await expect(pipe.transform(validActor, metadata)).resolves.toMatchObject(
+      validActor,
+    );
+    await expect(
+      pipe.transform(
+        {
+          ...validActor,
+          contactPerson: { ...validActor.contactPerson, email: 'invalid' },
+        },
+        metadata,
+      ),
+    ).rejects.toThrow();
   });
 
   it('supports private actors without business fields or contact person', () => {
