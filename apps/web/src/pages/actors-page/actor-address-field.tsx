@@ -65,6 +65,10 @@ export function ActorAddressField({
       changeQuery('');
       return;
     }
+    if (option.searchText) {
+      changeQuery(`${option.searchText} `);
+      return;
+    }
     searchController.current?.abort();
     lookupController.current?.abort();
     const controller = new AbortController();

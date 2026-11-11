@@ -1,6 +1,7 @@
 export interface AddressSuggestion {
   id: string;
   title: string;
+  searchText?: string;
 }
 
 export interface VerifiedAddress {
@@ -23,13 +24,23 @@ export function parseAddressSuggestions(data: unknown): AddressSuggestion[] {
   }
 
   return data.fund.flatMap((item: unknown) => {
-    if (
-      isObject(item) &&
-      item.type === 'husnummer' &&
-      typeof item.id === 'string' &&
-      typeof item.titel === 'string'
-    ) {
+    if (!isObject(item) || typeof item.titel !== 'string') return [];
+    if (item.type === 'husnummer' && typeof item.id === 'string') {
       return [{ id: item.id, title: item.titel }];
+    }
+    if (
+      item.type === 'vejnavn' ||
+      item.type === 'navngivenvejpostnummer' ||
+      item.type === 'navngivenvejpostnummerdel' ||
+      item.type === 'vejnavnhusnummer'
+    ) {
+      return [
+        {
+          id: `${item.type}:${item.titel}`,
+          title: item.titel,
+          searchText: item.titel,
+        },
+      ];
     }
     return [];
   });

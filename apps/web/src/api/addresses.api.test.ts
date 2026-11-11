@@ -44,7 +44,7 @@ describe('Adressevælger response mapping', () => {
       globalThis.fetch = originalFetch;
     }
   });
-  it('only offers complete husnummer hits', () => {
+  it('offers street suggestions for refining a search alongside complete addresses', () => {
     assert.deepEqual(
       parseAddressSuggestions({
         status: 'ok',
@@ -59,10 +59,54 @@ describe('Adressevælger response mapping', () => {
       }),
       [
         {
+          id: 'vejnavn:Sankt Kjelds Plads',
+          title: 'Sankt Kjelds Plads',
+          searchText: 'Sankt Kjelds Plads',
+        },
+        {
           id: 'address-id',
           title: 'Sankt Kjelds Plads 11, 2100 København Ø',
         },
       ],
+    );
+  });
+
+  it('offers partial matches without address ids as search refinements', () => {
+    const partialTypes = [
+      'vejnavn',
+      'navngivenvejpostnummer',
+      'navngivenvejpostnummerdel',
+      'vejnavnhusnummer',
+    ];
+    for (const type of partialTypes) {
+      assert.deepEqual(
+        parseAddressSuggestions({
+          status: 'ok',
+          fund: [{ type, titel: 'Testvej 5000 Odense' }],
+        }),
+        [
+          {
+            id: `${type}:Testvej 5000 Odense`,
+            title: 'Testvej 5000 Odense',
+            searchText: 'Testvej 5000 Odense',
+          },
+        ],
+      );
+    }
+  });
+
+  it('ignores malformed hits and requires a real id for complete addresses', () => {
+    assert.deepEqual(
+      parseAddressSuggestions({
+        status: 'ok',
+        fund: [
+          null,
+          {},
+          { type: 'unknown', titel: 'Unknown' },
+          { type: 'husnummer', titel: 'Testvej 1' },
+        ],
+      }),
+      [],
     );
   });
 

@@ -8,7 +8,7 @@ export default defineConfig(({ mode }) => {
     mode,
     fileURLToPath(new URL('../../.devcontainer', import.meta.url)),
     'VITE_DATAFORSYNINGEN_',
-  ).VITE_DATAFORSYNINGEN_TOKEN;
+  ).VITE_DATAFORSYNINGEN_TOKEN?.trim();
   return {
     // Only the API URL is public; address credentials stay in the Vite process.
     envPrefix: 'VITE_API_',
@@ -30,7 +30,7 @@ export default defineConfig(({ mode }) => {
           configure: (proxy) => {
             proxy.on('proxyReq', (request) => {
               const url = new URL(request.path, 'https://adressevaelger.dk');
-              url.searchParams.set('token', token);
+              if (token) url.searchParams.set('token', token);
               request.path = `${url.pathname}${url.search}`;
             });
           },
