@@ -1,9 +1,13 @@
 import CloseIcon from '@mui/icons-material/Close';
+import DirectionsOutlinedIcon from '@mui/icons-material/DirectionsOutlined';
 import {
+  Button,
+  Container,
   Dialog,
   DialogContent,
   DialogTitle,
   IconButton,
+  Link,
   useMediaQuery,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
@@ -49,11 +53,28 @@ export default function AddSignplanDialog({
         <CloseIcon />
       </IconButton>
       <DialogContent sx={{ display: 'flex' }}>
-        <DocumentDropZone
-          applicationId={demoApplicationId}
-          documentType="SignPlan"
-          onDocumentsUploaded={onDocumentsUploaded}
-        />
+        <Container
+          sx={{
+            gap: 2,
+            display: 'flex',
+            alignItems: 'center',
+            flexDirection: 'column',
+          }}
+        >
+          <DocumentDropZone
+            applicationId={demoApplicationId}
+            documentType="SignPlan"
+            onDocumentsUploaded={onDocumentsUploaded}
+          />
+
+          <Button
+            component={Link}
+            startIcon={<DirectionsOutlinedIcon />}
+            variant="contained"
+          >
+            {t('signPlan.createSignPlan')}
+          </Button>
+        </Container>
       </DialogContent>
     </Dialog>
   );
