@@ -7,21 +7,23 @@ import {
   Stack,
   TextField,
 } from '@mui/material';
-import { type FormEvent, useState } from 'react';
+import { type FormEvent, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { VerifiedAddress } from '../../api/addresses.api.js';
+import { lookupCompany } from '../../api/companies.api.js';
 import {
   type ActorFormProps,
   ActorRole,
   type CreateActorErrors,
   type CreateActorValues,
 } from './actor.types.js';
-import { ActorAddressField } from './actor-address-field.js';
 import { actorRoles } from './actor-form.validation.js';
+import { AddressSearch } from './address-search.js';
 import {
   toActorSubmission,
   validateCreateActor,
 } from './create-actor-form.validation.js';
+import { CvrLookup } from './cvr-lookup.js';
 
 export function ActorForm({ initialActor, onCancel, onSave }: ActorFormProps) {
   const { t } = useTranslation();
@@ -58,13 +60,87 @@ export function ActorForm({ initialActor, onCancel, onSave }: ActorFormProps) {
   const [errors, setErrors] = useState<CreateActorErrors>({});
   const [saving, setSaving] = useState(false);
   const [saveFailed, setSaveFailed] = useState(false);
+  const [lookingUpCompany, setLookingUpCompany] = useState(false);
+  const [companyError, setCompanyError] = useState<string>();
+  const [companyNotice, setCompanyNotice] = useState<string>();
+  const [addressVersion, setAddressVersion] = useState(0);
+  const companyController = useRef<AbortController | null>(null);
+  const roleInput = useRef<{ focus: () => void } | null>(null);
+
+  useEffect(() => () => companyController.current?.abort(), []);
 
   function change(
     field: Exclude<keyof CreateActorValues, 'address' | 'addressId'>,
     value: string,
   ) {
+    if (field === 'cvrNumber' || field === 'role') {
+      companyController.current?.abort();
+      setLookingUpCompany(false);
+      setCompanyError(undefined);
+      setCompanyNotice(undefined);
+    }
     setValues((current) => ({ ...current, [field]: value }));
     setErrors((current) => ({ ...current, [field]: undefined }));
+  }
+
+  async function confirmCvr() {
+    if (saving || lookingUpCompany || values.role === ActorRole.Private) return;
+    const cvrNumber = values.cvrNumber.trim();
+    if (!/^\d{8}$/.test(cvrNumber)) {
+      setErrors((current) => ({
+        ...current,
+        cvrNumber: 'Angiv præcis 8 cifre.',
+      }));
+      return;
+    }
+    companyController.current?.abort();
+    const controller = new AbortController();
+    companyController.current = controller;
+    setLookingUpCompany(true);
+    setCompanyError(undefined);
+    setCompanyNotice(undefined);
+    try {
+      const company = await lookupCompany(cvrNumber, controller.signal);
+      if (controller.signal.aborted) return;
+      setValues((current) => ({
+        ...current,
+        cvrNumber,
+        name: company.name,
+        phoneNumber: company.phoneNumber,
+        email: company.email,
+        address: company.address,
+        addressId: company.addressId,
+      }));
+      setAddressVersion((current) => current + 1);
+      setErrors((current) => ({
+        ...current,
+        cvrNumber: undefined,
+        name: undefined,
+        phoneNumber: undefined,
+        email: undefined,
+        address: undefined,
+      }));
+      const missing = [
+        !company.phoneNumber && 'telefonnummer',
+        !company.email && 'e-mail',
+        !company.address && 'adresse',
+      ].filter(Boolean);
+      setCompanyNotice(
+        missing.length
+          ? `Virksomhedens oplysninger er hentet. CVR har ingen ${missing.join(', ')}. Udfyld de manglende felter.`
+          : 'Virksomhedens oplysninger er hentet. Kontrollér dem, før du gemmer.',
+      );
+    } catch (error) {
+      if (!controller.signal.aborted) {
+        setCompanyError(
+          error instanceof Error && error.name === 'Error'
+            ? error.message
+            : 'Virksomhedens oplysninger kunne ikke hentes. Prøv igen eller udfyld felterne manuelt.',
+        );
+      }
+    } finally {
+      if (!controller.signal.aborted) setLookingUpCompany(false);
+    }
   }
 
   function changeAddress(
@@ -77,14 +153,18 @@ export function ActorForm({ initialActor, onCancel, onSave }: ActorFormProps) {
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (saving) return;
+    if (saving || lookingUpCompany) return;
     const nextErrors = validateCreateActor(values);
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length) {
       const firstInvalid = Object.keys(nextErrors)[0];
-      event.currentTarget
-        .querySelector<HTMLElement>(`[name="${firstInvalid}"]`)
-        ?.focus();
+      if (firstInvalid === 'role') {
+        roleInput.current?.focus();
+      } else {
+        event.currentTarget
+          .querySelector<HTMLElement>(`[name="${firstInvalid}"]`)
+          ?.focus();
+      }
       return;
     }
     setSaving(true);
@@ -106,7 +186,18 @@ export function ActorForm({ initialActor, onCancel, onSave }: ActorFormProps) {
     const digits = ['phoneNumber', 'cvrNumber'].includes(name);
     return (
       <TextField
-        disabled={saving}
+        autoComplete={
+          name === 'name'
+            ? values.role && values.role !== ActorRole.Private
+              ? 'organization'
+              : 'name'
+            : name === 'phoneNumber'
+              ? 'tel-national'
+              : name === 'email'
+                ? 'email'
+                : 'off'
+        }
+        disabled={saving || lookingUpCompany}
         error={Boolean(errors[name])}
         fullWidth
         helperText={errors[name]}
@@ -121,7 +212,9 @@ export function ActorForm({ initialActor, onCancel, onSave }: ActorFormProps) {
             ? { inputMode: 'numeric', maxLength: 8 }
             : undefined,
         }}
-        type={name === 'email' ? 'email' : 'text'}
+        type={
+          name === 'email' ? 'email' : name === 'phoneNumber' ? 'tel' : 'text'
+        }
         value={values[name]}
       />
     );
@@ -129,7 +222,7 @@ export function ActorForm({ initialActor, onCancel, onSave }: ActorFormProps) {
 
   return (
     <Paper
-      aria-busy={saving}
+      aria-busy={saving || lookingUpCompany}
       component="form"
       elevation={0}
       noValidate
@@ -148,11 +241,11 @@ export function ActorForm({ initialActor, onCancel, onSave }: ActorFormProps) {
           </Alert>
         )}
         <TextField
-          autoFocus={!initialActor}
           disabled={saving || Boolean(initialActor)}
           error={Boolean(errors.role)}
           fullWidth
           helperText={errors.role}
+          inputRef={roleInput}
           label={t('actors.role')}
           name="role"
           onChange={(event) => change('role', event.target.value)}
@@ -168,11 +261,36 @@ export function ActorForm({ initialActor, onCancel, onSave }: ActorFormProps) {
             </MenuItem>
           ))}
         </TextField>
+        {values.role !== ActorRole.Private && (
+          <Box sx={{ maxWidth: 520, mb: 3 }}>
+            <CvrLookup
+              disabled={saving}
+              error={errors.cvrNumber}
+              loading={lookingUpCompany}
+              onChange={(value) => change('cvrNumber', value)}
+              onConfirm={() => void confirmCvr()}
+              value={values.cvrNumber}
+            />
+          </Box>
+        )}
+        {companyError && (
+          <Alert severity="error" sx={{ mb: 3 }}>
+            {companyError}
+          </Alert>
+        )}
+        {companyNotice && (
+          <Alert severity="info" sx={{ mb: 3 }}>
+            {companyNotice}
+          </Alert>
+        )}
         <Box
           sx={{
             display: 'grid',
             gap: 3,
-            gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, minmax(0, 1fr))' },
+            gridTemplateColumns: {
+              xs: 'minmax(0, 1fr)',
+              sm: 'repeat(2, minmax(0, 1fr))',
+            },
           }}
         >
           {field(
@@ -184,19 +302,15 @@ export function ActorForm({ initialActor, onCancel, onSave }: ActorFormProps) {
           )}
           {field('phoneNumber', 'Telefonnummer')}
           {field('email', 'E-mail', 'E-mailadresse')}
-          <ActorAddressField
-            disabled={saving}
+          <AddressSearch
+            disabled={saving || lookingUpCompany}
             error={errors.address}
-            initialAddress={initialActor?.address}
-            initialAddressId={initialActor?.address.uuid}
+            initialAddress={values.address ?? undefined}
+            initialAddressId={values.addressId ?? undefined}
+            key={addressVersion}
             onChange={changeAddress}
           />
-          {values.role !== ActorRole.Private && (
-            <>
-              {field('cvrNumber', 'CVR-nummer')}
-              {field('department', 'Afdeling')}
-            </>
-          )}
+          {values.role !== ActorRole.Private && field('department', 'Afdeling')}
         </Box>
       </Box>
       <Stack
@@ -222,7 +336,7 @@ export function ActorForm({ initialActor, onCancel, onSave }: ActorFormProps) {
           Annuller
         </Button>
         <Button
-          disabled={saving}
+          disabled={saving || lookingUpCompany}
           sx={{ minHeight: 42 }}
           type="submit"
           variant="contained"

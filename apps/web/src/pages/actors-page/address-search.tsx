@@ -6,15 +6,15 @@ import {
   lookupAddress,
   searchAddresses,
 } from '../../api/addresses.api.js';
-import type { ActorAddressFieldProps } from './actor.types.js';
+import type { AddressSearchProps } from './actor.types.js';
 
-export function ActorAddressField({
+export function AddressSearch({
   disabled,
   error,
   initialAddress,
   initialAddressId,
   onChange,
-}: ActorAddressFieldProps) {
+}: AddressSearchProps) {
   const { t } = useTranslation();
   const initialAddressOption = initialAddress
     ? {

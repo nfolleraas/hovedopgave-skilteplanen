@@ -107,7 +107,7 @@ export type ActorFormProps = {
   onSave: (actor: ActorSubmission) => void | Promise<void>;
 };
 
-export type ActorAddressFieldProps = {
+export type AddressSearchProps = {
   disabled?: boolean;
   error?: string;
   initialAddress?: VerifiedAddress;
