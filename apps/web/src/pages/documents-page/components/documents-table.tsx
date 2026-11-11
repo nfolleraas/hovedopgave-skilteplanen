@@ -11,8 +11,10 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  TableSortLabel,
   Typography,
 } from '@mui/material';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   formatReadableDate,
@@ -26,16 +28,70 @@ type DocumentsTableProps = {
   onDelete: (document: Document) => void;
 };
 
+type SortColumn = 'name' | 'documentType' | 'date';
+type SortDirection = 'asc' | 'desc';
+
 export default function DocumentsTable({
   documents,
   labelledBy,
   onDelete,
 }: DocumentsTableProps) {
-  const { t } = useTranslation();
+  const { i18n, t } = useTranslation();
+  const [sortColumn, setSortColumn] = useState<SortColumn>('date');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
 
-  const documentTypeLabels: Record<DocumentType, string> = {
-    Other: t('documents.documentTypes.other'),
-    SignPlan: t('documents.documentTypes.signPlan'),
+  const documentTypeLabels = useMemo<Record<DocumentType, string>>(
+    () => ({
+      Other: t('documents.documentTypes.other'),
+      SignPlan: t('documents.documentTypes.signPlan'),
+    }),
+    [t],
+  );
+
+  const sortedDocuments = useMemo(() => {
+    const collator = new Intl.Collator(i18n.resolvedLanguage, {
+      numeric: true,
+      sensitivity: 'base',
+    });
+
+    return [...documents].sort((first, second) => {
+      let comparison: number;
+
+      if (sortColumn === 'date') {
+        comparison = Date.parse(first.date) - Date.parse(second.date);
+      } else if (sortColumn === 'documentType') {
+        comparison = collator.compare(
+          documentTypeLabels[first.documentType],
+          documentTypeLabels[second.documentType],
+        );
+      } else {
+        comparison = collator.compare(first.name, second.name);
+      }
+
+      if (comparison === 0) {
+        comparison = collator.compare(first.uuid, second.uuid);
+      }
+
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+  }, [
+    documents,
+    documentTypeLabels,
+    i18n.resolvedLanguage,
+    sortColumn,
+    sortDirection,
+  ]);
+
+  const handleSort = (column: SortColumn) => {
+    if (column === sortColumn) {
+      setSortDirection((currentDirection) =>
+        currentDirection === 'asc' ? 'desc' : 'asc',
+      );
+      return;
+    }
+
+    setSortColumn(column);
+    setSortDirection('asc');
   };
 
   return (
@@ -52,7 +108,7 @@ export default function DocumentsTable({
           pt: 0,
         }}
       >
-        {documents.map((document) => (
+        {sortedDocuments.map((document) => (
           <Paper
             component="li"
             key={document.uuid}
@@ -139,14 +195,45 @@ export default function DocumentsTable({
         <Table aria-labelledby={labelledBy} sx={{ tableLayout: 'fixed' }}>
           <TableHead>
             <TableRow>
-              <TableCell sx={{ width: '35%' }}>
-                {t('documents.table.name')}
+              <TableCell
+                sortDirection={sortColumn === 'name' ? sortDirection : false}
+                sx={{ width: '35%' }}
+              >
+                <TableSortLabel
+                  active={sortColumn === 'name'}
+                  direction={sortColumn === 'name' ? sortDirection : 'asc'}
+                  onClick={() => handleSort('name')}
+                >
+                  {t('documents.table.name')}
+                </TableSortLabel>
               </TableCell>
-              <TableCell sx={{ width: '20%' }}>
-                {t('documents.table.documentType')}
+              <TableCell
+                sortDirection={
+                  sortColumn === 'documentType' ? sortDirection : false
+                }
+                sx={{ width: '20%' }}
+              >
+                <TableSortLabel
+                  active={sortColumn === 'documentType'}
+                  direction={
+                    sortColumn === 'documentType' ? sortDirection : 'asc'
+                  }
+                  onClick={() => handleSort('documentType')}
+                >
+                  {t('documents.table.documentType')}
+                </TableSortLabel>
               </TableCell>
-              <TableCell sx={{ width: '25%' }}>
-                {t('documents.table.createdAt')}
+              <TableCell
+                sortDirection={sortColumn === 'date' ? sortDirection : false}
+                sx={{ width: '25%' }}
+              >
+                <TableSortLabel
+                  active={sortColumn === 'date'}
+                  direction={sortColumn === 'date' ? sortDirection : 'asc'}
+                  onClick={() => handleSort('date')}
+                >
+                  {t('documents.table.createdAt')}
+                </TableSortLabel>
               </TableCell>
               <TableCell align="right" sx={{ width: '20%' }}>
                 {t('documents.table.actions')}
@@ -154,7 +241,7 @@ export default function DocumentsTable({
             </TableRow>
           </TableHead>
           <TableBody>
-            {documents.map((document) => (
+            {sortedDocuments.map((document) => (
               <TableRow key={document.uuid}>
                 <TableCell
                   component="th"
