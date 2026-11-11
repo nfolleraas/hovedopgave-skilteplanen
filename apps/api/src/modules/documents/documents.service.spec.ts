@@ -120,13 +120,13 @@ describe('DocumentsService', () => {
       } as Express.Multer.File),
     ).rejects.toThrow(
       new BadRequestException(
-        'Sign plans must be created through the sign plans module',
+        'Sign plans must be created through the sign plans module.',
       ),
     );
     expect(repository.add).not.toHaveBeenCalled();
   });
 
-  it('delegates reads, updates, and deletes to the repository', async () => {
+  it('delegates reads and deletes to the repository', async () => {
     const documents = [{ uuid: 'document-1' }];
     const document = { uuid: 'document-1', r2ObjectKey: 'documents/file.pdf' };
     repository.getAll.mockResolvedValue(documents);
