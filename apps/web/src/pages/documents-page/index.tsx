@@ -95,7 +95,11 @@ export default function DocumentsPage() {
 
           {loadError && <Alert severity="error">{loadError}</Alert>}
           {pageStatusMessage && (
-            <Alert role="status" severity="success">
+            <Alert
+              onClose={() => setPageStatusMessage(null)}
+              role="status"
+              severity="success"
+            >
               {pageStatusMessage}
             </Alert>
           )}
