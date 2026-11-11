@@ -64,7 +64,7 @@ describe('DocumentsRepository', () => {
     const result = { uuid: 'document-1' };
     prisma.document.findUniqueOrThrow.mockResolvedValue(result);
 
-    await expect(repository.getById('document-1')).resolves.toBe(result);
+    await expect(repository.get('document-1')).resolves.toBe(result);
     expect(prisma.document.findUniqueOrThrow).toHaveBeenCalledWith({
       where: { uuid: 'document-1' },
     });

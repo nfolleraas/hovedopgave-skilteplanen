@@ -14,7 +14,7 @@ export class DocumentsRepository {
     return await this.prisma.document.findMany({ include: { signPlan: true } });
   }
 
-  async getById(uuid: string): Promise<Document> {
+  async get(uuid: string): Promise<Document> {
     return await this.prisma.document.findUniqueOrThrow({
       where: { uuid },
     });

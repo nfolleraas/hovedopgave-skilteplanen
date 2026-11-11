@@ -80,7 +80,7 @@ export class DocumentsService {
   }
 
   async findOne(uuid: string) {
-    return await this.documentsRepository.getById(uuid);
+    return await this.documentsRepository.get(uuid);
   }
 
   async remove(uuid: string) {

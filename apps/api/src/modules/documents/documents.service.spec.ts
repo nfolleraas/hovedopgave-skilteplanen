@@ -11,7 +11,7 @@ describe('DocumentsService', () => {
   let repository: {
     add: ReturnType<typeof vi.fn>;
     getAll: ReturnType<typeof vi.fn>;
-    getById: ReturnType<typeof vi.fn>;
+    get: ReturnType<typeof vi.fn>;
     delete: ReturnType<typeof vi.fn>;
   };
   let r2Service: {
@@ -23,7 +23,7 @@ describe('DocumentsService', () => {
     repository = {
       add: vi.fn(),
       getAll: vi.fn(),
-      getById: vi.fn(),
+      get: vi.fn(),
       delete: vi.fn(),
     };
     r2Service = { upload: vi.fn(), delete: vi.fn() };
@@ -130,7 +130,7 @@ describe('DocumentsService', () => {
     const documents = [{ uuid: 'document-1' }];
     const document = { uuid: 'document-1', r2ObjectKey: 'documents/file.pdf' };
     repository.getAll.mockResolvedValue(documents);
-    repository.getById.mockResolvedValue(document);
+    repository.get.mockResolvedValue(document);
     repository.delete.mockResolvedValue(document);
     r2Service.delete.mockResolvedValue({});
 
@@ -139,7 +139,7 @@ describe('DocumentsService', () => {
     await expect(service.remove('document-1')).resolves.toBeUndefined();
 
     expect(repository.getAll).toHaveBeenCalledOnce();
-    expect(repository.getById).toHaveBeenCalledWith('document-1');
+    expect(repository.get).toHaveBeenCalledWith('document-1');
     expect(repository.delete).toHaveBeenCalledWith('document-1');
     expect(r2Service.delete).toHaveBeenCalledWith('documents/file.pdf');
   });
