@@ -1,4 +1,3 @@
-import CloudUploadOutlinedIcon from '@mui/icons-material/CloudUploadOutlined';
 import {
   Alert,
   Box,
@@ -9,134 +8,65 @@ import {
   Stack,
   Typography,
 } from '@mui/material';
-import type { ChangeEvent, DragEvent } from 'react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { createDocument, getDocuments } from '../../api/documents.api.js';
+import { Link } from 'react-router';
+import { routes } from '../../app/router.js';
 import DeleteConfirmationModal from '../../components/ui/modals/delete-confirmation-modal.js';
-import AddSignplanModal from './add-signplan-modal.js';
+import AddSignplanModal from './components/add-signplan-modal.js';
+import DocumentDropZone from './components/document-drop-zone.js';
+import DocumentsTable from './components/documents-table.js';
+import { demoApplicationId } from './document.constants.js';
 import type { Document } from './document.types.js';
-import DocumentsTable from './documents-table.js';
-
-const demoApplicationId = 'DEMO-2026-0001';
-const acceptedFileTypes =
-  'application/pdf,image/jpeg,image/png,.pdf,.jpg,.jpeg,.png';
+import { useDocuments } from './hooks/use-documents.js';
 
 export default function DocumentsPage() {
-  const { t } = useTranslation();
-  const dragDepthRef = useRef(0);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [documents, setDocuments] = useState<Document[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isUploading, setIsUploading] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
+  const { i18n, t } = useTranslation();
+  const listTitleId = useId();
+  const listTitleRef = useRef<HTMLHeadingElement>(null);
+  const pageTitleRef = useRef<HTMLHeadingElement>(null);
   const [isAddSignplanModalOpen, setIsAddSignplanModalOpen] = useState(false);
   const [documentToDelete, setDocumentToDelete] = useState<Document | null>(
     null,
   );
-  const [error, setError] = useState<string | null>(null);
+  const [pageStatusMessage, setPageStatusMessage] = useState<string | null>(
+    null,
+  );
+
+  const {
+    addDocuments,
+    documents,
+    error: loadError,
+    isLoading,
+    loadStatusMessage,
+    removeDocument,
+  } = useDocuments();
+  const language = (i18n.resolvedLanguage ?? i18n.language).startsWith('da')
+    ? 'da'
+    : 'en';
 
   useEffect(() => {
-    let isMounted = true;
-
-    getDocuments()
-      .then((loadedDocuments) => {
-        if (isMounted) {
-          setDocuments(loadedDocuments);
-        }
-      })
-      .catch(() => {
-        if (isMounted) {
-          setError(t('documents.loadError'));
-        }
-      })
-      .finally(() => {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      });
+    const previousTitle = document.title;
+    document.documentElement.lang = language;
+    document.title = `${t('documents.title')} – ${t('common.brandName')}`;
 
     return () => {
-      isMounted = false;
+      document.title = previousTitle;
     };
-  }, [t]);
+  }, [language, t]);
 
-  const uploadFiles = async (files: File[]) => {
-    if (files.length === 0) {
-      return;
+  useEffect(() => {
+    pageTitleRef.current?.focus();
+  }, []);
+
+  useEffect(() => {
+    if (pageStatusMessage) {
+      listTitleRef.current?.focus();
     }
-
-    setError(null);
-    setIsUploading(true);
-
-    try {
-      const uploadResults = await Promise.allSettled(
-        files.map((file) => createDocument(file, demoApplicationId, 'Other')),
-      );
-      const uploadedDocuments = uploadResults.flatMap((result) =>
-        result.status === 'fulfilled' ? [result.value] : [],
-      );
-
-      if (uploadedDocuments.length > 0) {
-        setDocuments((currentDocuments) => [
-          ...currentDocuments,
-          ...uploadedDocuments,
-        ]);
-      }
-
-      if (uploadResults.some((result) => result.status === 'rejected')) {
-        setError(t('documents.uploadError'));
-      }
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
-  const handleFileSelected = async (event: ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files ?? []);
-    event.target.value = '';
-
-    await uploadFiles(files);
-  };
-
-  const handleDragEnter = (event: DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    dragDepthRef.current += 1;
-
-    if (dragDepthRef.current === 1) {
-      setIsDragging(true);
-    }
-  };
-
-  const handleDragLeave = () => {
-    dragDepthRef.current = Math.max(0, dragDepthRef.current - 1);
-
-    if (dragDepthRef.current > 0) {
-      return;
-    }
-
-    setIsDragging(false);
-  };
-
-  const handleDragOver = (event: DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    event.dataTransfer.dropEffect = 'copy';
-  };
-
-  const handleDrop = async (event: DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    dragDepthRef.current = 0;
-    setIsDragging(false);
-
-    if (isUploading) {
-      return;
-    }
-
-    await uploadFiles(Array.from(event.dataTransfer.files));
-  };
+  }, [pageStatusMessage]);
 
   return (
-    <Box component="main" sx={{ display: 'flex' }}>
+    <Box component="main" id="main-content" sx={{ display: 'flex' }}>
       <Container
         maxWidth="md"
         sx={{
@@ -148,7 +78,13 @@ export default function DocumentsPage() {
       >
         <Stack spacing={3}>
           <Box>
-            <Typography component="h1" variant="h4">
+            <Typography
+              component="h1"
+              ref={pageTitleRef}
+              sx={{ fontSize: 'clamp(1.75rem, 5vw, 2.125rem)' }}
+              tabIndex={-1}
+              variant="h4"
+            >
               {t('documents.title')}
             </Typography>
             <Typography color="text.secondary" sx={{ mt: 1 }}>
@@ -156,10 +92,26 @@ export default function DocumentsPage() {
             </Typography>
           </Box>
 
-          {error && <Alert severity="error">{error}</Alert>}
+          {loadError && <Alert severity="error">{loadError}</Alert>}
+          {pageStatusMessage && (
+            <Alert role="status" severity="success">
+              {pageStatusMessage}
+            </Alert>
+          )}
 
-          <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
-            <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Stack
+            direction={{ xs: 'column', md: 'row' }}
+            spacing={2}
+            sx={{ alignItems: 'stretch' }}
+          >
+            <Box
+              sx={{
+                alignItems: 'center',
+                display: 'flex',
+                flex: 1,
+                minWidth: 0,
+              }}
+            >
               <Button
                 fullWidth
                 onClick={() => setIsAddSignplanModalOpen(true)}
@@ -169,61 +121,16 @@ export default function DocumentsPage() {
               </Button>
             </Box>
 
-            <Paper
-              aria-busy={isUploading}
-              component="section"
-              onDragEnter={handleDragEnter}
-              onDragLeave={handleDragLeave}
-              onDragOver={handleDragOver}
-              onDrop={handleDrop}
-              sx={{
-                bgcolor: isDragging ? 'action.hover' : 'background.paper',
-                borderColor: isDragging ? 'primary.main' : 'divider',
-                borderStyle: 'dashed',
-                flex: 1,
-                minWidth: 0,
-                p: { xs: 3, sm: 4 },
-                textAlign: 'center',
-                transition: (theme) =>
-                  theme.transitions.create([
-                    'background-color',
-                    'border-color',
-                  ]),
-              }}
-              variant="outlined"
-            >
-              <Stack spacing={1.5} sx={{ alignItems: 'center' }}>
-                <CloudUploadOutlinedIcon color="primary" fontSize="large" />
-                <Typography>{t('documents.dropPrompt')}</Typography>
-                <Typography color="text.secondary" variant="body2">
-                  {t('documents.supportedFileTypes')}
-                </Typography>
-                <Button
-                  component="label"
-                  disabled={isUploading}
-                  startIcon={
-                    isUploading ? <CircularProgress size={20} /> : undefined
-                  }
-                  variant="contained"
-                >
-                  {isUploading
-                    ? t('documents.uploading')
-                    : t('documents.upload')}
-                  <input
-                    accept={acceptedFileTypes}
-                    hidden
-                    multiple
-                    onChange={handleFileSelected}
-                    ref={fileInputRef}
-                    type="file"
-                  />
-                </Button>
-              </Stack>
-            </Paper>
+            <DocumentDropZone
+              applicationId={demoApplicationId}
+              documentType="Other"
+              onDocumentsUploaded={addDocuments}
+            />
           </Stack>
 
           <AddSignplanModal
             onClose={() => setIsAddSignplanModalOpen(false)}
+            onDocumentsUploaded={addDocuments}
             open={isAddSignplanModalOpen}
           />
 
@@ -233,48 +140,101 @@ export default function DocumentsPage() {
               entityName={documentToDelete.name}
               onClose={() => setDocumentToDelete(null)}
               onDeleted={() => {
-                setDocuments((currentDocuments) =>
-                  currentDocuments.filter(
-                    (document) => document.uuid !== documentToDelete.uuid,
-                  ),
+                removeDocument(documentToDelete.uuid);
+                setPageStatusMessage(
+                  t('documents.deleteSuccess', {
+                    name: documentToDelete.name,
+                  }),
                 );
               }}
               open
             />
           )}
 
-          <Paper elevation={1} sx={{ overflow: 'hidden' }}>
-            <Typography component="h2" sx={{ px: 3, py: 2 }} variant="h6">
+          <Paper
+            aria-busy={isLoading}
+            aria-labelledby={listTitleId}
+            component="section"
+            elevation={1}
+            sx={{ overflow: 'hidden' }}
+          >
+            <Typography
+              component="h2"
+              id={listTitleId}
+              ref={listTitleRef}
+              sx={{ px: { xs: 2, sm: 3 }, py: 2 }}
+              tabIndex={-1}
+              variant="h6"
+            >
               {t('documents.listTitle')}
             </Typography>
+            <Box
+              aria-live="polite"
+              role="status"
+              sx={{
+                border: 0,
+                clip: 'rect(0 0 0 0)',
+                height: '1px',
+                m: '-1px',
+                overflow: 'hidden',
+                p: 0,
+                position: 'absolute',
+                whiteSpace: 'nowrap',
+                width: '1px',
+              }}
+            >
+              {loadStatusMessage}
+            </Box>
             {isLoading ? (
-              <Box sx={{ display: 'grid', placeItems: 'center', p: 4 }}>
-                <CircularProgress aria-label={t('documents.loading')} />
+              <Box
+                sx={{
+                  alignItems: 'center',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 2,
+                  p: 4,
+                }}
+              >
+                <CircularProgress aria-hidden="true" />
+                <Typography>{t('documents.loading')}</Typography>
               </Box>
             ) : documents.length === 0 ? (
-              <Typography color="text.secondary" sx={{ px: 3, pb: 3 }}>
+              <Typography
+                color="text.secondary"
+                sx={{ px: { xs: 2, sm: 3 }, pb: 3 }}
+              >
                 {t('documents.empty')}
               </Typography>
             ) : (
               <DocumentsTable
                 documents={documents}
-                onDelete={setDocumentToDelete}
+                labelledBy={listTitleId}
+                onDelete={(document) => {
+                  setPageStatusMessage(null);
+                  setDocumentToDelete(document);
+                }}
               />
             )}
           </Paper>
         </Stack>
-        <Container
+        <Stack
+          aria-label={t('documents.pageNavigation')}
+          component="nav"
+          direction={{ xs: 'column', sm: 'row' }}
+          spacing={2}
           sx={{
-            display: 'flex',
-            gap: 2,
             justifyContent: 'center',
             mt: 'auto',
             pt: 3,
           }}
         >
-          <Button variant="outlined">{t('navigation.back')}</Button>
-          <Button variant="contained">{t('navigation.next')}</Button>
-        </Container>
+          <Button component={Link} to={routes.application} variant="outlined">
+            {t('navigation.back')}
+          </Button>
+          <Button component={Link} to={routes.contacts} variant="contained">
+            {t('navigation.next')}
+          </Button>
+        </Stack>
       </Container>
     </Box>
   );

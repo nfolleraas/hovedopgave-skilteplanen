@@ -45,6 +45,19 @@
   "documents": {
     "addSignplan": "Tilføj skilteplan",
     "closeAddSignplan": "Luk tilføj skilteplan",
+    "signPlanDropPrompt": "Træk og slip en skilteplan her, eller vælg en fil",
+    "dropPrompt": "Træk og slip dokumenter her, eller vælg filer",
+    "supportedFileTypes": "Understøttede formater: PDF, JPG og PNG",
+    "uploadingSignPlan": "Uploader skilteplan...",
+    "uploading": "Uploader...",
+    "uploadSignPlan": "Upload skilteplan",
+    "upload": "Upload dokument",
+    "uploadSuccess_one": "Uploaden er færdig. 1 fil er uploadet.",
+    "uploadSuccess_other": "Uploaden er færdig. {{count}} filer er uploadet.",
+    "documentTypes": {
+      "other": "Andet",
+      "signPlan": "Skilteplan"
+    },
     "table": {
       "name": "Navn",
       "documentType": "Dokumenttype",
@@ -52,17 +65,20 @@
       "actions": "Handlinger"
     },
     "delete": "Slet {{name}}",
-    "loadError": "Dokumenterne kunne ikke hentes.",
+    "deleteAction": "Slet",
+    "deleteSuccess": "{{name}} er slettet.",
+    "openDocumentInNewTab": "Åbn {{name}} i en ny fane",
+    "signPlanUploadError": "Skilteplanen kunne ikke uploades.",
     "uploadError": "Dokumentet kunne ikke uploades.",
+    "loadError": "Dokumenterne kunne ikke hentes.",
+    "loadSuccess_one": "Dokumentlisten er indlæst med 1 dokument.",
+    "loadSuccess_other": "Dokumentlisten er indlæst med {{count}} dokumenter.",
     "title": "Ansøgningsdokumenter",
     "description": "Upload og administrer de dokumenter, der kræves til din ansøgning.",
-    "dropPrompt": "Træk og slip dokumenter her, eller vælg filer",
-    "supportedFileTypes": "Understøttede formater: PDF, JPG og PNG",
-    "uploading": "Uploader...",
-    "upload": "Upload dokument",
     "listTitle": "Uploadede dokumenter",
     "loading": "Henter dokumenter",
-    "empty": "Der er ikke uploadet dokumenter endnu."
+    "empty": "Der er ikke uploadet dokumenter endnu.",
+    "pageNavigation": "Navigation for ansøgningsdokumenter"
   },
   "home": {
     "title": "Ansøgningsplatformen",
