@@ -8,7 +8,7 @@ import {
   TrafficChange,
   Usage,
 } from '../../generated/prisma/enums.js';
-import { PrismaService } from '../../prisma/prisma.service.js';
+import { DevApplicationsRepository } from './dev-applications.repository.js';
 
 export interface DevApplicationSummary {
   caseNumber: string;
@@ -29,19 +29,10 @@ const caseNumberPrefix: Record<SupportedApplicationType, string> = {
  */
 @Injectable()
 export class DevApplicationsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly repository: DevApplicationsRepository) {}
 
   async findAll(): Promise<DevApplicationSummary[]> {
-    const applications = await this.prisma.application.findMany({
-      select: {
-        caseNumber: true,
-        title: true,
-        type: true,
-        status: true,
-        _count: { select: { areas: true } },
-      },
-      orderBy: { caseNumber: 'asc' },
-    });
+    const applications = await this.repository.getAllWithAreaCount();
     return applications.map(({ _count, ...application }) => ({
       ...application,
       areaCount: _count.areas,
@@ -57,63 +48,57 @@ export class DevApplicationsService {
     const end = new Date(start);
     end.setDate(end.getDate() + 14);
 
-    await this.prisma.$transaction(async (tx) => {
-      // The schema allows one application per applicant.
-      const applicant = await tx.applicant.create({
-        data: {
-          name: `Testansøger ${caseNumber}`,
-          type: ApplicantType.Business,
-          phoneNumber: '12345678',
-          email: `${caseNumber.toLowerCase()}@example.com`,
-          mitIdKey: `dev-mitid-${caseNumber}`,
-          address: {
-            create: {
-              street: 'Cikorievej',
-              houseNumber: '1',
-              postalCode: '5220',
-              city: 'Odense SØ',
-            },
+    await this.repository.addWithApplicant(
+      {
+        name: `Testansøger ${caseNumber}`,
+        type: ApplicantType.Business,
+        phoneNumber: '12345678',
+        email: `${caseNumber.toLowerCase()}@example.com`,
+        mitIdKey: `dev-mitid-${caseNumber}`,
+        address: {
+          create: {
+            street: 'Cikorievej',
+            houseNumber: '1',
+            postalCode: '5220',
+            city: 'Odense SØ',
           },
         },
-      });
+      },
       // Each permit shares the application's case number.
-      await tx.application.create({
-        data: {
-          caseNumber,
-          title,
-          applicantReference: caseNumber,
-          type,
-          status: Status.Draft,
-          trafficChange: TrafficChange.SpeedLimitWorkZone,
-          applicant: { connect: { uuid: applicant.uuid } },
-          ...(type === ApplicationType.ExcavationPermit
-            ? {
-                excavationPermit: {
-                  create: {
-                    applicationId: caseNumber,
-                    permitType: PermitType.Application,
-                    startDate: start,
-                    endDate: end,
-                  },
+      {
+        caseNumber,
+        title,
+        applicantReference: caseNumber,
+        type,
+        status: Status.Draft,
+        trafficChange: TrafficChange.SpeedLimitWorkZone,
+        ...(type === ApplicationType.ExcavationPermit
+          ? {
+              excavationPermit: {
+                create: {
+                  applicationId: caseNumber,
+                  permitType: PermitType.Application,
+                  startDate: start,
+                  endDate: end,
                 },
-              }
-            : {
-                roadUsePermit: {
-                  create: {
-                    applicationId: caseNumber,
-                    // Events are not supported, so this is always false.
-                    isEvent: false,
-                    startDate: start,
-                    endDate: end,
-                    eventStart: start,
-                    eventEnd: end,
-                    usage: Usage.Construction,
-                  },
+              },
+            }
+          : {
+              roadUsePermit: {
+                create: {
+                  applicationId: caseNumber,
+                  // Events are not supported, so this is always false.
+                  isEvent: false,
+                  startDate: start,
+                  endDate: end,
+                  eventStart: start,
+                  eventEnd: end,
+                  usage: Usage.Construction,
                 },
-              }),
-        },
-      });
-    });
+              },
+            }),
+      },
+    );
 
     return { caseNumber, title, type, status: Status.Draft, areaCount: 0 };
   }
@@ -123,12 +108,11 @@ export class DevApplicationsService {
     type: SupportedApplicationType,
   ): Promise<string> {
     const prefix = caseNumberPrefix[type];
-    const existing = await this.prisma.application.findMany({
-      where: { caseNumber: { startsWith: `${prefix}-` } },
-      select: { caseNumber: true },
-    });
+    const existing = await this.repository.getCaseNumbersStartingWith(
+      `${prefix}-`,
+    );
     const numbers = existing
-      .map(({ caseNumber }) => Number(caseNumber.slice(prefix.length + 1)))
+      .map((caseNumber) => Number(caseNumber.slice(prefix.length + 1)))
       .filter(Number.isInteger);
     return `${prefix}-${Math.max(0, ...numbers) + 1}`;
   }
