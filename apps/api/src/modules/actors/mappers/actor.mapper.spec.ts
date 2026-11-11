@@ -32,8 +32,14 @@ describe('ActorMapper', () => {
   });
 
   describe('toCreateInput', () => {
-    it('trims text and connects the actor and contact person to the application', () => {
-      expect(mapper.toCreateInput(dto, Availability.Evening)).toEqual({
+    it('connects an existing address without creating another one', () => {
+      expect(mapper.toCreateInput(dto, 'address-id').address).toEqual({
+        connect: { uuid: 'address-id' },
+      });
+    });
+
+    it('trims text and connects the actor to the application', () => {
+      expect(mapper.toCreateInput(dto)).toEqual({
         role: ActorRole.Contractor,
         name: 'Eksempel Entreprise',
         email: 'kontakt@example.com',
@@ -49,23 +55,11 @@ describe('ActorMapper', () => {
             city: 'Odense',
           },
         },
-        contactPersons: {
-          create: {
-            name: 'Jane Doe',
-            email: 'jane@example.com',
-            phoneNumber: '23456789',
-            availability: Availability.Evening,
-            application: { connect: { caseNumber: 'CASE-123' } },
-          },
-        },
       });
     });
 
     it('clears business fields and omits the contact person for private actors', () => {
-      const input = mapper.toCreateInput(
-        { ...dto, role: ActorRole.Private },
-        Availability.Day,
-      );
+      const input = mapper.toCreateInput({ ...dto, role: ActorRole.Private });
 
       expect(input).toMatchObject({
         role: ActorRole.Private,
@@ -76,15 +70,12 @@ describe('ActorMapper', () => {
     });
 
     it('supports omitted optional business fields', () => {
-      const input = mapper.toCreateInput(
-        {
-          ...dto,
-          cvrNumber: undefined,
-          department: undefined,
-          contactPerson: undefined,
-        },
-        Availability.Day,
-      );
+      const input = mapper.toCreateInput({
+        ...dto,
+        cvrNumber: undefined,
+        department: undefined,
+        contactPerson: undefined,
+      });
 
       expect(input.cvrNumber).toBeUndefined();
       expect(input.department).toBeUndefined();
@@ -94,20 +85,26 @@ describe('ActorMapper', () => {
     it('does not mutate the creation DTO', () => {
       const original = structuredClone(dto);
 
-      mapper.toCreateInput(dto, Availability.Night);
+      mapper.toCreateInput(dto);
 
       expect(dto).toEqual(original);
     });
   });
 
   describe('toUpdateInput', () => {
+    it('connects a matching address instead of modifying the shared address', () => {
+      expect(
+        mapper.toUpdateInput({ address: dto.address }, 'address-id').address,
+      ).toEqual({ connect: { uuid: 'address-id' } });
+    });
+
     it('leaves all fields unchanged for an empty update', () => {
-      expect(mapper.toUpdateInput('actor-id', {})).toEqual({});
+      expect(mapper.toUpdateInput({})).toEqual({});
     });
 
     it('maps supplied actor fields and trims text', () => {
       expect(
-        mapper.toUpdateInput('actor-id', {
+        mapper.toUpdateInput({
           name: ' Updated Actor ',
           email: ' updated@example.com ',
           phoneNumber: '87654321',
@@ -125,7 +122,7 @@ describe('ActorMapper', () => {
 
     it('updates business fields without requiring a role change', () => {
       expect(
-        mapper.toUpdateInput('actor-id', {
+        mapper.toUpdateInput({
           cvrNumber: '12345678',
           department: ' Service ',
         }),
@@ -137,7 +134,7 @@ describe('ActorMapper', () => {
       (role) => {
         const input = { role, name: ' Updated Actor ' };
 
-        expect(mapper.toUpdateInput('actor-id', input)).toEqual({
+        expect(mapper.toUpdateInput(input)).toEqual({
           name: 'Updated Actor',
         });
       },
@@ -145,7 +142,7 @@ describe('ActorMapper', () => {
 
     it('preserves explicit empty strings in partial updates', () => {
       expect(
-        mapper.toUpdateInput('actor-id', {
+        mapper.toUpdateInput({
           name: '',
           email: '',
           phoneNumber: '',
@@ -161,12 +158,10 @@ describe('ActorMapper', () => {
       });
     });
 
-    it('maps an address update with trimmed fields', () => {
-      expect(
-        mapper.toUpdateInput('actor-id', { address: dto.address }),
-      ).toEqual({
+    it('creates a separate address with trimmed fields when updating', () => {
+      expect(mapper.toUpdateInput({ address: dto.address })).toEqual({
         address: {
-          update: {
+          create: {
             street: 'Testvej',
             houseNumber: '12A',
             postalCode: '5000',
@@ -176,54 +171,13 @@ describe('ActorMapper', () => {
       });
     });
 
-    it('updates the contact person selected by actor uuid', () => {
+    it('omits contact details from actor updates', () => {
       expect(
-        mapper.toUpdateInput('actor-id', {
+        mapper.toUpdateInput({
+          name: ' Updated Actor ',
           contactPerson: dto.contactPerson,
         }),
-      ).toEqual({
-        contactPersons: {
-          update: {
-            where: { actorId: 'actor-id' },
-            data: {
-              name: 'Jane Doe',
-              email: 'jane@example.com',
-              phoneNumber: '23456789',
-              availability: Availability.Day,
-            },
-          },
-        },
-      });
-    });
-
-    it('leaves omitted contact person fields unchanged', () => {
-      expect(
-        mapper.toUpdateInput('actor-id', {
-          contactPerson: { email: ' new@example.com ' },
-        }),
-      ).toEqual({
-        contactPersons: {
-          update: {
-            where: { actorId: 'actor-id' },
-            data: { email: 'new@example.com' },
-          },
-        },
-      });
-    });
-
-    it('supports changing only contact availability', () => {
-      expect(
-        mapper.toUpdateInput('actor-id', {
-          contactPerson: { availability: Availability.AllDay },
-        }),
-      ).toEqual({
-        contactPersons: {
-          update: {
-            where: { actorId: 'actor-id' },
-            data: { availability: Availability.AllDay },
-          },
-        },
-      });
+      ).toEqual({ name: 'Updated Actor' });
     });
 
     it('does not mutate the update DTO', () => {
@@ -234,7 +188,7 @@ describe('ActorMapper', () => {
       };
       const original = structuredClone(update);
 
-      mapper.toUpdateInput('actor-id', update);
+      mapper.toUpdateInput(update);
 
       expect(update).toEqual(original);
     });

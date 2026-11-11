@@ -6,10 +6,7 @@ import {
   ActorRole,
   ApplicantType,
   ApplicationType,
-  Availability,
-  PermitType,
   TrafficChange,
-  Usage,
 } from '../src/generated/prisma/enums.js';
 import { ActorsModule } from '../src/modules/actors/actors.module.js';
 import { ActorsRepository } from '../src/modules/actors/actors.repository.js';
@@ -22,8 +19,6 @@ import { PrismaService } from '../src/prisma.service.js';
 describe('ActorsService database write', () => {
   const marker = randomUUID();
   const caseNumber = `TEST-${marker}`;
-  const roadUsePermitCaseNumber = `ROAD-${marker}`;
-  const excavationPermitCaseNumber = `EXC-${marker}`;
   const prisma = new PrismaService();
   const repository = new ActorsRepository(prisma);
   const mapper = new ActorMapper();
@@ -82,31 +77,6 @@ describe('ActorsService database write', () => {
             },
           },
         },
-        roadUsePermit: {
-          create: {
-            caseNumber: roadUsePermitCaseNumber,
-            title: 'Road permit',
-            applicantReference: `REF-${marker}`,
-            type: ApplicationType.RoadUsePermit,
-            isEvent: false,
-            startDate: new Date('2026-11-01'),
-            endDate: new Date('2026-11-02'),
-            eventStart: new Date('2026-11-01'),
-            eventEnd: new Date('2026-11-02'),
-            usage: Usage.Construction,
-          },
-        },
-        excavationPermit: {
-          create: {
-            caseNumber: excavationPermitCaseNumber,
-            title: 'Excavation permit',
-            applicantReference: `REF-${marker}`,
-            type: ApplicationType.ExcavationPermit,
-            permitType: PermitType.Application,
-            startDate: new Date('2026-11-01'),
-            endDate: new Date('2026-11-02'),
-          },
-        },
       },
       include: { applicant: true },
     });
@@ -138,16 +108,10 @@ describe('ActorsService database write', () => {
       for (const uuid of actorIds) {
         await prisma.actor.delete({ where: { uuid } });
       }
-      for (const uuid of addressIds) {
+      for (const uuid of new Set(addressIds)) {
         await prisma.address.delete({ where: { uuid } });
       }
       await prisma.application.delete({ where: { caseNumber } });
-      await prisma.roadUsePermit.delete({
-        where: { caseNumber: roadUsePermitCaseNumber },
-      });
-      await prisma.excavationPermit.delete({
-        where: { caseNumber: excavationPermitCaseNumber },
-      });
       if (applicantId)
         await prisma.applicant.delete({ where: { uuid: applicantId } });
       if (applicantAddressId) {
@@ -157,17 +121,13 @@ describe('ActorsService database write', () => {
     await prisma.$disconnect();
   }, 30_000);
 
-  it('persists actors, addresses, contact persons and application links atomically', async () => {
+  it('persists actors, addresses and application links atomically', async () => {
     const saved = await service.create(dto);
     actorIds.push(saved.uuid);
     addressIds.push(saved.address.uuid);
 
     expect(saved.address.street).toBe(dto.address.street);
-    expect(saved.contactPersons[0]).toMatchObject({
-      name: 'Jane Doe',
-      applicationId: caseNumber,
-      availability: 'Day',
-    });
+    expect(saved.contactPersons).toEqual([]);
     expect(
       await prisma.actor.findUnique({
         where: { uuid: saved.uuid },
@@ -191,14 +151,14 @@ describe('ActorsService database write', () => {
       await prisma.contactPerson.count({
         where: { applicationId: caseNumber },
       }),
-    ).toBe(2);
+    ).toBe(0);
     const failedStreet = `Failed street ${marker}`;
-    const duplicateIdMapper = {
+    const duplicateIdMapper = Object.assign(new ActorMapper(), {
       toCreateInput: (input: CreateActorDto) => ({
-        ...mapper.toCreateInput(input, Availability.Day),
+        ...mapper.toCreateInput(input),
         uuid: saved.uuid,
       }),
-    };
+    });
     const duplicateIdService = new ActorsService(
       applicationsRepository,
       repository,
@@ -235,17 +195,14 @@ describe('ActorsService database write', () => {
       .expect(201);
     actorIds.push(response.body.uuid);
     addressIds.push(response.body.address.uuid);
-    expect(response.body.contactPersons[0]).toMatchObject({
-      applicationId: caseNumber,
-      availability: 'Day',
-    });
+    expect(response.body.contactPersons).toEqual([]);
 
     const listing = await request(app.getHttpServer())
-      .get(`/api/actors/application/${encodeURIComponent(caseNumber)}`)
+      .get('/api/actors')
       .expect(200);
-    expect(
-      listing.body.actors.map((actor: { uuid: string }) => actor.uuid),
-    ).toContain(response.body.uuid);
+    expect(listing.body.map((actor: { uuid: string }) => actor.uuid)).toContain(
+      response.body.uuid,
+    );
 
     await request(app.getHttpServer())
       .post('/api/actors')
@@ -260,5 +217,96 @@ describe('ActorsService database write', () => {
         where: { email: `invalid-${marker}@example.com` },
       }),
     ).toBe(0);
+  });
+
+  it('reuses an existing address only when all four trimmed fields match', async () => {
+    const address = {
+      ...dto.address,
+      street: `Shared street ${marker}`,
+    };
+    const existing = await prisma.address.create({ data: address });
+    addressIds.push(existing.uuid);
+
+    for (let index = 0; index < 2; index++) {
+      const response = await request(app.getHttpServer())
+        .post('/api/actors')
+        .send({
+          ...dto,
+          email: `shared-${index}-${marker}@example.com`,
+          address: {
+            street: ` ${address.street} `,
+            houseNumber: ` ${address.houseNumber} `,
+            postalCode: ` ${address.postalCode} `,
+            city: ` ${address.city} `,
+          },
+        })
+        .expect(201);
+      actorIds.push(response.body.uuid);
+      expect(response.body.address.uuid).toBe(existing.uuid);
+    }
+    expect(await prisma.address.count({ where: address })).toBe(1);
+
+    for (const field of [
+      'street',
+      'houseNumber',
+      'postalCode',
+      'city',
+    ] as const) {
+      const response = await request(app.getHttpServer())
+        .post('/api/actors')
+        .send({
+          ...dto,
+          email: `different-${field}-${marker}@example.com`,
+          address: { ...address, [field]: `${address[field]}2` },
+        })
+        .expect(201);
+      actorIds.push(response.body.uuid);
+      addressIds.push(response.body.address.uuid);
+      expect(response.body.address.uuid).not.toBe(existing.uuid);
+    }
+  });
+
+  it('changes one actor address without modifying an address shared by another actor', async () => {
+    const address = {
+      ...dto.address,
+      street: `Update shared street ${marker}`,
+    };
+    const existing = await prisma.address.create({ data: address });
+    addressIds.push(existing.uuid);
+    const sharedActorIds: string[] = [];
+    for (let index = 0; index < 2; index++) {
+      const response = await request(app.getHttpServer())
+        .post('/api/actors')
+        .send({
+          ...dto,
+          address,
+          email: `update-${index}-${marker}@example.com`,
+        })
+        .expect(201);
+      actorIds.push(response.body.uuid);
+      sharedActorIds.push(response.body.uuid);
+      expect(response.body.address.uuid).toBe(existing.uuid);
+    }
+
+    const response = await request(app.getHttpServer())
+      .patch(`/api/actors/${sharedActorIds[0]}`)
+      .send({ address: { ...address, houseNumber: '99' } })
+      .expect(200);
+    addressIds.push(response.body.address.uuid);
+    expect(response.body.address.uuid).not.toBe(existing.uuid);
+    expect(response.body.address.houseNumber).toBe('99');
+    expect(
+      await prisma.actor.findUnique({ where: { uuid: sharedActorIds[1] } }),
+    ).toMatchObject({ addressId: existing.uuid });
+    expect(
+      await prisma.address.findUnique({ where: { uuid: existing.uuid } }),
+    ).toMatchObject(address);
+
+    const reconnected = await request(app.getHttpServer())
+      .patch(`/api/actors/${sharedActorIds[0]}`)
+      .send({ address })
+      .expect(200);
+    expect(reconnected.body.address.uuid).toBe(existing.uuid);
+    expect(await prisma.address.count({ where: address })).toBe(1);
   });
 });

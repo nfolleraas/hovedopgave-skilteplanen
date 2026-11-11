@@ -1,5 +1,6 @@
 import { NotFoundException, ValidationPipe } from '@nestjs/common';
 import { ActorRole } from '../../generated/prisma/enums.js';
+import { AddressService } from '../address/address.service.js';
 import { ActorsController } from './actors.controller.js';
 import { ActorsService } from './actors.service.js';
 import type { CreateActorDto } from './dto/create-actor.dto.js';
@@ -12,6 +13,7 @@ describe('ActorsController', () => {
   const findOne = vi.fn();
   const update = vi.fn();
   const deleteActor = vi.fn();
+  const findMatching = vi.fn();
 
   beforeEach(() => {
     create.mockReset();
@@ -19,13 +21,18 @@ describe('ActorsController', () => {
     findOne.mockReset();
     update.mockReset();
     deleteActor.mockReset();
-    controller = new ActorsController({
-      create,
-      findAll,
-      findOne,
-      update,
-      delete: deleteActor,
-    } as unknown as ActorsService);
+    findMatching.mockReset();
+    findMatching.mockResolvedValue(null);
+    controller = new ActorsController(
+      {
+        create,
+        findAll,
+        findOne,
+        update,
+        delete: deleteActor,
+      } as unknown as ActorsService,
+      { findMatching } as unknown as AddressService,
+    );
   });
 
   it('passes the creation DTO to the service and returns the actor', async () => {
@@ -34,7 +41,60 @@ describe('ActorsController', () => {
     create.mockResolvedValue(actor);
 
     await expect(controller.create(dto)).resolves.toBe(actor);
-    expect(create).toHaveBeenCalledExactlyOnceWith(dto);
+    expect(create).toHaveBeenCalledExactlyOnceWith(dto, undefined);
+  });
+
+  it('uses the address service to reuse a matching address when creating an actor', async () => {
+    const dto = {
+      name: 'Actor',
+      address: {
+        street: 'Testvej',
+        houseNumber: '12',
+        postalCode: '5000',
+        city: 'Odense',
+      },
+    } as CreateActorDto;
+    findMatching.mockResolvedValue({ uuid: 'existing-address-id' });
+
+    await controller.create(dto);
+
+    expect(findMatching).toHaveBeenCalledExactlyOnceWith(dto.address);
+    expect(create).toHaveBeenCalledExactlyOnceWith(dto, 'existing-address-id');
+  });
+
+  it('does not create an actor when the address lookup fails', async () => {
+    const error = new Error('Address lookup failed');
+    findMatching.mockRejectedValue(error);
+
+    await expect(controller.create({} as CreateActorDto)).rejects.toBe(error);
+    expect(create).not.toHaveBeenCalled();
+  });
+
+  it('reuses a matching address when updating an actor', async () => {
+    const dto = {
+      address: {
+        street: 'Testvej',
+        houseNumber: '12',
+        postalCode: '5000',
+        city: 'Odense',
+      },
+    };
+    findMatching.mockResolvedValue({ uuid: 'existing-address-id' });
+
+    await controller.update('actor-id', dto);
+
+    expect(findMatching).toHaveBeenCalledExactlyOnceWith(dto.address);
+    expect(update).toHaveBeenCalledExactlyOnceWith(
+      'actor-id',
+      dto,
+      'existing-address-id',
+    );
+  });
+
+  it('skips the address lookup when an update has no address', async () => {
+    await controller.update('actor-id', { name: 'Actor' });
+
+    expect(findMatching).not.toHaveBeenCalled();
   });
 
   it('returns all actors from the service', async () => {
@@ -103,7 +163,7 @@ describe('ActorsController', () => {
     update.mockResolvedValue(actor);
 
     await expect(controller.update('actor-id', dto)).resolves.toBe(actor);
-    expect(update).toHaveBeenCalledExactlyOnceWith('actor-id', dto);
+    expect(update).toHaveBeenCalledExactlyOnceWith('actor-id', dto, undefined);
   });
 
   it('accepts supported update fields through the global validation settings', async () => {

@@ -1,26 +1,13 @@
 import { Injectable } from '@nestjs/common';
+import { AddressRepository } from './address.repository.js';
 import { CreateAddressDto } from './dto/create-address.dto.js';
-import { UpdateAddressDto } from './dto/update-address.dto.js';
+import { toAddressCreateInput } from './mappers/address.mapper.js';
 
 @Injectable()
 export class AddressService {
-  create(createAddressDto: CreateAddressDto) {
-    return 'This action adds a new address';
-  }
+  constructor(private readonly addressRepository: AddressRepository) {}
 
-  findAll() {
-    return `This action returns all address`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} address`;
-  }
-
-  update(id: number, updateAddressDto: UpdateAddressDto) {
-    return `This action updates a #${id} address`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} address`;
+  findMatching(address: CreateAddressDto) {
+    return this.addressRepository.findMatching(toAddressCreateInput(address));
   }
 }

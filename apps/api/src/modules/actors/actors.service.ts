@@ -3,11 +3,6 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import {
-  ActorRole,
-  ApplicationType,
-  Availability,
-} from '../../generated/prisma/enums.js';
 import { ApplicationsRepository } from '../applications/applications.repository.js';
 import { ActorsRepository } from './actors.repository.js';
 import { CreateActorDto } from './dto/create-actor.dto.js';
@@ -22,7 +17,7 @@ export class ActorsService {
     private readonly actorMapper: ActorMapper,
   ) {}
 
-  async create(createActorDto: CreateActorDto) {
+  async create(createActorDto: CreateActorDto, existingAddressId?: string) {
     const application = await this.applicationsRepository.get(
       createActorDto.applicationCaseNumber,
     );
@@ -30,25 +25,8 @@ export class ActorsService {
       throw new NotFoundException('Application not found');
     }
 
-    let contactAvailability: Availability = Availability.Day;
-    if (createActorDto.role === ActorRole.Private) {
-      if (createActorDto.contactPerson) {
-        throw new BadRequestException(
-          'Private actors cannot have contact persons',
-        );
-      }
-    } else if (createActorDto.contactPerson) {
-      if (application.type === ApplicationType.ExcavationPermit) {
-        const requestedAvailability = createActorDto.contactPerson.availability;
-        if (!requestedAvailability) {
-          throw new BadRequestException('Contact availability is required');
-        }
-        contactAvailability = requestedAvailability;
-      }
-    }
-
     return this.actorsRepository.create(
-      this.actorMapper.toCreateInput(createActorDto, contactAvailability),
+      this.actorMapper.toCreateInput(createActorDto, existingAddressId),
     );
   }
 
@@ -64,45 +42,19 @@ export class ActorsService {
     return actor;
   }
 
-  async update(uuid: string, updateActorDto: UpdateActorDto) {
+  async update(
+    uuid: string,
+    updateActorDto: UpdateActorDto,
+    existingAddressId?: string,
+  ) {
     if ('role' in updateActorDto) {
       throw new BadRequestException(
         'Actor role can only be set during creation',
       );
     }
-    let dto = updateActorDto;
-    if (dto.contactPerson !== undefined) {
-      const actor = await this.findOne(uuid);
-      if (actor.role === ActorRole.Private) {
-        throw new BadRequestException(
-          'Private actors cannot have contact persons',
-        );
-      }
-
-      const contactPerson = actor.contactPersons[0];
-      if (!contactPerson) {
-        throw new NotFoundException('Contact person not found');
-      }
-      const application = await this.applicationsRepository.get(
-        contactPerson.applicationId,
-      );
-      if (!application) {
-        throw new NotFoundException('Application not found');
-      }
-      if (application.type !== ApplicationType.ExcavationPermit) {
-        dto = {
-          ...dto,
-          contactPerson: {
-            ...dto.contactPerson,
-            availability: Availability.Day,
-          },
-        };
-      }
-    }
-
     return this.actorsRepository.update(
       uuid,
-      this.actorMapper.toUpdateInput(uuid, dto),
+      this.actorMapper.toUpdateInput(updateActorDto, existingAddressId),
     );
   }
 

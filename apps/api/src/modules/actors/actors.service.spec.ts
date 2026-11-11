@@ -1,9 +1,5 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
-import {
-  ActorRole,
-  ApplicationType,
-  Availability,
-} from '../../generated/prisma/enums.js';
+import { ActorRole, ApplicationType } from '../../generated/prisma/enums.js';
 import { ApplicationsRepository } from '../applications/applications.repository.js';
 import { ActorsRepository } from './actors.repository.js';
 import { ActorsService } from './actors.service.js';
@@ -84,15 +80,6 @@ describe('ActorsService', () => {
       cvrNumber: '12345678',
       department: 'Byggeri',
       applications: { connect: { caseNumber: 'CASE-123' } },
-      contactPersons: {
-        create: {
-          name: 'Jane Doe',
-          email: 'jane@example.com',
-          phoneNumber: '87654321',
-          availability: Availability.Day,
-          application: { connect: { caseNumber: 'CASE-123' } },
-        },
-      },
       address: {
         create: {
           street: 'Testvej',
@@ -110,6 +97,28 @@ describe('ActorsService', () => {
 
     await expect(service.delete('actor-id')).resolves.toBe(actor);
     expect(deleteActor).toHaveBeenCalledExactlyOnceWith('actor-id');
+  });
+
+  it('connects the existing address passed by the controller when creating an actor', async () => {
+    await service.create(dto, 'existing-address-id');
+
+    expect(create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        address: { connect: { uuid: 'existing-address-id' } },
+      }),
+    );
+  });
+
+  it('connects the existing address passed by the controller when updating an actor', async () => {
+    await service.update(
+      'actor-id',
+      { address: dto.address },
+      'existing-address-id',
+    );
+
+    expect(update).toHaveBeenCalledExactlyOnceWith('actor-id', {
+      address: { connect: { uuid: 'existing-address-id' } },
+    });
   });
 
   it('returns a not-found exception when deleting a missing actor', async () => {
@@ -152,54 +161,11 @@ describe('ActorsService', () => {
     expect(update).toHaveBeenCalledExactlyOnceWith('actor-id', {
       name: 'Updated Actor',
       address: {
-        update: {
+        create: {
           street: 'New street',
           houseNumber: '2',
           postalCode: '8000',
           city: 'Aarhus',
-        },
-      },
-    });
-  });
-
-  it('updates the related contact person through the repository', async () => {
-    findApplication.mockResolvedValue({
-      type: ApplicationType.ExcavationPermit,
-    });
-    await service.update('actor-id', {
-      contactPerson: {
-        name: ' Jane Doe ',
-        email: ' jane@example.com ',
-        phoneNumber: '87654321',
-        availability: Availability.Evening,
-      },
-    });
-
-    expect(update).toHaveBeenCalledExactlyOnceWith('actor-id', {
-      contactPersons: {
-        update: {
-          where: { actorId: 'actor-id' },
-          data: {
-            name: 'Jane Doe',
-            email: 'jane@example.com',
-            phoneNumber: '87654321',
-            availability: Availability.Evening,
-          },
-        },
-      },
-    });
-  });
-
-  it('leaves omitted contact person fields unchanged', async () => {
-    await service.update('actor-id', {
-      contactPerson: { email: ' new@example.com ' },
-    });
-
-    expect(update).toHaveBeenCalledExactlyOnceWith('actor-id', {
-      contactPersons: {
-        update: {
-          where: { actorId: 'actor-id' },
-          data: { email: 'new@example.com', availability: Availability.Day },
         },
       },
     });
@@ -234,51 +200,6 @@ describe('ActorsService', () => {
 
     await expect(service.create(dto)).rejects.toThrow('Application not found');
     expect(create).not.toHaveBeenCalled();
-  });
-
-  it('requires availability for an excavation permit', async () => {
-    findApplication.mockResolvedValue({
-      type: ApplicationType.ExcavationPermit,
-    });
-
-    await expect(service.create(dto)).rejects.toThrow(
-      'Contact availability is required',
-    );
-    expect(create).not.toHaveBeenCalled();
-  });
-
-  it('defaults a road permit event contact person to daytime availability', async () => {
-    findApplication.mockResolvedValue({
-      type: ApplicationType.RoadUsePermitEvent,
-    });
-    create.mockResolvedValue({ uuid: 'event-actor-id' });
-
-    await service.create(dto);
-
-    expect(create.mock.calls[0][0].contactPersons.create.availability).toBe(
-      Availability.Day,
-    );
-  });
-
-  it('uses the selected availability for an excavation permit', async () => {
-    findApplication.mockResolvedValue({
-      type: ApplicationType.ExcavationPermit,
-    });
-    create.mockResolvedValue({ uuid: 'excavation-actor-id' });
-
-    await service.create({
-      ...dto,
-      contactPerson: {
-        name: 'Jane Doe',
-        email: 'jane@example.com',
-        phoneNumber: '87654321',
-        availability: Availability.Evening,
-      },
-    });
-
-    expect(create.mock.calls[0][0].contactPersons.create.availability).toBe(
-      Availability.Evening,
-    );
   });
 
   it('skips contact person and business fields for a private actor', async () => {
@@ -384,107 +305,6 @@ describe('ActorsService', () => {
     );
   });
 
-  describe.each([
-    ApplicationType.RoadUsePermit,
-    ApplicationType.RoadUsePermitEvent,
-  ])('%s contact availability', (type) => {
-    it.each([undefined, ...Object.values(Availability)])(
-      'always saves Day on creation when availability is %s',
-      async (availability) => {
-        findApplication.mockResolvedValue({ type });
-        const contactPerson = { ...dto.contactPerson, availability };
-
-        await service.create({ ...dto, contactPerson });
-
-        expect(create.mock.calls[0][0].contactPersons.create.availability).toBe(
-          Availability.Day,
-        );
-        expect(contactPerson.availability).toBe(availability);
-      },
-    );
-
-    it.each([undefined, ...Object.values(Availability)])(
-      'always saves Day on contact updates when availability is %s',
-      async (availability) => {
-        findApplication.mockResolvedValue({ type });
-        const contactPerson = { email: 'new@example.com', availability };
-
-        await service.update('actor-id', { contactPerson });
-
-        expect(findApplication).toHaveBeenCalledExactlyOnceWith('CASE-123');
-        expect(update.mock.calls[0][1].contactPersons.update.data).toEqual({
-          email: 'new@example.com',
-          availability: Availability.Day,
-        });
-        expect(contactPerson.availability).toBe(availability);
-      },
-    );
-  });
-
-  it.each(Object.values(Availability))(
-    'preserves excavation availability %s on creation and updates',
-    async (availability) => {
-      findApplication.mockResolvedValue({
-        type: ApplicationType.ExcavationPermit,
-      });
-
-      await service.create({
-        ...dto,
-        contactPerson: { ...dto.contactPerson, availability },
-      });
-      await service.update('actor-id', { contactPerson: { availability } });
-
-      expect(create.mock.calls[0][0].contactPersons.create.availability).toBe(
-        availability,
-      );
-      expect(update.mock.calls[0][1].contactPersons.update.data).toEqual({
-        availability,
-      });
-    },
-  );
-
-  it('leaves excavation availability unchanged when omitted from a partial update', async () => {
-    findApplication.mockResolvedValue({
-      type: ApplicationType.ExcavationPermit,
-    });
-
-    await service.update('actor-id', {
-      contactPerson: { email: 'new@example.com' },
-    });
-
-    expect(update.mock.calls[0][1].contactPersons.update.data).toEqual({
-      email: 'new@example.com',
-    });
-  });
-
-  it.each(Object.values(ApplicationType))(
-    'rejects contact persons on private actors for %s',
-    async (type) => {
-      findApplication.mockResolvedValue({ type });
-
-      await expect(
-        service.create({ ...dto, role: ActorRole.Private }),
-      ).rejects.toThrow(
-        new BadRequestException('Private actors cannot have contact persons'),
-      );
-      expect(create).not.toHaveBeenCalled();
-    },
-  );
-
-  it('rejects contact updates on existing private actors when role is omitted', async () => {
-    get.mockResolvedValue({ role: ActorRole.Private, contactPersons: [] });
-
-    await expect(
-      service.update('actor-id', {
-        contactPerson: { email: 'new@example.com' },
-      }),
-    ).rejects.toThrow(
-      new BadRequestException('Private actors cannot have contact persons'),
-    );
-    expect(update).not.toHaveBeenCalled();
-    expect(findApplication).not.toHaveBeenCalled();
-  });
-
   it('rejects contact details when changing an actor to private', async () => {
     const input = {
       role: ActorRole.Private,
@@ -508,31 +328,4 @@ describe('ActorsService', () => {
       expect(get).not.toHaveBeenCalled();
     },
   );
-
-  it('rejects contact updates for a missing actor', async () => {
-    get.mockResolvedValue(null);
-
-    await expect(
-      service.update('missing-id', { contactPerson: {} }),
-    ).rejects.toThrow(new NotFoundException('Actor not found'));
-    expect(update).not.toHaveBeenCalled();
-  });
-
-  it('rejects updates when the contact person does not exist', async () => {
-    get.mockResolvedValue({ role: ActorRole.Contractor, contactPersons: [] });
-
-    await expect(
-      service.update('actor-id', { contactPerson: {} }),
-    ).rejects.toThrow(new NotFoundException('Contact person not found'));
-    expect(update).not.toHaveBeenCalled();
-  });
-
-  it('rejects contact updates when the linked application does not exist', async () => {
-    findApplication.mockResolvedValue(null);
-
-    await expect(
-      service.update('actor-id', { contactPerson: {} }),
-    ).rejects.toThrow(new NotFoundException('Application not found'));
-    expect(update).not.toHaveBeenCalled();
-  });
 });

@@ -7,17 +7,24 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
+import { AddressService } from '../address/address.service.js';
 import { ActorsService } from './actors.service.js';
 import { CreateActorDto } from './dto/create-actor.dto.js';
 import { UpdateActorDto } from './dto/update-actor.dto.js';
 
 @Controller('actors')
 export class ActorsController {
-  constructor(private readonly actorsService: ActorsService) {}
+  constructor(
+    private readonly actorsService: ActorsService,
+    private readonly addressService: AddressService,
+  ) {}
 
   @Post()
-  create(@Body() createActorDto: CreateActorDto) {
-    return this.actorsService.create(createActorDto);
+  async create(@Body() createActorDto: CreateActorDto) {
+    const address = await this.addressService.findMatching(
+      createActorDto.address,
+    );
+    return this.actorsService.create(createActorDto, address?.uuid);
   }
 
   @Get()
@@ -31,8 +38,14 @@ export class ActorsController {
   }
 
   @Patch(':uuid')
-  update(@Param('uuid') uuid: string, @Body() updateActorDto: UpdateActorDto) {
-    return this.actorsService.update(uuid, updateActorDto);
+  async update(
+    @Param('uuid') uuid: string,
+    @Body() updateActorDto: UpdateActorDto,
+  ) {
+    const address = updateActorDto.address
+      ? await this.addressService.findMatching(updateActorDto.address)
+      : undefined;
+    return this.actorsService.update(uuid, updateActorDto, address?.uuid);
   }
 
   @Delete(':uuid')
