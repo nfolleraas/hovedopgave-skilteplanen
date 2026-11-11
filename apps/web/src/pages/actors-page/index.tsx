@@ -15,7 +15,7 @@ import {
   Stack,
   Typography,
 } from '@mui/material';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { deleteActor as deleteActorRequest } from '../../api/actors.api.js';
 import type { SavedActor } from './actor.types.js';
@@ -27,9 +27,27 @@ export default function ActorsPage() {
   const [actorToDelete, setActorToDelete] = useState<SavedActor | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteFailed, setDeleteFailed] = useState(false);
+  const [statusMessage, setStatusMessage] = useState('');
+  const [deleteDialogExited, setDeleteDialogExited] = useState(true);
+  const createButton = useRef<HTMLButtonElement>(null);
+  const retryButton = useRef<HTMLButtonElement>(null);
+  const restoreFocusAfterDelete = useRef(false);
   const isDeleteOpen = actorToDelete !== null;
 
+  useEffect(() => {
+    if (
+      restoreFocusAfterDelete.current &&
+      deleteDialogExited &&
+      !isDeleteOpen &&
+      !isLoading
+    ) {
+      (loadFailed ? retryButton.current : createButton.current)?.focus();
+      restoreFocusAfterDelete.current = false;
+    }
+  }, [deleteDialogExited, isDeleteOpen, isLoading, loadFailed]);
+
   function openDeleteDialog(actor: SavedActor) {
+    setDeleteDialogExited(false);
     setDeleteFailed(false);
     setActorToDelete(actor);
   }
@@ -46,6 +64,8 @@ export default function ActorsPage() {
     setDeleteFailed(false);
     try {
       await deleteActorRequest(actorToDelete.uuid);
+      setStatusMessage(`${actorToDelete.name} er slettet.`);
+      restoreFocusAfterDelete.current = true;
       setActors((current) =>
         current.filter((actor) => actor.uuid !== actorToDelete.uuid),
       );
@@ -60,6 +80,9 @@ export default function ActorsPage() {
 
   return (
     <>
+      <Typography className="visually-hidden" role="status">
+        {statusMessage}
+      </Typography>
       <Paper
         component="section"
         elevation={0}
@@ -78,7 +101,7 @@ export default function ActorsPage() {
         ) : loadFailed ? (
           <Alert
             action={
-              <Button color="inherit" onClick={retry}>
+              <Button color="inherit" onClick={retry} ref={retryButton}>
                 Prøv igen
               </Button>
             }
@@ -108,7 +131,14 @@ export default function ActorsPage() {
                   py: 1,
                 }}
               >
-                <Typography sx={{ flex: 1, fontWeight: 600 }}>
+                <Typography
+                  sx={{
+                    flex: 1,
+                    minWidth: 0,
+                    overflowWrap: 'anywhere',
+                    fontWeight: 600,
+                  }}
+                >
                   {actor.name}
                 </Typography>
                 <IconButton
@@ -116,14 +146,24 @@ export default function ActorsPage() {
                   onClick={() =>
                     navigate(`actors/${encodeURIComponent(actor.uuid)}/edit`)
                   }
-                  sx={{ color: '#1562AD' }}
+                  sx={{
+                    color: '#1562AD',
+                    flexShrink: 0,
+                    minWidth: 44,
+                    minHeight: 44,
+                  }}
                 >
                   <EditOutlinedIcon />
                 </IconButton>
                 <IconButton
                   aria-label={`Slet ${actor.name}`}
                   onClick={() => openDeleteDialog(actor)}
-                  sx={{ color: '#424242' }}
+                  sx={{
+                    color: '#424242',
+                    flexShrink: 0,
+                    minWidth: 44,
+                    minHeight: 44,
+                  }}
                 >
                   <DeleteOutlineIcon />
                 </IconButton>
@@ -146,6 +186,7 @@ export default function ActorsPage() {
           <Button
             disabled={isLoading || loadFailed}
             onClick={() => navigate('actors/create')}
+            ref={createButton}
             startIcon={<AddIcon />}
             sx={{ borderRadius: 1, px: 2.5 }}
             variant="contained"
@@ -159,6 +200,9 @@ export default function ActorsPage() {
         aria-labelledby="delete-actor-title"
         onClose={closeDeleteDialog}
         open={isDeleteOpen}
+        slotProps={{
+          transition: { onExited: () => setDeleteDialogExited(true) },
+        }}
       >
         <DialogTitle id="delete-actor-title">Slet aktør?</DialogTitle>
         <DialogContent aria-busy={isDeleting}>
@@ -167,7 +211,11 @@ export default function ActorsPage() {
               Aktøren kunne ikke slettes. Prøv igen.
             </Alert>
           )}
-          <Typography color="text.secondary" id="delete-actor-description">
+          <Typography
+            color="text.secondary"
+            id="delete-actor-description"
+            sx={{ overflowWrap: 'anywhere' }}
+          >
             Er du sikker på, at du vil slette {actorToDelete?.name}? Aktørens
             kontaktpersoner bliver også slettet.
           </Typography>

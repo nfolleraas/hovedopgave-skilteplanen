@@ -1,3 +1,3 @@
 export default function ContactsPage() {
-  return <div></div>;
+  return <main id="main-content" tabIndex={-1} />;
 }

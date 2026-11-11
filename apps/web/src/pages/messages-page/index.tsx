@@ -1,3 +1,3 @@
 export default function MessagesPage() {
-  return <main />;
+  return <main id="main-content" tabIndex={-1} />;
 }

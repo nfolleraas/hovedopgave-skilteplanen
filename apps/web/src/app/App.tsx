@@ -13,7 +13,7 @@ function NotFoundPage() {
   const { t } = useTranslation();
 
   return (
-    <main>
+    <main id="main-content" tabIndex={-1}>
       <Container sx={{ py: 8 }}>
         <Typography component="h1" variant="h4">
           {t('notFound.title')}
@@ -26,6 +26,9 @@ function NotFoundPage() {
 export default function App() {
   return (
     <>
+      <a className="skip-link" href="#main-content">
+        Spring til hovedindhold
+      </a>
       <Navbar />
       <Routes>
         {[routes.application, routes.selectedApplication].map((path) => (

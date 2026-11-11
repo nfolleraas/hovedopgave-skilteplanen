@@ -89,7 +89,12 @@ export default function ActorsLayout() {
   };
 
   return (
-    <Box component="main" sx={{ bgcolor: '#F7F9FC', minHeight: '100%' }}>
+    <Box
+      component="main"
+      id="main-content"
+      sx={{ bgcolor: '#F7F9FC', minHeight: '100%' }}
+      tabIndex={-1}
+    >
       <Container maxWidth="lg" sx={{ py: { xs: 3, md: 5 } }}>
         <Box component="section">
           <Stack direction="row" spacing={2} sx={{ mb: 1.5 }}>
@@ -107,7 +112,7 @@ export default function ActorsLayout() {
               {title}
             </Typography>
           </Stack>
-          <Typography color="#757575" sx={{ mb: 3 }} variant="body1">
+          <Typography sx={{ color: 'text.secondary', mb: 3 }} variant="body1">
             {isEditing
               ? 'Rediger oplysningerne om den valgte aktør.'
               : isCreating

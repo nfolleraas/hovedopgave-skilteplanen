@@ -4,10 +4,10 @@ import type { ReactNode } from 'react';
 const theme = createTheme({
   palette: {
     background: { default: '#FFFFFF', paper: '#FFFFFF' },
-    error: { main: '#F44336' },
+    error: { main: '#C62828' },
     primary: { main: '#1562AD', contrastText: '#FFFFFF' },
     success: { main: '#4CAF50' },
-    text: { primary: '#212121', secondary: '#757575' },
+    text: { primary: '#212121', secondary: '#616161' },
   },
   shape: { borderRadius: 4 },
   typography: {

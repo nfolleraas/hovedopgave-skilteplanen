@@ -29,9 +29,12 @@ export default function Navbar() {
       <Toolbar
         sx={{
           columnGap: { xs: 1, md: 3 },
+          rowGap: 1,
+          flexWrap: { xs: 'wrap', sm: 'nowrap' },
           minHeight: 72,
           justifyContent: 'space-between',
           px: { xs: 2, sm: 3 },
+          py: { xs: 1, sm: 0 },
         }}
       >
         <Box
@@ -48,12 +51,19 @@ export default function Navbar() {
               display: 'block',
               height: 42,
               objectFit: 'contain',
-              width: { xs: 150, sm: 190 },
+              width: { xs: 120, sm: 190 },
             }}
           />
         </Box>
 
-        <Box component="nav" sx={{ flex: '1 1 auto', minWidth: 0 }}>
+        <Box
+          component="nav"
+          sx={{
+            flex: { xs: '1 1 100%', sm: '1 1 auto' },
+            minWidth: 0,
+            order: { xs: 3, sm: 0 },
+          }}
+        >
           <Tabs
             aria-label="Hovednavigation"
             scrollButtons="auto"
@@ -88,6 +98,7 @@ export default function Navbar() {
         </Box>
 
         <Button
+          aria-label="Profil"
           color="inherit"
           endIcon={<KeyboardArrowDownIcon />}
           startIcon={<AccountCircleOutlinedIcon />}

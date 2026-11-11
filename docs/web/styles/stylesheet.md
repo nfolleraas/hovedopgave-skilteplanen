@@ -12,12 +12,12 @@ take precedence where a component has its own style.
 | Header and footer | Blue background, white text | `#1562AD` / `#FFFFFF` |
 | Homepage hero | Dark blue to blue gradient | `#124B7A` → `#1C68AD` |
 | Main text | Almost black | `#212121` |
-| Secondary text | Grey | `#757575` |
+| Secondary text | Grey with AA contrast on supporting surfaces | `#616161` |
 | Page and panel background | White | `#FFFFFF` |
 | Muted panel background | Light grey | `#F5F5F5` |
 | Supporting section background | Very light blue-grey | `#F7F9FC` |
 | Success | Green | `#4CAF50` |
-| Error | Red | `#F44336` |
+| Error | Red with AA contrast for text on white | `#C62828` |
 
 ## Buttons
 
