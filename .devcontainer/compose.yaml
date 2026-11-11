@@ -1,7 +1,9 @@
 services:
   app:
     container_name: app
-    image: mcr.microsoft.com/devcontainers/typescript-node:22-bookworm
+    build:
+      context: .
+      dockerfile: Dockerfile
     restart: unless-stopped
     volumes:
       - ..:/workspaces/hovedopgave-skilteplanen:cached
@@ -68,3 +70,6 @@ volumes:
   api-node-modules:
   web-node-modules:
   pgdata:
+  root-node-modules:
+  api-node-modules:
+  web-node-modules:
