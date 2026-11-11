@@ -1,21 +1,24 @@
 import { ServiceUnavailableException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { PrismaService } from '../prisma/prisma.service.js';
+import { HealthRepository } from './health.repository.js';
 import { HealthService } from './health.service.js';
 
 describe('HealthService', () => {
   let service: HealthService;
-  let prisma: {
-    $queryRaw: ReturnType<typeof vi.fn>;
+  let repository: {
+    checkDatabase: ReturnType<typeof vi.fn>;
   };
 
   beforeEach(async () => {
-    prisma = {
-      $queryRaw: vi.fn(),
+    repository = {
+      checkDatabase: vi.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [HealthService, { provide: PrismaService, useValue: prisma }],
+      providers: [
+        HealthService,
+        { provide: HealthRepository, useValue: repository },
+      ],
     }).compile();
 
     service = module.get<HealthService>(HealthService);
@@ -30,13 +33,14 @@ describe('HealthService', () => {
   });
 
   it('returns a healthy status when the database responds', async () => {
-    prisma.$queryRaw.mockResolvedValue([{ result: 1 }]);
+    repository.checkDatabase.mockResolvedValue([{ result: 1 }]);
 
     await expect(service.getHealth()).resolves.toBe('Healthy');
+    expect(repository.checkDatabase).toHaveBeenCalledExactlyOnceWith();
   });
 
   it('returns a safe 503 error when the database check fails', async () => {
-    prisma.$queryRaw.mockRejectedValue(
+    repository.checkDatabase.mockRejectedValue(
       new Error('password authentication failed for user admin'),
     );
 
@@ -59,7 +63,7 @@ describe('HealthService', () => {
 
   it('returns a safe 503 error when the database check times out', async () => {
     vi.useFakeTimers();
-    prisma.$queryRaw.mockReturnValue(new Promise(() => {}));
+    repository.checkDatabase.mockReturnValue(new Promise(() => {}));
     const assertion = expect(service.getHealth()).rejects.toMatchObject({
       message: 'Service unavailable',
       status: 503,
