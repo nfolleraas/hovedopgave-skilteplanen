@@ -1,5 +1,5 @@
 model Address {
-  uuid         String        @id @default(uuid())
+  uuid         String         @id @default(uuid())
   street       String
   houseNumber  String
   postalCode   String
