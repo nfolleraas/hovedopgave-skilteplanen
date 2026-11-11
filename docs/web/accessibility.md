@@ -59,12 +59,12 @@ Every user must be able to:
   introduce positive `tabindex` values.
 - Ensure dialogs, menus, popovers, custom selects, drag-and-drop actions, and
   other widgets have documented keyboard behavior. Focus must move into a
-  modal when it opens, remain contained while it is open, and return to the
-  triggering control when it closes.
+  modal dialog when it opens, remain contained while it is open, and return to
+  the triggering control when it closes.
 - Provide a keyboard-accessible alternative for every pointer-only gesture,
   hover interaction, and drag-and-drop operation.
-- Do not trap focus in a page or component unless the user is inside a modal or
-  another interaction that requires a deliberate focus boundary.
+- Do not trap focus in a page or component unless the user is inside a modal
+  dialog or another interaction that requires a deliberate focus boundary.
 - Ensure keyboard users can dismiss temporary content, such as menus and
   dialogs, with the expected key (usually `Escape`) and can reach every control
   without depending on hover.

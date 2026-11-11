@@ -13,17 +13,17 @@ import { demoApplicationId } from '../document.constants.js';
 import type { Document } from '../document.types.js';
 import DocumentDropZone from './document-drop-zone.js';
 
-type AddSignplanModalProps = {
+type AddSignplanDialogProps = {
   onClose: () => void;
   onDocumentsUploaded: (documents: Document[]) => void;
   open: boolean;
 };
 
-export default function AddSignplanModal({
+export default function AddSignplanDialog({
   onClose,
   onDocumentsUploaded,
   open,
-}: AddSignplanModalProps) {
+}: AddSignplanDialogProps) {
   const { t } = useTranslation();
   const theme = useTheme();
   const titleId = useId();

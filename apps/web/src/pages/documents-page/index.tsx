@@ -12,8 +12,8 @@ import { useEffect, useId, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { routes } from '../../app/router.js';
-import DeleteConfirmationModal from '../../components/ui/modals/delete-confirmation-modal.js';
-import AddSignplanModal from './components/add-signplan-modal.js';
+import DeleteConfirmationDialog from '../../components/ui/dialogs/delete-confirmation-dialog.js';
+import AddSignplanDialog from './components/add-signplan-dialog.js';
 import DocumentDropZone from './components/document-drop-zone.js';
 import DocumentsTable from './components/documents-table.js';
 import { demoApplicationId } from './document.constants.js';
@@ -25,7 +25,7 @@ export default function DocumentsPage() {
   const listTitleId = useId();
   const listTitleRef = useRef<HTMLHeadingElement>(null);
   const pageTitleRef = useRef<HTMLHeadingElement>(null);
-  const [isAddSignplanModalOpen, setIsAddSignplanModalOpen] = useState(false);
+  const [isAddSignplanDialogOpen, setIsAddSignplanDialogOpen] = useState(false);
   const [documentToDelete, setDocumentToDelete] = useState<Document | null>(
     null,
   );
@@ -114,7 +114,7 @@ export default function DocumentsPage() {
             >
               <Button
                 fullWidth
-                onClick={() => setIsAddSignplanModalOpen(true)}
+                onClick={() => setIsAddSignplanDialogOpen(true)}
                 variant="outlined"
               >
                 {t('documents.addSignplan')}
@@ -128,14 +128,14 @@ export default function DocumentsPage() {
             />
           </Stack>
 
-          <AddSignplanModal
-            onClose={() => setIsAddSignplanModalOpen(false)}
+          <AddSignplanDialog
+            onClose={() => setIsAddSignplanDialogOpen(false)}
             onDocumentsUploaded={addDocuments}
-            open={isAddSignplanModalOpen}
+            open={isAddSignplanDialogOpen}
           />
 
           {documentToDelete && (
-            <DeleteConfirmationModal
+            <DeleteConfirmationDialog
               endpoint={`/documents/${documentToDelete.uuid}`}
               entityName={documentToDelete.name}
               onClose={() => setDocumentToDelete(null)}

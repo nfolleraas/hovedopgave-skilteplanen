@@ -11,7 +11,7 @@ import { useEffect, useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { apiClient } from '../../../api/client.api.js';
 
-type DeleteConfirmationModalProps = {
+type DeleteConfirmationDialogProps = {
   endpoint: string;
   entityName: string;
   onClose: () => void;
@@ -19,8 +19,8 @@ type DeleteConfirmationModalProps = {
   open: boolean;
 };
 
-export default function DeleteConfirmationModal(
-  props: DeleteConfirmationModalProps,
+export default function DeleteConfirmationDialog(
+  props: DeleteConfirmationDialogProps,
 ) {
   const { entityName, onClose, onDeleted, open } = props;
   const { t } = useTranslation();
