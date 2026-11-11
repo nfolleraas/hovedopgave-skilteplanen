@@ -28,6 +28,7 @@ export default function DocumentDropZone({
 }: DocumentDropZoneProps) {
   const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const mobileSupportedFileTypesId = useId();
   const promptId = useId();
   const supportedFileTypesId = useId();
   const isSignPlan = documentType === 'SignPlan';
@@ -85,6 +86,39 @@ export default function DocumentDropZone({
       >
         {isUploading ? uploadLabel : ''}
       </Box>
+      <Box
+        id={mobileSupportedFileTypesId}
+        sx={{
+          border: 0,
+          clip: 'rect(0 0 0 0)',
+          display: { xs: 'block', md: 'none' },
+          height: '1px',
+          m: '-1px',
+          overflow: 'hidden',
+          p: 0,
+          position: 'absolute',
+          whiteSpace: 'nowrap',
+          width: '1px',
+        }}
+      >
+        {t('documents.supportedFileTypes')}
+      </Box>
+      <Button
+        aria-describedby={mobileSupportedFileTypesId}
+        disabled={isUploading}
+        fullWidth
+        onClick={() => fileInputRef.current?.click()}
+        startIcon={
+          isUploading ? (
+            <CircularProgress aria-hidden="true" size={20} />
+          ) : <CloudUploadOutlinedIcon />
+        }
+        sx={{ display: { xs: 'inline-flex', md: 'none' } }}
+        type="button"
+        variant="contained"
+      >
+        {uploadLabel}
+      </Button>
       <Paper
         aria-busy={isUploading}
         aria-labelledby={promptId}
@@ -100,6 +134,7 @@ export default function DocumentDropZone({
           flex: 1,
           minWidth: 0,
           p: { xs: 3, sm: 4 },
+          display: { xs: 'none', md: 'block' },
           textAlign: 'center',
           transition: (theme) =>
             theme.transitions.create(['background-color', 'border-color']),
@@ -133,16 +168,16 @@ export default function DocumentDropZone({
           >
             {uploadLabel}
           </Button>
-          <input
-            accept={acceptedFileTypes}
-            hidden
-            multiple
-            onChange={handleFileSelected}
-            ref={fileInputRef}
-            type="file"
-          />
         </Stack>
       </Paper>
+      <input
+        accept={acceptedFileTypes}
+        hidden
+        multiple
+        onChange={handleFileSelected}
+        ref={fileInputRef}
+        type="file"
+      />
     </Stack>
   );
 }
