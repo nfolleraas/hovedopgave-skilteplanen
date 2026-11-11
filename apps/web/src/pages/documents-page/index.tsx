@@ -229,7 +229,12 @@ export default function DocumentsPage() {
             pt: 3,
           }}
         >
-          <Button component={Link} to={routes.application} variant="outlined">
+          <Button
+            color="secondary"
+            component={Link}
+            to={routes.application}
+            variant="contained"
+          >
             {t('navigation.back')}
           </Button>
           <Button component={Link} to={routes.contacts} variant="contained">
