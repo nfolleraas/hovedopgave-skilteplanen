@@ -1,6 +1,9 @@
 import { Alert, Box, Button, Paper, Typography } from '@mui/material';
 import { useTranslation } from 'react-i18next';
-import { roadOwnershipLabelKeys } from '../../../../features/areas/area-labels.js';
+import {
+  areaFieldLabelKeys,
+  roadOwnershipLabelKeys,
+} from '../../../../features/areas/area-labels.js';
 import type {
   AreaFieldErrors,
   AreaFieldSet,
@@ -19,11 +22,25 @@ export const areaCardIds = {
   delete: (areaKey: string) => `area-${areaKey}-delete`,
 };
 
+export interface AreaDetails {
+  houseNumberFrom: string | null;
+  houseNumberTo: string | null;
+  alternativeDescription: string | null;
+}
+
+const detailFields = [
+  'houseNumberFrom',
+  'houseNumberTo',
+  'alternativeDescription',
+] as const satisfies readonly (keyof AreaDetails & AreaFormField)[];
+
 interface AreaCardProps {
   areaKey: string;
   number: number;
   roadName: string;
   roadOwnership: RoadOwnership | '';
+  /** Saved location details shown while the card is collapsed. */
+  details: AreaDetails | null;
   isExpanded: boolean;
   isMissingFields: boolean;
   canEditApplication: boolean;
@@ -45,6 +62,7 @@ export function AreaCard({
   number,
   roadName,
   roadOwnership,
+  details,
   isExpanded,
   isMissingFields,
   canEditApplication,
@@ -141,6 +159,31 @@ export function AreaCard({
           </Box>
         )}
       </Box>
+
+      {!isExpanded && details && (
+        <Box
+          component="dl"
+          sx={{
+            columnGap: 3,
+            display: 'flex',
+            flexWrap: 'wrap',
+            m: 0,
+            mt: 1,
+            rowGap: 0.5,
+          }}
+        >
+          {detailFields.map((field) => (
+            <Box key={field} sx={{ display: 'flex', gap: 0.5 }}>
+              <Typography color="text.secondary" component="dt" variant="body2">
+                {t(areaFieldLabelKeys[field])}:
+              </Typography>
+              <Typography component="dd" sx={{ m: 0 }} variant="body2">
+                {details[field] || '–'}
+              </Typography>
+            </Box>
+          ))}
+        </Box>
+      )}
 
       {isExpanded && draft && (
         <Box sx={{ mt: 2 }}>

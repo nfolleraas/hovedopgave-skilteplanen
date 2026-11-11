@@ -336,6 +336,7 @@ export function AreasStep({
             <AreaCard
               areaKey={entry.key}
               canEditApplication={canEdit}
+              details={entry.saved ?? null}
               draft={isExpanded ? state.draft : null}
               errors={isExpanded && state.showErrors ? errorsFor(entry) : {}}
               fieldSet={fieldSet}
