@@ -42,15 +42,15 @@ export class SignPlansController {
     },
   })
   @UseInterceptors(FileInterceptor('file'))
-  create(
+  async create(
     @UploadedFile() file: Express.Multer.File,
     @Body() createSignPlanDto: CreateSignPlanDto,
   ) {
-    return this.signPlansService.create(createSignPlanDto, file);
+    return await this.signPlansService.create(createSignPlanDto, file);
   }
 
   @Get(':uuid')
-  findOne(@Param('uuid') uuid: string) {
-    return this.signPlansService.findOne(uuid);
+  async findOne(@Param('uuid') uuid: string) {
+    return await this.signPlansService.findOne(uuid);
   }
 }

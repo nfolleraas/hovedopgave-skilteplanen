@@ -27,7 +27,7 @@ export class R2Service {
   }
 
   async upload(key: string, body: Buffer, contentType?: string) {
-    return this.client.send(
+    return await this.client.send(
       new PutObjectCommand({
         Bucket: this.bucket,
         Key: key,
@@ -38,7 +38,7 @@ export class R2Service {
   }
 
   async download(key: string) {
-    return this.client.send(
+    return await this.client.send(
       new GetObjectCommand({
         Bucket: this.bucket,
         Key: key,
@@ -47,7 +47,7 @@ export class R2Service {
   }
 
   async list(prefix?: string, continuationToken?: string) {
-    return this.client.send(
+    return await this.client.send(
       new ListObjectsV2Command({
         Bucket: this.bucket,
         Prefix: prefix,
@@ -57,7 +57,7 @@ export class R2Service {
   }
 
   async delete(key: string) {
-    return this.client.send(
+    return await this.client.send(
       new DeleteObjectCommand({
         Bucket: this.bucket,
         Key: key,

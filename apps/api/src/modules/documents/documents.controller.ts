@@ -43,25 +43,25 @@ export class DocumentsController {
     },
   })
   @UseInterceptors(FileInterceptor('file'))
-  create(
+  async create(
     @UploadedFile() file: Express.Multer.File,
     @Body() createDocumentDto: CreateDocumentDto,
   ) {
-    return this.documentsService.create(createDocumentDto, file);
+    return await this.documentsService.create(createDocumentDto, file);
   }
 
   @Get()
-  findAll() {
-    return this.documentsService.findAll();
+  async findAll() {
+    return await this.documentsService.findAll();
   }
 
   @Get(':uuid')
-  findOne(@Param('uuid') uuid: string) {
-    return this.documentsService.findOne(uuid);
+  async findOne(@Param('uuid') uuid: string) {
+    return await this.documentsService.findOne(uuid);
   }
 
   @Delete(':uuid')
-  remove(@Param('uuid') uuid: string) {
-    return this.documentsService.remove(uuid);
+  async remove(@Param('uuid') uuid: string) {
+    return await this.documentsService.remove(uuid);
   }
 }
