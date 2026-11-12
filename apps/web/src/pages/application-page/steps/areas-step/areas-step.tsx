@@ -122,7 +122,7 @@ export function AreasStep({
   }
 
   // Areas start collapsed. A form only opens through "Redigér" or
-  // "Opret vej manuelt", and the page closes it when the step is left.
+  // "Indtast vej manuelt", and the page closes it when the step is left.
 
   useEffect(() => {
     if (showSummary) summaryRef.current?.focus();

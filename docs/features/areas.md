@@ -76,7 +76,7 @@ Flow i wizarden (`/ansoegning?sag=<sagsnummer>`):
 
 1. Siden henter ansøgningen og dens områder én gang.
 2. **Kort**: ansøgeren søger og vælger veje. Ved "Næste" oprettes ét område
-   pr. vej. "Opret vej manuelt" åbner et tomt område (UC-034 A3).
+   pr. vej. "Indtast vej manuelt" åbner et tomt område (UC-034 A3).
    - Vejsøgningen kalder Dataforsyningens GSearch (`navngivenvej`) direkte fra
      browseren i
      [`road-search.api.ts`](../../apps/web/src/api/road-search.api.ts).

@@ -347,7 +347,7 @@
     "deleted": "Området på {{road}} er slettet.",
     "deleteError": "Området kunne ikke slettes, prøv igen senere eller kontakt supporten.",
     "title": "Områder",
-    "addManually": "+ Opret vej manuelt",
+    "addManually": "+ Indtast vej manuelt",
     "deleteDialog": {
       "title": "Slet område?",
       "houseNumbers": "Husnr.: {{value}}",
