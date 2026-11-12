@@ -7,29 +7,31 @@ change.
 
 ## Quick lookup
 
-| Convention | What to do |
-| --- | --- |
-| Comments | Explain non-obvious purpose and complex reasoning. Keep comments accurate. |
-| Error handling | Handle failures with useful, actionable messages and preserve relevant context. |
-| Single responsibility | Give each function, class, and module one clear job. |
-| Low coupling, high cohesion | Keep related behavior together and reduce unnecessary dependencies. |
-| DRY | Reuse shared behavior when it improves clarity; avoid duplicated logic. |
-| KISS | Prefer the simplest design that meets the requirement. |
-| Fail early | Validate inputs and assumptions near the boundary. |
-| TypeScript | Use meaningful types and follow the official guidance for declaration files. |
-| Formatting | Follow Biome: spaces, 80-character line width, single quotes, trailing commas. |
+| Convention                  | What to do                                                                                                           |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| Comments                    | Add summary comments to non-boilerplate functions and methods. Explain complex reasoning and keep comments accurate. |
+| Error handling              | Handle failures with useful, actionable messages and preserve relevant context.                                      |
+| Single responsibility       | Give each function, class, and module one clear job.                                                                 |
+| Low coupling, high cohesion | Keep related behavior together and reduce unnecessary dependencies.                                                  |
+| DRY                         | Reuse shared behavior when it improves clarity; avoid duplicated logic.                                              |
+| KISS                        | Prefer the simplest design that meets the requirement.                                                               |
+| Fail early                  | Validate inputs and assumptions near the boundary.                                                                   |
+| TypeScript                  | Use meaningful types and follow the official guidance for declaration files.                                         |
+| Formatting                  | Follow Biome: spaces, 80-character line width, single quotes, trailing commas.                                       |
 
 ## Comments and documentation
 
-Describe a method's purpose when it is not clear from its name, types, and
-surrounding code. Comment on complex logic to explain intent, reasoning, or a
-non-obvious constraint. Do not comment every line or repeat what the code says.
+Add a descriptive summary comment to every function and method. Include relevant parameters and return values in the documentation. Comment on complex logic to explain intent, reasoning, or a non-obvious constraint. Do not comment every line or repeat what the code says.
 Update or remove comments when behavior changes.
 
 ```ts
-// Keep the selected route when a user refreshes the page.
-function restoreSelectedRoute(savedRoute: string | null): string {
-  return savedRoute ?? '/';
+/**
+ * Calculates the square of a number.
+ * @param value - The number to square
+ * @returns The squared result
+ */
+function square(value: number): number {
+  return value * value;
 }
 ```
 
