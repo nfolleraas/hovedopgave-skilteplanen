@@ -77,9 +77,10 @@ export default function DeleteConfirmationDialog(
       <DialogActions sx={{ px: 3, pb: 3 }}>
         <Button
           autoFocus
+          color="secondary"
           disabled={isDeleting}
           onClick={handleClose}
-          variant="outlined"
+          variant="contained"
         >
           {t('deleteConfirmation.cancel')}
         </Button>
