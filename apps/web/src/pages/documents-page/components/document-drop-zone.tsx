@@ -8,6 +8,7 @@ import {
   Stack,
   Typography,
 } from '@mui/material';
+import type { ChangeEvent } from 'react';
 import { useId, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { acceptedFileTypes } from '../document.constants.js';
@@ -41,12 +42,11 @@ export default function DocumentDropZone({
     ? t('documents.signPlanDropPrompt')
     : t('documents.dropPrompt');
   const {
-    error,
-    setError,
-    handleFileSelected,
+    dismissFailure,
+    dismissSuccess,
+    failures,
     isUploading,
-    successMessage,
-    setSuccessMessage,
+    successfulUploadCount,
     uploadFiles,
   } = useDocumentUpload({
     applicationId,
@@ -68,20 +68,39 @@ export default function DocumentDropZone({
       ? t('documents.uploadSignPlan')
       : t('documents.upload');
 
+  /**
+   * Uploads files selected through the hidden file input.
+   * @param event - The file input change event
+   * @returns A promise that resolves when the selected files are processed
+   */
+  const handleFileSelected = async (event: ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files ?? []);
+    event.target.value = '';
+
+    await uploadFiles(files);
+  };
+
   return (
     <Stack spacing={2} sx={{ flex: 1, minWidth: 0, width: '100%' }}>
-      {error && (
-        <Alert onClose={() => setError(null)} severity="error">
-          {error}
-        </Alert>
-      )}
-      {successMessage && (
+      {failures.map((failure) => (
         <Alert
-          onClose={() => setSuccessMessage(null)}
-          role="status"
-          severity="success"
+          key={failure.reason}
+          onClose={() => dismissFailure(failure.reason)}
+          role="alert"
+          severity="error"
         >
-          {successMessage}
+          {t('documents.uploadFailure', {
+            count: failure.count,
+            reason:
+              failure.reason === 'unsupportedFileType'
+                ? t('documents.unsupportedFileTypeReason')
+                : t('documents.unexpectedUploadErrorReason'),
+          })}
+        </Alert>
+      ))}
+      {successfulUploadCount > 0 && (
+        <Alert onClose={dismissSuccess} role="status" severity="success">
+          {t('documents.uploadSuccess', { count: successfulUploadCount })}
         </Alert>
       )}
       <Box

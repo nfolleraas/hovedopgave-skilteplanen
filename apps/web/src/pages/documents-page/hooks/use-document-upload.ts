@@ -1,9 +1,13 @@
-import type { ChangeEvent } from 'react';
 import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { createDocument } from '../../../api/documents.api.js';
-import { createSignPlan } from '../../../api/sign-plans.api.js';
+import {
+  type DocumentUploadFailureReason,
+  uploadDocumentFile,
+} from '../../../api/document-upload.api.js';
 import type { Document, DocumentType } from '../document.types.js';
+import {
+  type DocumentUploadFailure,
+  summarizeDocumentUploads,
+} from '../utils/summarize-document-uploads.js';
 
 type UseDocumentUploadOptions = {
   applicationId: string;
@@ -12,7 +16,7 @@ type UseDocumentUploadOptions = {
 };
 
 /**
- * Manages document uploads and their user-facing status messages.
+ * Manages document upload state and reports completed uploads.
  * @param options - The upload target, document type, and completion callback
  * @returns Upload handlers and the current upload state
  */
@@ -21,10 +25,26 @@ export function useDocumentUpload({
   documentType,
   onDocumentsUploaded,
 }: UseDocumentUploadOptions) {
-  const { t } = useTranslation();
-  const [error, setError] = useState<string | null>(null);
+  const [failures, setFailures] = useState<DocumentUploadFailure[]>([]);
   const [isUploading, setIsUploading] = useState(false);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [successfulUploadCount, setSuccessfulUploadCount] = useState(0);
+
+  /**
+   * Dismisses the upload alert for one failure reason.
+   * @param reason - The failure reason to dismiss
+   */
+  const dismissFailure = (reason: DocumentUploadFailureReason) => {
+    setFailures((currentFailures) =>
+      currentFailures.filter((failure) => failure.reason !== reason),
+    );
+  };
+
+  /**
+   * Dismisses the successful upload status.
+   */
+  const dismissSuccess = () => {
+    setSuccessfulUploadCount(0);
+  };
 
   /**
    * Uploads the selected files and reports partial success or failure.
@@ -36,60 +56,35 @@ export function useDocumentUpload({
       return;
     }
 
-    setError(null);
-    setSuccessMessage(null);
+    setFailures([]);
+    setSuccessfulUploadCount(0);
     setIsUploading(true);
 
     try {
-      const uploadResults = await Promise.allSettled(
+      const uploadResults = await Promise.all(
         files.map((file) =>
-          documentType === 'SignPlan'
-            ? createSignPlan(file, applicationId)
-            : createDocument(file, applicationId, documentType),
+          uploadDocumentFile(file, applicationId, documentType),
         ),
       );
-      const uploadedDocuments = uploadResults.flatMap((result) =>
-        result.status === 'fulfilled' ? [result.value] : [],
-      );
+      const summary = summarizeDocumentUploads(uploadResults);
 
-      if (uploadedDocuments.length > 0) {
-        onDocumentsUploaded(uploadedDocuments);
-        setSuccessMessage(
-          t('documents.uploadSuccess', { count: uploadedDocuments.length }),
-        );
+      if (summary.documents.length > 0) {
+        onDocumentsUploaded(summary.documents);
+        setSuccessfulUploadCount(summary.documents.length);
       }
 
-      if (uploadResults.some((result) => result.status === 'rejected')) {
-        setError(
-          documentType === 'SignPlan'
-            ? t('documents.signPlanUploadError')
-            : t('documents.uploadError'),
-        );
-      }
+      setFailures(summary.failures);
     } finally {
       setIsUploading(false);
     }
   };
 
-  /**
-   * Uploads files selected through the hidden file input.
-   * @param event - The file input change event
-   * @returns A promise that resolves when the selected files are processed
-   */
-  const handleFileSelected = async (event: ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files ?? []);
-    event.target.value = '';
-
-    await uploadFiles(files);
-  };
-
   return {
-    error,
-    setError,
-    handleFileSelected,
+    dismissFailure,
+    dismissSuccess,
+    failures,
     isUploading,
-    successMessage,
-    setSuccessMessage,
+    successfulUploadCount,
     uploadFiles,
   };
 }
