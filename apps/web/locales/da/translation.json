@@ -30,7 +30,8 @@
     "openUserMenu": "Åbn brugermenu",
     "settings": "Indstillinger",
     "logOut": "Log af",
-    "language": "Sprog"
+    "language": "Sprog",
+    "contacts": "Kontaktpersoner"
   },
   "home": {
     "title": "Ansøgningsplatformen",
@@ -39,5 +40,88 @@
   "login": {
     "title": "Log ind",
     "formPlaceholder": "Her kommer loginformularen."
+  },
+  "devApplications": {
+    "loadError": "Ansøgningerne kunne ikke hentes. Kører API'et?",
+    "createError": "Ansøgningen kunne ikke oprettes, prøv igen.",
+    "title": "Testansøgninger",
+    "intro": "Kun til test: vælg en ansøgning, eller opret en ny kladde.",
+    "type": "Ansøgningstype",
+    "create": "Opret ny ansøgning",
+    "loading": "Henter ansøgninger",
+    "none": "Der er ingen ansøgninger endnu.",
+    "caseNumber": "Sagsnr.",
+    "status": "Status",
+    "contactPersonCount": "Kontaktpersoner",
+    "backToList": "← Alle testansøgninger",
+    "types": {
+      "ExcavationPermit": "Gravetilladelse",
+      "RoadUsePermit": "Råden over vejareal",
+      "RoadUsePermitEvent": "Råden over vejareal – event"
+    },
+    "statuses": {
+      "Draft": "Kladde",
+      "InProgress": "I gang",
+      "Approved": "Godkendt",
+      "Rejected": "Afvist",
+      "ChangeRequired": "Rettelse påkrævet"
+    }
+  },
+  "contacts": {
+    "title": "Kontaktpersoner",
+    "subtitle": "Ansøgning {{caseNumber}}",
+    "cardTitle": "Kontaktperson {{number}} {{name}}",
+    "newContact": "Ny kontaktperson",
+    "none": "Der er ingen kontaktpersoner på ansøgningen endnu.",
+    "addContact": "+ Opret kontaktperson",
+    "edit": "Redigér",
+    "editContactFor": "Redigér {{contact}}",
+    "delete": "Slet kontaktperson",
+    "deleteContactFor": "Slet {{contact}}",
+    "cancel": "Annuller",
+    "save": "Gem kontaktperson",
+    "saved": "{{contact}} er gemt.",
+    "deleted": "Kontaktpersonen {{name}} er slettet.",
+    "loading": "Henter kontaktpersoner",
+    "loadError": "Kontaktpersonerne kunne ikke hentes, prøv igen senere eller kontakt supporten.",
+    "caseNotFound": "Ansøgningen blev ikke fundet.",
+    "saveError": "Kontaktpersonen kunne ikke gemmes, prøv igen senere eller kontakt supporten.",
+    "deleteError": "Kontaktpersonen kunne ikke slettes, prøv igen senere eller kontakt supporten.",
+    "alreadyExists": "Ansøgningen har allerede en kontaktperson.",
+    "notEditable": "Kontaktpersoner kan kun ændres, mens ansøgningen er en kladde eller kræver rettelser.",
+    "availabilityFixed": "Tilgængelighed er sat til dag for råden over vej-ansøgninger.",
+    "fields": {
+      "name": "Navn",
+      "availability": "Tilgængelighed",
+      "phoneNumber": "Telefonnr.",
+      "email": "E-mail"
+    },
+    "labels": {
+      "availability": {
+        "Day": "Dag",
+        "Evening": "Aften",
+        "Night": "Nat",
+        "AllDay": "Døgn"
+      }
+    },
+    "errors": {
+      "required": "Skal udfyldes",
+      "phoneNumber": "Telefonnr. må kun indeholde tal og skal være 8 cifre",
+      "email": "E-mail skal have korrekt e-mailformatering"
+    },
+    "deleteDialog": {
+      "title": "Slet kontaktperson?",
+      "availability": "Tilgængelighed: {{value}}",
+      "phoneNumber": "Telefonnr.: {{value}}",
+      "email": "E-mail: {{value}}",
+      "warning": "Kontaktpersonen og dens oplysninger slettes permanent.",
+      "confirm": "Slet"
+    },
+    "unsavedDialog": {
+      "title": "Gem ændringerne?",
+      "text": "{{contact}} har ændringer, der ikke er gemt.",
+      "discard": "Kassér ændringer",
+      "save": "Gem"
+    }
   }
 }

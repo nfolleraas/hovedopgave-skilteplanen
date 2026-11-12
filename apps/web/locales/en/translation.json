@@ -30,7 +30,8 @@
     "openUserMenu": "Open user menu",
     "settings": "Settings",
     "logOut": "Log out",
-    "language": "Language"
+    "language": "Language",
+    "contacts": "Contact persons"
   },
   "home": {
     "title": "Applicantplatform",
@@ -39,5 +40,88 @@
   "login": {
     "title": "Log in",
     "formPlaceholder": "The login form will appear here."
+  },
+  "devApplications": {
+    "loadError": "The applications could not be loaded. Is the API running?",
+    "createError": "The application could not be created, try again.",
+    "title": "Test applications",
+    "intro": "For testing only: choose an application, or create a new draft.",
+    "type": "Application type",
+    "create": "Create new application",
+    "loading": "Loading applications",
+    "none": "There are no applications yet.",
+    "caseNumber": "Case number",
+    "status": "Status",
+    "contactPersonCount": "Contact persons",
+    "backToList": "← All test applications",
+    "types": {
+      "ExcavationPermit": "Excavation permit",
+      "RoadUsePermit": "Road use permit",
+      "RoadUsePermitEvent": "Road use permit – event"
+    },
+    "statuses": {
+      "Draft": "Draft",
+      "InProgress": "In progress",
+      "Approved": "Approved",
+      "Rejected": "Rejected",
+      "ChangeRequired": "Change required"
+    }
+  },
+  "contacts": {
+    "title": "Contact persons",
+    "subtitle": "Application {{caseNumber}}",
+    "cardTitle": "Contact person {{number}} {{name}}",
+    "newContact": "New contact person",
+    "none": "The application has no contact persons yet.",
+    "addContact": "+ Create contact person",
+    "edit": "Edit",
+    "editContactFor": "Edit {{contact}}",
+    "delete": "Delete contact person",
+    "deleteContactFor": "Delete {{contact}}",
+    "cancel": "Cancel",
+    "save": "Save contact person",
+    "saved": "{{contact}} has been saved.",
+    "deleted": "The contact person {{name}} has been deleted.",
+    "loading": "Loading contact persons",
+    "loadError": "The contact persons could not be loaded, try again later or contact support.",
+    "caseNotFound": "The application was not found.",
+    "saveError": "The contact person could not be saved, try again later or contact support.",
+    "deleteError": "The contact person could not be deleted, try again later or contact support.",
+    "alreadyExists": "The application already has a contact person.",
+    "notEditable": "Contact persons can only be changed while the application is a draft or requires changes.",
+    "availabilityFixed": "Availability is set to day for road use applications.",
+    "fields": {
+      "name": "Name",
+      "availability": "Availability",
+      "phoneNumber": "Phone number",
+      "email": "Email"
+    },
+    "labels": {
+      "availability": {
+        "Day": "Day",
+        "Evening": "Evening",
+        "Night": "Night",
+        "AllDay": "All day"
+      }
+    },
+    "errors": {
+      "required": "Must be filled in",
+      "phoneNumber": "The phone number must be 8 digits",
+      "email": "The email must have a valid format"
+    },
+    "deleteDialog": {
+      "title": "Delete contact person?",
+      "availability": "Availability: {{value}}",
+      "phoneNumber": "Phone number: {{value}}",
+      "email": "Email: {{value}}",
+      "warning": "The contact person and their details are deleted permanently.",
+      "confirm": "Delete"
+    },
+    "unsavedDialog": {
+      "title": "Save the changes?",
+      "text": "{{contact}} has changes that are not saved.",
+      "discard": "Discard changes",
+      "save": "Save"
+    }
   }
 }
