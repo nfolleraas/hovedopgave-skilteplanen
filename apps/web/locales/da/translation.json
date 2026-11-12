@@ -61,7 +61,10 @@
       "other": "Andet",
       "signPlan": "Skilteplan"
     },
-    "openDocumentInNewTab": "Åbn {{name}} i en ny fane",
+    "openPreview": "Vis {{name}}",
+    "previewTitle": "Forhåndsvisning af {{name}}",
+    "closePreview": "Luk forhåndsvisning af {{name}}",
+    "previewFrameTitle": "Indholdet af {{name}}",
     "table": {
       "documentType": "Dokumenttype",
       "createdAt": "Oprettet",

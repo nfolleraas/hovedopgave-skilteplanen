@@ -61,7 +61,10 @@
       "other": "Other",
       "signPlan": "Sign plan"
     },
-    "openDocumentInNewTab": "Open {{name}} in a new tab",
+    "openPreview": "Preview {{name}}",
+    "previewTitle": "Preview of {{name}}",
+    "closePreview": "Close preview of {{name}}",
+    "previewFrameTitle": "Contents of {{name}}",
     "table": {
       "documentType": "Document type",
       "createdAt": "Created",

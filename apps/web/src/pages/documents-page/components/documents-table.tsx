@@ -21,6 +21,7 @@ import {
   formatReadableTime,
 } from '../../../utils/format-date.js';
 import type { Document, DocumentType } from '../document.types.js';
+import DocumentPreviewDialog from './document-preview-dialog.js';
 
 type DocumentsTableProps = {
   documents: Document[];
@@ -44,6 +45,9 @@ export default function DocumentsTable({
   const { i18n, t } = useTranslation();
   const [sortColumn, setSortColumn] = useState<SortColumn>('date');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const [documentToPreview, setDocumentToPreview] = useState<Document | null>(
+    null,
+  );
 
   const documentTypeLabels = useMemo<Record<DocumentType, string>>(
     () => ({
@@ -131,12 +135,13 @@ export default function DocumentsTable({
                 variant="subtitle1"
               >
                 <Link
-                  aria-label={t('documents.openDocumentInNewTab', {
+                  aria-label={t('documents.openPreview', {
                     name: document.name,
                   })}
-                  href={document.url}
-                  rel="noopener noreferrer"
-                  target="_blank"
+                  component="button"
+                  onClick={() => setDocumentToPreview(document)}
+                  sx={{ font: 'inherit', textAlign: 'left' }}
+                  type="button"
                 >
                   {document.name}
                 </Link>
@@ -258,12 +263,13 @@ export default function DocumentsTable({
                   sx={{ overflowWrap: 'anywhere' }}
                 >
                   <Link
-                    aria-label={t('documents.openDocumentInNewTab', {
+                    aria-label={t('documents.openPreview', {
                       name: document.name,
                     })}
-                    href={document.url}
-                    rel="noopener noreferrer"
-                    target="_blank"
+                    component="button"
+                    onClick={() => setDocumentToPreview(document)}
+                    sx={{ font: 'inherit', textAlign: 'left' }}
+                    type="button"
                   >
                     {document.name}
                   </Link>
@@ -303,6 +309,12 @@ export default function DocumentsTable({
           </TableBody>
         </Table>
       </TableContainer>
+      {documentToPreview && (
+        <DocumentPreviewDialog
+          document={documentToPreview}
+          onClose={() => setDocumentToPreview(null)}
+        />
+      )}
     </>
   );
 }
