@@ -19,7 +19,9 @@ import {
 } from './dto/create-contact-person.dto.js';
 import { UpdateContactPersonDto } from './dto/update-contact-person.dto.js';
 import {
+  type ContactPersonActorResponse,
   type ContactPersonResponse,
+  toContactPersonActorResponse,
   toContactPersonResponse,
 } from './mappers/contact-person.mapper.js';
 import {
@@ -32,6 +34,8 @@ import {
 
 export interface ApplicationContactPersons {
   application: ContactPersonApplication;
+  /** The actors on the application. Each can have several contact persons. */
+  actors: ContactPersonActorResponse[];
   contactPersons: ContactPersonResponse[];
 }
 
@@ -43,11 +47,14 @@ export class ContactPersonsService {
     applicationId: string,
   ): Promise<ApplicationContactPersons> {
     const application = await this.getApplication(applicationId);
-    const contactPersons =
-      await this.contactPersons.getAllByApplication(applicationId);
+    const [actors, contactPersons] = await Promise.all([
+      this.contactPersons.getActorsByApplication(applicationId),
+      this.contactPersons.getAllByApplication(applicationId),
+    ]);
 
     return {
       application,
+      actors: actors.map(toContactPersonActorResponse),
       contactPersons: contactPersons.map(toContactPersonResponse),
     };
   }
@@ -56,35 +63,26 @@ export class ContactPersonsService {
     return toContactPersonResponse(await this.getContactPerson(id));
   }
 
-  /** Creates a contact person on an application (UC-031). */
+  /** Creates a contact person for an actor on an application (UC-031). */
   async create(dto: CreateContactPersonDto): Promise<ContactPersonResponse> {
     const application = await this.getApplication(dto.applicationId);
     this.assertEditable(application);
+    await this.assertActorOnApplication(dto.actorId, application.caseNumber);
     this.assertNoUnusedFields(application.type, dto);
 
     const input = this.withResolvedAvailability(application.type, dto);
     this.assertValid(application.type, input);
 
-    try {
-      const created = await this.contactPersons.add({
-        application: { connect: { caseNumber: application.caseNumber } },
-        name: dto.name,
-        phoneNumber: dto.phoneNumber,
-        email: dto.email,
-        // assertValid has already checked that a value is present.
-        availability: input.availability as Availability,
-      });
-      return toContactPersonResponse(created);
-    } catch (error) {
-      // The schema allows one contact person per application for now.
-      if (isUniqueViolation(error)) {
-        throw new ConflictException({
-          code: 'CONTACT_PERSON_ALREADY_EXISTS',
-          message: 'The application already has a contact person.',
-        });
-      }
-      throw error;
-    }
+    const created = await this.contactPersons.add({
+      application: { connect: { caseNumber: application.caseNumber } },
+      actor: { connect: { uuid: dto.actorId } },
+      name: dto.name,
+      phoneNumber: dto.phoneNumber,
+      email: dto.email,
+      // assertValid has already checked that a value is present.
+      availability: input.availability as Availability,
+    });
+    return toContactPersonResponse(created);
   }
 
   /** Updates a contact person's details (UC-033). */
@@ -122,7 +120,26 @@ export class ContactPersonsService {
     const contactPerson = await this.getContactPerson(id);
     this.assertEditable(contactPerson.application);
 
+    // TODO(UC-032 F1): log a failed delete once a log service exists. For
+    // now the error reaches the client, which shows UC-032's error message.
     await this.contactPersons.delete(id);
+  }
+
+  /** UC-031 starts from an actor on the application (UC-040 step 7). */
+  private async assertActorOnApplication(
+    actorId: string,
+    caseNumber: string,
+  ): Promise<void> {
+    const actor = await this.contactPersons.getActorOnApplication(
+      actorId,
+      caseNumber,
+    );
+    if (!actor) {
+      throw new NotFoundException({
+        code: 'ACTOR_NOT_FOUND',
+        message: `Actor ${actorId} is not on application ${caseNumber}.`,
+      });
+    }
   }
 
   private async getApplication(
@@ -217,14 +234,6 @@ function isRecordNotFound(error: unknown): boolean {
   return (
     error instanceof Prisma.PrismaClientKnownRequestError &&
     error.code === 'P2025'
-  );
-}
-
-/** Prisma's error code when a unique constraint is violated. */
-function isUniqueViolation(error: unknown): boolean {
-  return (
-    error instanceof Prisma.PrismaClientKnownRequestError &&
-    error.code === 'P2002'
   );
 }
 

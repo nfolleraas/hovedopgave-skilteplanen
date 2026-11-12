@@ -13,6 +13,7 @@ import type { ContactPerson } from '../../../types/contact-person.types.js';
 
 interface DeleteContactDialogProps {
   contactPerson: ContactPerson | null;
+  actorLabel: string;
   isDeleting: boolean;
   error: string | null;
   onCancel: () => void;
@@ -26,6 +27,7 @@ interface DeleteContactDialogProps {
  */
 export function DeleteContactDialog({
   contactPerson,
+  actorLabel,
   isDeleting,
   error,
   onCancel,
@@ -48,6 +50,12 @@ export function DeleteContactDialog({
         <DialogContentText component="div" id="delete-contact-description">
           <strong>{contactPerson?.name}</strong>
           <br />
+          {actorLabel && (
+            <>
+              {t('contacts.deleteDialog.actor', { value: actorLabel })}
+              <br />
+            </>
+          )}
           {t('contacts.deleteDialog.availability', {
             value: contactPerson
               ? t(availabilityLabelKeys[contactPerson.availability])

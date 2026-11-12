@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import {
+  Actor,
   Application,
   ContactPerson,
   Prisma,
@@ -14,6 +15,8 @@ export type ContactPersonApplication = Pick<
   Application,
   'caseNumber' | 'type' | 'status'
 >;
+
+export type ContactPersonActor = Pick<Actor, 'uuid' | 'name' | 'role'>;
 
 @Injectable()
 export class ContactPersonsRepository {
@@ -57,6 +60,28 @@ export class ContactPersonsRepository {
     return await this.prisma.application.findUniqueOrThrow({
       where: { caseNumber },
       select: { caseNumber: true, type: true, status: true },
+    });
+  }
+
+  /** The actors on an application, sorted by name. */
+  async getActorsByApplication(
+    caseNumber: string,
+  ): Promise<ContactPersonActor[]> {
+    return await this.prisma.actor.findMany({
+      where: { applications: { some: { caseNumber } } },
+      select: { uuid: true, name: true, role: true },
+      orderBy: { name: 'asc' },
+    });
+  }
+
+  /** The actor, if it is on the application. */
+  async getActorOnApplication(
+    actorId: string,
+    caseNumber: string,
+  ): Promise<ContactPersonActor | null> {
+    return await this.prisma.actor.findFirst({
+      where: { uuid: actorId, applications: { some: { caseNumber } } },
+      select: { uuid: true, name: true, role: true },
     });
   }
 }

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { SupportedApplicationType } from '../../common/application-types.js';
 import {
+  ActorRole,
   ApplicantType,
   ApplicationType,
   PermitType,
@@ -18,6 +19,28 @@ export interface DevApplicationSummary {
   contactPersonCount: number;
 }
 
+const devAddress = {
+  street: 'Cikorievej',
+  houseNumber: '1',
+  postalCode: '5220',
+  city: 'Odense SØ',
+};
+
+const devActors = [
+  {
+    name: 'Testentreprenør A/S',
+    role: ActorRole.Contractor,
+    phoneNumber: '11111111',
+    cvrNumber: '11111111',
+  },
+  {
+    name: 'Testledningsejer A/S',
+    role: ActorRole.NetworkOperator,
+    phoneNumber: '22222222',
+    cvrNumber: '22222222',
+  },
+];
+
 const caseNumberPrefix: Record<SupportedApplicationType, string> = {
   ExcavationPermit: 'DEV-GRAVE',
   RoadUsePermit: 'DEV-ROV',
@@ -25,7 +48,8 @@ const caseNumberPrefix: Record<SupportedApplicationType, string> = {
 
 /**
  * Test-only: lists applications and creates draft applications with the
- * placeholder records the schema requires. Not registered in production.
+ * placeholder records the schema requires, plus two actors that contact
+ * persons can be added to. Not registered in production.
  */
 @Injectable()
 export class DevApplicationsService {
@@ -55,14 +79,7 @@ export class DevApplicationsService {
         phoneNumber: '12345678',
         email: `${caseNumber.toLowerCase()}@example.com`,
         mitIdKey: `dev-mitid-${caseNumber}`,
-        address: {
-          create: {
-            street: 'Cikorievej',
-            houseNumber: '1',
-            postalCode: '5220',
-            city: 'Odense SØ',
-          },
-        },
+        address: { create: devAddress },
       },
       // Each permit shares the application's case number.
       {
@@ -72,6 +89,15 @@ export class DevApplicationsService {
         type,
         status: Status.Draft,
         trafficChange: TrafficChange.SpeedLimitWorkZone,
+        // Contact persons belong to an actor, and the actors step is not on
+        // this branch, so two test actors are created with the application.
+        actors: {
+          create: devActors.map((actor) => ({
+            ...actor,
+            email: `${actor.role.toLowerCase()}.${caseNumber.toLowerCase()}@example.com`,
+            address: { create: devAddress },
+          })),
+        },
         ...(type === ApplicationType.ExcavationPermit
           ? {
               excavationPermit: {

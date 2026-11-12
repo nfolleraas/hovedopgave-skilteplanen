@@ -11,6 +11,8 @@ import {
 export interface ContactPersonEntry {
   /** The contact person uuid, or a temporary key until a new one is saved. */
   key: string;
+  /** The actor the contact person belongs to. */
+  actorId: string;
   saved: ContactPerson | null;
 }
 
@@ -26,7 +28,7 @@ export interface ContactPersonEditState {
 
 export type ContactPersonEditAction =
   | { type: 'loaded'; contactPersons: ContactPerson[] }
-  | { type: 'addNew' }
+  | { type: 'addNew'; actorId: string }
   | { type: 'open'; key: string }
   | { type: 'discardAndOpenPending' }
   | { type: 'cancelPending' }
@@ -109,6 +111,7 @@ export function contactPersonEditReducer(
     case 'loaded': {
       const entries = action.contactPersons.map((contactPerson) => ({
         key: contactPerson.uuid,
+        actorId: contactPerson.actorId,
         saved: contactPerson,
       }));
       return open({ ...state, entries }, state.activeKey);
@@ -122,7 +125,10 @@ export function contactPersonEditReducer(
       return open(
         {
           ...base,
-          entries: [...base.entries, { key, saved: null }],
+          entries: [
+            ...base.entries,
+            { key, actorId: action.actorId, saved: null },
+          ],
           nextTempId: state.nextTempId + 1,
         },
         key,

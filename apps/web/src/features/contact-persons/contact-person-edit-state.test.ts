@@ -16,6 +16,7 @@ function buildContactPerson(
   return {
     uuid,
     applicationId: 'APP-1',
+    actorId: `actor-${uuid}`,
     name: 'Jens Jensen',
     availability: Availability.Day,
     phoneNumber: '12345678',
@@ -43,7 +44,7 @@ describe('contactPersonEditReducer', () => {
   });
 
   test('addNew opens an empty form with a temporary key', () => {
-    const state = reduce([{ type: 'addNew' }]);
+    const state = reduce([{ type: 'addNew', actorId: 'actor-x' }]);
 
     expect(state.entries).toHaveLength(1);
     expect(state.activeKey).toBe('new-1');
@@ -52,7 +53,7 @@ describe('contactPersonEditReducer', () => {
 
   test('saved swaps the temporary key for the stored uuid', () => {
     const state = reduce([
-      { type: 'addNew' },
+      { type: 'addNew', actorId: 'actor-x' },
       { type: 'saved', key: 'new-1', contactPerson: buildContactPerson('a') },
     ]);
 
@@ -75,7 +76,10 @@ describe('contactPersonEditReducer', () => {
   });
 
   test('cancel removes a new contact person that was never saved', () => {
-    const state = reduce([{ type: 'addNew' }, { type: 'cancel' }]);
+    const state = reduce([
+      { type: 'addNew', actorId: 'actor-x' },
+      { type: 'cancel' },
+    ]);
 
     expect(state.entries).toHaveLength(0);
     expect(state.activeKey).toBeNull();
@@ -101,6 +105,19 @@ describe('contactPersonEditReducer', () => {
     const kept = reduce([{ type: 'cancelPending' }], dirty);
     expect(kept.activeKey).toBe('a');
     expect(kept.pendingKey).toBeNull();
+  });
+
+  test('addNew adds another contact person to an actor that has one', () => {
+    const state = reduce([
+      { type: 'loaded', contactPersons: [buildContactPerson('a')] },
+      { type: 'addNew', actorId: 'actor-a' },
+    ]);
+
+    expect(state.entries.map((entry) => entry.actorId)).toEqual([
+      'actor-a',
+      'actor-a',
+    ]);
+    expect(state.activeKey).toBe('new-1');
   });
 
   test('removed drops the entry and closes it when it was open', () => {

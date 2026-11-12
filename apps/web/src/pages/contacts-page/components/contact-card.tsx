@@ -26,6 +26,8 @@ const detailFields = ['phoneNumber', 'email'] as const;
 
 interface ContactCardProps {
   contactKey: string;
+  /** The actor the contact person belongs to, e.g. "Firma A/S (Entreprenør)". */
+  actorLabel: string;
   number: number;
   saved: ContactPerson | null;
   isExpanded: boolean;
@@ -44,6 +46,7 @@ interface ContactCardProps {
 
 export function ContactCard({
   contactKey,
+  actorLabel,
   number,
   saved,
   isExpanded,
@@ -135,6 +138,12 @@ export function ContactCard({
           </Box>
         )}
       </Box>
+
+      {actorLabel && (
+        <Typography color="text.secondary" sx={{ mt: 0.5 }} variant="body2">
+          {t('contacts.forActor', { actor: actorLabel })}
+        </Typography>
+      )}
 
       {!isExpanded && saved && (
         <Box

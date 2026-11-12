@@ -1,11 +1,13 @@
 model Actor {
-  uuid              String        @id @default(uuid())
-  name              String
-  phoneNumber       String
-  email             String
-  cvrNumber         String?
-  role              ActorRole
-  department        String?
-  ContactPersonName String?
-  applications      Application[]
+  uuid           String          @id @default(uuid())
+  name           String
+  phoneNumber    String
+  email          String
+  cvrNumber      String?
+  role           ActorRole
+  department     String?
+  addressId      String
+  address        Address         @relation(fields: [addressId], references: [uuid])
+  applications   Application[]
+  contactPersons ContactPerson[]
 }

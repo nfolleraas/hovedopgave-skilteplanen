@@ -57,4 +57,13 @@ export class CreateContactPersonDto extends ContactPersonFieldsDto {
   @IsString()
   @IsNotEmpty()
   applicationId: string;
+
+  @ApiProperty({
+    description:
+      'The actor on the application that the contact person belongs to. ' +
+      'An actor can have several contact persons.',
+  })
+  @IsString()
+  @IsNotEmpty()
+  actorId: string;
 }

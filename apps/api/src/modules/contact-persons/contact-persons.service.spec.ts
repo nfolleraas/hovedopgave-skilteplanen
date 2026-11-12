@@ -2,6 +2,7 @@ import { ConflictException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Prisma } from '../../generated/prisma/client.js';
 import {
+  ActorRole,
   ApplicationType,
   Availability,
   Status,
@@ -28,13 +29,21 @@ function buildContactPerson(overrides: Record<string, unknown> = {}) {
     phoneNumber: '12345678',
     email: 'jens@example.com',
     applicationId: 'APP-1',
+    actorId: 'actor-1',
     application: buildApplication(),
     ...overrides,
   };
 }
 
+const actor = {
+  uuid: 'actor-1',
+  name: 'Graveselskabet',
+  role: ActorRole.Contractor,
+};
+
 const createDto = {
   applicationId: 'APP-1',
+  actorId: 'actor-1',
   name: 'Jens Jensen',
   availability: Availability.Evening,
   phoneNumber: '12345678',
@@ -48,13 +57,6 @@ function recordNotFound(): Prisma.PrismaClientKnownRequestError {
   });
 }
 
-function uniqueViolation(): Prisma.PrismaClientKnownRequestError {
-  return new Prisma.PrismaClientKnownRequestError('Unique constraint.', {
-    code: 'P2002',
-    clientVersion: 'test',
-  });
-}
-
 describe('ContactPersonsService', () => {
   let service: ContactPersonsService;
   let repository: {
@@ -64,6 +66,8 @@ describe('ContactPersonsService', () => {
     update: ReturnType<typeof vi.fn>;
     delete: ReturnType<typeof vi.fn>;
     getApplication: ReturnType<typeof vi.fn>;
+    getActorsByApplication: ReturnType<typeof vi.fn>;
+    getActorOnApplication: ReturnType<typeof vi.fn>;
   };
 
   beforeEach(async () => {
@@ -74,6 +78,8 @@ describe('ContactPersonsService', () => {
       update: vi.fn(),
       delete: vi.fn(),
       getApplication: vi.fn(),
+      getActorsByApplication: vi.fn().mockResolvedValue([actor]),
+      getActorOnApplication: vi.fn().mockResolvedValue(actor),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -87,17 +93,19 @@ describe('ContactPersonsService', () => {
   });
 
   describe('findByApplication', () => {
-    it('returns the application with its contact persons', async () => {
+    it('returns the application with its actors and contact persons', async () => {
       repository.getApplication.mockResolvedValue(buildApplication());
       repository.getAllByApplication.mockResolvedValue([buildContactPerson()]);
 
       const result = await service.findByApplication('APP-1');
 
       expect(result.application.caseNumber).toBe('APP-1');
+      expect(result.actors).toEqual([actor]);
       expect(result.contactPersons).toHaveLength(1);
       expect(result.contactPersons[0]).toEqual({
         uuid: 'contact-1',
         applicationId: 'APP-1',
+        actorId: 'actor-1',
         name: 'Jens Jensen',
         availability: Availability.Day,
         phoneNumber: '12345678',
@@ -131,8 +139,13 @@ describe('ContactPersonsService', () => {
 
       const result = await service.create(createDto);
 
+      expect(repository.getActorOnApplication).toHaveBeenCalledWith(
+        'actor-1',
+        'APP-1',
+      );
       expect(repository.add).toHaveBeenCalledWith({
         application: { connect: { caseNumber: 'APP-1' } },
+        actor: { connect: { uuid: 'actor-1' } },
         name: 'Jens Jensen',
         availability: Availability.Evening,
         phoneNumber: '12345678',
@@ -187,13 +200,14 @@ describe('ContactPersonsService', () => {
       expect(repository.add).not.toHaveBeenCalled();
     });
 
-    it('rejects a second contact person while the schema allows one', async () => {
+    it('rejects an actor that is not on the application', async () => {
       repository.getApplication.mockResolvedValue(buildApplication());
-      repository.add.mockRejectedValue(uniqueViolation());
+      repository.getActorOnApplication.mockResolvedValue(null);
 
       await expect(service.create(createDto)).rejects.toMatchObject({
-        response: { code: 'CONTACT_PERSON_ALREADY_EXISTS' },
+        response: { code: 'ACTOR_NOT_FOUND' },
       });
+      expect(repository.add).not.toHaveBeenCalled();
     });
 
     it('rejects new contact persons when the application is not editable', async () => {

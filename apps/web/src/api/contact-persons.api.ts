@@ -14,10 +14,12 @@ export function getApplicationContactPersons(
 
 export function createContactPerson(
   applicationId: string,
+  actorId: string,
   contactPerson: ContactPersonInput,
 ): Promise<ContactPerson> {
   return apiClient.post('/contact-persons', {
     applicationId,
+    actorId,
     ...contactPerson,
   });
 }

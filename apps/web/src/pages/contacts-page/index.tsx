@@ -5,6 +5,8 @@ import {
   CircularProgress,
   Container,
   Link,
+  MenuItem,
+  TextField,
   Typography,
 } from '@mui/material';
 import { useEffect, useReducer, useState } from 'react';
@@ -24,6 +26,7 @@ import {
   isDirty,
   nextNewKey,
 } from '../../features/contact-persons/contact-person-edit-state.js';
+import { actorRoleLabelKeys } from '../../features/contact-persons/contact-person-labels.js';
 import {
   canEditContactPersons,
   getContactPersonFieldSet,
@@ -32,20 +35,27 @@ import {
 } from '../../features/contact-persons/contact-person-validation.js';
 import type {
   ContactPerson,
+  ContactPersonActor,
   ContactPersonApplication,
 } from '../../types/contact-person.types.js';
 import { focusById } from '../../utils/focus-by-id.js';
 import { ContactCard, contactCardIds } from './components/contact-card.js';
 import { DeleteContactDialog } from './components/delete-contact-dialog.js';
 import { DevApplicationList } from './components/dev-application-list.js';
+import { labelAboveSlots } from './components/form-slots.js';
 import { UnsavedChangesDialog } from './components/unsaved-changes-dialog.js';
 
 const addButtonId = 'contacts-add-new';
+const actorSelectId = 'contacts-new-actor';
 
 type LoadState =
   | { status: 'loading' }
   | { status: 'error'; messageKey: string }
-  | { status: 'ready'; application: ContactPersonApplication };
+  | {
+      status: 'ready';
+      application: ContactPersonApplication;
+      actors: ContactPersonActor[];
+    };
 
 interface Notice {
   severity: 'success' | 'error';
@@ -71,6 +81,8 @@ export default function ContactsPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [notice, setNotice] = useState<Notice | null>(null);
+  // The actor chosen for the next new contact person (UC-040 step 7).
+  const [selectedActorId, setSelectedActorId] = useState('');
   // Element to focus after the next render, e.g. when a button disappears.
   const [focusId, setFocusId] = useState<string | null>(null);
 
@@ -79,10 +91,10 @@ export default function ContactsPage() {
 
     let isCurrent = true;
     getApplicationContactPersons(caseNumber)
-      .then(({ application, contactPersons }) => {
+      .then(({ application, actors, contactPersons }) => {
         if (!isCurrent) return;
         dispatch({ type: 'loaded', contactPersons });
-        setLoad({ status: 'ready', application });
+        setLoad({ status: 'ready', application, actors });
       })
       .catch((error: unknown) => {
         if (!isCurrent) return;
@@ -141,8 +153,8 @@ export default function ContactsPage() {
       if (error.code === 'APPLICATION_NOT_EDITABLE') {
         return t('contacts.notEditable');
       }
-      if (error.code === 'CONTACT_PERSON_ALREADY_EXISTS') {
-        return t('contacts.alreadyExists');
+      if (error.code === 'ACTOR_NOT_FOUND') {
+        return t('contacts.actorNotFound');
       }
     }
     return t('contacts.saveError');
@@ -165,7 +177,11 @@ export default function ContactsPage() {
       const input = toContactPersonInput(application.type, state.draft);
       const contactPerson = active.saved
         ? await updateContactPerson(active.saved.uuid, input)
-        : await createContactPerson(application.caseNumber, input);
+        : await createContactPerson(
+            application.caseNumber,
+            active.actorId,
+            input,
+          );
       dispatch({ type: 'saved', key: active.key, contactPerson });
       // A new contact gets a new key, so its card is replaced.
       setFocusId(contactCardIds.title(contactPerson.uuid));
@@ -219,12 +235,28 @@ export default function ContactsPage() {
     }
   }
 
-  function renderContacts(application: ContactPersonApplication) {
+  function renderContacts(
+    application: ContactPersonApplication,
+    actors: ContactPersonActor[],
+  ) {
     const fieldSet = getContactPersonFieldSet(application.type);
     const canEdit = canEditContactPersons(application.status);
     const pendingEntry = state.entries.find(
       (entry) => entry.key === state.pendingKey,
     );
+    const newActorId = actors.some((actor) => actor.uuid === selectedActorId)
+      ? selectedActorId
+      : (actors[0]?.uuid ?? '');
+
+    function actorLabel(actorId: string): string {
+      const actor = actors.find((candidate) => candidate.uuid === actorId);
+      return actor
+        ? t('contacts.actorLabel', {
+            name: actor.name,
+            role: t(actorRoleLabelKeys[actor.role]),
+          })
+        : '';
+    }
 
     return (
       <>
@@ -257,6 +289,7 @@ export default function ContactsPage() {
             const isExpanded = entry.key === state.activeKey;
             return (
               <ContactCard
+                actorLabel={actorLabel(entry.actorId)}
                 canEditApplication={canEdit}
                 contactKey={entry.key}
                 draft={isExpanded ? state.draft : null}
@@ -300,24 +333,56 @@ export default function ContactsPage() {
           </Typography>
         )}
 
-        {canEdit && (
-          <Button
-            disabled={isDirty(state)}
-            id={addButtonId}
-            onClick={() => {
-              setSaveError(null);
-              setNotice(null);
-              setFocusId(contactCardIds.title(nextNewKey(state)));
-              dispatch({ type: 'addNew' });
+        {/* A contact person belongs to an actor on the application. */}
+        {canEdit && actors.length === 0 && (
+          <Typography id={addButtonId} sx={{ mt: 2 }} tabIndex={-1}>
+            {t('contacts.noActors')}
+          </Typography>
+        )}
+        {canEdit && actors.length > 0 && (
+          <Box
+            sx={{
+              alignItems: 'end',
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: 2,
+              mt: 2,
             }}
-            sx={{ mt: 2 }}
-            variant="outlined"
           >
-            {t('contacts.addContact')}
-          </Button>
+            <TextField
+              disabled={isDirty(state)}
+              id={actorSelectId}
+              label={t('contacts.actor')}
+              onChange={(event) => setSelectedActorId(event.target.value)}
+              select
+              slotProps={labelAboveSlots}
+              sx={{ minWidth: 260 }}
+              value={newActorId}
+            >
+              {actors.map((actor) => (
+                <MenuItem key={actor.uuid} value={actor.uuid}>
+                  {actorLabel(actor.uuid)}
+                </MenuItem>
+              ))}
+            </TextField>
+            <Button
+              disabled={isDirty(state)}
+              id={addButtonId}
+              onClick={() => {
+                setSaveError(null);
+                setNotice(null);
+                setFocusId(contactCardIds.title(nextNewKey(state)));
+                dispatch({ type: 'addNew', actorId: newActorId });
+              }}
+              variant="outlined"
+            >
+              {t('contacts.addContact')}
+            </Button>
+          </Box>
         )}
 
         <DeleteContactDialog
+          actorLabel={deleteTarget ? actorLabel(deleteTarget.actorId) : ''}
           contactPerson={deleteTarget}
           error={deleteError}
           isDeleting={isDeleting}
@@ -367,7 +432,8 @@ export default function ContactsPage() {
         {load.status === 'error' && (
           <Alert severity="error">{t(load.messageKey)}</Alert>
         )}
-        {load.status === 'ready' && renderContacts(load.application)}
+        {load.status === 'ready' &&
+          renderContacts(load.application, load.actors)}
         {/* Test-only shortcut back to the list of applications. */}
         <Link href="/kontaktpersoner" sx={{ display: 'block', mt: 4 }}>
           {t('devApplications.backToList')}
