@@ -42,7 +42,8 @@
         "YoavBls.pretty-ts-errors",
         "ms-azuretools.vscode-containers",
         "Prisma.prisma",
-        "eamodio.gitlens"
+        "eamodio.gitlens",
+        "GitHub.vscode-github-actions"
       ],
       "settings": {
         "terminal.integrated.defaultProfile.linux": "zsh",
@@ -61,9 +62,9 @@
         "chat.agentHost.codexAgent.enabled": true,
         "chat.editor.codex.preferAgentHost": true,
         "chat.agentHost.codexAgent.codexHome": "/home/node/.codex"
-        }
       }
-    },
+    }
+  },
 
   "remoteUser": "node"
 }
