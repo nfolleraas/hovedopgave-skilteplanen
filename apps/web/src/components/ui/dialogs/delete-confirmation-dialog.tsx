@@ -7,7 +7,7 @@ import {
   DialogContentText,
   DialogTitle,
 } from '@mui/material';
-import { useEffect, useId, useState } from 'react';
+import { useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { apiClient } from '../../../api/client.api.js';
 
@@ -28,12 +28,6 @@ export default function DeleteConfirmationDialog(
   const descriptionId = useId();
   const [isDeleting, setIsDeleting] = useState(false);
   const [hasError, setHasError] = useState(false);
-
-  useEffect(() => {
-    if (open) {
-      setHasError(false);
-    }
-  }, [open]);
 
   const handleClose = () => {
     if (isDeleting) {

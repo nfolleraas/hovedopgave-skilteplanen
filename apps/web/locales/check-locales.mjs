@@ -47,19 +47,24 @@ try {
   if (result.status !== 0) {
     process.exitCode = result.status ?? 1;
   } else {
-    const missingTranslations = [];
+    const missingTranslations = (
+      await Promise.all(
+        parserConfig.locales.map(async (locale) => {
+          const extractedPath = join(tempRoot, locale, 'translation.json');
+          const translationsPath = join(localeRoot, locale, 'translation.json');
+          const [extractedFile, translationsFile] = await Promise.all([
+            readFile(extractedPath, 'utf8'),
+            readFile(translationsPath, 'utf8'),
+          ]);
+          const extracted = JSON.parse(extractedFile);
+          const translations = JSON.parse(translationsFile);
 
-    for (const locale of parserConfig.locales) {
-      const extractedPath = join(tempRoot, locale, 'translation.json');
-      const translationsPath = join(localeRoot, locale, 'translation.json');
-      const extracted = JSON.parse(await readFile(extractedPath, 'utf8'));
-      const translations = JSON.parse(await readFile(translationsPath, 'utf8'));
-      const missingKeys = findMissingKeys(extracted, translations);
-
-      for (const key of missingKeys) {
-        missingTranslations.push(`${locale}: ${key}`);
-      }
-    }
+          return findMissingKeys(extracted, translations).map(
+            (key) => `${locale}: ${key}`,
+          );
+        }),
+      )
+    ).flat();
 
     if (missingTranslations.length > 0) {
       console.error('Missing or empty translations:');

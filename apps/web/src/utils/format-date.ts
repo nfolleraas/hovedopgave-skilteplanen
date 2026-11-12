@@ -1,5 +1,14 @@
 import i18n from '../config/i18n.js';
 
+const readableDateFormatters = {
+  'da-DK': new Intl.DateTimeFormat('da-DK', { dateStyle: 'long' }),
+  'en-GB': new Intl.DateTimeFormat('en-GB', { dateStyle: 'long' }),
+};
+const readableTimeFormatters = {
+  'da-DK': new Intl.DateTimeFormat('da-DK', { timeStyle: 'short' }),
+  'en-GB': new Intl.DateTimeFormat('en-GB', { timeStyle: 'short' }),
+};
+
 export function formatReadableDate(
   value: Date | string,
   language = i18n.resolvedLanguage ?? i18n.language,
@@ -7,9 +16,7 @@ export function formatReadableDate(
   const date = value instanceof Date ? value : new Date(value);
   const locale = language.startsWith('da') ? 'da-DK' : 'en-GB';
 
-  return new Intl.DateTimeFormat(locale, {
-    dateStyle: 'long',
-  }).format(date);
+  return readableDateFormatters[locale].format(date);
 }
 
 export function formatReadableTime(
@@ -19,7 +26,5 @@ export function formatReadableTime(
   const date = value instanceof Date ? value : new Date(value);
   const locale = language.startsWith('da') ? 'da-DK' : 'en-GB';
 
-  return new Intl.DateTimeFormat(locale, {
-    timeStyle: 'short',
-  }).format(date);
+  return readableTimeFormatters[locale].format(date);
 }
