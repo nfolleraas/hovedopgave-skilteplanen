@@ -1,10 +1,9 @@
-export type UsageDetails = {
+import type { RoadLocation } from '../../../utils/validateRoadLocation';
+
+export type UsageDetails = RoadLocation & {
   usage: string;
   startDate: string;
   endDate: string;
-  road: string;
-  houseNumberFrom: string;
-  houseNumberTo: string;
   locationDescription: string;
 };
 
@@ -12,9 +11,6 @@ export type ContactInformation = {
   name: string;
   phone: string;
   email: string;
-  availableFrom: string;
-  availableTo: string;
-  availabilityNotes: string;
 };
 
 export type MaterialEntry = {

@@ -1,6 +1,7 @@
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {
+  Alert,
   Box,
   Button,
   IconButton,
@@ -10,12 +11,17 @@ import {
   Paper,
   Typography,
 } from '@mui/material';
-import { type ReactNode, useId, useState } from 'react';
+import { type ReactNode, useEffect, useId, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { visuallyHidden } from '../../ui/visuallyHidden';
 
 export type DetailItem = {
   id: string;
   label: string;
-  content: ReactNode;
+  heading?: string;
+  headingWidth?: number;
+  content: ReactNode | ((showErrors: boolean) => ReactNode);
+  validationErrors?: string[];
 };
 
 type MasterDetailGridProps = {
@@ -24,19 +30,64 @@ type MasterDetailGridProps = {
 };
 
 export function MasterDetailGrid({ items, onSubmit }: MasterDetailGridProps) {
+  const { t } = useTranslation();
   const [selectedId, setSelectedId] = useState(items[0]?.id);
   const [mobileListOpen, setMobileListOpen] = useState(false);
+  const [invalidAttempts, setInvalidAttempts] = useState(new Set<string>());
+  const [focusRequest, setFocusRequest] = useState<{
+    target: 'heading' | 'error';
+  }>();
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const validationAlert = useRef<HTMLDivElement>(null);
   const listId = useId();
+  const progressId = useId();
   const selectedIndex = items.findIndex((item) => item.id === selectedId);
   const selectedItem = items[selectedIndex];
   const isLastStep = selectedIndex === items.length - 1;
+  const showErrors = invalidAttempts.has(selectedId);
+  const progress = t('permit.steps.progress', {
+    step: selectedIndex + 1,
+    total: items.length,
+  });
+
+  useEffect(() => {
+    if (focusRequest?.target === 'error') validationAlert.current?.focus();
+    if (focusRequest?.target === 'heading') headingRef.current?.focus();
+  }, [focusRequest]);
+
+  function goToStep(id: string, target: 'heading' | 'error' = 'heading') {
+    setSelectedId(id);
+    setMobileListOpen(false);
+    setFocusRequest({ target });
+  }
+
+  function handleNext() {
+    const invalidItem = isLastStep
+      ? items.find((item) => item.validationErrors?.length)
+      : selectedItem;
+    if (invalidItem?.validationErrors?.length) {
+      setInvalidAttempts((attempts) => new Set(attempts).add(invalidItem.id));
+      goToStep(invalidItem.id, 'error');
+      return;
+    }
+
+    if (isLastStep) {
+      onSubmit?.();
+    } else {
+      goToStep(items[selectedIndex + 1].id);
+    }
+  }
+
+  if (!selectedItem) return null;
 
   return (
     <Box>
       <IconButton
         aria-controls={listId}
         aria-expanded={mobileListOpen}
-        aria-label={mobileListOpen ? 'Skjul trin' : 'Vis trin'}
+        aria-label={
+          mobileListOpen ? t('permit.steps.hide') : t('permit.steps.show')
+        }
         color="primary"
         onClick={() => setMobileListOpen((open) => !open)}
         size="large"
@@ -58,7 +109,7 @@ export function MasterDetailGrid({ items, onSubmit }: MasterDetailGridProps) {
         }}
       >
         <Paper
-          aria-label="Ansøgningens trin"
+          aria-label={t('permit.steps.navigation')}
           component="nav"
           elevation={0}
           id={listId}
@@ -88,10 +139,10 @@ export function MasterDetailGrid({ items, onSubmit }: MasterDetailGridProps) {
             }}
           >
             <Typography component="h2" sx={{ fontWeight: 600 }} variant="h6">
-              Din ansøgning
+              {t('permit.steps.heading')}
             </Typography>
           </Box>
-          <List disablePadding sx={{ p: 1.5 }}>
+          <List component="ol" disablePadding sx={{ p: 1.5 }}>
             {items.map((item, index) => (
               <ListItem
                 disablePadding
@@ -100,11 +151,15 @@ export function MasterDetailGrid({ items, onSubmit }: MasterDetailGridProps) {
               >
                 <ListItemButton
                   aria-current={item.id === selectedId ? 'step' : undefined}
-                  onClick={() => setSelectedId(item.id)}
+                  component="button"
+                  onClick={() => goToStep(item.id)}
                   selected={item.id === selectedId}
                   sx={{
                     minHeight: { xs: 56, md: 72 },
                     gap: 2,
+                    width: '100%',
+                    textAlign: 'start',
+                    overflowWrap: 'anywhere',
                     px: 2,
                     py: { xs: 1.5, md: 2 },
                     borderRadius: 2,
@@ -115,6 +170,7 @@ export function MasterDetailGrid({ items, onSubmit }: MasterDetailGridProps) {
                       '&:hover': { bgcolor: 'primary.dark' },
                     },
                   }}
+                  type="button"
                 >
                   <Box
                     aria-hidden="true"
@@ -131,7 +187,7 @@ export function MasterDetailGrid({ items, onSubmit }: MasterDetailGridProps) {
                           ? 'rgba(255, 255, 255, 0.2)'
                           : '#F5F5F5',
                       color:
-                        item.id === selectedId ? 'inherit' : 'text.secondary',
+                        item.id === selectedId ? 'inherit' : 'text.primary',
                       fontSize: { xs: 14, md: 16 },
                       fontWeight: 600,
                     }}
@@ -139,7 +195,10 @@ export function MasterDetailGrid({ items, onSubmit }: MasterDetailGridProps) {
                     {index + 1}
                   </Box>
                   <Typography
-                    sx={{ fontWeight: 600, fontSize: { md: 16 } }}
+                    sx={{
+                      fontWeight: item.id === selectedId ? 700 : 600,
+                      fontSize: { md: 16 },
+                    }}
                     variant="body2"
                   >
                     {item.label}
@@ -159,6 +218,10 @@ export function MasterDetailGrid({ items, onSubmit }: MasterDetailGridProps) {
             display: 'flex',
             flexDirection: 'column',
             minHeight: { xs: 480, md: 560 },
+            '& .MuiOutlinedInput-root:not(.Mui-error):not(.Mui-focused) .MuiOutlinedInput-notchedOutline':
+              { borderColor: 'text.secondary' },
+            '& .MuiFormLabel-root.Mui-error, & .MuiFormHelperText-root.Mui-error':
+              { color: 'error.dark' },
             boxSizing: 'border-box',
             borderRadius: 3,
             p: { xs: 2, md: 4 },
@@ -170,38 +233,74 @@ export function MasterDetailGrid({ items, onSubmit }: MasterDetailGridProps) {
               minWidth: 0,
             }}
           >
-            {selectedItem?.content}
+            <Typography id={progressId} sx={visuallyHidden} variant="body2">
+              {progress}
+            </Typography>
+            <Typography
+              aria-describedby={progressId}
+              component="h2"
+              data-route-heading=""
+              ref={headingRef}
+              sx={{
+                mb: 3,
+                maxWidth: selectedItem.headingWidth,
+                mx: 'auto',
+                overflowWrap: 'anywhere',
+              }}
+              tabIndex={-1}
+              variant="h5"
+            >
+              {selectedItem.heading ?? selectedItem.label}
+            </Typography>
+            {showErrors && Boolean(selectedItem.validationErrors?.length) && (
+              <Alert
+                ref={validationAlert}
+                severity="error"
+                sx={{ mb: 3, overflowWrap: 'anywhere' }}
+                tabIndex={-1}
+              >
+                <Typography component="p" sx={{ fontWeight: 600 }}>
+                  {t('permit.errors.heading')}
+                </Typography>
+                <Box component="ul" sx={{ my: 0, pl: 3 }}>
+                  {selectedItem.validationErrors?.map((message) => (
+                    <li key={message}>{message}</li>
+                  ))}
+                </Box>
+              </Alert>
+            )}
+            {typeof selectedItem.content === 'function'
+              ? selectedItem.content(showErrors)
+              : selectedItem.content}
           </Box>
           <Box
             sx={{
               display: 'flex',
+              flexWrap: 'wrap',
               justifyContent: 'end',
               gap: 2,
               mt: 4,
               pt: 3,
               borderTop: '1px solid',
               borderColor: 'divider',
+              '& .MuiButton-root': { minHeight: 44, whiteSpace: 'normal' },
             }}
           >
             <Button
               disabled={selectedIndex <= 0}
-              onClick={() => setSelectedId(items[selectedIndex - 1]?.id)}
+              onClick={() => goToStep(items[selectedIndex - 1].id)}
               variant="outlined"
             >
-              Tilbage
+              {t('permit.actions.back')}
             </Button>
             <Button
-              disabled={selectedIndex < 0 || (isLastStep && !onSubmit)}
-              onClick={() => {
-                if (isLastStep) {
-                  onSubmit?.();
-                } else {
-                  setSelectedId(items[selectedIndex + 1]?.id);
-                }
-              }}
+              disabled={isLastStep && !onSubmit}
+              onClick={handleNext}
               variant="contained"
             >
-              {isLastStep ? 'Indsend ansøgning' : 'Næste'}
+              {isLastStep
+                ? t('permit.actions.submit')
+                : t('permit.actions.next')}
             </Button>
           </Box>
         </Paper>

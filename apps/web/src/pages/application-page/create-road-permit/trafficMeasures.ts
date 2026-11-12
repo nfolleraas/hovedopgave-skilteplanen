@@ -1,3 +1,5 @@
+import type { TFunction } from 'i18next';
+
 // Transcribed from the application's wireframe.
 export type TrafficMeasure = {
   type: string;
@@ -78,3 +80,37 @@ export const trafficMeasures: TrafficMeasure[] = [
     isSelected: false,
   },
 ];
+
+export function getTrafficMeasureLabels(t: TFunction) {
+  const descriptions: Record<string, string> = {
+    A: t('permit.roadMarking.measureA'),
+    B: t('permit.roadMarking.measureB'),
+    C: t('permit.roadMarking.measureC'),
+    D: t('permit.roadMarking.measureD'),
+    E: t('permit.roadMarking.measureE'),
+    F: t('permit.roadMarking.measureF'),
+    G: t('permit.roadMarking.measureG'),
+    H: t('permit.roadMarking.measureH'),
+    I: t('permit.roadMarking.measureI'),
+  };
+  const scopes: Record<string, string> = {
+    Begge: t('permit.roadMarking.scopeBoth'),
+    'Forbipasserende trafik': t('permit.roadMarking.scopePassing'),
+    'Bagfrakommende trafik': t('permit.roadMarking.scopeApproaching'),
+  };
+
+  return Object.fromEntries(
+    trafficMeasures.map((measure) => [
+      measure.type,
+      {
+        name: t('permit.roadMarking.measure', { type: measure.type }),
+        description: descriptions[measure.type],
+        protection:
+          measure.protection === 'Ingen beskyttelsesgrad'
+            ? t('permit.roadMarking.noProtection')
+            : measure.protection,
+        scope: scopes[measure.scope],
+      },
+    ]),
+  );
+}

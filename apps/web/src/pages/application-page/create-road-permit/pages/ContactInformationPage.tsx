@@ -1,15 +1,20 @@
-import { Box, Divider, TextField, Typography } from '@mui/material';
+import { Box, TextField, Typography } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 import type { ContactInformation } from '../formTypes';
+import type { validateContactInformation } from '../validation';
 
 type ContactInformationPageProps = {
+  errors?: ReturnType<typeof validateContactInformation>;
   value: ContactInformation;
   onChange: (value: ContactInformation) => void;
 };
 
 export function ContactInformationPage({
+  errors,
   value,
   onChange,
 }: ContactInformationPageProps) {
+  const { t } = useTranslation();
   return (
     <Box
       sx={{
@@ -20,115 +25,47 @@ export function ContactInformationPage({
         mx: 'auto',
       }}
     >
-      <Typography component="h2" variant="h5">
-        Kontaktoplysninger
-      </Typography>
       <Typography component="h3" variant="h6">
-        Opret kontaktperson
+        {t('permit.contact.heading')}
       </Typography>
-      <Box
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: 'minmax(0, 1fr)',
-          gap: 3,
-        }}
-      >
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-          <TextField
-            autoComplete="name"
-            fullWidth
-            id="contact-name"
-            label="Navn"
-            name="contactName"
-            onChange={(event) =>
-              onChange({ ...value, name: event.target.value })
-            }
-            value={value.name}
-          />
-          <TextField
-            autoComplete="tel"
-            fullWidth
-            id="contact-phone"
-            label="Telefonnummer"
-            name="contactPhone"
-            onChange={(event) =>
-              onChange({ ...value, phone: event.target.value })
-            }
-            type="tel"
-            value={value.phone}
-          />
-          <TextField
-            autoComplete="email"
-            fullWidth
-            id="contact-email"
-            label="Email"
-            name="contactEmail"
-            onChange={(event) =>
-              onChange({ ...value, email: event.target.value })
-            }
-            type="email"
-            value={value.email}
-          />
-        </Box>
-        <Divider></Divider>
-        <Box
-          aria-labelledby="contact-availability-heading"
-          component="section"
-          sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}
-        >
-          <Typography
-            component="h4"
-            id="contact-availability-heading"
-            variant="h6"
-          >
-            Tilgængelighed
-          </Typography>
-          <Box
-            sx={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-              gap: 2,
-            }}
-          >
-            <TextField
-              fullWidth
-              id="contact-available-from"
-              label="Fra"
-              name="contactAvailableFrom"
-              onChange={(event) =>
-                onChange({ ...value, availableFrom: event.target.value })
-              }
-              slotProps={{ inputLabel: { shrink: true } }}
-              type="time"
-              value={value.availableFrom}
-            />
-            <TextField
-              fullWidth
-              id="contact-available-to"
-              label="Til"
-              name="contactAvailableTo"
-              onChange={(event) =>
-                onChange({ ...value, availableTo: event.target.value })
-              }
-              slotProps={{ inputLabel: { shrink: true } }}
-              type="time"
-              value={value.availableTo}
-            />
-          </Box>
-          <TextField
-            fullWidth
-            id="contact-availability-notes"
-            label="Evt. bemærkning til tilgængelighed"
-            minRows={3}
-            multiline
-            name="contactAvailabilityNotes"
-            onChange={(event) =>
-              onChange({ ...value, availabilityNotes: event.target.value })
-            }
-            value={value.availabilityNotes}
-          />
-        </Box>
-      </Box>
+      <TextField
+        autoComplete="name"
+        error={Boolean(errors?.name)}
+        fullWidth
+        helperText={errors?.name}
+        id="contact-name"
+        label={t('permit.contact.name')}
+        name="contactName"
+        onChange={(event) => onChange({ ...value, name: event.target.value })}
+        required
+        value={value.name}
+      />
+      <TextField
+        autoComplete="tel"
+        error={Boolean(errors?.phone)}
+        fullWidth
+        helperText={errors?.phone}
+        id="contact-phone"
+        label={t('permit.contact.phone')}
+        name="contactPhone"
+        onChange={(event) => onChange({ ...value, phone: event.target.value })}
+        required
+        type="tel"
+        value={value.phone}
+      />
+      <TextField
+        autoComplete="email"
+        error={Boolean(errors?.email)}
+        fullWidth
+        helperText={errors?.email}
+        id="contact-email"
+        label={t('permit.contact.email')}
+        name="contactEmail"
+        onChange={(event) => onChange({ ...value, email: event.target.value })}
+        required
+        type="email"
+        value={value.email}
+      />
     </Box>
   );
 }

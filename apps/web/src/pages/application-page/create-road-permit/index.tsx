@@ -1,9 +1,12 @@
-import { Box } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { createRoadPermitApplication } from '../../../api/roadPermit.api';
 import {
   type DetailItem,
   MasterDetailGrid,
 } from '../../../components/layout/masterDetail/masterDetail';
+import { visuallyHidden } from '../../../components/ui/visuallyHidden';
 import {
   type CompanyInformation,
   type ContactInformation,
@@ -20,10 +23,22 @@ import { MaterialsPage } from './pages/MaterialsPage';
 import { RoadMarkingPage } from './pages/RoadMarkingPage';
 import { SummaryAndSubmissionPage } from './pages/SummaryAndSubmissionPage';
 import { UsageDetailsPage } from './pages/UsageDetailsPage';
+import type { RoadPermitApplication } from './RoadPermitApplication.types';
+import {
+  hasMaterialDraft,
+  validateContactInformation,
+  validateMunicipalityAndTitle,
+  validateUsageDetails,
+} from './validation';
+
+function getValidationErrors(errors: Record<string, string | undefined>) {
+  return Object.values(errors).filter((error) => error !== undefined);
+}
 
 export default function CreateRoadPermitPage() {
+  const { t } = useTranslation();
   const [title, setTitle] = useState('');
-  const [municipalityId, setMunicipalityId] = useState<string | null>(null);
+  const [municipalityName, setMunicipalityName] = useState<string | null>(null);
   const [materials, setMaterials] = useState<MaterialEntry[]>([]);
   const [materialDraft, setMaterialDraft] =
     useState<MaterialDraft>(emptyMaterialDraft);
@@ -35,15 +50,14 @@ export default function CreateRoadPermitPage() {
     houseNumberFrom: '',
     houseNumberTo: '',
     road: '',
+    postalCode: '',
+    city: '',
   });
   const [contactInformation, setContactInformation] =
     useState<ContactInformation>({
       name: '',
       phone: '',
       email: '',
-      availableFrom: '',
-      availableTo: '',
-      availabilityNotes: '',
     });
   const [roadMarking, setRoadMarking] = useState<RoadMarkingDetails>({
     trafficChanges: [],
@@ -52,6 +66,7 @@ export default function CreateRoadPermitPage() {
   });
 
   const [confirmed, setConfirmed] = useState(false);
+  const [submissionAttempted, setSubmissionAttempted] = useState(false);
 
   const applicant: CompanyInformation = {
     name: 'Eksempel Entreprise ApS',
@@ -68,29 +83,56 @@ export default function CreateRoadPermitPage() {
     cvr: '00000000',
   };
 
+  const documentPlaceholder = {
+    name: 'Test Dokument',
+    DocumentType: 'Skilteplan',
+    Doc_URL: '/testDokument',
+    DateForUpload: '21-10-2001',
+  };
+
   function handleSubmit() {
-    const application = {
+    const application: RoadPermitApplication = {
       title,
-      municipalityId,
+      municipalityName,
       materials,
-      usageDetails,
+      usageDetails: {
+        ...usageDetails,
+        postalCode: usageDetails.postalCode.trim(),
+        city: usageDetails.city.trim(),
+      },
       contactInformation,
+      documentPlaceholder,
       roadMarking,
       applicant,
       confirmed,
     };
-
-    console.log(application);
+    createRoadPermitApplication(application);
+    setSubmissionAttempted(true);
   }
+
+  const municipalityErrors = validateMunicipalityAndTitle(
+    title,
+    municipalityName,
+    t,
+  );
+  const usageErrors = validateUsageDetails(usageDetails, t);
+  const contactErrors = validateContactInformation(contactInformation, t);
+  const confirmationError = confirmed
+    ? undefined
+    : t('permit.errors.confirmation');
 
   const categories: DetailItem[] = [
     {
       id: 'municipality-and-title',
-      label: 'Vælg kommune & titel',
-      content: (
+      label: t('permit.steps.municipality'),
+      heading: t('permit.steps.municipalityHeading'),
+      headingWidth: 640,
+      validationErrors: getValidationErrors(municipalityErrors),
+      content: (showErrors) => (
         <ChooseMunicipalityAndTitlePage
-          municipalityId={municipalityId}
-          onMunicipalityChange={setMunicipalityId}
+          errors={showErrors ? municipalityErrors : undefined}
+          municipalityName={municipalityName}
+          onMunicipalityChange={setMunicipalityName}
           onTitleChange={setTitle}
           title={title}
         />
@@ -98,28 +140,39 @@ export default function CreateRoadPermitPage() {
     },
     {
       id: 'materials',
-      label: 'Materiale',
-      content: (
+      label: t('permit.steps.materials'),
+      validationErrors: hasMaterialDraft(materialDraft)
+        ? [t('permit.errors.materialDraft')]
+        : undefined,
+      content: (showErrors) => (
         <MaterialsPage
           draft={materialDraft}
           materials={materials}
           onDraftChange={setMaterialDraft}
           onMaterialsChange={setMaterials}
+          showErrors={showErrors}
         />
       ),
     },
     {
       id: 'usage-details',
-      label: 'Detaljer om anvendelse',
-      content: (
-        <UsageDetailsPage onChange={setUsageDetails} value={usageDetails} />
+      label: t('permit.steps.usage'),
+      validationErrors: getValidationErrors(usageErrors),
+      content: (showErrors) => (
+        <UsageDetailsPage
+          errors={showErrors ? usageErrors : undefined}
+          onChange={setUsageDetails}
+          value={usageDetails}
+        />
       ),
     },
     {
       id: 'contact-information',
-      label: 'Kontaktoplysninger',
-      content: (
+      label: t('permit.steps.contact'),
+      validationErrors: getValidationErrors(contactErrors),
+      content: (showErrors) => (
         <ContactInformationPage
+          errors={showErrors ? contactErrors : undefined}
           onChange={setContactInformation}
           value={contactInformation}
         />
@@ -127,38 +180,49 @@ export default function CreateRoadPermitPage() {
     },
     {
       id: 'road-marking',
-      label: 'Afmærkning',
+      label: t('permit.steps.roadMarking'),
       content: (
         <RoadMarkingPage onChange={setRoadMarking} value={roadMarking} />
       ),
     },
     {
       id: 'documents-and-drawings',
-      label: 'Dokumenter og tegninger',
+      label: t('permit.steps.documents'),
       content: <DocumentsAndDrawingsPage />,
     },
     {
       id: 'summary-and-submission',
-      label: 'Opsummering & indsendelse',
-      content: (
+      label: t('permit.steps.summary'),
+      validationErrors: getValidationErrors({ confirmed: confirmationError }),
+      content: (showErrors) => (
         <SummaryAndSubmissionPage
-          applicant={applicant}
+          applicant={{
+            ...applicant,
+            department: t('permit.summary.exampleDepartment'),
+          }}
+          confirmationError={showErrors ? confirmationError : undefined}
           confirmed={confirmed}
           contactInformation={contactInformation}
+          documentToUpload={documentPlaceholder}
           materials={materials}
-          municipalityId={municipalityId}
+          municipalityName={municipalityName}
           onConfirmedChange={setConfirmed}
           roadMarking={roadMarking}
+          submissionAttempted={submissionAttempted}
           title={title}
           usageDetails={usageDetails}
         />
       ),
     },
   ];
+  const canSubmit = categories.every((step) => !step.validationErrors?.length);
 
   return (
     <Box
+      aria-labelledby="permit-page-title"
+      className="application-page"
       component="main"
+      id="main-content"
       sx={{
         minHeight: '80svh',
         boxSizing: 'border-box',
@@ -166,8 +230,21 @@ export default function CreateRoadPermitPage() {
         px: { xs: 2, md: 4 },
         width: '100%',
       }}
+      tabIndex={-1}
     >
-      <MasterDetailGrid items={categories} onSubmit={handleSubmit} />
+      <title>{`${t('permit.title')} | ${t('common.brandName')}`}</title>
+      <Typography
+        component="h1"
+        id="permit-page-title"
+        sx={visuallyHidden}
+        variant="h4"
+      >
+        {t('permit.title')}
+      </Typography>
+      <MasterDetailGrid
+        items={categories}
+        onSubmit={canSubmit ? handleSubmit : undefined}
+      />
     </Box>
   );
 }

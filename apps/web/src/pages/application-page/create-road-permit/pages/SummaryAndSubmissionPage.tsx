@@ -1,19 +1,22 @@
+import DeleteIcon from '@mui/icons-material/Delete';
 import {
   Box,
   Checkbox,
   Divider,
   FormControlLabel,
+  FormHelperText,
+  IconButton,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  TextField,
   Typography,
 } from '@mui/material';
-import type { ReactNode } from 'react';
-import { municipalities } from '../../../../data/municipalities';
+import { type ReactNode, useId } from 'react';
+import { useTranslation } from 'react-i18next';
+import { visuallyHidden } from '../../../../components/ui/visuallyHidden';
 import type {
   CompanyInformation,
   ContactInformation,
@@ -21,47 +24,94 @@ import type {
   RoadMarkingDetails,
   UsageDetails,
 } from '../formTypes';
+import { PermitTable } from '../PermitTable';
+import {
+  getMaterialTypes,
+  getTrafficChangeOptions,
+  getUsageTypes,
+} from '../permitOptions';
+import { getTrafficMeasureLabels } from '../trafficMeasures';
 
 type SummaryAndSubmissionPageProps = {
   title: string;
-  municipalityId: string | null;
+  municipalityName: string | null;
   materials: MaterialEntry[];
   usageDetails: UsageDetails;
   contactInformation: ContactInformation;
   roadMarking: RoadMarkingDetails;
   applicant: CompanyInformation;
+  documentToUpload: any;
   confirmed: boolean;
+  confirmationError?: string;
+  submissionAttempted: boolean;
   onConfirmedChange: (confirmed: boolean) => void;
 };
 
-const applicantFields = [
-  ['name', 'Navn'],
-  ['department', 'Afdeling'],
-  ['address1', 'Adresse 1'],
-  ['address2', 'Adresse 2'],
-  ['postalCode', 'Postnr.'],
-  ['city', 'By'],
-  ['contactPerson', 'Kontaktperson'],
-  ['directPhone', 'Direkte telefon'],
-  ['mobile', 'Mobil'],
-  ['email', 'E-mail'],
-  ['companyPhone', 'Firma telefon'],
-  ['cvr', 'CVR-nummer'],
-] as const;
-
-function SummaryGrid({ children }: { children: ReactNode }) {
+function SummaryFacts({
+  entries,
+  singleColumn,
+}: {
+  entries: [string, ReactNode][];
+  singleColumn?: boolean;
+}) {
+  const { t } = useTranslation();
   return (
     <Box
+      component="dl"
       sx={{
+        m: 0,
         display: 'grid',
         gridTemplateColumns: {
           xs: 'minmax(0, 1fr)',
-          sm: 'repeat(2, minmax(0, 1fr))',
+          sm: singleColumn ? 'minmax(0, 1fr)' : 'repeat(2, minmax(0, 1fr))',
         },
         gap: 2,
       }}
     >
-      {children}
+      {entries.map(([label, value]) => (
+        <Box
+          key={label}
+          sx={{
+            border: 1,
+            borderColor: 'text.secondary',
+            borderRadius: 1,
+            px: 1.75,
+            mt: 0.75,
+            overflowWrap: 'anywhere',
+          }}
+        >
+          <Typography
+            component="dt"
+            sx={{
+              mt: '-0.75em',
+              px: 0.5,
+              mx: -0.5,
+              width: 'fit-content',
+              maxWidth: '100%',
+              bgcolor: 'background.paper',
+              color: 'text.secondary',
+            }}
+            variant="body2"
+          >
+            {label}
+          </Typography>
+          <Typography
+            component="dd"
+            sx={{ m: 0, py: 0.75, whiteSpace: 'pre-wrap' }}
+          >
+            {value || (
+              <>
+                <Box aria-hidden="true" component="span">
+                  —
+                </Box>
+                <Box component="span" sx={visuallyHidden}>
+                  {t('permit.summary.notProvided')}
+                </Box>
+              </>
+            )}
+          </Typography>
+        </Box>
+      ))}
     </Box>
   );
 }
@@ -73,13 +123,14 @@ function SummarySection({
   title: string;
   children: ReactNode;
 }) {
+  const headingId = useId();
   return (
     <Box
-      aria-label={title}
+      aria-labelledby={headingId}
       component="section"
       sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}
     >
-      <Typography component="h3" variant="h6">
+      <Typography component="h3" id={headingId} variant="h6">
         {title}
       </Typography>
       {children}
@@ -87,268 +138,226 @@ function SummarySection({
   );
 }
 
-function formatDate(date: string) {
-  return date.split('-').reverse().join('-');
-}  
-
 export function SummaryAndSubmissionPage({
   title,
-  municipalityId,
+  municipalityName,
   materials,
   usageDetails,
   contactInformation,
   roadMarking,
   applicant,
   confirmed,
+  documentToUpload,
+  confirmationError,
+  submissionAttempted,
   onConfirmedChange,
 }: SummaryAndSubmissionPageProps) {
+  const { t, i18n } = useTranslation();
+  const materialTypes = getMaterialTypes(t);
+  const usageTypes = getUsageTypes(t);
+  const trafficChanges = getTrafficChangeOptions(t);
+  const trafficMeasures = getTrafficMeasureLabels(t);
+  const dateFormat = new Intl.DateTimeFormat(i18n.resolvedLanguage, {
+    dateStyle: 'medium',
+    timeZone: 'UTC',
+  });
+  const formatDate = (date: string) => {
+    if (!date) return '';
+    const parsedDate = new Date(date);
+    return Number.isNaN(parsedDate.getTime())
+      ? date
+      : dateFormat.format(parsedDate);
+  };
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <Typography component="h2" variant="h5">
-        Opsummering &amp; indsendelse
-      </Typography>
-      <SummaryGrid>
-        <TextField
-          fullWidth
-          label="Titel"
-          size="small"
-          slotProps={{ input: { readOnly: true } }}
-          value={title || '—'}
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <SummaryFacts
+          entries={[
+            [t('permit.municipality.title'), title],
+            [t('permit.municipality.label'), municipalityName],
+            [t('permit.usage.startDate'), formatDate(usageDetails.startDate)],
+            [t('permit.usage.endDate'), formatDate(usageDetails.endDate)],
+          ]}
         />
-        <TextField
-          fullWidth
-          label="Kommune"
-          size="small"
-          slotProps={{ input: { readOnly: true } }}
-          value={
-            (municipalities.find(
-              (municipality) => municipality.id === municipalityId,
-            )?.name ??
-              '') ||
-            '—'
-          }
+        <SummaryFacts
+          entries={[
+            [
+              t('permit.usage.label'),
+              usageTypes[usageDetails.usage] ?? usageDetails.usage,
+            ],
+          ]}
+          singleColumn
         />
-        <TextField
-          fullWidth
-          label="Startdato"
-          size="small"
-          slotProps={{ input: { readOnly: true } }}
-          value={formatDate(usageDetails.startDate) || '—'}
-        />
-        <TextField
-          fullWidth
-          label="Slutdato"
-          size="small"
-          slotProps={{ input: { readOnly: true } }}
-          value={formatDate(usageDetails.endDate) || '—'}
-        />
-      </SummaryGrid>
-      <TextField
-        fullWidth
-        label="Anvendelse"
-        size="small"
-        slotProps={{ input: { readOnly: true } }}
-        value={usageDetails.usage || '—'}
-      />
+      </Box>
       <Divider />
-      <SummarySection title="Materialeliste">
+      <SummarySection title={t('permit.materials.list')}>
         {materials.length > 0 ? (
-          <TableContainer>
-            <Table aria-label="Tilføjede materialer" size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell>Materiale</TableCell>
-                  <TableCell align="right">Antal</TableCell>
-                  <TableCell>Bemærkninger</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {materials.map((material) => (
-                  <TableRow key={material.id}>
-                    <TableCell>{material.type}</TableCell>
-                    <TableCell align="right">{material.quantity}</TableCell>
-                    <TableCell sx={{ overflowWrap: 'anywhere' }}>
-                      {material.notes || '—'}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+          <PermitTable
+            columns={[
+              { label: t('permit.steps.materials') },
+              { label: t('permit.materials.quantity'), align: 'right' },
+              { label: t('permit.materials.notes') },
+            ]}
+            label={t('permit.materials.list')}
+            rows={materials.map((material) => ({
+              id: material.id,
+              cells: [
+                materialTypes[material.type] ?? material.type,
+                material.quantity,
+                material.notes || '—',
+              ],
+            }))}
+          />
         ) : (
-          <Typography color="text.secondary" variant="body2">
-            Ingen materialer tilføjet.
-          </Typography>
+          <Typography>{t('permit.materials.empty')}</Typography>
         )}
       </SummarySection>
-
       <Divider />
-      <SummarySection title="Kontaktoplysninger">
-        <SummaryGrid>
-          <TextField
-            fullWidth
-            label="Navn"
-            size="small"
-            slotProps={{ input: { readOnly: true } }}
-            value={contactInformation.name || '—'}
-          />
-          <TextField
-            fullWidth
-            label="Mobil"
-            size="small"
-            slotProps={{ input: { readOnly: true } }}
-            value={contactInformation.phone || '—'}
-          />
-          <TextField
-            fullWidth
-            label="E-mail"
-            size="small"
-            slotProps={{ input: { readOnly: true } }}
-            value={contactInformation.email || '—'}
-          />
-        </SummaryGrid>
-        <SummaryGrid>
-          <TextField
-            fullWidth
-            label="Tilgængelig fra"
-            size="small"
-            slotProps={{ input: { readOnly: true } }}
-            value={contactInformation.availableFrom || '—'}
-          />
-          <TextField
-            fullWidth
-            label="Tilgængelig til"
-            size="small"
-            slotProps={{ input: { readOnly: true } }}
-            value={contactInformation.availableTo || '—'}
-          />
-        </SummaryGrid>
-        <TextField
-          fullWidth
-          label="Evt. bemærkning til tilgængelighed"
-          multiline
-          size="small"
-          slotProps={{ input: { readOnly: true } }}
-          value={contactInformation.availabilityNotes || '—'}
+      <SummarySection title={t('permit.steps.contact')}>
+        <SummaryFacts
+          entries={[
+            [t('permit.contact.name'), contactInformation.name],
+            [t('permit.contact.phone'), contactInformation.phone],
+            [t('permit.contact.email'), contactInformation.email],
+          ]}
         />
       </SummarySection>
-
       <Divider />
-      <SummarySection title="Steddetaljer">
-        <TextField
-          fullWidth
-          label="Vej"
-          size="small"
-          slotProps={{ input: { readOnly: true } }}
-          value={usageDetails.road || '—'}
-        />
-        <SummaryGrid>
-          <TextField
-            fullWidth
-            label="Husnr. fra"
-            size="small"
-            slotProps={{ input: { readOnly: true } }}
-            value={usageDetails.houseNumberFrom || '—'}
-          />
-          <TextField
-            fullWidth
-            label="Husnr. til"
-            size="small"
-            slotProps={{ input: { readOnly: true } }}
-            value={usageDetails.houseNumberTo || '—'}
-          />
-        </SummaryGrid>
-        <TextField
-          fullWidth
-          label="Yderligere beskrivelse"
-          multiline
-          size="small"
-          slotProps={{ input: { readOnly: true } }}
-          value={usageDetails.locationDescription || '—'}
+      <SummarySection title={t('permit.usage.location')}>
+        <SummaryFacts
+          entries={[
+            [t('permit.usage.road'), usageDetails.road],
+            [t('permit.usage.houseNumberFrom'), usageDetails.houseNumberFrom],
+            [t('permit.usage.houseNumberTo'), usageDetails.houseNumberTo],
+            [t('permit.usage.postalCode'), usageDetails.postalCode],
+            [t('permit.usage.city'), usageDetails.city],
+            [
+              t('permit.usage.locationDescription'),
+              usageDetails.locationDescription,
+            ],
+          ]}
         />
       </SummarySection>
-
       <Divider />
-      <SummarySection title="Afmærkning">
-        <TextField
-          fullWidth
-          label="Trafikale ændringer"
-          multiline
-          size="small"
-          slotProps={{ input: { readOnly: true } }}
-          value={roadMarking.trafficChanges.join('\n') || '—'}
+      <SummarySection title={t('permit.steps.roadMarking')}>
+        <SummaryFacts
+          entries={[
+            [
+              t('permit.roadMarking.changes'),
+              roadMarking.trafficChanges
+                .map((option) => trafficChanges[option] ?? option)
+                .join('\n'),
+            ],
+            [t('permit.roadMarking.accessWays'), roadMarking.accessWays],
+          ]}
         />
-        <TextField
-          fullWidth
-          label="Beskrivelse af adgangsveje"
-          multiline
-          size="small"
-          slotProps={{ input: { readOnly: true } }}
-          value={roadMarking.accessWays || '—'}
-        />
-        <Typography component="h4" sx={{ fontWeight: 600 }} variant="body1">
-          Valgte trafikforanstaltninger
+        <Typography component="h4" variant="h6">
+          {t('permit.roadMarking.selectedMeasures')}
         </Typography>
         {roadMarking.trafficPrecautions.length > 0 ? (
-          <TableContainer>
-            <Table aria-label="Valgte trafikforanstaltninger" size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell>Trafikforanstaltning</TableCell>
-                  <TableCell>Beskyttelsesgrad</TableCell>
-                  <TableCell>Virkeområde</TableCell>
-                  <TableCell>Foranstaltning</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {roadMarking.trafficPrecautions.map((precaution) => (
-                  <TableRow key={precaution.type}>
-                    <TableCell>{precaution.type}</TableCell>
-                    <TableCell>{precaution.protectionLevel}</TableCell>
-                    <TableCell>{precaution.scope}</TableCell>
-                    <TableCell sx={{ overflowWrap: 'anywhere' }}>
-                      {precaution.description}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+          <PermitTable
+            columns={[
+              { label: t('permit.roadMarking.measureColumn') },
+              { label: t('permit.roadMarking.protectionColumn') },
+              { label: t('permit.roadMarking.scopeColumn') },
+              { label: t('permit.roadMarking.descriptionColumn') },
+            ]}
+            label={t('permit.roadMarking.selectedMeasures')}
+            rows={roadMarking.trafficPrecautions.map((measure) => ({
+              id: measure.type,
+              cells: [
+                measure.type,
+                trafficMeasures[measure.type]?.protection ??
+                  measure.protectionLevel,
+                trafficMeasures[measure.type]?.scope ?? measure.scope,
+                trafficMeasures[measure.type]?.description ??
+                  measure.description,
+              ],
+            }))}
+          />
         ) : (
-          <Typography color="text.secondary" variant="body2">
-            Ingen trafikforanstaltninger valgt.
-          </Typography>
+          <Typography>{t('permit.roadMarking.noMeasures')}</Typography>
         )}
       </SummarySection>
-
       <Divider />
-      <SummarySection title="Ansøger">
-        <SummaryGrid>
-          {applicantFields.map(([key, label]) => (
-            <TextField
-              fullWidth
-              key={key}
-              label={label}
-              size="small"
-              slotProps={{ input: { readOnly: true } }}
-              value={applicant[key] || '—'}
-            />
-          ))}
-        </SummaryGrid>
+      <SummarySection title={t('permit.steps.documents')}>
+        <TableContainer>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Navn</TableCell>
+                <TableCell>Type</TableCell>
+                <TableCell>Dato</TableCell>
+                <TableCell></TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              <TableRow>
+                <TableCell>{documentToUpload.name}</TableCell>
+                <TableCell>{documentToUpload.DocumentType}</TableCell>
+                <TableCell>{documentToUpload.DateForUpload}</TableCell>
+                <TableCell>
+                  <IconButton
+                    aria-label={t('permit.actions.remove')}
+                    type="button"
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </TableContainer>
       </SummarySection>
-
       <Divider />
-      <SummarySection title="Bekræft oplysninger">
+      <SummarySection title={t('permit.summary.exampleApplicant')}>
+        <SummaryFacts
+          entries={[
+            [t('permit.contact.name'), applicant.name],
+            [t('permit.summary.department'), applicant.department],
+            [t('permit.summary.address1'), applicant.address1],
+            [t('permit.summary.address2'), applicant.address2],
+            [t('permit.summary.postalCode'), applicant.postalCode],
+            [t('permit.summary.city'), applicant.city],
+            [t('permit.summary.contactPerson'), applicant.contactPerson],
+            [t('permit.summary.directPhone'), applicant.directPhone],
+            [t('permit.summary.mobile'), applicant.mobile],
+            [t('permit.contact.email'), applicant.email],
+            [t('permit.summary.companyPhone'), applicant.companyPhone],
+            [t('permit.summary.cvr'), applicant.cvr],
+          ]}
+        />
+      </SummarySection>
+      <Divider />
+      <SummarySection title={t('permit.summary.confirmTitle')}>
         <FormControlLabel
           control={
             <Checkbox
               checked={confirmed}
               onChange={(event) => onConfirmedChange(event.target.checked)}
+              required
+              slotProps={{
+                input: {
+                  'aria-describedby': confirmationError
+                    ? 'application-confirmation-error'
+                    : undefined,
+                  'aria-invalid': Boolean(confirmationError),
+                },
+              }}
             />
           }
-          label="Jeg bekræfter, at oplysningerne er korrekte og afgivet på tro og love."
-          sx={{ alignItems: 'flex-start', mx: 0 }}
+          label={t('permit.summary.confirmLabel')}
+          sx={{ alignItems: 'flex-start', mx: 0, minHeight: 44 }}
         />
+        {confirmationError && (
+          <FormHelperText error id="application-confirmation-error">
+            {confirmationError}
+          </FormHelperText>
+        )}
+        <Typography role="status">
+          {submissionAttempted && t('permit.summary.submissionStatus')}
+        </Typography>
       </SummarySection>
     </Box>
   );

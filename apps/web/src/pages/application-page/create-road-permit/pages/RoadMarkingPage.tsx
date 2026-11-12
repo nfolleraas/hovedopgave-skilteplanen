@@ -1,3 +1,5 @@
+import CheckBoxIcon from '@mui/icons-material/CheckBox';
+import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import CloseIcon from '@mui/icons-material/Close';
 import {
   Box,
@@ -5,28 +7,20 @@ import {
   IconButton,
   List,
   ListItem,
-  ListItemText,
   MenuItem,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   TextField,
   Typography,
 } from '@mui/material';
+import { useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { RoadMarkingDetails } from '../formTypes';
-import { type TrafficMeasure, trafficMeasures } from '../trafficMeasures';
-
-const trafficChangeOptions = [
-  'Hastighedsbegrænsning - hensyn til vejarbejder',
-  'Hastighedsbegrænsning - hensyn til trafikanter',
-  'Hastighedsbegrænsning - hensyn til trafikanter og vejarbejder',
-  'Ubetinget vigepligt i vejkryds',
-  'Standsning og Parkering',
-  'Påbud om ensrettet færdsel',
-];
+import { PermitTable } from '../PermitTable';
+import { getTrafficChangeOptions } from '../permitOptions';
+import {
+  getTrafficMeasureLabels,
+  type TrafficMeasure,
+  trafficMeasures,
+} from '../trafficMeasures';
 
 export type RoadMarkingProps = {
   value: RoadMarkingDetails;
@@ -34,13 +28,13 @@ export type RoadMarkingProps = {
 };
 
 export function RoadMarkingPage({ value, onChange }: RoadMarkingProps) {
-  const {
-    trafficChanges: selectedTrafficChanges,
-    accessWays,
-    trafficPrecautions,
-  } = value;
+  const { t } = useTranslation();
+  const trafficSelect = useRef<{ focus: () => void }>(null);
+  const options = getTrafficChangeOptions(t);
+  const labels = getTrafficMeasureLabels(t);
+  const { trafficChanges, accessWays, trafficPrecautions } = value;
 
-  const handleCheckboxChange = (measure: TrafficMeasure, checked: boolean) => {
+  function changeMeasure(measure: TrafficMeasure, checked: boolean) {
     onChange({
       ...value,
       trafficPrecautions: checked
@@ -55,23 +49,17 @@ export function RoadMarkingPage({ value, onChange }: RoadMarkingProps) {
           ]
         : trafficPrecautions.filter((item) => item.type !== measure.type),
     });
-  };
+  }
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0 }}>
-      <Typography component={'h2'} variant="h5">
-        Afmærkning
-      </Typography>
-      <Box
-        sx={{
-          position: 'relative',
-        }}
-      >
+      <Box sx={{ position: 'relative' }}>
         <TextField
           fullWidth
-          helperText="Du kan vælge flere trafikale ændringer."
+          helperText={t('permit.roadMarking.multiple')}
           id="traffic-changes"
-          label="Trafikale ændringer"
+          inputRef={trafficSelect}
+          label={t('permit.roadMarking.changes')}
           name="trafficChanges"
           onChange={(event) => {
             const selected = event.target.value;
@@ -86,31 +74,49 @@ export function RoadMarkingPage({ value, onChange }: RoadMarkingProps) {
             select: {
               multiple: true,
               renderValue: () =>
-                `${selectedTrafficChanges.length} ${selectedTrafficChanges.length === 1 ? 'ændring valgt' : 'ændringer valgt'}`,
+                t('permit.roadMarking.selectedChanges', {
+                  count: trafficChanges.length,
+                }),
             },
           }}
-          value={selectedTrafficChanges}
+          value={trafficChanges}
         >
-          {trafficChangeOptions.map((option) => (
-            <MenuItem key={option} value={option}>
-              <Checkbox checked={selectedTrafficChanges.includes(option)} />
-              <ListItemText primary={option} />
+          {Object.entries(options).map(([option, label]) => (
+            <MenuItem
+              key={option}
+              sx={{
+                gap: 1.5,
+                minHeight: 44,
+                whiteSpace: 'normal',
+                overflowWrap: 'anywhere',
+              }}
+              value={option}
+            >
+              {trafficChanges.includes(option) ? (
+                <CheckBoxIcon color="primary" />
+              ) : (
+                <CheckBoxOutlineBlankIcon />
+              )}
+              {label}
             </MenuItem>
           ))}
         </TextField>
-        {selectedTrafficChanges.length > 0 && (
+        {trafficChanges.length > 0 && (
           <List
-            aria-label="Valgte trafikale ændringer"
+            aria-label={t('permit.roadMarking.selectedChangesLabel')}
             disablePadding
             sx={{
-              position: { xs: 'static', xl: 'absolute' },
-              top: 0,
-              left: 'calc(100% + 48px)',
-              width: { xs: '100%', xl: 320 },
-              mt: { xs: 2, xl: 0 },
+              mt: 2,
+              '@media (min-width: 1920px)': {
+                position: 'absolute',
+                top: 0,
+                left: 'calc(100% + 48px)',
+                width: 320,
+                mt: 0,
+              },
             }}
           >
-            {selectedTrafficChanges.map((option) => (
+            {trafficChanges.map((option) => (
               <ListItem
                 key={option}
                 sx={{
@@ -126,18 +132,21 @@ export function RoadMarkingPage({ value, onChange }: RoadMarkingProps) {
                   sx={{ flex: 1, minWidth: 0, overflowWrap: 'anywhere' }}
                   variant="body2"
                 >
-                  {option}
+                  {options[option] ?? option}
                 </Typography>
                 <IconButton
-                  aria-label={`Fjern ${option}`}
-                  onClick={() =>
+                  aria-label={t('permit.roadMarking.removeChange', {
+                    change: options[option] ?? option,
+                  })}
+                  onClick={() => {
                     onChange({
                       ...value,
-                      trafficChanges: selectedTrafficChanges.filter(
+                      trafficChanges: trafficChanges.filter(
                         (item) => item !== option,
                       ),
-                    })
-                  }
+                    });
+                    trafficSelect.current?.focus();
+                  }}
                   size="small"
                 >
                   <CloseIcon fontSize="small" />
@@ -148,45 +157,52 @@ export function RoadMarkingPage({ value, onChange }: RoadMarkingProps) {
         )}
       </Box>
       <TextField
-        label="Beskrivelse af adgangsveje"
+        id="access-ways"
+        label={t('permit.roadMarking.accessWays')}
         onChange={(event) =>
           onChange({ ...value, accessWays: event.target.value })
         }
         value={accessWays}
       />
-      <TableContainer sx={{ width: '100%' }}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Trafikforanstaltning</TableCell>
-              <TableCell>Beskyttelsegrad</TableCell>
-              <TableCell>Virkeområde</TableCell>
-              <TableCell>Foranstaltning</TableCell>
-              <TableCell>Valg</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {trafficMeasures.map((RowDetails) => (
-              <TableRow key={'RowTrafficMeasure_' + RowDetails.type}>
-                <TableCell>{RowDetails.type}</TableCell>
-                <TableCell>{RowDetails.protection}</TableCell>
-                <TableCell>{RowDetails.scope}</TableCell>
-                <TableCell>{RowDetails.description}</TableCell>
-                <TableCell>
-                  <Checkbox
-                    checked={trafficPrecautions.some(
-                      (item) => item.type === RowDetails.type,
-                    )}
-                    onChange={(e) =>
-                      handleCheckboxChange(RowDetails, e.target.checked)
-                    }
-                  ></Checkbox>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      <PermitTable
+        columns={[
+          { label: t('permit.roadMarking.measureColumn') },
+          { label: t('permit.roadMarking.protectionColumn') },
+          { label: t('permit.roadMarking.scopeColumn') },
+          { label: t('permit.roadMarking.descriptionColumn') },
+          { label: t('permit.roadMarking.choiceColumn') },
+        ]}
+        label={t('permit.roadMarking.measures')}
+        rows={trafficMeasures.map((measure) => {
+          const text = labels[measure.type];
+          const detailsId = `traffic-measure-${measure.type}`;
+
+          return {
+            id: measure.type,
+            cells: [
+              measure.type,
+              text.protection,
+              text.scope,
+              <Box id={detailsId} key="description">
+                {text.description}
+              </Box>,
+              <Checkbox
+                checked={trafficPrecautions.some(
+                  (item) => item.type === measure.type,
+                )}
+                key="selection"
+                onChange={(_, checked) => changeMeasure(measure, checked)}
+                slotProps={{
+                  input: {
+                    'aria-label': text.name,
+                    'aria-describedby': detailsId,
+                  },
+                }}
+              />,
+            ],
+          };
+        })}
+      />
     </Box>
   );
 }

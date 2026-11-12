@@ -11,9 +11,9 @@ model Application {
   documents              Document[]
   areas                  Area[]
   trafficChange          TrafficChange
-  applicantId            String                  @unique
+  applicantId            String                  
   applicant              Applicant               @relation(fields: [applicantId], references: [uuid])
-  caseWorkerId           String?                 @unique
+  caseWorkerId           String?                 
   caseWorker             CaseWorker?             @relation(fields: [caseWorkerId], references: [employeeNumber])
   roadUsePermit          RoadUsePermit?
   excavationPermit       ExcavationPermit?
