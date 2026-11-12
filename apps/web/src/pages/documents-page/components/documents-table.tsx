@@ -16,12 +16,12 @@ import {
 } from '@mui/material';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import UrlPreviewDialog from '../../../components/ui/dialogs/url-preview-dialog.js';
 import {
   formatReadableDate,
   formatReadableTime,
 } from '../../../utils/format-date.js';
 import type { Document, DocumentType } from '../document.types.js';
-import DocumentPreviewDialog from './document-preview-dialog.js';
 
 type DocumentsTableProps = {
   documents: Document[];
@@ -310,9 +310,12 @@ export default function DocumentsTable({
         </Table>
       </TableContainer>
       {documentToPreview && (
-        <DocumentPreviewDialog
-          document={documentToPreview}
+        <UrlPreviewDialog
           onClose={() => setDocumentToPreview(null)}
+          title={t('documents.previewTitle', {
+            name: documentToPreview.name,
+          })}
+          url={documentToPreview.url}
         />
       )}
     </>

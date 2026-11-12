@@ -1,31 +1,34 @@
 import CloseIcon from '@mui/icons-material/Close';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import {
   Box,
   Dialog,
   DialogContent,
   DialogTitle,
   IconButton,
+  Tooltip,
   useMediaQuery,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { useId } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { Document } from '../document.types.js';
 
-type DocumentPreviewDialogProps = {
-  document: Document;
+type UrlPreviewDialogProps = {
   onClose: () => void;
+  title: string;
+  url: string;
 };
 
 /**
- * Displays an uploaded document without navigating away from the platform.
- * @param props - The document to preview and close callback
- * @returns A responsive document preview dialog
+ * Displays a URL in a responsive iframe dialog.
+ * @param props - The URL, accessible title, and close callback
+ * @returns A responsive URL preview dialog
  */
-export default function DocumentPreviewDialog({
-  document,
+export default function UrlPreviewDialog({
   onClose,
-}: DocumentPreviewDialogProps) {
+  title,
+  url,
+}: UrlPreviewDialogProps) {
   const { t } = useTranslation();
   const theme = useTheme();
   const titleId = useId();
@@ -40,11 +43,24 @@ export default function DocumentPreviewDialog({
       onClose={onClose}
       open
     >
-      <DialogTitle id={titleId} sx={{ overflowWrap: 'anywhere', pr: 7 }}>
-        {t('documents.previewTitle', { name: document.name })}
+      <DialogTitle sx={{ overflowWrap: 'anywhere', pr: 7 }}>
+        <Box component="span" id={titleId}>
+          {title}
+        </Box>
+        <Tooltip title={t('urlPreview.openInNewTab')}>
+          <IconButton
+            aria-label={t('urlPreview.openInNewTab')}
+            href={url}
+            rel="noopener noreferrer"
+            sx={{ ml: 1, verticalAlign: 'middle' }}
+            target="_blank"
+          >
+            <OpenInNewIcon />
+          </IconButton>
+        </Tooltip>
       </DialogTitle>
       <IconButton
-        aria-label={t('documents.closePreview', { name: document.name })}
+        aria-label={t('urlPreview.close')}
         onClick={onClose}
         sx={{ position: 'absolute', right: 8, top: 8 }}
       >
@@ -56,9 +72,9 @@ export default function DocumentPreviewDialog({
       >
         <Box
           component="iframe"
-          src={document.url}
+          src={url}
           sx={{ border: 0, flex: 1, width: '100%' }}
-          title={t('documents.previewFrameTitle', { name: document.name })}
+          title={title}
         />
       </DialogContent>
     </Dialog>

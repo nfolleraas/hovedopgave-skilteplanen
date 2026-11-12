@@ -21,6 +21,10 @@
   "common": {
     "brandName": "Skilteplanen"
   },
+  "urlPreview": {
+    "openInNewTab": "Open in a new tab",
+    "close": "Close preview"
+  },
   "navigation": {
     "home": "Home",
     "application": "Application",
@@ -63,8 +67,6 @@
     },
     "openPreview": "Preview {{name}}",
     "previewTitle": "Preview of {{name}}",
-    "closePreview": "Close preview of {{name}}",
-    "previewFrameTitle": "Contents of {{name}}",
     "table": {
       "documentType": "Document type",
       "createdAt": "Created",
