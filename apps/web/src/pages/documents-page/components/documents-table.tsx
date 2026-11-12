@@ -31,6 +31,11 @@ type DocumentsTableProps = {
 type SortColumn = 'name' | 'documentType' | 'date';
 type SortDirection = 'asc' | 'desc';
 
+/**
+ * Renders sortable document data for mobile and desktop layouts.
+ * @param props - The documents, accessible label, and deletion callback
+ * @returns The responsive document list and table
+ */
 export default function DocumentsTable({
   documents,
   labelledBy,
@@ -82,6 +87,10 @@ export default function DocumentsTable({
     sortDirection,
   ]);
 
+  /**
+   * Selects a sort column or reverses the active column's direction.
+   * @param column - The document field to sort by
+   */
   const handleSort = (column: SortColumn) => {
     if (column === sortColumn) {
       setSortDirection((currentDirection) =>

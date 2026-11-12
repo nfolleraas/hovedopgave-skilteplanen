@@ -7,6 +7,10 @@ const HEALTH_CHECK_TIMEOUT_MS = 1_000;
 export class HealthService {
   constructor(private readonly prisma: PrismaService) {}
 
+  /**
+   * Verifies the database responds before the health-check timeout expires.
+   * @returns The healthy status message
+   */
   async getHealth(): Promise<string> {
     let timeout: ReturnType<typeof setTimeout> | undefined;
 

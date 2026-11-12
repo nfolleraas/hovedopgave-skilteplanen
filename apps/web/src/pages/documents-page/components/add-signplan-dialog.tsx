@@ -27,6 +27,11 @@ type AddSignplanDialogProps = {
   open: boolean;
 };
 
+/**
+ * Presents options for uploading or creating a sign plan.
+ * @param props - The dialog state and document callbacks
+ * @returns The add-sign-plan dialog
+ */
 export default function AddSignplanDialog({
   onClose,
   onDocumentsUploaded,

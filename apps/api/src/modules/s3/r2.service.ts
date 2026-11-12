@@ -26,6 +26,13 @@ export class R2Service {
     }
   }
 
+  /**
+   * Uploads an object to the configured R2 bucket.
+   * @param key - The destination object key
+   * @param body - The object contents
+   * @param contentType - The optional media type of the object
+   * @returns The R2 upload response
+   */
   async upload(key: string, body: Buffer, contentType?: string) {
     return await this.client.send(
       new PutObjectCommand({
@@ -37,6 +44,11 @@ export class R2Service {
     );
   }
 
+  /**
+   * Downloads an object from the configured R2 bucket.
+   * @param key - The object key to retrieve
+   * @returns The R2 download response
+   */
   async download(key: string) {
     return await this.client.send(
       new GetObjectCommand({
@@ -46,6 +58,12 @@ export class R2Service {
     );
   }
 
+  /**
+   * Lists objects from the configured R2 bucket.
+   * @param prefix - The optional object-key prefix to filter by
+   * @param continuationToken - The optional token for the next result page
+   * @returns A page of matching R2 objects
+   */
   async list(prefix?: string, continuationToken?: string) {
     return await this.client.send(
       new ListObjectsV2Command({
@@ -56,6 +74,11 @@ export class R2Service {
     );
   }
 
+  /**
+   * Deletes an object from the configured R2 bucket.
+   * @param key - The object key to delete
+   * @returns The R2 deletion response
+   */
   async delete(key: string) {
     return await this.client.send(
       new DeleteObjectCommand({

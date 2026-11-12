@@ -12,6 +12,13 @@ export class SignPlansService {
     private readonly signPlanRepository: SignPlansRepository,
     private readonly r2Service: R2Service,
   ) {}
+
+  /**
+   * Validates and uploads a sign plan before persisting its records.
+   * @param dto - The metadata for the sign plan
+   * @param file - The uploaded sign plan file
+   * @returns The newly created sign plan
+   */
   async create(dto: CreateSignPlanDto, file: Express.Multer.File) {
     if (!file) throw new BadRequestException('A document file is required.');
 
@@ -86,6 +93,11 @@ export class SignPlansService {
     }
   }
 
+  /**
+   * Retrieves a sign plan by its document identifier.
+   * @param uuid - The related document identifier
+   * @returns The matching sign plan
+   */
   async findOne(uuid: string) {
     return await this.signPlanRepository.getById(uuid);
   }

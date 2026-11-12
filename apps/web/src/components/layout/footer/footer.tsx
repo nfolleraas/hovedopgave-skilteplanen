@@ -1,6 +1,10 @@
 import { Box, Container, Typography } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 
+/**
+ * Renders the localized site footer and its information sections.
+ * @returns The site footer
+ */
 export default function Footer() {
   const { t } = useTranslation();
   const sections = [

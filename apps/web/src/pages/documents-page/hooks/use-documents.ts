@@ -3,6 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { getDocuments } from '../../../api/documents.api.js';
 import type { Document } from '../document.types.js';
 
+/**
+ * Loads documents and manages local additions and removals.
+ * @returns The document collection, status, and update callbacks
+ */
 export function useDocuments() {
   const { t } = useTranslation();
   const [documents, setDocuments] = useState<Document[]>([]);
@@ -38,6 +42,10 @@ export function useDocuments() {
     };
   }, [t]);
 
+  /**
+   * Appends newly uploaded documents to the local collection.
+   * @param uploadedDocuments - The documents to append
+   */
   const addDocuments = useCallback((uploadedDocuments: Document[]) => {
     setDocuments((currentDocuments) => [
       ...currentDocuments,
@@ -45,6 +53,10 @@ export function useDocuments() {
     ]);
   }, []);
 
+  /**
+   * Removes a document from the local collection.
+   * @param uuid - The identifier of the document to remove
+   */
   const removeDocument = useCallback((uuid: string) => {
     setDocuments((currentDocuments) =>
       currentDocuments.filter((document) => document.uuid !== uuid),

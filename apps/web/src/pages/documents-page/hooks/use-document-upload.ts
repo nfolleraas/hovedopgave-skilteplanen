@@ -11,6 +11,11 @@ type UseDocumentUploadOptions = {
   onDocumentsUploaded: (documents: Document[]) => void;
 };
 
+/**
+ * Manages document uploads and their user-facing status messages.
+ * @param options - The upload target, document type, and completion callback
+ * @returns Upload handlers and the current upload state
+ */
 export function useDocumentUpload({
   applicationId,
   documentType,
@@ -21,6 +26,11 @@ export function useDocumentUpload({
   const [isUploading, setIsUploading] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
+  /**
+   * Uploads the selected files and reports partial success or failure.
+   * @param files - The files selected for upload
+   * @returns A promise that resolves when all upload attempts are settled
+   */
   const uploadFiles = async (files: File[]) => {
     if (files.length === 0 || isUploading) {
       return;
@@ -61,6 +71,11 @@ export function useDocumentUpload({
     }
   };
 
+  /**
+   * Uploads files selected through the hidden file input.
+   * @param event - The file input change event
+   * @returns A promise that resolves when the selected files are processed
+   */
   const handleFileSelected = async (event: ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files ?? []);
     event.target.value = '';

@@ -13,6 +13,12 @@ export class DocumentsService {
     private readonly r2Service: R2Service,
   ) {}
 
+  /**
+   * Validates and uploads a document before persisting its metadata.
+   * @param dto - The metadata for the document
+   * @param file - The uploaded document file
+   * @returns The newly created document
+   */
   async create(dto: CreateDocumentDto, file: Express.Multer.File) {
     if (!file) throw new BadRequestException('A document file is required.');
 
@@ -75,14 +81,28 @@ export class DocumentsService {
     }
   }
 
+  /**
+   * Retrieves all document records.
+   * @returns The stored documents
+   */
   async findAll() {
     return await this.documentsRepository.getAll();
   }
 
+  /**
+   * Retrieves a document by its unique identifier.
+   * @param uuid - The document identifier
+   * @returns The matching document
+   */
   async findOne(uuid: string) {
     return await this.documentsRepository.get(uuid);
   }
 
+  /**
+   * Deletes a document record and attempts to remove its stored object.
+   * @param uuid - The document identifier
+   * @returns A promise that resolves when the removal attempt is complete
+   */
   async remove(uuid: string) {
     try {
       const document = await this.documentsRepository.delete(uuid);

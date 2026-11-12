@@ -13,6 +13,13 @@ const localeRoot = join(appRoot, 'locales');
 const tempRoot = await mkdtemp(join(tmpdir(), 'web-locale-check-'));
 const outputTemplate = join(tempRoot, '$LOCALE', '$NAMESPACE.json');
 
+/**
+ * Finds translation keys that are absent or empty in a locale.
+ * @param {object|string} extracted - The keys extracted from the source code
+ * @param {object|string|undefined} translations - The locale translations
+ * @param {string} prefix - The current nested translation-key prefix
+ * @returns {string[]} The missing or empty translation keys
+ */
 function findMissingKeys(extracted, translations, prefix = '') {
   if (typeof extracted === 'string') {
     return typeof translations === 'string' && translations.trim()

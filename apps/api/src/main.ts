@@ -2,6 +2,10 @@ import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module.js';
 
+/**
+ * Configures and starts the NestJS API and its Swagger documentation.
+ * @returns A promise that resolves when the API is listening for requests
+ */
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 

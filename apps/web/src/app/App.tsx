@@ -5,6 +5,10 @@ import Footer from '../components/layout/footer/footer.js';
 import Navbar from '../components/layout/navbar/navbar.js';
 import { pages } from './router.js';
 
+/**
+ * Renders the fallback page for unmatched routes.
+ * @returns The localized not-found page
+ */
 function NotFoundPage() {
   const { t } = useTranslation();
 
@@ -19,6 +23,10 @@ function NotFoundPage() {
   );
 }
 
+/**
+ * Renders the shared application layout and route configuration.
+ * @returns The application UI
+ */
 export default function App() {
   return (
     <>

@@ -1,6 +1,10 @@
 import { Button } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 
+/**
+ * Renders the localized home page.
+ * @returns The home page UI
+ */
 export default function HomePage() {
   const { t } = useTranslation();
 

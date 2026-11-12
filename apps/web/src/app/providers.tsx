@@ -77,6 +77,11 @@ const theme = createTheme({
   }),
 });
 
+/**
+ * Provides the shared Material UI theme to the application tree.
+ * @param children - The application content that receives the theme
+ * @returns The themed application content
+ */
 export function Providers({ children }: { children: ReactNode }) {
   return <ThemeProvider theme={theme}>{children}</ThemeProvider>;
 }

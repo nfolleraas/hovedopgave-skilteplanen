@@ -5,6 +5,12 @@ type CreatedSignPlan = {
   documentId: string;
 };
 
+/**
+ * Uploads a sign plan and retrieves its associated document.
+ * @param file - The sign plan file to upload
+ * @param applicationId - The application that owns the sign plan
+ * @returns The document associated with the newly created sign plan
+ */
 export async function createSignPlan(
   file: File,
   applicationId: string,

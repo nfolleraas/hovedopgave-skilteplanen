@@ -9,6 +9,12 @@ const readableTimeFormatters = {
   'en-GB': new Intl.DateTimeFormat('en-GB', { timeStyle: 'short' }),
 };
 
+/**
+ * Formats a date using the readable date style for the active language.
+ * @param value - The date value to format
+ * @param language - The language used to select the locale
+ * @returns The localized date string
+ */
 export function formatReadableDate(
   value: Date | string,
   language = i18n.resolvedLanguage ?? i18n.language,
@@ -19,6 +25,12 @@ export function formatReadableDate(
   return readableDateFormatters[locale].format(date);
 }
 
+/**
+ * Formats a time using the short time style for the active language.
+ * @param value - The date value whose time should be formatted
+ * @param language - The language used to select the locale
+ * @returns The localized time string
+ */
 export function formatReadableTime(
   value: Date | string,
   language = i18n.resolvedLanguage ?? i18n.language,

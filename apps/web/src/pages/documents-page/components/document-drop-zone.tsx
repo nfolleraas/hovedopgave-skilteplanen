@@ -21,6 +21,11 @@ type DocumentDropZoneProps = {
   onDocumentsUploaded: (documents: Document[]) => void;
 };
 
+/**
+ * Renders an accessible file picker and desktop drag-and-drop upload area.
+ * @param props - The application, document type, and upload callback
+ * @returns The document upload controls and status feedback
+ */
 export default function DocumentDropZone({
   applicationId,
   documentType,

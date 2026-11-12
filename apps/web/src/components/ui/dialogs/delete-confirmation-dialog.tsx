@@ -19,6 +19,11 @@ type DeleteConfirmationDialogProps = {
   open: boolean;
 };
 
+/**
+ * Renders a confirmation dialog and performs the requested API deletion.
+ * @param props - The deletion endpoint, entity label, state, and callbacks
+ * @returns The deletion confirmation dialog
+ */
 export default function DeleteConfirmationDialog(
   props: DeleteConfirmationDialogProps,
 ) {
@@ -29,6 +34,9 @@ export default function DeleteConfirmationDialog(
   const [isDeleting, setIsDeleting] = useState(false);
   const [hasError, setHasError] = useState(false);
 
+  /**
+   * Closes the dialog when no deletion is in progress.
+   */
   const handleClose = () => {
     if (isDeleting) {
       return;
@@ -38,6 +46,10 @@ export default function DeleteConfirmationDialog(
     onClose();
   };
 
+  /**
+   * Deletes the resource and reports success or failure through dialog state.
+   * @returns A promise that resolves when the deletion attempt is complete
+   */
   const handleDelete = async () => {
     setHasError(false);
     setIsDeleting(true);
