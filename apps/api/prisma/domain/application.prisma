@@ -7,7 +7,6 @@ model Application {
   contactPersons         ContactPerson[]
   feedbacks              Feedback[]
   trafficCalmingMeasures TrafficCalmingMeasure[]
-  signPlans              SignPlan[]
   documents              Document[]
   areas                  Area[]
   trafficChange          TrafficChange

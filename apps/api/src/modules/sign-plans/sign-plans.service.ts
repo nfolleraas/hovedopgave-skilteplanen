@@ -1,9 +1,14 @@
 import { randomUUID } from 'node:crypto';
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { DocumentType } from '../../generated/prisma/client.js';
 import { getAllowedDocumentFileExtension } from '../../utils/allowed-document-file-extensions.js';
 import { R2Service } from '../s3/r2.service.js';
 import { CreateSignPlanDto } from './dto/create-sign-plan.dto.js';
+import { mapCreateSignPlan } from './mappers/sign-plan.mapper.js';
 import { SignPlansRepository } from './sign-plans.repository.js';
 
 @Injectable()
@@ -51,30 +56,10 @@ export class SignPlansService {
 
     const url = `${process.env.PUBLIC_URL}/${key}`;
 
+    const mappedCreateSignPlan = mapCreateSignPlan(dto, url, key);
+
     try {
-      return await this.signPlanRepository.add({
-        signPlanType: dto.signPlanType,
-        group: dto.group,
-        plan: dto.plan,
-        application: {
-          connect: {
-            caseNumber: dto.applicationId,
-          },
-        },
-        document: {
-          create: {
-            name: dto.name,
-            documentType,
-            url,
-            r2ObjectKey: key,
-            application: {
-              connect: {
-                caseNumber: dto.applicationId,
-              },
-            },
-          },
-        },
-      });
+      return await this.signPlanRepository.add(mappedCreateSignPlan);
     } catch (error) {
       try {
         await this.r2Service.delete(key);
@@ -94,11 +79,17 @@ export class SignPlansService {
   }
 
   /**
-   * Retrieves a sign plan by its document identifier.
+   * Retrieves a sign plan by its document identifier and validates its existence before returning.
    * @param uuid - The related document identifier
    * @returns The matching sign plan
    */
   async findOne(uuid: string) {
-    return await this.signPlanRepository.getById(uuid);
+    const signPlan = await this.signPlanRepository.getById(uuid);
+
+    if (!signPlan) {
+      throw new NotFoundException(`Sign plan ${uuid} not found.`);
+    }
+
+    return signPlan;
   }
 }

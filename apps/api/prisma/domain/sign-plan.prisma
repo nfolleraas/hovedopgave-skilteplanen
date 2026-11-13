@@ -1,9 +1,7 @@
 model SignPlan {
-  signPlanType  SignPlanType
-  group         String?
-  plan          String?
-  applicationId String
-  application   Application  @relation(fields: [applicationId], references: [caseNumber])
-  documentId    String       @unique
-  document      Document     @relation(fields: [documentId], references: [uuid], onDelete: Cascade)
+  documentId   String       @id
+  document     Document     @relation(fields: [documentId], references: [uuid], onDelete: Cascade)
+  signPlanType SignPlanType
+  group        String?
+  plan         String?
 }

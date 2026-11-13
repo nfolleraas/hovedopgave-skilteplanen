@@ -1,10 +1,15 @@
 import { randomUUID } from 'node:crypto';
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { DocumentType } from '../../generated/prisma/enums.js';
 import { getAllowedDocumentFileExtension } from '../../utils/allowed-document-file-extensions.js';
 import { R2Service } from '../s3/r2.service.js';
 import { DocumentsRepository } from './documents.repository.js';
 import { CreateDocumentDto } from './dto/create-document.dto.js';
+import { mapCreateDocument } from './mappers/document.mapper.js';
 
 @Injectable()
 export class DocumentsService {
@@ -51,18 +56,10 @@ export class DocumentsService {
 
     const url = `${process.env.PUBLIC_URL}/${key}`;
 
+    const mappedCreateDocument = mapCreateDocument(dto, url, key);
+
     try {
-      return await this.documentsRepository.add({
-        name: dto.name,
-        documentType,
-        url,
-        r2ObjectKey: key,
-        application: {
-          connect: {
-            caseNumber: dto.applicationId,
-          },
-        },
-      });
+      return await this.documentsRepository.add(mappedCreateDocument);
     } catch (error) {
       try {
         await this.r2Service.delete(key);
@@ -90,12 +87,18 @@ export class DocumentsService {
   }
 
   /**
-   * Retrieves a document by its unique identifier.
+   * Retrieves a document by its unique identifier and validates its existence before returning.
    * @param uuid - The document identifier
    * @returns The matching document
    */
   async findOne(uuid: string) {
-    return await this.documentsRepository.get(uuid);
+    const document = await this.documentsRepository.get(uuid);
+
+    if (!document) {
+      throw new NotFoundException(`Document ${uuid} not found.`);
+    }
+
+    return document;
   }
 
   /**
