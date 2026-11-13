@@ -39,3 +39,8 @@ bash "$SCRIPT_DIR/setup-zsh.sh"
 
 echo "Installing workspace dependencies"
 bun install
+
+echo "Configuring Git defaults"
+git config init.defaultBranch main
+git config pull.rebase false
+git config core.autocrlf input

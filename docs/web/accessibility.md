@@ -14,6 +14,8 @@ Every user must be able to:
 - complete all tasks using only a keyboard;
 - read and use the interface with low vision, colour-vision deficiency, browser
   zoom, or increased text spacing;
+- use every page on popular desktop, tablet, and mobile screen sizes with a
+  responsive layout and without losing content or functionality;
 - recover from mistakes and understand what the application is doing; and
 - use the interface without needing technical knowledge or familiarity with
   the implementation.
@@ -57,12 +59,12 @@ Every user must be able to:
   introduce positive `tabindex` values.
 - Ensure dialogs, menus, popovers, custom selects, drag-and-drop actions, and
   other widgets have documented keyboard behavior. Focus must move into a
-  modal when it opens, remain contained while it is open, and return to the
-  triggering control when it closes.
+  modal dialog when it opens, remain contained while it is open, and return to
+  the triggering control when it closes.
 - Provide a keyboard-accessible alternative for every pointer-only gesture,
   hover interaction, and drag-and-drop operation.
-- Do not trap focus in a page or component unless the user is inside a modal or
-  another interaction that requires a deliberate focus boundary.
+- Do not trap focus in a page or component unless the user is inside a modal
+  dialog or another interaction that requires a deliberate focus boundary.
 - Ensure keyboard users can dismiss temporary content, such as menus and
   dialogs, with the expected key (usually `Escape`) and can reach every control
   without depending on hover.
@@ -86,6 +88,29 @@ Every user must be able to:
   devices. Use at least a 24 by 24 CSS pixel target unless a documented WCAG
   exception applies; prefer larger targets and sufficient space between
   adjacent targets. Keep related labels and controls visually close together.
+
+### Generic responsive layout examples
+
+The following examples illustrate general responsive patterns; they do not
+prescribe a specific implementation for any page or component. Choose the
+pattern that best preserves the content, relationships, and actions on each
+screen size. Common adaptations include:
+
+- presenting a wide data table as a list of labelled cards on narrow screens,
+  while keeping every value and row action available;
+- replacing a horizontal navigation bar with an accessible menu button and
+  navigation drawer (often called a burger menu) on smaller screens;
+- stacking columns, form fields, filters, and action groups vertically when
+  there is not enough room to display them side by side;
+- allowing dialogs to use most or all of the viewport on small screens while
+  keeping their title, close control, content, and primary actions visible and
+  reachable; and
+- wrapping, repositioning, or progressively disclosing secondary controls
+  without changing their meaning or removing essential functionality.
+
+Responsive changes must preserve logical reading and focus order. Do not rely
+on visual rearrangement alone when the underlying document order would become
+confusing for keyboard or screen-reader users.
 
 ## Clear and forgiving UX
 
@@ -112,22 +137,24 @@ Before merging a page or component, verify that:
 
 - [ ] It has an appropriate semantic structure, accessible names, and labels.
 - [ ] The entire flow works using only `Tab`, `Shift+Tab`, `Enter`, `Space`,
-      and the expected arrow-key patterns.
+  and the expected arrow-key patterns.
 - [ ] Focus is visible, ordered correctly, and managed correctly by overlays.
 - [ ] A screen reader can identify headings, landmarks, controls, states, help
-      text, validation errors, and asynchronous updates.
+  text, validation errors, and asynchronous updates.
 - [ ] The page declares the correct language, provides skip navigation where
-      needed, and announces client-side route changes.
+  needed, and announces client-side route changes.
 - [ ] Zoom, text enlargement, responsive widths, and increased text spacing do
-      not hide or overlap content.
+  not hide or overlap content.
+- [ ] The page is fully usable with a responsive layout on popular desktop,
+  tablet, and mobile screen sizes.
 - [ ] Interactive controls remain usable at touch sizes and do not rely on
-      hover.
+  hover.
 - [ ] Contrast and non-colour indicators have been checked in all relevant
-      states.
+  states.
 - [ ] Loading, empty, success, and error states are clear and actionable.
 - [ ] The wording is understandable to a non-technical user.
 - [ ] Automated checks have been run, followed by manual keyboard and screen
-      reader testing for the changed flow.
+  reader testing for the changed flow.
 
 Automated tooling is useful for finding common mistakes, but it cannot prove
 that a page is accessible. Manual testing is required for user journeys and

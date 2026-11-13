@@ -20,6 +20,8 @@
     "test:debug": "vitest --inspect-brk --no-file-parallelism",
     "test:e2e": "vitest run --config ./vitest.config.e2e.ts",
     "dev": "nest start --watch",
+    "r2:list": "bun src/scripts/list-r2-files.ts",
+    "r2:delete": "bun src/scripts/delete-r2-file.ts",
     "db:format": "bun --bun prisma --config prisma7.config.ts format",
     "db:generate": "bun --bun prisma --config prisma7.config.ts generate",
     "db:seed": "bun --bun prisma --config prisma7.config.ts db seed",
@@ -28,6 +30,7 @@
     "db:reset": "bun --bun prisma --config prisma7.config.ts migrate reset"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1161.0",
     "@nestjs/common": "^12.0.1",
     "@nestjs/core": "^12.0.1",
     "@nestjs/platform-express": "^12.0.1",
@@ -46,6 +49,7 @@
     "@nestjs/schematics": "^12.0.0",
     "@nestjs/testing": "^12.0.1",
     "@types/express": "^5.0.0",
+    "@types/multer": "^2.3.0",
     "@types/node": "^24.0.0",
     "@types/pg": "^8.23.1",
     "@types/supertest": "^7.0.0",

@@ -1,5 +1,15 @@
 # React + TypeScript + Vite
 
+## End-to-end tests
+
+Install the Chromium browser and its system dependencies once after setting up
+the workspace, then run the Playwright suite:
+
+```bash
+bun run test:e2e:install
+bun run test:e2e
+```
+
 This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
 
 Currently, two official plugins are available:

@@ -187,6 +187,8 @@ symlinks til det, som appen erklærer. Kør altid `bun install` fra roden.
 - [DEVCONTAINER.md](DEVCONTAINER.md): alt om hver fil i `.devcontainer/`,
   hvordan du tilføjer værktøjer, services eller udvidelser, og faldgruber
   der blev stødt på under opbygningen.
+- [docs/development/run-project.md](docs/development/run-project.md): hvordan
+  du starter web og API sammen, bruger VS Code-tasken og kører API-kommandoer.
 - [apps/web/README.md](apps/web/README.md): noter til Vite React-templaten.
   Dets oxlint-afsnit gælder ikke længere; dette repo bruger Biome.
 - [apps/api/README.md](apps/api/README.md): noter til NestJS starteren.

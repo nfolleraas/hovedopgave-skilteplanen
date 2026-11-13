@@ -9,6 +9,11 @@ import {
 
 export const demoCaseNumber = 'DEMO-2026-0001';
 
+/**
+ * Creates or refreshes the demonstration application and its related records.
+ * @param prisma - The Prisma client used to persist the seed data
+ * @returns The seeded application record
+ */
 export async function seedApplication(prisma: PrismaClient) {
   return prisma.application.upsert({
     where: { caseNumber: demoCaseNumber },

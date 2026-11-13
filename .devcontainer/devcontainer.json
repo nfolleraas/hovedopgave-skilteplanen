@@ -41,7 +41,10 @@
         "PKief.material-icon-theme",
         "YoavBls.pretty-ts-errors",
         "ms-azuretools.vscode-containers",
-        "Prisma.prisma"
+        "Prisma.prisma",
+        "eamodio.gitlens",
+        "GitHub.vscode-github-actions",
+        "ms-playwright.playwright"
       ],
       "settings": {
         "terminal.integrated.defaultProfile.linux": "zsh",
@@ -55,6 +58,7 @@
           "source.organizeImports.biome": "explicit",
           "source.action.useSortedAttributes.biome": "explicit"
         },
+        "terminal.integrated.scrollback": 50000,
         "chat.agentHost.claudeAgent.enabled": false,
         "chat.agentHost.codexAgent.enabled": true,
         "chat.editor.codex.preferAgentHost": true,

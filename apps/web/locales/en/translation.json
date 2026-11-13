@@ -21,6 +21,10 @@
   "common": {
     "brandName": "Skilteplanen"
   },
+  "urlPreview": {
+    "openInNewTab": "Open in a new tab",
+    "close": "Close preview"
+  },
   "navigation": {
     "home": "Home",
     "application": "Application",
@@ -30,7 +34,66 @@
     "openUserMenu": "Open user menu",
     "settings": "Settings",
     "logOut": "Log out",
-    "language": "Language"
+    "language": "Language",
+    "back": "Back",
+    "next": "Next"
+  },
+  "deleteConfirmation": {
+    "title": "Confirm deletion",
+    "description": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
+    "error": "The item could not be deleted. Try again.",
+    "cancel": "Cancel",
+    "deleting": "Deleting...",
+    "delete": "Delete"
+  },
+  "documents": {
+    "addSignplan": "Add signplan",
+    "addSignplanDescription": "Choose whether to upload an existing sign plan or create a new one.",
+    "closeAddSignplan": "Close add signplan",
+    "uploadExistingSignplanTitle": "Upload an existing sign plan",
+    "uploadExistingSignplanDescription": "If you already have a sign plan, you can upload it here from your device.",
+    "createSignplanTitle": "Create a new sign plan",
+    "createSignplanDescription": "If you do not have a sign plan yet, you can create one here.",
+    "signPlanDropPrompt": "Drag and drop a sign plan here, or choose a file",
+    "dropPrompt": "Drag and drop documents here, or choose files",
+    "uploadingSignPlan": "Uploading sign plan...",
+    "uploading": "Uploading...",
+    "uploadSignPlan": "Upload sign plan",
+    "upload": "Upload document",
+    "supportedFileTypes": "Supported formats: PDF, JPG, and PNG",
+    "documentTypes": {
+      "other": "Other",
+      "signPlan": "Sign plan"
+    },
+    "openPreview": "Preview {{name}}",
+    "previewTitle": "Preview of {{name}}",
+    "table": {
+      "documentType": "Document type",
+      "createdAt": "Created",
+      "name": "Name",
+      "actions": "Actions"
+    },
+    "delete": "Delete {{name}}",
+    "deleteAction": "Delete",
+    "uploadSuccess_one": "Upload complete. 1 file was uploaded.",
+    "uploadSuccess_other": "Upload complete. {{count}} files were uploaded.",
+    "uploadFailure_one": "Failed to upload 1 file: {{reason}}",
+    "uploadFailure_other": "Failed to upload {{count}} files: {{reason}}",
+    "unsupportedFileTypeReason": "Unsupported file type. Only PDF, JPG, and PNG files are allowed.",
+    "unexpectedUploadErrorReason": "An unexpected error occurred.",
+    "loadSuccess_one": "The document list loaded with 1 document.",
+    "loadSuccess_other": "The document list loaded with {{count}} documents.",
+    "loadError": "The documents could not be loaded.",
+    "title": "Documents and sign plans",
+    "description": "Upload and manage the documents and sign plans required for your application.",
+    "deleteSuccess": "{{name}} was deleted.",
+    "listTitle": "Uploaded documents",
+    "loading": "Loading documents",
+    "empty": "No documents have been uploaded yet.",
+    "pageNavigation": "Application document navigation"
+  },
+  "signPlan": {
+    "createSignPlan": "Create sign plan"
   },
   "home": {
     "title": "Applicantplatform",

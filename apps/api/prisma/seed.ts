@@ -12,6 +12,10 @@ const prisma = new PrismaClient({
   adapter: new PrismaPg({ connectionString }),
 });
 
+/**
+ * Seeds the development database with the project's demonstration data.
+ * @returns A promise that resolves when all seeders have completed
+ */
 export async function seed() {
   // Application
   const application = await seedApplication(prisma);

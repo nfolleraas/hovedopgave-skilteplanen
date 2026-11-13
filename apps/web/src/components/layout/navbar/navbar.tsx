@@ -16,6 +16,10 @@ import { useTranslation } from 'react-i18next';
 import { Link, matchPath, useLocation } from 'react-router';
 import { routes } from '../../../app/router.js';
 
+/**
+ * Renders the primary navigation and user-language menu.
+ * @returns The site navigation header
+ */
 export default function Navbar() {
   const { t, i18n } = useTranslation();
   const { pathname } = useLocation();

@@ -21,6 +21,10 @@
   "common": {
     "brandName": "Skilteplanen"
   },
+  "urlPreview": {
+    "openInNewTab": "Åbn i en ny fane",
+    "close": "Luk forhåndsvisning"
+  },
   "navigation": {
     "home": "Hjem",
     "application": "Ansøgning",
@@ -30,7 +34,66 @@
     "openUserMenu": "Åbn brugermenu",
     "settings": "Indstillinger",
     "logOut": "Log af",
-    "language": "Sprog"
+    "language": "Sprog",
+    "back": "Tilbage",
+    "next": "Næste"
+  },
+  "deleteConfirmation": {
+    "title": "Bekræft sletning",
+    "description": "Er du sikker på, at du vil slette \"{{name}}\"? Handlingen kan ikke fortrydes.",
+    "error": "Elementet kunne ikke slettes. Prøv igen.",
+    "cancel": "Annuller",
+    "deleting": "Sletter...",
+    "delete": "Slet"
+  },
+  "documents": {
+    "addSignplan": "Tilføj skilteplan",
+    "addSignplanDescription": "Vælg, om du vil uploade en eksisterende skilteplan eller oprette en ny.",
+    "closeAddSignplan": "Luk tilføj skilteplan",
+    "uploadExistingSignplanTitle": "Upload en eksisterende skilteplan",
+    "uploadExistingSignplanDescription": "Har du allerede en skilteplan, kan du uploade den her fra din enhed.",
+    "createSignplanTitle": "Opret en ny skilteplan",
+    "createSignplanDescription": "Har du ikke en skilteplan endnu, kan du oprette en her.",
+    "signPlanDropPrompt": "Træk og slip en skilteplan her, eller vælg en fil",
+    "dropPrompt": "Træk og slip dokumenter her, eller vælg filer",
+    "uploadingSignPlan": "Uploader skilteplan...",
+    "uploading": "Uploader...",
+    "uploadSignPlan": "Upload skilteplan",
+    "upload": "Upload dokument",
+    "supportedFileTypes": "Understøttede formater: PDF, JPG og PNG",
+    "documentTypes": {
+      "other": "Andet",
+      "signPlan": "Skilteplan"
+    },
+    "openPreview": "Vis {{name}}",
+    "previewTitle": "Forhåndsvisning af {{name}}",
+    "table": {
+      "documentType": "Dokumenttype",
+      "createdAt": "Oprettet",
+      "name": "Navn",
+      "actions": "Handlinger"
+    },
+    "delete": "Slet {{name}}",
+    "deleteAction": "Slet",
+    "uploadSuccess_one": "Uploaden er færdig. 1 fil er uploadet.",
+    "uploadSuccess_other": "Uploaden er færdig. {{count}} filer er uploadet.",
+    "uploadFailure_one": "1 fil kunne ikke uploades: {{reason}}",
+    "uploadFailure_other": "{{count}} filer kunne ikke uploades: {{reason}}",
+    "unsupportedFileTypeReason": "Filtypen understøttes ikke. Kun PDF-, JPG- og PNG-filer er tilladt.",
+    "unexpectedUploadErrorReason": "Der opstod en uventet fejl.",
+    "loadSuccess_one": "Dokumentlisten er indlæst med 1 dokument.",
+    "loadSuccess_other": "Dokumentlisten er indlæst med {{count}} dokumenter.",
+    "loadError": "Dokumenterne kunne ikke hentes.",
+    "title": "Dokumenter og skilteplaner",
+    "description": "Upload og administrer de dokumenter og skilteplaner, der kræves til din ansøgning.",
+    "deleteSuccess": "{{name}} er slettet.",
+    "listTitle": "Uploadede dokumenter og skilteplaner",
+    "loading": "Henter dokumenter",
+    "empty": "Der er ikke uploadet dokumenter endnu.",
+    "pageNavigation": "Navigation for ansøgningsdokumenter"
+  },
+  "signPlan": {
+    "createSignPlan": "Opret skilteplan"
   },
   "home": {
     "title": "Ansøgningsplatformen",
