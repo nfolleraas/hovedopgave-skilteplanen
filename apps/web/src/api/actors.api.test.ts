@@ -1,7 +1,28 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios';
-import type { ActorDraft } from '../pages/actors-page/actor.types.js';
+import type {
+  ActorDraft,
+  SavedActor,
+} from '../pages/actors-page/actor.types.js';
+
+const validActor: SavedActor = {
+  uuid: 'actor-id',
+  name: 'Test Actor',
+  role: 'Private',
+  phoneNumber: '12345678',
+  email: 'actor@example.com',
+  cvrNumber: null,
+  department: null,
+  address: {
+    uuid: 'address-id',
+    street: 'Testvej',
+    houseNumber: '1',
+    postalCode: '5000',
+    city: 'Odense',
+  },
+  contactPersons: [],
+};
 
 // Capture requests at Axios's transport boundary without using a live API.
 let respond: (config: InternalAxiosRequestConfig) => unknown;
@@ -39,7 +60,7 @@ describe('actor API', () => {
   });
 
   it('loads actors using GET through the proxy with a timeout', async () => {
-    const actors = [{ uuid: 'actor-id', name: 'Test Actor' }];
+    const actors = [validActor];
     respond = (config) => {
       assert.equal(config.baseURL, '/api');
       assert.equal(config.url, '/actors');
@@ -93,11 +114,9 @@ describe('actor API', () => {
         ...draft,
         applicationCaseNumber: 'CASE-123',
       });
-      return { uuid: 'actor-id' };
+      return validActor;
     };
-    assert.deepEqual(await createActor('CASE-123', draft), {
-      uuid: 'actor-id',
-    });
+    assert.deepEqual(await createActor('CASE-123', draft), validActor);
   });
 
   it('sends business contact details for creation and editing and returns the saved actor', async () => {
@@ -122,6 +141,7 @@ describe('actor API', () => {
       },
     };
     const savedActor = {
+      ...validActor,
       uuid: 'server-actor-id',
       contactPersons: [{ uuid: 'server-contact-id', ...draft.contactPerson }],
     };
@@ -188,11 +208,68 @@ describe('actor API', () => {
       const { role: _role, ...update } = draft;
       assert.deepEqual(JSON.parse(config.data), update);
       assert.equal(Object.hasOwn(JSON.parse(config.data), 'role'), false);
-      return { uuid: 'actor-id', name: 'Updated Actor' };
+      return { ...validActor, name: 'Updated Actor' };
     };
     assert.deepEqual(await updateActor('actor-id', draft), {
-      uuid: 'actor-id',
+      ...validActor,
       name: 'Updated Actor',
     });
+  });
+
+  it('rejects responses that are not actor lists', async () => {
+    for (const data of [null, {}, 'invalid']) {
+      respond = () => data;
+      await assert.rejects(getActors(), /ugyldig aktørliste/);
+    }
+  });
+
+  it('rejects malformed actors on list, create, and update responses', async () => {
+    for (const data of [
+      null,
+      {},
+      { ...validActor, uuid: '   ' },
+      { ...validActor, name: 123 },
+      { ...validActor, role: 'Unknown' },
+      { ...validActor, phoneNumber: null },
+      { ...validActor, email: undefined },
+      { ...validActor, cvrNumber: 12345678 },
+      { ...validActor, department: {} },
+      { ...validActor, address: null },
+      { ...validActor, address: { ...validActor.address, city: '' } },
+      { ...validActor, contactPersons: null },
+      { ...validActor, contactPersons: [{}] },
+      {
+        ...validActor,
+        contactPersons: [
+          {
+            uuid: 'contact-id',
+            name: 'Jane Doe',
+            email: 'jane@example.com',
+            phoneNumber: '12345678',
+            availability: 'Unknown',
+          },
+        ],
+      },
+    ]) {
+      respond = () => [validActor, data];
+      await assert.rejects(getActors(), /ugyldige aktøroplysninger/);
+      respond = () => data;
+      await assert.rejects(
+        createActor('CASE-123', {
+          ...validActor,
+          cvrNumber: undefined,
+          department: undefined,
+        }),
+        /ugyldige aktøroplysninger/,
+      );
+      await assert.rejects(
+        updateActor('actor-id', {
+          ...validActor,
+          cvrNumber: undefined,
+          department: undefined,
+        }),
+        /ugyldige aktøroplysninger/,
+      );
+    }
   });
 });

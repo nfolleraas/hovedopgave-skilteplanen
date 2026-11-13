@@ -17,7 +17,8 @@ describe('Adressevælger response mapping', () => {
         assert.equal(url.pathname, '/address-lookup/husnumre/soeg');
         assert.equal(url.searchParams.get('tekst'), 'Testvej 1');
         assert.equal(url.searchParams.has('token'), false);
-        assert.equal(options?.signal, controller.signal);
+        assert.ok(options?.signal);
+        assert.equal(options.signal.aborted, false);
         return Response.json({ status: 'ok', fund: [] });
       };
       assert.deepEqual(
@@ -95,19 +96,124 @@ describe('Adressevælger response mapping', () => {
     }
   });
 
-  it('ignores malformed hits and requires a real id for complete addresses', () => {
+  it('ignores unsupported hits', () => {
     assert.deepEqual(
       parseAddressSuggestions({
         status: 'ok',
-        fund: [
-          null,
-          {},
-          { type: 'unknown', titel: 'Unknown' },
-          { type: 'husnummer', titel: 'Testvej 1' },
-        ],
+        fund: [null, {}, { type: 'unknown', titel: 'Unknown' }],
       }),
       [],
     );
+  });
+
+  it('rejects supported suggestions with missing or blank IDs and titles', () => {
+    for (const item of [
+      { type: 'husnummer', titel: 'Testvej 1' },
+      { type: 'husnummer', id: '   ', titel: 'Testvej 1' },
+      { type: 'husnummer', id: 'address-id', titel: '   ' },
+      { type: 'vejnavn', titel: '' },
+    ]) {
+      assert.throws(
+        () => parseAddressSuggestions({ status: 'ok', fund: [item] }),
+        /Invalid address suggestion/,
+      );
+    }
+    assert.deepEqual(
+      parseAddressSuggestions({
+        status: 'ok',
+        fund: [{ type: 'husnummer', id: ' address-id ', titel: ' Testvej 1 ' }],
+      }),
+      [{ id: 'address-id', title: 'Testvej 1' }],
+    );
+  });
+
+  it('rejects incomplete address fields and normalizes valid surrounding whitespace', () => {
+    const houseNumber = {
+      status: '3',
+      vejnavn: ' Testvej ',
+      husnummertekst: ' 1 ',
+      postnummer: { postnr: ' 5000 ', navn: ' Odense ' },
+    };
+    for (const overrides of [
+      { vejnavn: '' },
+      { vejnavn: '   ' },
+      { husnummertekst: '\t' },
+      { postnummer: { postnr: '5000', navn: '   ' } },
+      { postnummer: { postnr: 'abc', navn: 'Odense' } },
+      { postnummer: { postnr: '50000', navn: 'Odense' } },
+      { postnummer: { postnr: 5000, navn: 'Odense' } },
+    ]) {
+      assert.throws(
+        () =>
+          parseAddressLookup({
+            status: 'ok',
+            husnummer: { ...houseNumber, ...overrides },
+          }),
+        /incomplete/,
+      );
+    }
+    assert.deepEqual(
+      parseAddressLookup({ status: 'ok', husnummer: houseNumber }),
+      {
+        street: 'Testvej',
+        houseNumber: '1',
+        postalCode: '5000',
+        city: 'Odense',
+      },
+    );
+  });
+
+  it('times out stalled searches and lookups after the configured deadline', async () => {
+    const originalFetch = globalThis.fetch;
+    const originalTimeout = AbortSignal.timeout;
+    try {
+      for (const request of [
+        () => searchAddresses('Testvej'),
+        () => lookupAddress('address-id'),
+      ]) {
+        const deadline = new AbortController();
+        AbortSignal.timeout = (milliseconds) => {
+          assert.equal(milliseconds, 10_000);
+          return deadline.signal;
+        };
+        globalThis.fetch = (_input, options) =>
+          new Promise((_resolve, reject) => {
+            options?.signal?.addEventListener(
+              'abort',
+              () => reject(options.signal?.reason),
+              { once: true },
+            );
+          });
+        const pending = request();
+        deadline.abort(new DOMException('Request timed out', 'TimeoutError'));
+        await assert.rejects(pending, { name: 'TimeoutError' });
+      }
+    } finally {
+      globalThis.fetch = originalFetch;
+      AbortSignal.timeout = originalTimeout;
+    }
+  });
+
+  it('preserves caller cancellation for searches and lookups', async () => {
+    const originalFetch = globalThis.fetch;
+    try {
+      for (const request of [searchAddresses, lookupAddress]) {
+        const controller = new AbortController();
+        globalThis.fetch = (_input, options) =>
+          new Promise((_resolve, reject) => {
+            options?.signal?.addEventListener(
+              'abort',
+              () => reject(options.signal?.reason),
+              { once: true },
+            );
+          });
+        const pending = request('address', controller.signal);
+        controller.abort();
+        await assert.rejects(pending, { name: 'AbortError' });
+      }
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
   });
 
   it('maps the authoritative address fields from an id lookup', () => {
