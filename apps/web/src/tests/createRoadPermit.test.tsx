@@ -163,8 +163,10 @@ describe('Road permit application', () => {
     loadDraft.mockResolvedValueOnce({ title: 'Road work' });
     await renderPermitFlow(routes.application);
 
-    const draftList = within(screen.getByRole('region', { name: 'Drafts' }));
-    const draftLink = await draftList.findByRole('link', { name: 'Road work' });
+    const draftList = within(
+      await screen.findByRole('region', { name: 'Drafts (3)' }),
+    );
+    const draftLink = draftList.getByRole('link', { name: 'Road work' });
     expect(
       draftList.getByRole('link', { name: 'Untitled draft' }),
     ).toBeTruthy();
