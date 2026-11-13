@@ -1,18 +1,36 @@
 {
-	"version": "2.0.0",
-	"tasks": [
-		{
-			"label": "Frontend: dev",
-			"type": "shell",
-			"command": "bun",
-			"args": [
-				"run",
-				"--filter",
-				"web",
-				"dev"
-			],
-			"isBackground": true,
-			"problemMatcher": []
-		}
-	]
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Frontend: dev",
+      "type": "shell",
+      "command": "bun",
+      "args": ["run", "--filter", "web", "dev"],
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated",
+        "group": "dev",
+        "reveal": "always"
+      }
+    },
+    {
+      "label": "API: dev",
+      "type": "shell",
+      "command": "bun run dev api",
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated",
+        "group": "dev",
+        "reveal": "always"
+      }
+    },
+    {
+      "label": "Dev: web + API",
+      "dependsOn": ["Frontend: dev", "API: dev"],
+      "dependsOrder": "parallel",
+      "problemMatcher": []
+    }
+  ]
 }
