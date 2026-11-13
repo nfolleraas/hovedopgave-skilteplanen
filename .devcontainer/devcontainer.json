@@ -43,7 +43,8 @@
         "ms-azuretools.vscode-containers",
         "Prisma.prisma",
         "eamodio.gitlens",
-        "GitHub.vscode-github-actions"
+        "GitHub.vscode-github-actions",
+        "ms-playwright.playwright"
       ],
       "settings": {
         "terminal.integrated.defaultProfile.linux": "zsh",
