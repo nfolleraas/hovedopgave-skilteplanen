@@ -3,6 +3,7 @@ import { defineConfig } from 'vite';
 
 // https://vite.dev/config/
 export default defineConfig({
+  envDir: '../../.devcontainer',
   plugins: [react()],
   server: {
     host: true,

@@ -7,6 +7,7 @@
     "dev": "bun run locale:extract && vite",
     "build": "tsc -b && vite build",
     "lint": "biome lint .",
+    "test": "vitest run --config src/tests/vitest.config.ts",
     "preview": "vite preview",
     "locale:extract": "i18next 'src/**/*.{ts,tsx}' --config locales/i18next-parser.config.mjs",
     "locale:check": "node locales/check-locales.mjs"
@@ -19,18 +20,24 @@
     "@mui/material": "^9.5.0",
     "i18next": "^26.7.1",
     "i18next-browser-languagedetector": "^8.3.0",
+    "ol": "^10.11.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-i18next": "^17.1.11",
     "react-router": "^8.5.1"
   },
   "devDependencies": {
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.10",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
     "@vitejs/plugin-react": "^6.1.1",
     "i18next-parser": "^9.4.0",
+    "jsdom": "^31.0.1",
     "typescript": "~6.0.2",
-    "vite": "^8.3.0"
+    "vite": "^8.3.0",
+    "vitest": "4.1.11"
   }
 }

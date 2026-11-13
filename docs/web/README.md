@@ -12,8 +12,8 @@ The frontend is a React 19 and TypeScript app served by Vite. Its source is in
 container, Vite listens on port `5173` and proxies `/api` requests to the API on
 port `3000`.
 
-The app currently contains the default Vite and React starter screen. Add
-feature-specific guides here as the frontend develops.
+The [routing guide](routing.md) explains how URLs map to page components and
+how to register and link to new paths.
 
 The [stylesheet](styles/stylesheet.md) documents the colours, typography, and
 component styles to use when implementing the UI.
@@ -30,7 +30,12 @@ Run these from the repository root:
 bun run --filter web dev
 bun run --filter web build
 bun run --filter web lint
+bun run --filter web test
 ```
+
+The road-permit tests live in [`apps/web/src/tests/`](../../apps/web/src/tests/).
+They use Vitest and simulated DOM interactions, with permit submission and map
+service responses mocked.
 
 The app's generated starter README is at
 [`apps/web/README.md`](../../apps/web/README.md). The root README is the source

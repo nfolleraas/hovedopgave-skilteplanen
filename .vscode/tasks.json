@@ -2,9 +2,10 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Web: dev",
+      "label": "Frontend: dev",
       "type": "shell",
-      "command": "bun run dev web",
+      "command": "bun",
+      "args": ["run", "--filter", "web", "dev"],
       "isBackground": true,
       "problemMatcher": [],
       "presentation": {
@@ -27,7 +28,7 @@
     },
     {
       "label": "Dev: web + API",
-      "dependsOn": ["Web: dev", "API: dev"],
+      "dependsOn": ["Frontend: dev", "API: dev"],
       "dependsOrder": "parallel",
       "problemMatcher": []
     }

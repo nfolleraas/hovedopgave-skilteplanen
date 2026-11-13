@@ -3,6 +3,8 @@ model Material {
   type            MaterialType
   amount          Float
   description     String
-  roadUsePermitId String        @unique
+  roadUsePermitId String
   roadUsePermit   RoadUsePermit @relation(fields: [roadUsePermitId], references: [caseNumber])
+
+  @@index([roadUsePermitId])
 }

@@ -1,19 +1,20 @@
 model Application {
-  caseNumber             String                  @id
+  caseNumber             String                  @id @default(uuid())
   title                  String
   applicantReference     String
   type                   ApplicationType
   status                 Status                  @default(Draft)
+  roadPermitDraft        Json?
   contactPersons         ContactPerson[]
   feedbacks              Feedback[]
   trafficCalmingMeasures TrafficCalmingMeasure[]
   signPlans              SignPlan[]
   documents              Document[]
   areas                  Area[]
-  trafficChange          TrafficChange
-  applicantId            String                  @unique
-  applicant              Applicant               @relation(fields: [applicantId], references: [uuid])
-  caseWorkerId           String?                 @unique
+  trafficChange          TrafficChange?
+  applicantId            String?
+  applicant              Applicant?              @relation(fields: [applicantId], references: [uuid], onDelete: Restrict)
+  caseWorkerId           String?
   caseWorker             CaseWorker?             @relation(fields: [caseWorkerId], references: [employeeNumber])
   roadUsePermit          RoadUsePermit?
   excavationPermit       ExcavationPermit?

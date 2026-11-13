@@ -1,8 +1,9 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter } from 'react-router';
-import App from './app/App.js';
+import { createBrowserRouter, RouterProvider } from 'react-router';
+import App, { NotFoundPage } from './app/App.js';
 import { Providers } from './app/providers.js';
+import { pages } from './app/router.js';
 import { i18nReady } from './config/i18n.js';
 import './index.css';
 
@@ -13,12 +14,23 @@ if (!root) {
   throw new Error('Root element #root not found');
 }
 
+const router = createBrowserRouter([
+  {
+    Component: App,
+    children: [
+      ...Object.entries(pages).map(([path, Component]) => ({
+        path,
+        Component,
+      })),
+      { path: '*', Component: NotFoundPage },
+    ],
+  },
+]);
+
 createRoot(root).render(
   <StrictMode>
     <Providers>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
+      <RouterProvider router={router} />
     </Providers>
   </StrictMode>,
 );
