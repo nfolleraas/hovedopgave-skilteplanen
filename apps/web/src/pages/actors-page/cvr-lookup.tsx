@@ -9,6 +9,10 @@ interface CvrLookupProps {
   onConfirm: () => void;
 }
 
+/**
+ * @summary Render a CVR input with search-button and Enter-key confirmation
+ * when its eight-digit value is valid and lookup is available.
+ */
 export function CvrLookup({
   value,
   disabled,
@@ -17,6 +21,8 @@ export function CvrLookup({
   onChange,
   onConfirm,
 }: CvrLookupProps) {
+  const canConfirm = !disabled && !loading && /^\d{8}$/.test(value.trim());
+
   return (
     <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
       <TextField
@@ -31,13 +37,19 @@ export function CvrLookup({
         label="CVR-nummer"
         name="cvrNumber"
         onChange={(event) => onChange(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') {
+            event.preventDefault();
+            if (canConfirm) onConfirm();
+          }
+        }}
         required
         size="small"
         slotProps={{ htmlInput: { inputMode: 'numeric', maxLength: 8 } }}
         value={value}
       />
       <Button
-        disabled={disabled || loading || !/^\d{8}$/.test(value.trim())}
+        disabled={!canConfirm}
         loading={loading}
         onClick={onConfirm}
         sx={{ flexShrink: 0, minHeight: 40, whiteSpace: 'nowrap' }}
