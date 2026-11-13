@@ -1,11 +1,11 @@
 import type { ComponentType } from 'react';
-import ApplicationPage from '../pages/application-page';
-import ContactsPage from '../pages/contacts-page';
-import BusinessApplicantPage from '../pages/create-applicant-page/business';
-import PrivateApplicantPage from '../pages/create-applicant-page/private';
-import HomePage from '../pages/home-page';
-import LoginPage from '../pages/login-page';
-import MessagesPage from '../pages/messages-page';
+import ApplicationPage from '../pages/application-page/index.js';
+import ContactsPage from '../pages/contacts-page/index.js';
+import BusinessApplicantPage from '../pages/create-applicant-page/business.js';
+import PrivateApplicantPage from '../pages/create-applicant-page/private.js';
+import HomePage from '../pages/home-page/index.js';
+import LoginPage from '../pages/login-page/index.js';
+import MessagesPage from '../pages/messages-page/index.js';
 
 export const routes = {
   home: '/',

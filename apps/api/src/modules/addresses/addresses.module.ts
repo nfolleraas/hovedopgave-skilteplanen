@@ -5,5 +5,6 @@ import { AddressesService } from './addresses.service.js';
 @Module({
   controllers: [AddressesController],
   providers: [AddressesService],
+  exports: [AddressesService],
 })
 export class AddressesModule {}

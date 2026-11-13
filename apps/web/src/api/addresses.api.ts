@@ -16,8 +16,8 @@ export async function searchAddresses(
   const response = await fetch(`/api/addresses/search?${params}`, { signal });
 
   if (!response.ok) {
-    throw new Error('Address lookup failed');
+    throw new Error(`Address lookup failed (${response.status})`);
   }
 
-  return response.json();
+  return (await response.json()) as AddressOption[];
 }

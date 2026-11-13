@@ -4,7 +4,7 @@ import {
   type AddressOption,
   type AddressSuggestion,
   searchAddresses,
-} from '../../api/addresses.api';
+} from '../../api/addresses.api.js';
 
 interface AddressAutocompleteProps {
   onChange: (address: AddressSuggestion | null) => void;

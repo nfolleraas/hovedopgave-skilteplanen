@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { parseAddress } from '../src/pages/create-applicant-page/applicant-form';
+import { parseAddress } from './address-parser.js';
 
 describe('parseAddress', () => {
   it('parses a full address suggestion', () => {
