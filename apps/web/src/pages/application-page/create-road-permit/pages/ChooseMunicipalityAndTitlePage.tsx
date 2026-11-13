@@ -21,6 +21,7 @@ type ChooseMunicipalityAndTitlePageProps = {
   onMunicipalityChange: (municipalityName: string | null) => void;
 };
 
+/** Collects the title and lets the user filter and select a municipality. */
 export function ChooseMunicipalityAndTitlePage({
   errors,
   title,

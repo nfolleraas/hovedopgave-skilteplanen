@@ -11,6 +11,18 @@ import {
 } from '../../../generated/prisma/enums.js';
 import type { CreateRoadPermitDto } from '../dto/create-road-permit.dto.js';
 
+export type CreateRoadPermitData = Omit<
+  Prisma.ApplicationCreateInput,
+  'roadUsePermit'
+> & {
+  roadUsePermit: {
+    create: Omit<
+      Prisma.RoadUsePermitCreateWithoutApplicationInput,
+      'applicationId'
+    >;
+  };
+};
+
 const usageTypes: Record<string, Usage> = {
   Byggearbejde: Usage.Construction,
   Arrangement: Usage.Other,
@@ -41,17 +53,18 @@ const trafficScopes: Record<string, TrafficCalmingMeasureScope> = {
   'Bagfrakommende trafik': TrafficCalmingMeasureScope.FollowingTraffic,
 };
 
+/** Converts the submitted form into Prisma create data for the application, work area, applicant, and permit. */
 export function mapCreateRoadPermit(
   dto: CreateRoadPermitDto,
-  caseNumber: string,
-): Prisma.ApplicationCreateInput {
-  const startDate = new Date(dto.usageDetails.startDate);
-  const endDate = new Date(dto.usageDetails.endDate);
-  const isEvent = dto.usageDetails.usage === 'Arrangement';
-  const address = dto.applicant.address1.match(/^(.*?)\s+(\d+\S*)$/);
+): CreateRoadPermitData {
+  const { usageDetails } = dto;
+  const startDate = new Date(usageDetails.startDate);
+  const endDate = new Date(usageDetails.endDate);
+  const isEvent = usageDetails.usage === 'Arrangement';
+  const applicantAddress = dto.applicant.address1?.trim();
+  const addressParts = applicantAddress?.match(/^(.*?)\s+(\d+\S*)$/);
 
   return {
-    caseNumber,
     title: dto.title,
     applicantReference: '', // TODO: Supply the applicant reference.
     type: isEvent
@@ -69,14 +82,27 @@ export function mapCreateRoadPermit(
         email: dto.applicant.email,
         cvrNumber: dto.applicant.cvr,
         mitIdKey: '', // TODO: Supply the authenticated applicant's MitID key.
-        address: {
-          create: {
-            street: address?.[1] ?? dto.applicant.address1,
-            houseNumber: address?.[2] ?? '',
-            postalCode: dto.applicant.postalCode,
-            city: dto.applicant.city,
-          },
-        },
+        address: applicantAddress
+          ? {
+              create: {
+                street: addressParts?.[1] ?? applicantAddress,
+                houseNumber: addressParts?.[2] ?? '',
+                postalCode: dto.applicant.postalCode,
+                city: dto.applicant.city,
+              },
+            }
+          : undefined,
+      },
+    },
+    areas: {
+      create: {
+        roadName: usageDetails.road.trim(),
+        houseNumberFrom: usageDetails.houseNumberFrom?.trim() || null,
+        houseNumberTo: usageDetails.houseNumberTo?.trim() || null,
+        postalCode: usageDetails.postalCode.trim(),
+        city: usageDetails.city.trim(),
+        alternativeDescription:
+          usageDetails.locationDescription?.trim() || null,
       },
     },
     contactPersons: {
@@ -98,13 +124,12 @@ export function mapCreateRoadPermit(
     },
     roadUsePermit: {
       create: {
-        applicationId: caseNumber,
         isEvent,
         startDate,
         endDate,
         eventStart: startDate,
         eventEnd: endDate,
-        usage: usageTypes[dto.usageDetails.usage],
+        usage: usageTypes[usageDetails.usage],
         // TODO: The schema's unique roadUsePermitId currently limits this list to one item.
         materials: {
           create: dto.materials.map((material) => ({
@@ -115,7 +140,6 @@ export function mapCreateRoadPermit(
         },
       },
     },
-    // TODO: Map the work area when its required ownership, size and detail fields exist.
     // TODO: Map documents when an uploaded document's r2ObjectKey is available.
     // Municipality, access ways, confirmation and extra company details have no matching columns.
   };

@@ -1,3 +1,4 @@
+/** Requests JSON from the Adressevælger house-number API and rejects unsuccessful responses. */
 export async function getAddressData<T>(
   path: string,
   params: URLSearchParams,

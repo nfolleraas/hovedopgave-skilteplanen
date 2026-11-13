@@ -1,5 +1,6 @@
 import type { TFunction } from 'i18next';
 
+/** Maps stored material values to translated labels. */
 export function getMaterialTypes(t: TFunction) {
   return {
     Container: t('permit.materials.container'),
@@ -8,6 +9,7 @@ export function getMaterialTypes(t: TFunction) {
   } as Record<string, string>;
 }
 
+/** Maps stored usage values to translated labels. */
 export function getUsageTypes(t: TFunction) {
   return {
     Byggearbejde: t('permit.usage.construction'),
@@ -16,6 +18,7 @@ export function getUsageTypes(t: TFunction) {
   } as Record<string, string>;
 }
 
+/** Maps stored traffic change values to translated labels. */
 export function getTrafficChangeOptions(t: TFunction) {
   return {
     'Hastighedsbegrænsning - hensyn til vejarbejder': t(

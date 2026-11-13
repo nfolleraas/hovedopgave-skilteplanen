@@ -9,6 +9,7 @@ type ContactInformationPageProps = {
   onChange: (value: ContactInformation) => void;
 };
 
+/** Collects the site contact's details and displays any field validation errors. */
 export function ContactInformationPage({
   errors,
   value,

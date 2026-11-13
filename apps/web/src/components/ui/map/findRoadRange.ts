@@ -28,6 +28,7 @@ type AddressDetails = {
   };
 };
 
+/** Finds the nearest active address per street and municipality around a drawing endpoint. */
 async function nearbyAddresses(
   [x, y]: Coordinate,
   projection: string,
@@ -74,6 +75,7 @@ async function nearbyAddresses(
     .slice(0, 6);
 }
 
+/** Builds an address suggestion for a snapped stretch and leaves conflicting postal districts blank. */
 export async function findRoadRange(
   feature: Feature,
   line: LineString,
@@ -84,6 +86,7 @@ export async function findRoadRange(
   const requests = new Map<string, Promise<AddressDetails>>();
   const lookupSignal = AbortSignal.any([signal, AbortSignal.timeout(5000)]);
 
+  /** Returns the nearest candidate whose municipality and road code match the selected road. */
   async function matchEndpoint(point: Coordinate) {
     if (!codes) return;
     const candidates = await nearbyAddresses(point, projection, lookupSignal);

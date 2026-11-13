@@ -1,6 +1,7 @@
 import { Box, Typography } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 
+/** Shows where documents and drawings will be attached to the application. */
 export function DocumentsAndDrawingsPage() {
   const { t } = useTranslation();
 

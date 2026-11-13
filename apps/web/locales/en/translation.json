@@ -151,7 +151,8 @@
       "cvr": "Danish company registration number (CVR)",
       "confirmTitle": "Confirm the information",
       "confirmLabel": "I declare that the information provided is correct.",
-      "submissionStatus": "The application was not sent. Submission is not available yet.",
+      "submissionPending": "Sending your application…",
+      "submissionError": "Your application could not be sent. Try again.",
       "submissionSuccess": "Your application has been submitted."
     },
     "title": "Apply for a road permit",

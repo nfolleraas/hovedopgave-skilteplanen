@@ -10,6 +10,7 @@ export const roadDataAttribution =
 
 type RoadCodes = { municipality: string; road: string };
 
+/** Extracts usable municipality and road codes from a road feature. */
 export function getRoadCodes(feature: Feature): RoadCodes | undefined {
   const municipality = feature.get('vejgeometrikommunekode');
   const road = feature.get('vejgeometrivejkode');
@@ -26,6 +27,7 @@ export function getRoadCodes(feature: Feature): RoadCodes | undefined {
 
 const roadFormat = new GeoJSON();
 
+/** Fetches road line geometry within a map extent and optionally filters by municipality and road code. */
 export async function readRoads(
   extent: Extent,
   projection: string,
@@ -72,6 +74,7 @@ export async function readRoads(
     });
 }
 
+/** Returns the road whose geometry is closest to the selected point within the given radius. */
 export async function findNearestRoad(
   coordinate: Coordinate,
   radius: number,

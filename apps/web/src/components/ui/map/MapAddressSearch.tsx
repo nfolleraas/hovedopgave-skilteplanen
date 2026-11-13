@@ -28,6 +28,7 @@ type SearchMatch = { addressId?: string; label: string };
 type SearchResponse = { matches: SearchMatch[]; failed?: true };
 type AddressPoint = [number, number];
 
+/** Returns a limited set of unique address suggestions from Adressevælger. */
 async function findAddresses(text: string, signal: AbortSignal) {
   const data = await getAddressData<{ status: string; fund: SearchResult[] }>(
     'soeg',
@@ -49,6 +50,7 @@ async function findAddresses(text: string, signal: AbortSignal) {
   return [...matches.values()];
 }
 
+/** Renders address autocomplete and provides coordinates for the selected address. */
 export function MapAddressSearch({
   onLocate,
 }: {
@@ -104,6 +106,7 @@ export function MapAddressSearch({
     };
   }, [query, search, showSuggestions]);
 
+  /** Collapses the search, cancels the address lookup, and optionally restores button focus. */
   function closeSearch(returnFocus = false) {
     if (!expanded) return;
     restoreFocus.current = returnFocus;
@@ -113,6 +116,7 @@ export function MapAddressSearch({
     setExpanded(false);
   }
 
+  /** Clears stale results and schedules suggestions for the new search text. */
   function updateSearch(text: string, delay: number) {
     setLocatedAddress('');
     setLocationState(null);
@@ -121,6 +125,7 @@ export function MapAddressSearch({
     setSuggestionsOpen(true);
   }
 
+  /** Runs an eligible search immediately when the form is submitted. */
   function submitSearch(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     if (canSearch && !locating) {
@@ -129,6 +134,7 @@ export function MapAddressSearch({
     }
   }
 
+  /** Refines the search for a street match or resolves a house-number match to coordinates. */
   async function selectMatch({ addressId, label }: SearchMatch) {
     setSuggestionsOpen(false);
     if (!addressId) {

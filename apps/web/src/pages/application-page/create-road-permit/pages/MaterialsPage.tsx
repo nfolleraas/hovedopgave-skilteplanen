@@ -18,6 +18,7 @@ type MaterialsPageProps = {
   showErrors: boolean;
 };
 
+/** Lets the user add, edit, and remove materials while retaining an unfinished draft. */
 export function MaterialsPage({
   materials,
   draft,
@@ -43,11 +44,13 @@ export function MaterialsPage({
   const announcedMaterial =
     announcement && (materialTypes[announcement.type] ?? announcement.type);
 
+  /** Clears the material editor and its submitted validation state. */
   function resetDraft() {
     onDraftChange({ ...emptyMaterialDraft });
     setSubmitted(false);
   }
 
+  /** Validates the draft and adds or replaces the material before clearing the editor. */
   function saveMaterial() {
     setSubmitted(true);
     if (!validType) {

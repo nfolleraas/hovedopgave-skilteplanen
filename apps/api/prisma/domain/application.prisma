@@ -1,5 +1,5 @@
 model Application {
-  caseNumber             String                  @id
+  caseNumber             String                  @id @default(uuid())
   title                  String
   applicantReference     String
   type                   ApplicationType
@@ -11,9 +11,9 @@ model Application {
   documents              Document[]
   areas                  Area[]
   trafficChange          TrafficChange
-  applicantId            String                  
+  applicantId            String
   applicant              Applicant               @relation(fields: [applicantId], references: [uuid])
-  caseWorkerId           String?                 
+  caseWorkerId           String?
   caseWorker             CaseWorker?             @relation(fields: [caseWorkerId], references: [employeeNumber])
   roadUsePermit          RoadUsePermit?
   excavationPermit       ExcavationPermit?

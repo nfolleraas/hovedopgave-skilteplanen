@@ -5,6 +5,7 @@ export type HouseNumberRange = {
   houseNumberTo: string;
 };
 
+/** Compares house numbers numerically while respecting Danish letter suffixes. */
 export function compareHouseNumbers(first: string, second: string) {
   return first.localeCompare(second, 'da', {
     numeric: true,
@@ -12,6 +13,7 @@ export function compareHouseNumbers(first: string, second: string) {
   });
 }
 
+/** Checks house-number syntax and requires the first number when a range end is supplied. */
 export function validateHouseNumberRange(
   value: HouseNumberRange,
   t: TFunction,

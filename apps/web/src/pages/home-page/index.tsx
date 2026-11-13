@@ -1,6 +1,7 @@
 import { Box } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 
+/** Renders the translated home page with a heading that receives focus after navigation. */
 export default function HomePage() {
   const { t } = useTranslation();
   return (

@@ -7,6 +7,7 @@ import { routes } from '../../app/router.js';
 import CTAButton from '../../components/ui/button/CTAButton.js';
 import { visuallyHidden } from '../../components/ui/visuallyHidden';
 
+/** Lists application types and links to the road-permit form. */
 export default function ApplicationPage() {
   const { t } = useTranslation();
   return (

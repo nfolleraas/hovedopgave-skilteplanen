@@ -11,6 +11,7 @@ type UsageDetailsPageProps = {
   onChange: (value: UsageDetails) => void;
 };
 
+/** Collects the permit dates and location, including address details confirmed from the map. */
 export function UsageDetailsPage({
   errors,
   value,
@@ -123,6 +124,31 @@ export function UsageDetailsPage({
           gap: 3,
         }}
       >
+         <TextField
+          error={Boolean(errors?.postalCode)}
+          fullWidth
+          helperText={errors?.postalCode}
+          id="usage-postal-code"
+          label={t('permit.usage.postalCode')}
+          name="postalCode"
+          onChange={(event) =>
+            onChange({ ...value, postalCode: event.target.value })
+          }
+          required
+          slotProps={{ htmlInput: { inputMode: 'numeric' } }}
+          value={value.postalCode}
+        />
+        <TextField
+          error={Boolean(errors?.city)}
+          fullWidth
+          helperText={errors?.city}
+          id="usage-city"
+          label={t('permit.usage.city')}
+          name="city"
+          onChange={(event) => onChange({ ...value, city: event.target.value })}
+          required
+          value={value.city}
+        />
         <TextField
           error={Boolean(errors?.houseNumberFrom)}
           fullWidth
@@ -148,31 +174,7 @@ export function UsageDetailsPage({
           }
           value={value.houseNumberTo}
         />
-        <TextField
-          error={Boolean(errors?.postalCode)}
-          fullWidth
-          helperText={errors?.postalCode}
-          id="usage-postal-code"
-          label={t('permit.usage.postalCode')}
-          name="postalCode"
-          onChange={(event) =>
-            onChange({ ...value, postalCode: event.target.value })
-          }
-          required
-          slotProps={{ htmlInput: { inputMode: 'numeric' } }}
-          value={value.postalCode}
-        />
-        <TextField
-          error={Boolean(errors?.city)}
-          fullWidth
-          helperText={errors?.city}
-          id="usage-city"
-          label={t('permit.usage.city')}
-          name="city"
-          onChange={(event) => onChange({ ...value, city: event.target.value })}
-          required
-          value={value.city}
-        />
+       
       </Box>
       <TextField
         fullWidth

@@ -81,6 +81,7 @@ export const trafficMeasures: TrafficMeasure[] = [
   },
 ];
 
+/** Builds translated labels for traffic measures and their scope. */
 export function getTrafficMeasureLabels(t: TFunction) {
   const descriptions: Record<string, string> = {
     A: t('permit.roadMarking.measureA'),

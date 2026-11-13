@@ -7,6 +7,7 @@ type RoadNameResponse = {
   }[];
 };
 
+/** Looks up the road name by municipality and road code and returns it when the match is unique. */
 export async function findRoadName(road: Feature, signal: AbortSignal) {
   const codes = getRoadCodes(road);
   if (!codes) return '';

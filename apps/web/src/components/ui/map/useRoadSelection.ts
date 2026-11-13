@@ -40,6 +40,7 @@ type RoadSelectionStatus =
   | 'noPath'
   | 'drawn';
 
+/** Manages road drawing, address lookup, and the map layer for draft and confirmed geometry. */
 export function useRoadSelection(mapRef: RefObject<OpenLayersMap | null>) {
   const requestRef = useRef<AbortController>(null);
   const [drawingRoad, setDrawing] = useState(false);
@@ -68,6 +69,7 @@ export function useRoadSelection(mapRef: RefObject<OpenLayersMap | null>) {
       }),
   );
 
+  /** Removes the draft geometry and keeps the layer visible if a confirmed stretch remains. */
   const resetSketch = useCallback(() => {
     sketch.setGeometry(undefined);
     const source = layer.getSource();
@@ -75,12 +77,14 @@ export function useRoadSelection(mapRef: RefObject<OpenLayersMap | null>) {
     layer.setVisible(Boolean(source?.getFeatures().length));
   }, [layer, sketch]);
 
+  /** Discards the pending road stretch and clears its draft geometry. */
   function cancelDrawnRoad() {
     requestRef.current = null;
     setDrawnRoad(null);
     resetSketch();
   }
 
+  /** Replaces the displayed stretch with the confirmed geometry and exits drawing mode. */
   function confirmDrawnRoad() {
     if (!drawnRoad) return;
     requestRef.current = null;
@@ -95,6 +99,7 @@ export function useRoadSelection(mapRef: RefObject<OpenLayersMap | null>) {
     setStatus('drawn');
   }
 
+  /** Resets pending lookups and sketch state before enabling or disabling drawing. */
   const setDrawingRoad = useCallback(
     (active: boolean) => {
       requestRef.current?.abort();
@@ -107,6 +112,7 @@ export function useRoadSelection(mapRef: RefObject<OpenLayersMap | null>) {
     [resetSketch],
   );
 
+  /** Clears the confirmed line immediately and starts a new drawing. */
   function redrawRoad() {
     layer.getSource()?.clear();
     setHasSelection(false);
@@ -121,6 +127,7 @@ export function useRoadSelection(mapRef: RefObject<OpenLayersMap | null>) {
     const projection = view.getProjection().getCode();
     const source = layer.getSource();
 
+    /** Finds the starting road, snaps both points to a connected stretch, and prepares address details for confirmation. */
     async function drawRoad(
       start: Coordinate,
       end: Coordinate,
@@ -187,12 +194,14 @@ export function useRoadSelection(mapRef: RefObject<OpenLayersMap | null>) {
       }
     }
 
+    /** Updates the preview endpoint while the sketch is awaiting its second point. */
     function updateSketch(end: Coordinate) {
       const geometry = sketch.getGeometry();
       if (!geometry || requestRef.current) return;
       geometry.setCoordinates([geometry.getFirstCoordinate(), end]);
     }
 
+    /** Starts the sketch on the first point and resolves the road stretch on the second. */
     function handlePoint(coordinate: Coordinate) {
       const resolution = view.getResolution() ?? Infinity;
       const radius = resolution * hitTolerance;
@@ -213,19 +222,23 @@ export function useRoadSelection(mapRef: RefObject<OpenLayersMap | null>) {
       }
     }
 
+    /** Uses the clicked map coordinate as the next drawing point. */
     function handleClick(event: MapBrowserEvent) {
       handlePoint(event.coordinate);
     }
 
+    /** Moves the sketch endpoint as the pointer moves without dragging the map. */
     function handlePointerMove(event: MapBrowserEvent) {
       if (!event.dragging) updateSketch(event.coordinate);
     }
 
+    /** Updates the sketch endpoint from the crosshair after keyboard map movement. */
     function handleMoveEnd() {
       const center = view.getCenter();
       if (center && target?.matches(':focus-visible')) updateSketch(center);
     }
 
+    /** Uses Enter to place a point at the crosshair and Escape to stop drawing. */
     function handleKeyDown(event: KeyboardEvent) {
       if (event.target !== target) return;
       if (event.key === 'Escape') {

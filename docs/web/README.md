@@ -30,7 +30,12 @@ Run these from the repository root:
 bun run --filter web dev
 bun run --filter web build
 bun run --filter web lint
+bun run --filter web test
 ```
+
+The road-permit tests live in [`apps/web/src/tests/`](../../apps/web/src/tests/).
+They use Vitest and simulated DOM interactions, with permit submission and map
+service responses mocked.
 
 The app's generated starter README is at
 [`apps/web/README.md`](../../apps/web/README.md). The root README is the source

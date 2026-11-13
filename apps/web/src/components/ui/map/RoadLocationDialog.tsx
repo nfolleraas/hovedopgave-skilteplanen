@@ -22,6 +22,7 @@ type RoadLocationDialogProps = {
   suggestedLocation: RoadLocation;
 };
 
+/** Lets the user review and correct the map's suggested address before confirming it. */
 export function RoadLocationDialog({
   container,
   onClose,
@@ -44,6 +45,7 @@ export function RoadLocationDialog({
     !location.houseNumberFrom &&
     !location.houseNumberTo;
 
+  /** Validates the address, focuses the first invalid field, or confirms the trimmed values. */
   function submit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     setSubmitted(true);

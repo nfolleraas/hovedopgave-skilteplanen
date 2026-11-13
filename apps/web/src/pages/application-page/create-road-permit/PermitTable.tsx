@@ -17,6 +17,7 @@ type PermitTableProps = {
   outlined?: boolean;
 };
 
+/** Renders a permit table with header associations and visible field labels on narrow screens. */
 export function PermitTable({
   label,
   columns,

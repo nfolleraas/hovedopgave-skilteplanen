@@ -7,6 +7,7 @@ type CTAButtonProps = {
   icon: ReactNode;
 } & ({ to: string; status?: never } | { to?: never; status: string });
 
+/** Renders a linked application card or a status card for an unavailable option. */
 export default function CTAButton({ label, to, icon, status }: CTAButtonProps) {
   const layout = {
     '& .MuiSvgIcon-root': { fontSize: '3.5rem' },

@@ -27,6 +27,7 @@ export type RoadMarkingProps = {
   onChange: (value: RoadMarkingDetails) => void;
 };
 
+/** Collects traffic changes, access details, and safety measures for the road work. */
 export function RoadMarkingPage({ value, onChange }: RoadMarkingProps) {
   const { t } = useTranslation();
   const trafficSelect = useRef<{ focus: () => void }>(null);
@@ -34,6 +35,7 @@ export function RoadMarkingPage({ value, onChange }: RoadMarkingProps) {
   const labels = getTrafficMeasureLabels(t);
   const { trafficChanges, accessWays, trafficPrecautions } = value;
 
+  /** Adds a selected safety measure with its details or removes it by type. */
   function changeMeasure(measure: TrafficMeasure, checked: boolean) {
     onChange({
       ...value,

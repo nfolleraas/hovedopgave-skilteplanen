@@ -1,15 +1,16 @@
 model Area {
   uuid                   String        @id @default(uuid())
   roadName               String
-  roadOwnership          RoadOwnership
+  roadOwnership          RoadOwnership?
   postalCode             String
+  city                   String?
   houseNumberTo          String?
   houseNumberFrom        String?
   alternativeDescription String?
-  areaDetailId           String        @unique
-  areaDetail             AreaDetail    @relation(fields: [areaDetailId], references: [uuid])
-  areaSizeId             String        @unique
-  areaSize               AreaSize      @relation(fields: [areaSizeId], references: [uuid])
+  areaDetailId           String?       @unique
+  areaDetail             AreaDetail?   @relation(fields: [areaDetailId], references: [uuid], onDelete: Restrict)
+  areaSizeId             String?       @unique
+  areaSize               AreaSize?     @relation(fields: [areaSizeId], references: [uuid], onDelete: Restrict)
   applicationId          String        @unique
   application            Application   @relation(fields: [applicationId], references: [caseNumber])
 }

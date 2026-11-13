@@ -7,6 +7,7 @@ import type {
   UsageDetails,
 } from './formTypes';
 
+/** Requires a nonblank title and a municipality from the supported list. */
 export function validateMunicipalityAndTitle(
   title: string,
   municipalityName: string | null,
@@ -21,6 +22,7 @@ export function validateMunicipalityAndTitle(
   };
 }
 
+/** Checks whether the material editor has an active edit or unsaved input. */
 export function hasMaterialDraft(draft: MaterialDraft) {
   return Boolean(
     draft.editingId ||
@@ -30,6 +32,7 @@ export function hasMaterialDraft(draft: MaterialDraft) {
   );
 }
 
+/** Validates the usage type, date order, and road location fields. */
 export function validateUsageDetails(value: UsageDetails, t: TFunction) {
   let endDate: string | undefined;
   if (!value.endDate) {
@@ -50,6 +53,7 @@ export function validateUsageDetails(value: UsageDetails, t: TFunction) {
   };
 }
 
+/** Checks the contact name, normalized phone number, and email format. */
 export function validateContactInformation(
   value: ContactInformation,
   t: TFunction,

@@ -1,7 +1,9 @@
 import { Box, Typography } from '@mui/material';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router';
 import { createRoadPermitApplication } from '../../../api/roadPermit.api';
+import { routes } from '../../../app/router';
 import {
   type DetailItem,
   MasterDetailGrid,
@@ -14,6 +16,7 @@ import {
   type MaterialDraft,
   type MaterialEntry,
   type RoadMarkingDetails,
+  type SubmissionStatus,
   type UsageDetails,
 } from './formTypes';
 import { ChooseMunicipalityAndTitlePage } from './pages/ChooseMunicipalityAndTitlePage';
@@ -31,12 +34,15 @@ import {
   validateUsageDetails,
 } from './validation';
 
+/** Collects the validation messages for the step summary. */
 function getValidationErrors(errors: Record<string, string | undefined>) {
   return Object.values(errors).filter((error) => error !== undefined);
 }
 
+/** Owns the form values, step validation, and submission state for a road-permit application. */
 export default function CreateRoadPermitPage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [title, setTitle] = useState('');
   const [municipalityName, setMunicipalityName] = useState<string | null>(null);
   const [materials, setMaterials] = useState<MaterialEntry[]>([]);
@@ -66,15 +72,21 @@ export default function CreateRoadPermitPage() {
   });
 
   const [confirmed, setConfirmed] = useState(false);
-  const [submissionAttempted, setSubmissionAttempted] = useState(false);
+  const [submissionStatus, setSubmissionStatus] =
+    useState<SubmissionStatus>('idle');
+
+  /** Returns to the application overview after the success animation. */
+  const finishSubmission = useCallback(() => {
+    void navigate(routes.application, { replace: true });
+  }, [navigate]);
 
   const applicant: CompanyInformation = {
     name: 'Eksempel Entreprise ApS',
     department: 'Vej og anlæg',
-    address1: 'Eksempelvej 12',
+    address1: '',
     address2: '',
-    postalCode: '5000',
-    city: 'Odense C',
+    postalCode: '',
+    city: '',
     contactPerson: 'Anna Jensen',
     directPhone: '12345678',
     mobile: '23456789',
@@ -90,7 +102,10 @@ export default function CreateRoadPermitPage() {
     DateForUpload: '21-10-2001',
   };
 
-  function handleSubmit() {
+  /** Builds the permit payload and records whether the request succeeds or fails. */
+  async function handleSubmit() {
+    if (!canSubmit) return;
+
     const application: RoadPermitApplication = {
       title,
       municipalityName,
@@ -106,8 +121,13 @@ export default function CreateRoadPermitPage() {
       applicant,
       confirmed,
     };
-    createRoadPermitApplication(application);
-    setSubmissionAttempted(true);
+    setSubmissionStatus('sending');
+    try {
+      await createRoadPermitApplication(application);
+      setSubmissionStatus('success');
+    } catch {
+      setSubmissionStatus('error');
+    }
   }
 
   const municipalityErrors = validateMunicipalityAndTitle(
@@ -207,15 +227,18 @@ export default function CreateRoadPermitPage() {
           materials={materials}
           municipalityName={municipalityName}
           onConfirmedChange={setConfirmed}
+          onSubmissionComplete={finishSubmission}
           roadMarking={roadMarking}
-          submissionAttempted={submissionAttempted}
+          submissionStatus={submissionStatus}
           title={title}
           usageDetails={usageDetails}
         />
       ),
     },
   ];
-  const canSubmit = categories.every((step) => !step.validationErrors?.length);
+  const canSubmit =
+    (submissionStatus === 'idle' || submissionStatus === 'error') &&
+    categories.every((step) => !step.validationErrors?.length);
 
   return (
     <Box

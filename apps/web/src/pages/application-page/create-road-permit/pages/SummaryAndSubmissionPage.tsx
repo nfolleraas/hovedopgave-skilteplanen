@@ -1,7 +1,13 @@
+import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
 import DeleteIcon from '@mui/icons-material/Delete';
 import {
+  Alert,
   Box,
   Checkbox,
+  CircularProgress,
+  Dialog,
+  DialogContent,
+  DialogTitle,
   Divider,
   FormControlLabel,
   FormHelperText,
@@ -13,8 +19,9 @@ import {
   TableHead,
   TableRow,
   Typography,
+  useMediaQuery,
 } from '@mui/material';
-import { type ReactNode, useId } from 'react';
+import { type ReactNode, useEffect, useId, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { visuallyHidden } from '../../../../components/ui/visuallyHidden';
 import type {
@@ -22,6 +29,7 @@ import type {
   ContactInformation,
   MaterialEntry,
   RoadMarkingDetails,
+  SubmissionStatus,
   UsageDetails,
 } from '../formTypes';
 import { PermitTable } from '../PermitTable';
@@ -43,10 +51,15 @@ type SummaryAndSubmissionPageProps = {
   documentToUpload: any;
   confirmed: boolean;
   confirmationError?: string;
-  submissionAttempted: boolean;
+  submissionStatus: SubmissionStatus;
   onConfirmedChange: (confirmed: boolean) => void;
+  onSubmissionComplete: () => void;
 };
 
+const checkmarkDuration = 220;
+const confirmationDisplayTime = 700;
+
+/** Displays label-value pairs with an accessible message for missing information. */
 function SummaryFacts({
   entries,
   singleColumn,
@@ -116,6 +129,7 @@ function SummaryFacts({
   );
 }
 
+/** Groups related summary details under an accessible heading. */
 function SummarySection({
   title,
   children,
@@ -138,6 +152,7 @@ function SummarySection({
   );
 }
 
+/** Displays the permit details for review and reports the submission result. */
 export function SummaryAndSubmissionPage({
   title,
   municipalityName,
@@ -149,10 +164,32 @@ export function SummaryAndSubmissionPage({
   confirmed,
   documentToUpload,
   confirmationError,
-  submissionAttempted,
+  submissionStatus,
   onConfirmedChange,
+  onSubmissionComplete,
 }: SummaryAndSubmissionPageProps) {
   const { t, i18n } = useTranslation();
+  const submissionTitleId = useId();
+  const submissionResultRef = useRef<HTMLParagraphElement>(null);
+  const reduceMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
+  const submitted = submissionStatus === 'success';
+  const animationDuration = reduceMotion ? 0 : checkmarkDuration;
+  const submissionDialogOpen = submissionStatus === 'sending' || submitted;
+
+  useEffect(() => {
+    if (!submitted) return;
+
+    // Give the success message a moment on screen after the checkmark appears.
+    const redirect = window.setTimeout(
+      onSubmissionComplete,
+      animationDuration + confirmationDisplayTime,
+    );
+    return () => window.clearTimeout(redirect);
+  }, [animationDuration, onSubmissionComplete, submitted]);
+
+  const submissionMessage = submitted
+    ? t('permit.summary.submissionSuccess')
+    : t('permit.summary.submissionPending');
   const materialTypes = getMaterialTypes(t);
   const usageTypes = getUsageTypes(t);
   const trafficChanges = getTrafficChangeOptions(t);
@@ -161,6 +198,7 @@ export function SummaryAndSubmissionPage({
     dateStyle: 'medium',
     timeZone: 'UTC',
   });
+  /** Formats a valid date in the selected language using UTC to preserve the calendar day. */
   const formatDate = (date: string) => {
     if (!date) return '';
     const parsedDate = new Date(date);
@@ -355,10 +393,90 @@ export function SummaryAndSubmissionPage({
             {confirmationError}
           </FormHelperText>
         )}
-        <Typography role="status">
-          {submissionAttempted && t('permit.summary.submissionStatus')}
-        </Typography>
+        {submissionStatus === 'error'&& 
+        <Alert ref={submissionResultRef} role='alert' severity="error" tabIndex={-1}>
+          {t('permit.summary.submissionError')}
+        </Alert>
+        }
+
+        
       </SummarySection>
+      <Dialog
+        aria-labelledby={submissionTitleId}
+        fullWidth
+        maxWidth="xs"
+        open={submissionDialogOpen}
+        slotProps={{
+          transition: {
+            onExited: () =>
+              submissionResultRef.current?.focus({ preventScroll: true }),
+          },
+        }}
+        transitionDuration={reduceMotion ? 0 : undefined}
+      >
+        <DialogContent sx={{ display: 'grid', justifyItems: 'center', pt: 4 }}>
+          <Box
+            aria-hidden="true"
+            sx={{
+              display: 'grid',
+              placeItems: 'center',
+              width: 72,
+              height: 72,
+              '& > *': {
+                gridArea: '1 / 1',
+                transition: `opacity ${animationDuration}ms ease, transform ${animationDuration}ms ease`,
+              },
+              '@media (prefers-reduced-motion: reduce)': {
+                '& .MuiCircularProgress-root, & .MuiCircularProgress-circle': {
+                  animation: 'none',
+                },
+              },
+            }}
+          >
+            <Box
+              sx={{
+                display: 'flex',
+                opacity: submitted ? 0 : 1,
+                transform: submitted ? 'scale(0.7)' : 'scale(1)',
+                '& .MuiCircularProgress-root, & .MuiCircularProgress-circle': {
+                  animationPlayState: submitted ? 'paused' : undefined,
+                },
+              }}
+            >
+              <CircularProgress size={56} />
+            </Box>
+            <Box
+              sx={{
+                display: 'grid',
+                placeItems: 'center',
+                width: 64,
+                height: 64,
+                borderRadius: '50%',
+                bgcolor: 'success.dark',
+                color: 'success.contrastText',
+                opacity: submitted ? 1 : 0,
+                animation:
+                  submitted && animationDuration
+                    ? `showSubmissionCheck ${animationDuration}ms ease both`
+                    : undefined,
+                '@keyframes showSubmissionCheck': {
+                  from: { opacity: 0, transform: 'scale(0.65)' },
+                  to: { opacity: 1, transform: 'scale(1)' },
+                },
+              }}
+            >
+              <CheckRoundedIcon sx={{ fontSize: 40 }} />
+            </Box>
+          </Box>
+          <DialogTitle
+            component="h2"
+            id={submissionTitleId}
+            sx={{ px: 0, pb: 0, textAlign: 'center' }}
+          >
+            <span role="status">{submissionMessage}</span>
+          </DialogTitle>
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 }

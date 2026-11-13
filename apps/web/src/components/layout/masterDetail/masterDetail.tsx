@@ -29,6 +29,7 @@ type MasterDetailGridProps = {
   onSubmit?: () => void;
 };
 
+/** Renders the application steps, their content, and the controls for navigation and submission. */
 export function MasterDetailGrid({ items, onSubmit }: MasterDetailGridProps) {
   const { t } = useTranslation();
   const [selectedId, setSelectedId] = useState(items[0]?.id);
@@ -55,12 +56,14 @@ export function MasterDetailGrid({ items, onSubmit }: MasterDetailGridProps) {
     if (focusRequest?.target === 'heading') headingRef.current?.focus();
   }, [focusRequest]);
 
+  /** Selects a step, closes the mobile step list, and schedules focus for its heading or error summary. */
   function goToStep(id: string, target: 'heading' | 'error' = 'heading') {
     setSelectedId(id);
     setMobileListOpen(false);
     setFocusRequest({ target });
   }
 
+  /** Validates the current step before advancing and checks every step before submitting. */
   function handleNext() {
     const invalidItem = isLastStep
       ? items.find((item) => item.validationErrors?.length)

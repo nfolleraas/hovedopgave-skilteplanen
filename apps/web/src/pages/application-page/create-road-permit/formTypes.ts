@@ -13,6 +13,8 @@ export type ContactInformation = {
   email: string;
 };
 
+export type SubmissionStatus = 'idle' | 'sending' | 'success' | 'error';
+
 export type MaterialEntry = {
   id: string;
   type: string;

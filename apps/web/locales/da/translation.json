@@ -151,7 +151,8 @@
       "cvr": "CVR-nummer",
       "confirmTitle": "Bekræft oplysninger",
       "confirmLabel": "Jeg bekræfter, at oplysningerne er korrekte og afgivet på tro og love.",
-      "submissionStatus": "Ansøgningen er ikke sendt. Indsendelse er endnu ikke tilgængelig.",
+      "submissionPending": "Sender ansøgningen…",
+      "submissionError": "Ansøgningen kunne ikke sendes. Prøv igen.",
       "submissionSuccess": "Din ansøgning er indsendt."
     },
     "title": "Opret vejtilladelse",

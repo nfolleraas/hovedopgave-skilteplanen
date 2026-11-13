@@ -16,6 +16,7 @@ import { useTranslation } from 'react-i18next';
 import { Link, matchPath, useLocation } from 'react-router';
 import { routes } from '../../../app/router.js';
 
+/** Renders translated navigation and marks the section that contains the active route. */
 export default function Navbar() {
   const { t, i18n } = useTranslation();
   const { pathname } = useLocation();
@@ -24,6 +25,7 @@ export default function Navbar() {
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
   const menuOpen = Boolean(menuAnchor);
   const currentLanguage = i18n.resolvedLanguage ?? i18n.language;
+  /** Changes the interface language and closes the user menu. */
   const selectLanguage = (language: 'en' | 'da') => {
     void i18n.changeLanguage(language);
     setMenuAnchor(null);

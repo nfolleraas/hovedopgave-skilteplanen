@@ -10,6 +10,7 @@ export type RoadLocation = HouseNumberRange & {
   city: string;
 };
 
+/** Validates the road, house-number range, four-digit postal code, and city. */
 export function validateRoadLocation(value: RoadLocation, t: TFunction) {
   return {
     road: value.road.trim() ? undefined : t('permit.errors.road'),

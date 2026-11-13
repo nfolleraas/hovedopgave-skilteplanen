@@ -6,13 +6,18 @@ import LayersOutlinedIcon from '@mui/icons-material/LayersOutlined';
 import RemoveIcon from '@mui/icons-material/Remove';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import {
+  Alert,
   Box,
   FormControlLabel,
   FormGroup,
   IconButton,
   Popover,
+  Slide,
+  type SlideProps,
+  Snackbar,
   Switch,
   Typography,
+  useMediaQuery,
 } from '@mui/material';
 import { defaults as defaultControls } from 'ol/control/defaults.js';
 import ScaleLine from 'ol/control/ScaleLine.js';
@@ -23,7 +28,7 @@ import OpenLayersMap from 'ol/Map.js';
 import { fromLonLat, transform } from 'ol/proj.js';
 import TileWMS from 'ol/source/TileWMS.js';
 import View from 'ol/View.js';
-import { useEffect, useId, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { RoadLocation } from '../../../utils/validateRoadLocation';
 import { visuallyHidden } from '../visuallyHidden';
@@ -34,9 +39,84 @@ import { useRoadSelection } from './useRoadSelection';
 import 'ol/ol.css';
 
 const token = import.meta.env.VITE_DATAFORSYNINGEN_TOKEN ?? '';
-const wmsUrl = 'https://api.dataforsyningen.dk/wms/forvaltning2';
+const wmsUrl = 'https://apiiii.dataforsyningen.dk/wms/forvaltning2';
 const wmsVersion = '1.1.1';
 const mapProjection = 'EPSG:3857';
+const errorToastDuration = 5000;
+type MapError = 'unavailable' | 'overlayError' | 'fullscreenError';
+
+/** Slides the toast in from the left edge of the viewport. */
+function MapErrorSlide(props: SlideProps) {
+  return <Slide {...props} direction="right" />;
+}
+
+/** Shows a map error and pauses its five-second countdown on hover. */
+function MapErrorToast({
+  message,
+  onDismiss,
+}: {
+  message: string;
+  onDismiss: () => void;
+}) {
+  const reduceMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
+  const [hovered, setHovered] = useState(false);
+  const remaining = useRef(errorToastDuration);
+
+  useEffect(() => {
+    if (hovered) return;
+
+    const started = Date.now();
+    const timeout = window.setTimeout(onDismiss, remaining.current);
+    return () => {
+      window.clearTimeout(timeout);
+      remaining.current = Math.max(
+        0,
+        remaining.current - (Date.now() - started),
+      );
+    };
+  }, [hovered, onDismiss]);
+
+  return (
+    <Snackbar
+      anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+      onClose={(_, reason) => {
+        if (reason === 'escapeKeyDown') onDismiss();
+      }}
+      open
+      slots={{ transition: MapErrorSlide }}
+      transitionDuration={reduceMotion ? 0 : undefined}
+    >
+      <Alert
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        severity="error"
+        sx={{
+          position: 'relative',
+          overflow: 'hidden',
+          pb: 1.5,
+          '&::after': {
+            content: '""',
+            position: 'absolute',
+            inset: 'auto 0 0',
+            height: 3,
+            bgcolor: 'currentColor',
+            transformOrigin: 'left',
+            animation: `mapErrorCountdown ${errorToastDuration}ms linear forwards`,
+            animationPlayState: hovered ? 'paused' : 'running',
+          },
+          '@keyframes mapErrorCountdown': {
+            to: { transform: 'scaleX(0)' },
+          },
+          '@media (prefers-reduced-motion: reduce)': {
+            '&::after': { animation: 'none' },
+          },
+        }}
+      >
+        {message}
+      </Alert>
+    </Snackbar>
+  );
+}
 
 const baseLayerName = 'Basis_kort';
 const labelLayers = {
@@ -80,6 +160,7 @@ type WmsLayer = {
   Layer?: WmsLayer[];
 };
 
+/** Resolves configured overlay IDs to the names advertised by the WMS layer catalog. */
 function readLayerNames(xml: string) {
   const capabilities = new WMSCapabilities().read(xml) as {
     Capability?: { Layer?: WmsLayer };
@@ -88,6 +169,7 @@ function readLayerNames(xml: string) {
   if (!root) throw new Error('Missing WMS layer catalog');
 
   const entries: { name: string; title: string }[] = [];
+  /** Walks the WMS layer tree and retains layers that support the map projection directly or by inheritance. */
   function collect(layer: WmsLayer, inheritsProjection: boolean) {
     const supportsProjection =
       inheritsProjection ||
@@ -134,6 +216,7 @@ type DataforsyningenMapProps = {
   onRoadLocationConfirm: (location: RoadLocation) => void;
 };
 
+/** Renders the permit map, overlay controls, address search, and road drawing confirmation. */
 export function DataforsyningenMap({
   onRoadLocationConfirm,
 }: DataforsyningenMapProps) {
@@ -166,10 +249,20 @@ export function DataforsyningenMap({
   const [enabledLayers, setEnabledLayers] = useState<LayerId[]>([
     ...defaultLayers,
   ]);
-  const [overlayError, setOverlayError] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [mapError, setMapError] = useState(false);
-  const [fullscreenError, setFullscreenError] = useState(false);
+  const [mapError, setMapError] = useState<MapError | null>(
+    token ? null : 'unavailable',
+  );
+  const reportedTileErrors = useRef(new Set<MapError>());
+
+  /** Clears the current map error toast. */
+  const dismissMapError = useCallback(() => setMapError(null), []);
+
+  const mapErrorMessages = {
+    unavailable: t('permit.map.unavailable'),
+    overlayError: t('permit.map.overlayError'),
+    fullscreenError: t('permit.map.fullscreenError'),
+  };
   const helpId = useId();
   const layersId = useId();
   const layersHeadingId = useId();
@@ -224,9 +317,18 @@ export function DataforsyningenMap({
       attributions:
         '&copy; <a href="https://www.klimadatastyrelsen.dk/" target="_blank" rel="noopener noreferrer">Klimadatastyrelsen</a>',
     });
-    const reportTileError = () => setMapError(true);
+    /** Shows one toast for each kind of tile failure per layer selection. */
+    function reportTileFailure(error: MapError) {
+      if (reportedTileErrors.current.has(error)) return;
+      reportedTileErrors.current.add(error);
+      setMapError(error);
+    }
+
+    /** Reports a base-map tile failure. */
+    const reportTileError = () => reportTileFailure('unavailable');
     source.on('tileloaderror', reportTileError);
-    const reportOverlayError = () => setOverlayError(true);
+    /** Flags an optional road-overlay tile failure separately from the base map. */
+    const reportOverlayError = () => reportTileFailure('overlayError');
     const roadLayers = roadOverlays.map(({ id, url, name }) => {
       const overlaySource = new TileWMS({
         url,
@@ -315,6 +417,7 @@ export function DataforsyningenMap({
       REQUEST: 'GetCapabilities',
     }).toString();
 
+    /** Fetches overlay names on demand and ignores results from cancelled requests. */
     async function loadLayers() {
       try {
         const response = await fetch(url, { signal: controller.signal });
@@ -331,6 +434,7 @@ export function DataforsyningenMap({
   }, [layersOpen, layerCatalog]);
 
   useEffect(() => {
+    /** Keeps the fullscreen button in sync with the browser's fullscreen state. */
     const updateFullscreen = () =>
       setIsFullscreen(document.fullscreenElement === controlsRef.current);
 
@@ -339,6 +443,7 @@ export function DataforsyningenMap({
       document.removeEventListener('fullscreenchange', updateFullscreen);
   }, []);
 
+  /** Renders a toggle and disables it when its layer is absent from the catalog. */
   function renderLayerSwitch({ id, label }: (typeof layerOptions)[number]) {
     const disabled =
       id in catalogLayers && !layerCatalog?.[id as CatalogLayerId];
@@ -351,8 +456,7 @@ export function DataforsyningenMap({
             disabled={disabled}
             onChange={(event) => {
               const { checked } = event.target;
-              setMapError(false);
-              setOverlayError(false);
+              reportedTileErrors.current.clear();
               setEnabledLayers((previous) =>
                 checked
                   ? [...previous, id]
@@ -371,8 +475,8 @@ export function DataforsyningenMap({
     );
   }
 
+  /** Enters or exits fullscreen and shows a toast if the browser rejects it. */
   async function toggleFullscreen() {
-    setFullscreenError(false);
     try {
       if (document.fullscreenElement === controlsRef.current) {
         await document.exitFullscreen();
@@ -380,7 +484,7 @@ export function DataforsyningenMap({
         await controlsRef.current?.requestFullscreen();
       }
     } catch {
-      setFullscreenError(true);
+      setMapError('fullscreenError');
     }
   }
 
@@ -640,29 +744,13 @@ export function DataforsyningenMap({
             </Typography>
           )}
         </Box>
-        <Box
-          role="status"
-          sx={{
-            position: 'absolute',
-            top: token ? 56 : 16,
-            left: token ? 50 : 16,
-            right: 16,
-            zIndex: 2,
-            pointerEvents: 'none',
-          }}
-        >
-          {(!token || mapError || overlayError || fullscreenError) && (
-            <Typography
-              sx={{ p: 2, bgcolor: 'background.paper', borderRadius: 1 }}
-            >
-              {fullscreenError
-                ? t('permit.map.fullscreenError')
-                : overlayError && !mapError
-                  ? t('permit.map.overlayError')
-                  : t('permit.map.unavailable')}
-            </Typography>
-          )}
-        </Box>
+        {mapError && (
+          <MapErrorToast
+            key={mapError}
+            message={mapErrorMessages[mapError]}
+            onDismiss={dismissMapError}
+          />
+        )}
         {drawnRoad && (
           <RoadLocationDialog
             container={() => controlsRef.current}

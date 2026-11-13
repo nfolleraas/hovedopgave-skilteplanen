@@ -7,6 +7,7 @@ type Segment = [Coordinate, Coordinate];
 type Snap = { segment: Segment; coordinate: Coordinate; fraction: number };
 type Node = { coordinate: Coordinate; neighbors: Map<Node, number> };
 
+/** Projects a point onto the nearest road segment within the snapping tolerance. */
 function nearestPoint(
   segments: Segment[],
   point: Coordinate,
@@ -33,6 +34,7 @@ function nearestPoint(
   return closest;
 }
 
+/** Finds the shortest connected path between two nodes using segment lengths. */
 function shortestPath(start: Node, end: Node) {
   const pending = new Map<Node, number>([[start, 0]]);
   const distance = new Map(pending);
@@ -61,6 +63,7 @@ function shortestPath(start: Node, end: Node) {
   }
 }
 
+/** Snaps both endpoints to road geometry and returns their connected path in drawing order. */
 export function snapRoadLine(
   roads: Feature[],
   start: Coordinate,
@@ -88,6 +91,7 @@ export function snapRoadLine(
   if (!startSnap || !endSnap) return;
 
   const nodes = new Map<string, Node>();
+  /** Reuses nodes whose coordinates fall in the same rounded half-unit grid cell. */
   function getNode(coordinate: Coordinate) {
     // Join road vertices that differ only by sub-metre rounding in the data.
     const key = `${Math.round(coordinate[0] * 2)},${Math.round(coordinate[1] * 2)}`;

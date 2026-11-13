@@ -6,6 +6,7 @@ import Footer from '../components/layout/footer/footer.js';
 import Navbar from '../components/layout/navbar/navbar.js';
 import { pages, routes } from './router.js';
 
+/** Renders the translated fallback for routes that do not match a page. */
 function NotFoundPage() {
   const { t } = useTranslation();
 
@@ -20,6 +21,7 @@ function NotFoundPage() {
   );
 }
 
+/** Renders the route layout and moves focus to the main content after supported route changes. */
 export default function App() {
   const { t } = useTranslation();
   const { pathname } = useLocation();
