@@ -39,7 +39,7 @@ import { useRoadSelection } from './useRoadSelection';
 import 'ol/ol.css';
 
 const token = import.meta.env.VITE_DATAFORSYNINGEN_TOKEN ?? '';
-const wmsUrl = 'https://apiiii.dataforsyningen.dk/wms/forvaltning2';
+const wmsUrl = 'https://api.dataforsyningen.dk/wms/forvaltning2';
 const wmsVersion = '1.1.1';
 const mapProjection = 'EPSG:3857';
 const errorToastDuration = 5000;
@@ -686,6 +686,9 @@ export function DataforsyningenMap({
           aria-describedby={helpId}
           aria-label={t('permit.map.title')}
           hidden={!token}
+          onMouseEnter={(event) => {
+            event.currentTarget.focus({preventScroll: true});
+          }}
           ref={targetRef}
           role="region"
           sx={{

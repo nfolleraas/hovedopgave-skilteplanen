@@ -4,15 +4,16 @@ model Application {
   applicantReference     String
   type                   ApplicationType
   status                 Status                  @default(Draft)
+  roadPermitDraft        Json?
   contactPersons         ContactPerson[]
   feedbacks              Feedback[]
   trafficCalmingMeasures TrafficCalmingMeasure[]
   signPlans              SignPlan[]
   documents              Document[]
   areas                  Area[]
-  trafficChange          TrafficChange
-  applicantId            String
-  applicant              Applicant               @relation(fields: [applicantId], references: [uuid])
+  trafficChange          TrafficChange?
+  applicantId            String?
+  applicant              Applicant?              @relation(fields: [applicantId], references: [uuid], onDelete: Restrict)
   caseWorkerId           String?
   caseWorker             CaseWorker?             @relation(fields: [caseWorkerId], references: [employeeNumber])
   roadUsePermit          RoadUsePermit?

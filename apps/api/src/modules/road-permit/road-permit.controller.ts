@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Logger,
+  NotFoundException,
   Param,
   Patch,
   Post,
@@ -18,38 +19,45 @@ export class RoadPermitController {
   constructor(private readonly roadPermitService: RoadPermitService) {}
   private readonly logger = new Logger(RoadPermitController.name);
 
-  /** Creates a permit from the request body and propagates failures to Nest. */
+  /** Creates a blank draft and returns its case number. */
   @Post()
-  async create(@Body() createRoadPermitDto: CreateRoadPermitDto) {
+  create() {
+    return this.roadPermitService.create();
+  }
+
+  /** Submits the existing draft and propagates failures to Nest. */
+  @Post(':id/submit')
+  async submit(@Param('id') id: string, @Body() dto: CreateRoadPermitDto) {
     try {
-      const application =
-        await this.roadPermitService.create(createRoadPermitDto);
-      this.logger.log(`Road permit created ${application.caseNumber}`);
+      const application = await this.roadPermitService.submit(id, dto);
+      this.logger.log(`Road permit submitted ${application.caseNumber}`);
+      return application;
     } catch (error) {
-      this.logger.error('Road permit creation failed');
+      this.logger.error('Road permit submission failed');
       throw error;
     }
   }
 
-  /** Returns the road-permit listing result from the service. */
-  @Get()
+  /** Lists drafts in development while application ownership is unavailable. */
+  @Get('drafts')
   findAll() {
+    if (process.env.NODE_ENV !== 'development') throw new NotFoundException();
     return this.roadPermitService.findAll();
   }
 
-  /** Passes the numeric route ID to the service and returns its lookup result. */
+  /** Loads a road-permit draft by its case number. */
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.roadPermitService.findOne(+id);
+    return this.roadPermitService.findOne(id);
   }
 
-  /** Passes the numeric route ID and submitted changes to the service. */
+  /** Saves the current form snapshot to the existing draft. */
   @Patch(':id')
   update(
     @Param('id') id: string,
     @Body() updateRoadPermitDto: UpdateRoadPermitDto,
   ) {
-    return this.roadPermitService.update(+id, updateRoadPermitDto);
+    return this.roadPermitService.update(id, updateRoadPermitDto);
   }
 
   /** Passes the numeric route ID to the service for removal. */

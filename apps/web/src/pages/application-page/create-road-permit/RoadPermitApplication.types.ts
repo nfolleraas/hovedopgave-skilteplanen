@@ -1,6 +1,7 @@
 import type {
   CompanyInformation,
   ContactInformation,
+  MaterialDraft,
   MaterialEntry,
   RoadMarkingDetails,
   UsageDetails,
@@ -22,3 +23,13 @@ export type RoadPermitApplication = {
   applicant: CompanyInformation;
   confirmed: boolean;
 };
+
+export type RoadPermitDraft = Pick<
+  RoadPermitApplication,
+  | 'title'
+  | 'municipalityName'
+  | 'materials'
+  | 'usageDetails'
+  | 'contactInformation'
+  | 'roadMarking'
+> & { materialDraft: MaterialDraft };

@@ -1,6 +1,7 @@
 import CheckIcon from '@mui/icons-material/Check';
 import {
   Box,
+  Button,
   FormHelperText,
   InputBase,
   TextField,
@@ -9,32 +10,37 @@ import {
 import { alpha } from '@mui/material/styles';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import type { Municipality } from '../../../../api/municipalities.api';
 import { visuallyHidden } from '../../../../components/ui/visuallyHidden';
-import { municipalities } from '../../../../data/municipalities';
 import type { validateMunicipalityAndTitle } from '../validation';
 
 type ChooseMunicipalityAndTitlePageProps = {
   errors?: ReturnType<typeof validateMunicipalityAndTitle>;
   title: string;
+  municipalities: Municipality[] | null | undefined;
   municipalityName: string | null;
   onTitleChange: (title: string) => void;
   onMunicipalityChange: (municipalityName: string | null) => void;
+  onRetryMunicipalities: () => void;
 };
 
 /** Collects the title and lets the user filter and select a municipality. */
 export function ChooseMunicipalityAndTitlePage({
   errors,
   title,
+  municipalities,
   municipalityName,
   onTitleChange,
   onMunicipalityChange,
+  onRetryMunicipalities,
 }: ChooseMunicipalityAndTitlePageProps) {
   const { t } = useTranslation();
   const [search, setSearch] = useState('');
   const query = search.trim().toLocaleLowerCase('da');
-  const matches = municipalities.filter((name) =>
+  const matches = (municipalities ?? []).filter(({ name }) =>
     name.toLocaleLowerCase('da').includes(query),
   );
+  const unavailable = municipalities === null || municipalities?.length === 0;
   const description = errors?.municipality
     ? 'municipality-help municipality-error'
     : 'municipality-help';
@@ -75,6 +81,7 @@ export function ChooseMunicipalityAndTitlePage({
             {t('permit.municipality.help')}
           </Typography>
           <InputBase
+            disabled={!municipalities?.length}
             fullWidth
             id="municipality-search"
             inputProps={{
@@ -121,13 +128,13 @@ export function ChooseMunicipalityAndTitlePage({
                 position: 'relative',
               }}
             >
-              {matches.map((name) => {
+              {matches.map(({ id, name }) => {
                 const selected = name === municipalityName;
 
                 return (
                   <Box
                     component="label"
-                    key={name}
+                    key={id}
                     sx={(theme) => ({
                       display: 'flex',
                       alignItems: 'center',
@@ -180,13 +187,25 @@ export function ChooseMunicipalityAndTitlePage({
                 role="status"
                 sx={matches.length ? visuallyHidden : { px: 2, py: 1 }}
               >
-                {query &&
+                {municipalities === undefined &&
+                  t('permit.municipality.loading')}
+                {unavailable && t('permit.municipality.loadError')}
+                {Boolean(municipalities?.length) &&
                   (matches.length
                     ? t('permit.municipality.matches', {
                         count: matches.length,
                       })
                     : t('permit.municipality.noMatches'))}
               </Typography>
+              {unavailable && (
+                <Button
+                  onClick={onRetryMunicipalities}
+                  sx={{ mx: 2, minHeight: 44 }}
+                  variant="outlined"
+                >
+                  {t('permit.municipality.retry')}
+                </Button>
+              )}
             </Box>
           </Box>
         </Box>

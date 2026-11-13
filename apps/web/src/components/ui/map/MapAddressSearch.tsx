@@ -10,19 +10,13 @@ import {
 } from '@mui/material';
 import { type SubmitEvent, useEffect, useId, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { getAddressData, searchAddresses } from '../../../utils/adressevaelger';
 import { visuallyHidden } from '../visuallyHidden';
-import { getAddressData } from './adressevaelger';
 
 const maxQueryLength = 73;
 const minQueryLength = 2;
 const suggestionLimit = 5;
 const searchDelay = 250;
-
-type SearchResult = {
-  type: string;
-  id?: string;
-  titel?: string;
-};
 
 type SearchMatch = { addressId?: string; label: string };
 type SearchResponse = { matches: SearchMatch[]; failed?: true };
@@ -30,17 +24,11 @@ type AddressPoint = [number, number];
 
 /** Returns a limited set of unique address suggestions from Adressevælger. */
 async function findAddresses(text: string, signal: AbortSignal) {
-  const data = await getAddressData<{ status: string; fund: SearchResult[] }>(
-    'soeg',
-    new URLSearchParams({ tekst: text, maksimum: String(suggestionLimit) }),
-    signal,
-  );
-  if (data.status !== 'ok' || !Array.isArray(data.fund)) {
-    throw new Error('Invalid address search response');
-  }
-
+  const results = await searchAddresses(text, signal, {
+    limit: suggestionLimit,
+  });
   const matches = new Map<string, SearchMatch>();
-  for (const { type, id, titel } of data.fund) {
+  for (const { type, id, titel } of results) {
     if (!titel || (type === 'husnummer' && !id)) continue;
 
     const addressId = type === 'husnummer' ? id : undefined;

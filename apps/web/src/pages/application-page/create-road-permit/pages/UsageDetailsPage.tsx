@@ -1,6 +1,18 @@
-import { Box, MenuItem, TextField, Typography } from '@mui/material';
+import {
+  Autocomplete,
+  Box,
+  MenuItem,
+  TextField,
+  Typography,
+} from '@mui/material';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { DataforsyningenMap } from '../../../../components/ui/map/DataforsyningenMap';
+import { visuallyHidden } from '../../../../components/ui/visuallyHidden';
+import {
+  findRoadSuggestions,
+  type RoadSuggestion,
+} from '../../../../utils/adressevaelger';
 import type { UsageDetails } from '../formTypes';
 import { getUsageTypes } from '../permitOptions';
 import type { validateUsageDetails } from '../validation';
@@ -19,6 +31,37 @@ export function UsageDetailsPage({
 }: UsageDetailsPageProps) {
   const { t } = useTranslation();
   const usageTypes = getUsageTypes(t);
+  const [roadQuery, setRoadQuery] = useState('');
+  const [roadResults, setRoadResults] = useState<{
+    suggestions: RoadSuggestion[];
+    failed?: true;
+  } | null>(null);
+  const searchingRoad = roadQuery.trim().length >= 2;
+  const loadingRoads = searchingRoad && !roadResults;
+
+  useEffect(() => {
+    if (!searchingRoad) return;
+
+    const request = new AbortController();
+    const timer = window.setTimeout(async () => {
+      try {
+        const suggestions = await findRoadSuggestions(
+          roadQuery.trim(),
+          request.signal,
+        );
+        if (!request.signal.aborted) setRoadResults({ suggestions });
+      } catch {
+        if (!request.signal.aborted)
+          setRoadResults({ suggestions: [], failed: true });
+      }
+    }, 250);
+
+    return () => {
+      window.clearTimeout(timer);
+      request.abort();
+    };
+  }, [roadQuery, searchingRoad]);
+
   return (
     <Box
       sx={{
@@ -95,25 +138,80 @@ export function UsageDetailsPage({
           value={value.endDate}
         />
       </Box>
-      <DataforsyningenMap
-        onRoadLocationConfirm={(location) =>
-          onChange({ ...value, ...location })
-        }
-      />
       <Typography component="h3" variant="h6">
         {t('permit.usage.location')}
       </Typography>
-      <TextField
-        error={Boolean(errors?.road)}
-        fullWidth
-        helperText={errors?.road}
+      <Autocomplete<RoadSuggestion, false, false, true>
+        filterOptions={(options) => options}
+        freeSolo
+        getOptionKey={(option) =>
+          typeof option === 'string'
+            ? option
+            : `${option.road}|${option.postalCode}`
+        }
+        getOptionLabel={(option) =>
+          typeof option === 'string' ? option : option.road
+        }
         id="usage-road"
-        label={t('permit.usage.road')}
-        name="road"
-        onChange={(event) => onChange({ ...value, road: event.target.value })}
-        required
-        value={value.road}
+        inputValue={value.road}
+        loading={loadingRoads}
+        loadingText={t('permit.usage.roadSearching')}
+        onChange={(_, suggestion) => {
+          if (suggestion && typeof suggestion !== 'string') {
+            onChange({ ...value, ...suggestion });
+          }
+        }}
+        onClose={() => setRoadQuery('')}
+        onInputChange={(_, road, reason) => {
+          if (reason !== 'input' && reason !== 'clear') return;
+
+          setRoadResults(null);
+          setRoadQuery(road);
+          onChange({ ...value, road });
+        }}
+        onOpen={() => {
+          setRoadResults(null);
+          setRoadQuery((query) => query || value.road);
+        }}
+        open={searchingRoad}
+        options={roadResults?.suggestions ?? []}
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            error={Boolean(errors?.road)}
+            helperText={
+              errors?.road ||
+              (searchingRoad && roadResults?.failed
+                ? t('permit.usage.roadSearchError')
+                : undefined)
+            }
+            label={t('permit.usage.road')}
+            name="road"
+            required
+          />
+        )}
+        renderOption={(props, suggestion) => {
+          const { key, ...optionProps } = props;
+          return (
+            <li key={key} {...optionProps}>
+              {suggestion.road}, {suggestion.postalCode} {suggestion.city}
+            </li>
+          );
+        }}
+        value={null}
       />
+      <Box role="status" sx={visuallyHidden}>
+        {loadingRoads && t('permit.usage.roadSearching')}
+        {searchingRoad &&
+          roadResults?.failed &&
+          t('permit.usage.roadSearchError')}
+        {searchingRoad &&
+          roadResults &&
+          !roadResults.failed &&
+          (roadResults.suggestions.length
+            ? t('permit.usage.roadChooseResult')
+            : t('permit.usage.roadNoResults'))}
+      </Box>
       <Box
         sx={{
           display: 'grid',
@@ -124,7 +222,7 @@ export function UsageDetailsPage({
           gap: 3,
         }}
       >
-         <TextField
+        <TextField
           error={Boolean(errors?.postalCode)}
           fullWidth
           helperText={errors?.postalCode}
@@ -174,7 +272,6 @@ export function UsageDetailsPage({
           }
           value={value.houseNumberTo}
         />
-       
       </Box>
       <TextField
         fullWidth
@@ -187,6 +284,12 @@ export function UsageDetailsPage({
           onChange({ ...value, locationDescription: event.target.value })
         }
         value={value.locationDescription}
+      />
+        <DataforsyningenMap
+        onRoadLocationConfirm={(location) => {
+          setRoadQuery('');
+          onChange({ ...value, ...location });
+        }}
       />
     </Box>
   );

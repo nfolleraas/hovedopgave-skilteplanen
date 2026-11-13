@@ -1,14 +1,22 @@
 import { Box, Button, Paper, Typography } from '@mui/material';
 import type { ReactNode } from 'react';
-import { Link } from 'react-router';
 
 type CTAButtonProps = {
   label: string;
   icon: ReactNode;
-} & ({ to: string; status?: never } | { to?: never; status: string });
+} & (
+  | { onClick: () => void; disabled?: boolean; status?: never }
+  | { onClick?: never; disabled?: never; status: string }
+);
 
-/** Renders a linked application card or a status card for an unavailable option. */
-export default function CTAButton({ label, to, icon, status }: CTAButtonProps) {
+/** Renders an application action or a status card for an unavailable option. */
+export default function CTAButton({
+  label,
+  onClick,
+  disabled,
+  icon,
+  status,
+}: CTAButtonProps) {
   const layout = {
     '& .MuiSvgIcon-root': { fontSize: '3.5rem' },
     display: 'flex',
@@ -28,7 +36,7 @@ export default function CTAButton({ label, to, icon, status }: CTAButtonProps) {
     overflowWrap: 'anywhere',
   } as const;
 
-  if (!to) {
+  if (!onClick) {
     return (
       <Paper
         elevation={0}
@@ -52,7 +60,12 @@ export default function CTAButton({ label, to, icon, status }: CTAButtonProps) {
   }
 
   return (
-    <Button component={Link} sx={layout} to={to} variant="contained">
+    <Button
+      disabled={disabled}
+      onClick={onClick}
+      sx={layout}
+      variant="contained"
+    >
       {icon}
       <Box component="span">{label}</Box>
     </Button>

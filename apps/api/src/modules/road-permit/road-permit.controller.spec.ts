@@ -1,5 +1,6 @@
+import { NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import { vi } from 'vitest';
+import { afterEach, vi } from 'vitest';
 import { CreateRoadPermitDto } from './dto/create-road-permit.dto.js';
 import { UpdateRoadPermitDto } from './dto/update-road-permit.dto.js';
 import { RoadPermitController } from './road-permit.controller.js';
@@ -8,6 +9,7 @@ import { RoadPermitService } from './road-permit.service.js';
 describe('RoadPermitController', () => {
   const service = {
     create: vi.fn(),
+    submit: vi.fn(),
     findAll: vi.fn(),
     findOne: vi.fn(),
     update: vi.fn(),
@@ -25,25 +27,37 @@ describe('RoadPermitController', () => {
     controller = module.get(RoadPermitController);
   });
 
-  it('forwards the submitted application to the service', async () => {
-    const dto = new CreateRoadPermitDto();
-    dto.title = 'Road work';
-    service.create.mockResolvedValue({ caseNumber: 'permit-1' });
+  afterEach(() => vi.unstubAllEnvs());
 
-    await expect(controller.create(dto)).resolves.toBeUndefined();
-    expect(service.create).toHaveBeenCalledExactlyOnceWith(dto);
+  it('returns the blank draft created by the service', async () => {
+    const draft = { caseNumber: 'permit-1', status: 'Draft' };
+    service.create.mockResolvedValue(draft);
+
+    await expect(controller.create()).resolves.toBe(draft);
+    expect(service.create).toHaveBeenCalledExactlyOnceWith();
   });
 
   it('propagates creation failures to Nest', async () => {
     const error = new Error('Creation failed');
     service.create.mockRejectedValue(error);
 
-    await expect(controller.create(new CreateRoadPermitDto())).rejects.toBe(
-      error,
-    );
+    await expect(controller.create()).rejects.toBe(error);
   });
 
-  it('returns the permit list from the service', () => {
+  it('submits the given case number and propagates failures to Nest', async () => {
+    const dto = new CreateRoadPermitDto();
+    const submitted = { caseNumber: 'permit-1', status: 'InProgress' };
+    service.submit.mockResolvedValueOnce(submitted);
+    await expect(controller.submit('permit-1', dto)).resolves.toBe(submitted);
+    expect(service.submit).toHaveBeenCalledExactlyOnceWith('permit-1', dto);
+
+    const error = new Error('Submission failed');
+    service.submit.mockRejectedValueOnce(error);
+    await expect(controller.submit('permit-1', dto)).rejects.toBe(error);
+  });
+
+  it('returns the draft list from the service in development', () => {
+    vi.stubEnv('NODE_ENV', 'development');
     const permits = [{ caseNumber: 'permit-1' }];
     service.findAll.mockReturnValue(permits);
 
@@ -51,21 +65,29 @@ describe('RoadPermitController', () => {
     expect(service.findAll).toHaveBeenCalledExactlyOnceWith();
   });
 
-  it('passes the route ID as a number when finding a permit', () => {
+  it('keeps the shared draft list unavailable in production', () => {
+    vi.stubEnv('NODE_ENV', 'production');
+
+    expect(() => controller.findAll()).toThrow(NotFoundException);
+    expect(service.findAll).not.toHaveBeenCalled();
+  });
+
+  it('passes the case number when loading a draft', () => {
     const permit = { caseNumber: 'permit-42' };
     service.findOne.mockReturnValue(permit);
 
-    expect(controller.findOne('42')).toBe(permit);
-    expect(service.findOne).toHaveBeenCalledExactlyOnceWith(42);
+    expect(controller.findOne('permit-42')).toBe(permit);
+    expect(service.findOne).toHaveBeenCalledExactlyOnceWith('permit-42');
   });
 
-  it('passes the numeric route ID and request body when updating a permit', () => {
-    const dto: UpdateRoadPermitDto = { title: 'Updated road work' };
+  it('passes the case number and form snapshot when saving a draft', () => {
+    const dto = new UpdateRoadPermitDto();
+    dto.title = 'Updated road work';
     const result = { ...dto, caseNumber: 'permit-42' };
     service.update.mockReturnValue(result);
 
-    expect(controller.update('42', dto)).toBe(result);
-    expect(service.update).toHaveBeenCalledExactlyOnceWith(42, dto);
+    expect(controller.update('permit-42', dto)).toBe(result);
+    expect(service.update).toHaveBeenCalledExactlyOnceWith('permit-42', dto);
   });
 
   it('passes the route ID as a number when removing a permit', () => {

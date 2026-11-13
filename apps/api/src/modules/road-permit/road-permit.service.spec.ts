@@ -6,7 +6,7 @@ import {
   Usage,
 } from '../../generated/prisma/enums.js';
 import type { CreateRoadPermitDto } from './dto/create-road-permit.dto.js';
-import type { UpdateRoadPermitDto } from './dto/update-road-permit.dto.js';
+import { UpdateRoadPermitDto } from './dto/update-road-permit.dto.js';
 import { RoadPermitRepository } from './road-permit.repository.js';
 import { RoadPermitService } from './road-permit.service.js';
 
@@ -57,6 +57,7 @@ const application: CreateRoadPermitDto = {
 describe('RoadPermitService', () => {
   const repository = {
     create: vi.fn(),
+    submit: vi.fn(),
     findAll: vi.fn(),
     findOne: vi.fn(),
     update: vi.fn(),
@@ -76,12 +77,20 @@ describe('RoadPermitService', () => {
     service = module.get(RoadPermitService);
   });
 
-  it('maps a road permit and returns the saved application', async () => {
-    const result = { caseNumber: 'permit-1' };
-    repository.create.mockResolvedValue(result);
+  it('creates a blank draft without mapping form fields', async () => {
+    const draft = { caseNumber: 'permit-1', status: 'Draft' };
+    repository.create.mockResolvedValue(draft);
+    await expect(service.create()).resolves.toBe(draft);
+    expect(repository.create).toHaveBeenCalledExactlyOnceWith();
+  });
 
-    await expect(service.create(application)).resolves.toBe(result);
-    expect(repository.create).toHaveBeenCalledExactlyOnceWith(
+  it('maps a completed road permit and submits the existing case number', async () => {
+    const result = { caseNumber: 'permit-1' };
+    repository.submit.mockResolvedValue(result);
+
+    await expect(service.submit('permit-1', application)).resolves.toBe(result);
+    expect(repository.submit).toHaveBeenCalledExactlyOnceWith(
+      'permit-1',
       expect.objectContaining({
         title: 'Road work',
         type: ApplicationType.RoadUsePermit,
@@ -129,13 +138,15 @@ describe('RoadPermitService', () => {
   });
 
   it('maps an event permit and omits a blank applicant address', async () => {
-    await service.create({
+    const eventApplication = {
       ...application,
       usageDetails: { ...application.usageDetails, usage: 'Arrangement' },
       applicant: { ...application.applicant, address1: ' ' },
-    });
+    };
+    await service.submit('permit-1', eventApplication);
 
-    expect(repository.create).toHaveBeenCalledExactlyOnceWith(
+    expect(repository.submit).toHaveBeenCalledExactlyOnceWith(
+      'permit-1',
       expect.objectContaining({
         type: ApplicationType.RoadUsePermitEvent,
         applicant: { create: expect.objectContaining({ address: undefined }) },
@@ -149,14 +160,21 @@ describe('RoadPermitService', () => {
     );
   });
 
-  it('propagates a repository failure when creating a permit', async () => {
+  it('propagates a repository failure when submitting a permit', async () => {
     const error = new Error('Write failed');
-    repository.create.mockRejectedValue(error);
+    repository.submit.mockRejectedValue(error);
 
-    await expect(service.create(application)).rejects.toBe(error);
+    await expect(service.submit('permit-1', application)).rejects.toBe(error);
   });
 
-  it('returns the repository permit list', () => {
+  it('rejects an incomplete submission without writing to the repository', async () => {
+    await expect(
+      service.submit('permit-1', { ...application, confirmed: false }),
+    ).rejects.toThrow('Complete the application before submitting.');
+    expect(repository.submit).not.toHaveBeenCalled();
+  });
+
+  it('returns the repository draft list', () => {
     const permits = [{ caseNumber: 'permit-1' }];
     repository.findAll.mockReturnValue(permits);
 
@@ -168,17 +186,18 @@ describe('RoadPermitService', () => {
     const permit = { caseNumber: 'permit-42' };
     repository.findOne.mockReturnValue(permit);
 
-    expect(service.findOne(42)).toBe(permit);
-    expect(repository.findOne).toHaveBeenCalledExactlyOnceWith(42);
+    expect(service.findOne('permit-42')).toBe(permit);
+    expect(repository.findOne).toHaveBeenCalledExactlyOnceWith('permit-42');
   });
 
-  it('forwards the ID and changes when updating a permit', () => {
-    const dto: UpdateRoadPermitDto = { title: 'Updated road work' };
+  it('saves unfinished fields against the case number', () => {
+    const dto = new UpdateRoadPermitDto();
+    dto.title = 'Updated road work';
     const result = { ...dto, caseNumber: 'permit-42' };
     repository.update.mockReturnValue(result);
 
-    expect(service.update(42, dto)).toBe(result);
-    expect(repository.update).toHaveBeenCalledExactlyOnceWith(42, dto);
+    expect(service.update('permit-42', dto)).toBe(result);
+    expect(repository.update).toHaveBeenCalledExactlyOnceWith('permit-42', dto);
   });
 
   it('removes a permit by ID through the repository', () => {

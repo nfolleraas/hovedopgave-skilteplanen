@@ -3,9 +3,9 @@ import { buffer } from 'ol/extent.js';
 import type Feature from 'ol/Feature.js';
 import type LineString from 'ol/geom/LineString.js';
 import { transform, transformExtent } from 'ol/proj.js';
+import { getAddressData } from '../../../utils/adressevaelger';
 import { compareHouseNumbers } from '../../../utils/validateHouseNumberRange';
 import type { RoadLocation } from '../../../utils/validateRoadLocation';
-import { getAddressData } from './adressevaelger';
 import { findRoadName } from './findRoadName';
 import { getRoadCodes } from './roadData';
 

@@ -1,5 +1,5 @@
 import type { TFunction } from 'i18next';
-import { municipalities } from '../../../data/municipalities';
+import type { Municipality } from '../../../api/municipalities.api';
 import { validateRoadLocation } from '../../../utils/validateRoadLocation';
 import type {
   ContactInformation,
@@ -11,14 +11,14 @@ import type {
 export function validateMunicipalityAndTitle(
   title: string,
   municipalityName: string | null,
+  municipalities: Municipality[],
   t: TFunction,
 ) {
   return {
     title: title.trim() ? undefined : t('permit.errors.title'),
-    municipality:
-      municipalityName !== null && municipalities.includes(municipalityName)
-        ? undefined
-        : t('permit.errors.municipality'),
+    municipality: municipalities.some(({ name }) => name === municipalityName)
+      ? undefined
+      : t('permit.errors.municipality'),
   };
 }
 

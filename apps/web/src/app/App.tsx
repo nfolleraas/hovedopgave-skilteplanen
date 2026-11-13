@@ -1,13 +1,13 @@
 import { Container, Typography } from '@mui/material';
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Route, Routes, useLocation } from 'react-router';
+import { Outlet, useLocation } from 'react-router';
 import Footer from '../components/layout/footer/footer.js';
 import Navbar from '../components/layout/navbar/navbar.js';
-import { pages, routes } from './router.js';
+import { routes } from './router.js';
 
 /** Renders the translated fallback for routes that do not match a page. */
-function NotFoundPage() {
+export function NotFoundPage() {
   const { t } = useTranslation();
 
   return (
@@ -49,12 +49,7 @@ export default function App() {
         </a>
       )}
       <Navbar />
-      <Routes>
-        {Object.entries(pages).map(([path, Page]) => (
-          <Route element={<Page />} key={path} path={path} />
-        ))}
-        <Route element={<NotFoundPage />} path="*" />
-      </Routes>
+      <Outlet />
       <Footer />
     </>
   );

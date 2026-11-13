@@ -113,7 +113,6 @@ export function mapCreateRoadPermit(
         availability: Availability.AllDay, // TODO: Collect availability in the form.
       },
     },
-    // TODO: The schema's unique applicationId currently limits this list to one item.
     trafficCalmingMeasures: {
       create: dto.roadMarking.trafficPrecautions.map((measure) => ({
         type: measure.type as TrafficCalmingMeasureType,
@@ -130,7 +129,6 @@ export function mapCreateRoadPermit(
         eventStart: startDate,
         eventEnd: endDate,
         usage: usageTypes[usageDetails.usage],
-        // TODO: The schema's unique roadUsePermitId currently limits this list to one item.
         materials: {
           create: dto.materials.map((material) => ({
             type: materialTypes[material.type],

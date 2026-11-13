@@ -43,6 +43,9 @@ export const apiClient = {
       method: 'POST',
       data: body,
     }),
+  /** Updates a resource with a JSON-compatible request body. */
+  patch: <T>(path: string, body: unknown) =>
+    request<T>(path, { method: 'PATCH', data: body }),
   /**
    * Sends multipart form data to the API.
    * @param path - The resource path
