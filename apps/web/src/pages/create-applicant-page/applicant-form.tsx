@@ -12,6 +12,7 @@ import type { AddressSuggestion } from '../../api/addresses.api.js';
 import AddressAutocomplete from '../../components/address/address-autocomplete.js';
 import { useApplicants } from '../../hooks/use-applicants.js';
 import { parseAddress } from './address-parser.js';
+import { isValidCvrNumber, isValidPhoneNumber } from './applicant-validation.js';
 
 type ApplicantType = 'business' | 'private';
 
@@ -30,6 +31,9 @@ export default function ApplicantForm({ applicantType }: ApplicantFormProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
+  /**
+   * Validates the form and creates the applicant in the API.
+   */
   async function handleSubmit(event: React.SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!selectedAddress) {
@@ -38,6 +42,24 @@ export default function ApplicantForm({ applicantType }: ApplicantFormProps) {
     }
 
     const formData = new FormData(event.currentTarget);
+    const phoneNumber = String(formData.get('phone') ?? '').trim();
+    const cvrNumber = String(formData.get('cvr') ?? '').trim();
+
+    const nextPhoneError = !isValidPhoneNumber(phoneNumber);
+    const nextCvrError = isBusiness ? !isValidCvrNumber(cvrNumber) : false;
+
+    setPhoneError(nextPhoneError);
+    setCvrError(nextCvrError);
+
+    if (nextPhoneError) {
+      setSubmitError('Telefonnummer skal bestå af præcis 8 cifre.');
+      return;
+    }
+
+    if (nextCvrError) {
+      setSubmitError('CVR-nummer skal bestå af præcis 8 cifre.');
+      return;
+    }
 
     setSubmitError(null);
     setIsSaving(true);
@@ -46,10 +68,10 @@ export default function ApplicantForm({ applicantType }: ApplicantFormProps) {
       await createApplicant({
         name: String(formData.get('name') ?? '').trim(),
         type: applicantType,
-        phoneNumber: String(formData.get('phone') ?? '').trim(),
+        phoneNumber,
         email: String(formData.get('email') ?? '').trim(),
         ...(isBusiness
-          ? { cvrNumber: String(formData.get('cvr') ?? '').trim() }
+          ? { cvrNumber }
           : {}),
         ...parseAddress(selectedAddress),
       });
@@ -104,12 +126,12 @@ export default function ApplicantForm({ applicantType }: ApplicantFormProps) {
             label="Telefonnummer"
             name="phone"
             onBlur={(event) => {
-              const value = event.target.value;
-              setPhoneError(!/^\d{8}$/.test(value));
+              const value = event.target.value.trim();
+              setPhoneError(!isValidPhoneNumber(value));
             }}
             onChange={(event) => {
               if (phoneError) {
-                setPhoneError(!/^\d{8}$/.test(event.target.value));
+                setPhoneError(!isValidPhoneNumber(event.target.value.trim()));
               }
             }}
             placeholder="8 cifre"
@@ -142,11 +164,11 @@ export default function ApplicantForm({ applicantType }: ApplicantFormProps) {
               label="CVR-nummer"
               name="cvr"
               onBlur={(event) => {
-                setCvrError(!/^\d{8}$/.test(event.target.value));
+                setCvrError(!isValidCvrNumber(event.target.value.trim()));
               }}
               onChange={(event) => {
                 if (cvrError) {
-                  setCvrError(!/^\d{8}$/.test(event.target.value));
+                  setCvrError(!isValidCvrNumber(event.target.value.trim()));
                 }
               }}
               placeholder="8 cifre"

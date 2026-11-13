@@ -88,4 +88,38 @@ describe('AddressesService', () => {
 
     await expect(service.searchAddresses('Vestergade 1')).resolves.toEqual([]);
   });
+
+  it('rejects invalid search text before calling the provider', async () => {
+    await expect(service.searchAddresses('  a  ')).rejects.toThrow(
+      'Invalid address search text',
+    );
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('rejects when the service token is missing', async () => {
+    delete process.env.DATAFORSYNINGEN_TOKEN;
+
+    await expect(service.searchAddresses('Vestergade 1')).rejects.toThrow(
+      'Address service is not configured',
+    );
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('throws when the provider responds with a non-OK status', async () => {
+    fetchMock.mockResolvedValue(new Response('nope', { status: 500 }));
+
+    await expect(service.searchAddresses('Vestergade 1')).rejects.toThrow(
+      'Address lookup failed',
+    );
+  });
+
+  it('throws when the provider response shape is invalid', async () => {
+    fetchMock.mockResolvedValue(
+      new Response(JSON.stringify({ status: 'nope' }), { status: 200 }),
+    );
+
+    await expect(service.searchAddresses('Vestergade 1')).rejects.toThrow(
+      'Address lookup failed',
+    );
+  });
 });
