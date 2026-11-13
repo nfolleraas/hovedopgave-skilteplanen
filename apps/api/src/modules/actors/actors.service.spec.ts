@@ -1,4 +1,5 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { Prisma } from '../../generated/prisma/client.js';
 import { ActorRole, ApplicationType } from '../../generated/prisma/enums.js';
 import { ApplicationsRepository } from '../applications/applications.repository.js';
 import { ActorsRepository } from './actors.repository.js';
@@ -293,6 +294,35 @@ describe('ActorsService', () => {
 
     await expect(service.findOne('missing-id')).rejects.toThrow(
       new NotFoundException('Actor not found'),
+    );
+  });
+
+  it('reports a missing actor during update as not found', async () => {
+    update.mockRejectedValue(
+      new Prisma.PrismaClientKnownRequestError('Record not found', {
+        code: 'P2025',
+        clientVersion: '7.0.0',
+      }),
+    );
+    get.mockResolvedValue(null);
+
+    await expect(
+      service.update('missing-id', { name: 'Updated' }),
+    ).rejects.toThrow(new NotFoundException('Actor not found'));
+  });
+
+  it('preserves missing-relation errors when the actor still exists', async () => {
+    const error = new Prisma.PrismaClientKnownRequestError(
+      'Address not found',
+      {
+        code: 'P2025',
+        clientVersion: '7.0.0',
+      },
+    );
+    update.mockRejectedValue(error);
+
+    await expect(service.update('actor-id', { name: 'Updated' })).rejects.toBe(
+      error,
     );
   });
 

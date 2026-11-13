@@ -1,19 +1,19 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsString, Matches } from 'class-validator';
 
 export class CreateAddressDto {
   @IsString()
-  @IsNotEmpty()
+  @Matches(/\S/)
   street!: string;
 
   @IsString()
-  @IsNotEmpty()
+  @Matches(/\S/)
   houseNumber!: string;
 
   @IsString()
-  @IsNotEmpty()
+  @Matches(/\S/)
   postalCode!: string;
 
   @IsString()
-  @IsNotEmpty()
+  @Matches(/\S/)
   city!: string;
 }

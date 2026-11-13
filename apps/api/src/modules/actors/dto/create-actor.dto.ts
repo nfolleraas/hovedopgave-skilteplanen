@@ -1,32 +1,54 @@
 import { Type } from 'class-transformer';
-import { Allow, IsDefined, IsOptional, ValidateNested } from 'class-validator';
+import {
+  IsDefined,
+  IsEmail,
+  IsEnum,
+  IsObject,
+  IsOptional,
+  IsString,
+  Matches,
+  ValidateIf,
+  ValidateNested,
+} from 'class-validator';
 import { ActorRole } from '../../../generated/prisma/enums.js';
 import { CreateAddressDto } from '../../address/dto/create-address.dto.js';
 import { CreateContactPersonDto } from '../../contact-person/dto/create-contact-person.dto.js';
 
 export class CreateActorDto {
-  @Allow()
+  @IsString()
+  @Matches(/\S/)
   applicationCaseNumber!: string;
 
-  @Allow()
+  @IsEnum(ActorRole)
   role!: ActorRole;
 
-  @Allow()
+  @IsString()
+  @Matches(/\S/)
   name!: string;
 
-  @Allow()
+  @Matches(/^\d{8}$/)
   phoneNumber!: string;
 
-  @Allow()
+  @IsEmail()
   email!: string;
 
-  @Allow()
+  @ValidateIf(
+    (dto: CreateActorDto, value: unknown) =>
+      dto.role !== ActorRole.Private || value !== undefined,
+  )
+  @Matches(/^\d{8}$/)
   cvrNumber?: string;
 
-  @Allow()
+  @ValidateIf(
+    (dto: CreateActorDto, value: unknown) =>
+      dto.role !== ActorRole.Private || value !== undefined,
+  )
+  @IsString()
+  @Matches(/\S/)
   department?: string;
 
   @IsDefined()
+  @IsObject()
   @ValidateNested()
   @Type(() => CreateAddressDto)
   address!: CreateAddressDto;

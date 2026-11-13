@@ -3,6 +3,12 @@ import { ActorRole } from '../../../generated/prisma/enums.js';
 import { CreateActorDto } from './create-actor.dto.js';
 
 describe('CreateActorDto', () => {
+  const pipe = new ValidationPipe({
+    whitelist: true,
+    forbidNonWhitelisted: true,
+    transform: true,
+  });
+  const metadata = { type: 'body' as const, metatype: CreateActorDto };
   const validActor = {
     applicationCaseNumber: 'CASE-123',
     role: ActorRole.Contractor,
@@ -51,7 +57,45 @@ describe('CreateActorDto', () => {
     ).rejects.toThrow();
   });
 
-  it('supports private actors without business fields or contact person', () => {
+  it.each([
+    ['applicationCaseNumber', undefined],
+    ['applicationCaseNumber', '   '],
+    ['role', 'Unknown'],
+    ['role', undefined],
+    ['name', 123],
+    ['name', null],
+    ['name', '   '],
+    ['phoneNumber', 12345678],
+    ['phoneNumber', '123'],
+    ['email', 'invalid'],
+    ['cvrNumber', undefined],
+    ['cvrNumber', 'abcdefgh'],
+    ['department', undefined],
+    ['department', '   '],
+    ['address', null],
+    ['address', []],
+  ])('rejects invalid %s: %j', async (field, value) => {
+    await expect(
+      pipe.transform({ ...validActor, [field]: value }, metadata),
+    ).rejects.toThrow('Bad Request Exception');
+  });
+
+  it.each(['street', 'houseNumber', 'postalCode', 'city'])(
+    'rejects a whitespace-only address %s',
+    async (field) => {
+      await expect(
+        pipe.transform(
+          {
+            ...validActor,
+            address: { ...validActor.address, [field]: '   ' },
+          },
+          metadata,
+        ),
+      ).rejects.toThrow('Bad Request Exception');
+    },
+  );
+
+  it('supports private actors without business fields or contact person', async () => {
     const { cvrNumber, department, contactPerson, ...actor } = validActor;
     const dto = Object.assign(new CreateActorDto(), {
       ...actor,
@@ -59,5 +103,6 @@ describe('CreateActorDto', () => {
     });
 
     expect(dto).toEqual({ ...actor, role: ActorRole.Private });
+    await expect(pipe.transform(dto, metadata)).resolves.toMatchObject(dto);
   });
 });

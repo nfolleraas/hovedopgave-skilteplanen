@@ -1,24 +1,43 @@
-import { Allow } from 'class-validator';
+import { Type } from 'class-transformer';
+import {
+  Allow,
+  IsEmail,
+  IsObject,
+  IsString,
+  Matches,
+  ValidateIf,
+  ValidateNested,
+} from 'class-validator';
 import { CreateAddressDto } from '../../address/dto/create-address.dto.js';
 import { UpdateContactPersonDto } from '../../contact-person/dto/update-contact-person.dto.js';
 
 export class UpdateActorDto {
-  @Allow()
+  @ValidateIf((_dto, value: unknown) => value !== undefined)
+  @IsString()
+  @Matches(/\S/)
   name?: string;
 
-  @Allow()
+  @ValidateIf((_dto, value: unknown) => value !== undefined)
+  @Matches(/^\d{8}$/)
   phoneNumber?: string;
 
-  @Allow()
+  @ValidateIf((_dto, value: unknown) => value !== undefined)
+  @IsEmail()
   email?: string;
 
-  @Allow()
+  @ValidateIf((_dto, value: unknown) => value !== undefined)
+  @Matches(/^\d{8}$/)
   cvrNumber?: string;
 
-  @Allow()
+  @ValidateIf((_dto, value: unknown) => value !== undefined)
+  @IsString()
+  @Matches(/\S/)
   department?: string;
 
-  @Allow()
+  @ValidateIf((_dto, value: unknown) => value !== undefined)
+  @IsObject()
+  @ValidateNested()
+  @Type(() => CreateAddressDto)
   address?: CreateAddressDto;
 
   @Allow()
