@@ -22,8 +22,15 @@
     "brandName": "Skilteplanen"
   },
   "actors": {
+    "roles": {
+      "Supplier": "Supplier",
+      "Contractor": "Contractor",
+      "NetworkOperator": "Network operator",
+      "ProjectCoordinator": "Project coordinator",
+      "Private": "Private"
+    },
+    "role": "Role",
     "errors": {
-      "addressLookup": "The address could not be verified. Try again.",
       "role": "Choose a role.",
       "name": "Name may only contain letters.",
       "phoneNumber": "Phone number must contain exactly 8 digits.",
@@ -32,7 +39,8 @@
       "department": "Enter a department.",
       "contactPersonName": "Contact person's name may only contain letters.",
       "contactAvailability": "Choose the contact person's availability.",
-      "address": "Choose an address from the search results."
+      "address": "Choose an address from the search results.",
+      "addressLookup": "The address could not be verified. Try again."
     },
     "addressSearching": "Searching for addresses…",
     "addressSearchHint": "Enter at least 3 characters to search.",
@@ -41,15 +49,7 @@
     "addressNoMatches": "No addresses found. Try a more specific search.",
     "addressOpen": "Show address suggestions",
     "address": "Address",
-    "addressPlaceholder": "Street, number, postal code and city",
-    "roles": {
-      "Supplier": "Supplier",
-      "Contractor": "Contractor",
-      "NetworkOperator": "Network operator",
-      "ProjectCoordinator": "Project coordinator",
-      "Private": "Private"
-    },
-    "role": "Role"
+    "addressPlaceholder": "Street, number, postal code and city"
   },
   "home": {
     "title": "Applicantplatform",

@@ -22,8 +22,15 @@
     "brandName": "Skilteplanen"
   },
   "actors": {
+    "roles": {
+      "Supplier": "Leverandør",
+      "Contractor": "Entreprenør",
+      "NetworkOperator": "Ledningsejer",
+      "ProjectCoordinator": "Projektkoordinator",
+      "Private": "Privat"
+    },
+    "role": "Rolle",
     "errors": {
-      "addressLookup": "Adressen kunne ikke verificeres. Prøv igen.",
       "role": "Vælg en rolle.",
       "name": "Navn må kun indeholde bogstaver.",
       "phoneNumber": "Telefonnummer skal være præcis 8 cifre.",
@@ -32,7 +39,8 @@
       "department": "Indtast en afdeling.",
       "contactPersonName": "Kontaktpersonens navn må kun indeholde bogstaver.",
       "contactAvailability": "Vælg kontaktpersonens tilgængelighed.",
-      "address": "Vælg en adresse fra søgeresultaterne."
+      "address": "Vælg en adresse fra søgeresultaterne.",
+      "addressLookup": "Adressen kunne ikke verificeres. Prøv igen."
     },
     "addressSearching": "Søger efter adresser…",
     "addressSearchHint": "Skriv mindst 3 tegn for at søge.",
@@ -41,15 +49,7 @@
     "addressNoMatches": "Ingen adresser fundet. Prøv en mere præcis søgning.",
     "addressOpen": "Vis adresseforslag",
     "address": "Adresse",
-    "addressPlaceholder": "Vejnavn, nr., postnr. og by",
-    "roles": {
-      "Supplier": "Leverandør",
-      "Contractor": "Entreprenør",
-      "NetworkOperator": "Ledningsejer",
-      "ProjectCoordinator": "Projektkoordinator",
-      "Private": "Privat"
-    },
-    "role": "Rolle"
+    "addressPlaceholder": "Vejnavn, nr., postnr. og by"
   },
   "home": {
     "title": "Ansøgningsplatformen",
