@@ -8,6 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "biome lint .",
     "preview": "vite preview",
+    "test:e2e": "tsc -p tsconfig.playwright.json && playwright test",
+    "test:e2e:install": "playwright install --with-deps chromium",
     "locale:extract": "i18next 'src/**/*.{ts,tsx}' --config locales/i18next-parser.config.mjs",
     "locale:check": "node locales/check-locales.mjs",
     "doctor": "npx react-doctor@latest"
@@ -27,7 +29,8 @@
     "axios": "^1.21.0"
   },
   "devDependencies": {
-    "@types/node": "^24.13.3",
+    "@playwright/test": "^1.56.1",
+    "@types/node": "^26.6.6",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
     "@vitejs/plugin-react": "^6.1.1",
