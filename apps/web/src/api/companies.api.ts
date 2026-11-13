@@ -9,6 +9,10 @@ export interface CompanyDetails {
   addressId: string | null;
 }
 
+/**
+ * @summary Look up an eight-digit CVR number with a ten-second timeout
+ * and return normalized company details.
+ */
 export async function lookupCompany(
   cvrNumber: string,
   signal?: AbortSignal,
@@ -32,14 +36,20 @@ export async function lookupCompany(
   return parseCompanyLookup(await response.json(), cvrNumber);
 }
 
+/** @summary Narrow an unknown value to a non-null object for response parsing. */
 function isObject(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object';
 }
 
+/** @summary Trim string values and represent non-string values as empty text. */
 function text(value: unknown): string {
   return typeof value === 'string' ? value.trim() : '';
 }
 
+/**
+ * @summary Validate the company response against the requested CVR number
+ * and normalize contact details and any usable address for the actor form.
+ */
 export function parseCompanyLookup(
   data: unknown,
   cvrNumber: string,

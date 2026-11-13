@@ -8,6 +8,10 @@ import {
 } from '../../api/addresses.api.js';
 import type { AddressSearchProps } from './actor.types.js';
 
+/**
+ * @summary Render a debounced address search that resolves selected house
+ * numbers to verified addresses and supports an existing address selection.
+ */
 export function AddressSearch({
   disabled,
   error,
@@ -58,6 +62,10 @@ export function AddressSearch({
 
   useEffect(() => () => lookupController.current?.abort(), []);
 
+  /**
+   * @summary Replace the search text, cancelling pending requests
+   * and clearing the previously verified address.
+   */
   function changeQuery(text: string) {
     searchController.current?.abort();
     lookupController.current?.abort();
@@ -70,6 +78,10 @@ export function AddressSearch({
     onChange(null, null);
   }
 
+  /**
+   * @summary Clear the selection, refine the search, or resolve a house-number
+   * suggestion, publishing the address only if its lookup is still current.
+   */
   async function selectAddress(option: AddressSuggestion | null) {
     if (!option) {
       changeQuery('');

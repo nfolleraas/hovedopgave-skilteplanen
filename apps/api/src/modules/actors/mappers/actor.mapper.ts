@@ -6,6 +6,10 @@ import type { CreateActorDto } from '../dto/create-actor.dto.js';
 import type { UpdateActorDto } from '../dto/update-actor.dto.js';
 
 export class ActorMapper {
+  /**
+   * @summary Map actor creation data with normalized fields,
+   * role-specific values, and application and address relations.
+   */
   toCreateInput(
     dto: CreateActorDto,
     existingAddressId?: string,
@@ -27,6 +31,10 @@ export class ActorMapper {
     };
   }
 
+  /**
+   * @summary Map supplied actor updates while preserving omitted fields
+   * and excluding the immutable role.
+   */
   toUpdateInput(
     dto: UpdateActorDto,
     existingAddressId?: string,

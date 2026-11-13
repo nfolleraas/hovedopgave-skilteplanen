@@ -6,6 +6,7 @@ import { PrismaService } from '../prisma/prisma.service.js';
 export class ActorsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  /** @summary Create an actor and return its address and contact persons. */
   create(data: Prisma.ActorCreateInput) {
     return this.prisma.actor.create({
       data,
@@ -13,6 +14,7 @@ export class ActorsRepository {
     });
   }
 
+  /** @summary Update an actor and return its related details. */
   update(uuid: string, data: Prisma.ActorUpdateInput) {
     return this.prisma.actor.update({
       where: { uuid },
@@ -21,6 +23,10 @@ export class ActorsRepository {
     });
   }
 
+  /**
+   * @summary Delete an actor and its contact persons atomically,
+   * returning null if the actor does not exist.
+   */
   async delete(uuid: string) {
     try {
       return await this.prisma.$transaction(async (transaction) => {
@@ -41,6 +47,7 @@ export class ActorsRepository {
     }
   }
 
+  /** @summary Find an actor with its related details, returning null if absent. */
   get(uuid: string) {
     return this.prisma.actor.findUnique({
       where: { uuid },
@@ -48,6 +55,7 @@ export class ActorsRepository {
     });
   }
 
+  /** @summary List all actors with their addresses and contact persons. */
   getAll() {
     return this.prisma.actor.findMany({
       include: { address: true, contactPersons: true },

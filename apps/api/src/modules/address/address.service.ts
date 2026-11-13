@@ -7,6 +7,7 @@ import { toAddressCreateInput } from './mappers/address.mapper.js';
 export class AddressService {
   constructor(private readonly addressRepository: AddressRepository) {}
 
+  /** @summary Find a reusable address after normalizing its fields. */
   findMatching(address: CreateAddressDto) {
     return this.addressRepository.findMatching(toAddressCreateInput(address));
   }
