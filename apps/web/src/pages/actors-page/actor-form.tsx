@@ -120,15 +120,8 @@ export function ActorForm({ initialActor, onCancel, onSave }: ActorFormProps) {
         email: undefined,
         address: undefined,
       }));
-      const missing = [
-        !company.phoneNumber && 'telefonnummer',
-        !company.email && 'e-mail',
-        !company.address && 'adresse',
-      ].filter(Boolean);
       setCompanyNotice(
-        missing.length
-          ? `Virksomhedens oplysninger er hentet. CVR har ingen ${missing.join(', ')}. Udfyld de manglende felter.`
-          : 'Virksomhedens oplysninger er hentet. Kontrollér dem, før du gemmer.',
+        'Virksomhedens oplysninger er hentet. Kontrollér dem, før du gemmer.',
       );
     } catch (error) {
       if (!controller.signal.aborted) {
@@ -236,7 +229,12 @@ export function ActorForm({ initialActor, onCancel, onSave }: ActorFormProps) {
     >
       <Box sx={{ p: { xs: 2, md: 3 } }}>
         {saveFailed && (
-          <Alert severity="error" sx={{ mb: 3 }}>
+          <Alert
+            closeText="Luk"
+            onClose={() => setSaveFailed(false)}
+            severity="error"
+            sx={{ mb: 3 }}
+          >
             Aktøren kunne ikke gemmes. Dine oplysninger er bevaret. Prøv igen.
           </Alert>
         )}
@@ -274,12 +272,22 @@ export function ActorForm({ initialActor, onCancel, onSave }: ActorFormProps) {
           </Box>
         )}
         {companyError && (
-          <Alert severity="error" sx={{ mb: 3 }}>
+          <Alert
+            closeText="Luk"
+            onClose={() => setCompanyError(undefined)}
+            severity="error"
+            sx={{ mb: 3 }}
+          >
             {companyError}
           </Alert>
         )}
         {companyNotice && (
-          <Alert severity="info" sx={{ mb: 3 }}>
+          <Alert
+            closeText="Luk"
+            onClose={() => setCompanyNotice(undefined)}
+            severity="info"
+            sx={{ mb: 3 }}
+          >
             {companyNotice}
           </Alert>
         )}
