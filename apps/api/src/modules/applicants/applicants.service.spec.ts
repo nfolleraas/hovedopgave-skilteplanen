@@ -17,7 +17,7 @@ describe('ApplicantsService', () => {
     name: 'Testperson',
     type: 'private',
     phoneNumber: '12345678',
-    email: 'test@example.com',
+    email: 'Test@Example.com',
     street: 'Vestergade',
     houseNumber: '1',
     postalCode: '8000',
@@ -38,7 +38,10 @@ describe('ApplicantsService', () => {
     await expect(service.createApplicant(validApplicant)).resolves.toEqual(
       createdApplicant,
     );
-    expect(repository.createApplicant).toHaveBeenCalledWith(validApplicant);
+    expect(repository.createApplicant).toHaveBeenCalledWith({
+      ...validApplicant,
+      email: 'test@example.com',
+    });
   });
 
   it('creates a business applicant with a valid CVR number', async () => {
@@ -50,7 +53,10 @@ describe('ApplicantsService', () => {
 
     await service.createApplicant(businessApplicant);
 
-    expect(repository.createApplicant).toHaveBeenCalledWith(businessApplicant);
+    expect(repository.createApplicant).toHaveBeenCalledWith({
+      ...businessApplicant,
+      email: 'test@example.com',
+    });
   });
 
   it('rejects an invalid business CVR without calling the repository', async () => {

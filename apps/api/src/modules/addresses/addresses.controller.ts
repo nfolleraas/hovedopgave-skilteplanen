@@ -8,6 +8,9 @@ import {
 export class AddressesController {
   constructor(private readonly addressesService: AddressesService) {}
 
+  /**
+   * Searches for address suggestions by free text.
+   */
   @Get('search')
   searchAddresses(@Query('text') text: string): Promise<AddressSuggestion[]> {
     return this.addressesService.searchAddresses(text);

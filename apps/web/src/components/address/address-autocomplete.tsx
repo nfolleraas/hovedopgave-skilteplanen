@@ -10,6 +10,10 @@ interface AddressAutocompleteProps {
   onChange: (address: AddressSuggestion | null) => void;
 }
 
+/**
+ * Autocomplete field that searches addresses via the API and returns the
+ * selected suggestion to the parent.
+ */
 export default function AddressAutocomplete({
   onChange,
 }: AddressAutocompleteProps) {

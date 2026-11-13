@@ -14,7 +14,14 @@ export interface ApplicantsActions {
   createApplicant(data: CreateApplicantInput): Promise<unknown>;
 }
 
+/**
+ * Provides applicant-related API actions for the UI.
+ */
 export function useApplicants(): ApplicantsActions {
+  /**
+   * Creates a new applicant via the API and throws a user-friendly Error on
+   * failure.
+   */
   async function createApplicant(data: CreateApplicantInput): Promise<unknown> {
     const response = await fetch('/api/applicants', {
       method: 'POST',

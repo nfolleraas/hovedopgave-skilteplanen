@@ -7,6 +7,9 @@ import type { CreateApplicantDto } from './dto/create-applicant.dto.js';
 export class ApplicantsController {
   constructor(private readonly applicantsService: ApplicantsService) {}
 
+  /**
+   * Creates a new applicant.
+   */
   @Post()
   createApplicant(@Body() data: CreateApplicantDto): Promise<Applicant> {
     return this.applicantsService.createApplicant(data);

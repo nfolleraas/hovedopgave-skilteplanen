@@ -1,6 +1,9 @@
 import { BadRequestException } from '@nestjs/common';
 import type { CreateApplicantDto } from './dto/create-applicant.dto.js';
 
+/**
+ * Validates applicant creation input at the service boundary.
+ */
 export function validateCreateApplicant(data: CreateApplicantDto): void {
   if (typeof data.name !== 'string' || !data.name.trim()) {
     throw new BadRequestException('Name is required');

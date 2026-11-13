@@ -7,6 +7,9 @@ import type { CreateApplicantDto } from './dto/create-applicant.dto.js';
 export class ApplicantsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  /**
+   * Persists a new applicant and its nested address via Prisma.
+   */
   async createApplicant(data: CreateApplicantDto): Promise<Applicant> {
     return this.prisma.applicant.create({
       data: {

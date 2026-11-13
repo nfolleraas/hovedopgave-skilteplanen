@@ -3,8 +3,8 @@ model Applicant {
   name            String
   type            ApplicantType
   phoneNumber     String
-  email           String
-  cvrNumber       String?
+  email           String         @unique
+  cvrNumber       String?        @unique
   mitIdKey        String?
   skilteplanenKey String?
   isActive        Boolean        @default(true)

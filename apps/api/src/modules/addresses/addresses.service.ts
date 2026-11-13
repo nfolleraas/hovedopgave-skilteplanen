@@ -11,12 +11,19 @@ export interface AddressSuggestion {
   husnummerId?: string;
 }
 
+/**
+ * Checks whether a value is a non-null object record.
+ */
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
 }
 
 @Injectable()
 export class AddressesService {
+  /**
+   * Fetches address suggestions from adressevaelger.dk (Adressevælger) and
+   * returns a sanitized subset of the provider response.
+   */
   async searchAddresses(searchText: string): Promise<AddressSuggestion[]> {
     if (
       typeof searchText !== 'string' ||
@@ -45,7 +52,7 @@ export class AddressesService {
       });
 
       if (!response.ok) {
-        throw new Error(`Adressevaelger returned ${response.status}`);
+        throw new Error(`Adressevælger returned ${response.status}`);
       }
 
       const data: unknown = await response.json();
@@ -55,7 +62,7 @@ export class AddressesService {
         data.status !== 'ok' ||
         !Array.isArray(data.fund)
       ) {
-        throw new Error('Invalid Adressevaelger response');
+        throw new Error('Invalid Adressevælger response');
       }
 
       return data.fund.flatMap((match): AddressSuggestion[] => {

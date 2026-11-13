@@ -7,6 +7,9 @@ interface ParsedAddress {
   city: string;
 }
 
+/**
+ * Parses an address suggestion title into structured fields.
+ */
 export function parseAddress(address: AddressSuggestion): ParsedAddress {
   if (address.type !== 'adresse' && address.type !== 'husnummer') {
     throw new Error('Vælg en adresse med husnummer fra listen.');
