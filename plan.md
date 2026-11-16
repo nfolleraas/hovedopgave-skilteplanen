@@ -2,7 +2,10 @@
 
 ## Status
 
-This document captures the authentication and session-handling decisions made during planning. It is an implementation plan only; the authentication code has not been implemented yet.
+This document captures the authentication and session-handling decisions made
+during planning. Phase 1 token configuration, authentication persistence,
+domain constraints, and their Prisma migrations have been implemented and
+applied. JWT enforcement and login behavior remain planned for later phases.
 
 ## Goals
 
@@ -77,7 +80,7 @@ After applicant creation succeeds, the backend consumes the pending registration
 
 ### Access JWT
 
-- Issued for an existing active principal or after onboarding is completed.
+- Issued for an existing eligible principal or after onboarding is completed.
 - Short-lived, 10 minutes.
 - Has `tokenUse: ACCESS` internally.
 - Uses the application principal as `sub`:
@@ -93,7 +96,7 @@ After applicant creation succeeds, the backend consumes the pending registration
 - Associate the record with the principal, creation time, expiry, revocation time, and replacement token.
 - Rotate on every successful refresh.
 - Revoke on logout and password change.
-- Before issuing a new access JWT, verify that the principal still exists and is active.
+- Before issuing a new access JWT, verify that the principal still exists. Apply the existing applicant activity rule where applicable.
 - Onboarding tokens do not use refresh tokens.
 
 ### Cookie configuration
@@ -250,21 +253,26 @@ The applicant schema therefore needs to support `mitIdKey` for private applicant
 3. Use authorization-code flow with PKCE and the organizational account audience.
 4. Validate issuer, audience, signature, nonce, and tenant ID.
 5. Require the tenant ID to exist in the municipality allowlist/mapping.
-6. Match the provider subject to a pre-provisioned active case worker.
+6. Match the provider subject to a pre-provisioned case worker.
 7. Do not automatically create case workers after successful corporate authentication.
 8. If the case worker exists, issue an access JWT.
-9. If the case worker is unknown or inactive, return `403` without issuing a JWT and instruct the user to contact the municipality's superuser.
+9. If the case worker is unknown or deleted, return `403` without issuing a JWT and instruct the user to contact the municipality's superuser.
 
 The domain should remain provider-neutral even though Entra ID is the first implementation. A municipality-provider configuration stores issuer, tenant, client configuration, and the related municipality.
 
 ### Local fallback path
 
-The current use case includes local fallback when corporate login is unavailable. To keep the school-project scope manageable, this path uses employee number and password without MFA.
+The current use case includes local fallback when the corporate identity
+provider is unavailable. To keep the school-project scope manageable, this
+path uses employee number and password without MFA. It is an emergency path,
+not a second login choice available while corporate login is healthy.
 
-- Fallback is configured explicitly and should not be selected solely from an untrusted client flag.
+- Fallback is activated through trusted server-side outage or maintenance
+  state and should not be selected solely from an untrusted client flag.
 - Look up the existing case worker by employee number.
 - Verify the password using Argon2id.
-- Verify that the case worker is active and fallback is enabled.
+- Do not use fallback to bypass an unknown, rejected, or invalid corporate
+  identity.
 - Apply rate limiting and temporary lockout/backoff.
 - Return generic errors that do not disclose whether an employee number exists.
 - Audit successful and failed fallback logins.
@@ -280,7 +288,7 @@ Administrators use local e-mail/password login without MFA.
 2. Apply endpoint and account-based rate limiting.
 3. Find the administrator by normalized unique e-mail.
 4. Verify `passwordHash` using Argon2id.
-5. Verify that the administrator is active.
+5. Verify that the administrator exists.
 6. Log successful and failed attempts.
 7. On success, issue an access JWT with `actor: ADMINISTRATOR`.
 8. On failure, return a generic response that does not reveal whether the account exists.
@@ -299,7 +307,7 @@ Authentication establishes the principal. Authorization still loads current doma
 
 ### Case worker
 
-- Must be active.
+- Must exist and be linked to the requested municipality.
 - May access only resources belonging to the assigned municipality.
 - Superuser actions require the current database value of `isSuperUser`.
 - Creating, updating, or deleting case workers requires municipality-superuser authorization.
@@ -346,15 +354,15 @@ Use separate Signicat sandbox and production configuration. Never commit provide
 ### CaseWorker
 
 - Keep `municipalityId` non-unique so one municipality can contain multiple case workers.
-- Keep `passwordHash` for the scoped fallback flow.
+- Keep `passwordHash` for the emergency fallback flow.
 - Add provider-linking fields or a separate external-identity record for issuer, tenant ID, and provider subject.
-- Add an active/disabled state if deletion is not the only deprovisioning mechanism.
+- Delete the case-worker account when access must be removed.
 
 ### Administrator
 
 - Make e-mail unique and normalized.
 - Keep the Argon2id password hash.
-- Add an active/disabled state.
+- Delete the administrator account when access must be removed.
 
 ### New authentication models
 
@@ -440,7 +448,7 @@ At the end of this phase, existing API routes must return `401` without a valid 
 2. Implement the Entra OIDC adapter.
 3. Add tenant-to-municipality allowlisting.
 4. Implement pre-provisioned case-worker identity linking.
-5. Deny unknown, mismatched, or inactive employees.
+5. Deny unknown, mismatched, or deleted employees.
 
 ### Phase 6: Authorization
 
@@ -490,11 +498,12 @@ At the end of this phase, existing API routes must return `401` without a valid 
 
 ### Case-worker authentication
 
-- Allowed Entra tenant and linked active case worker receive an access JWT.
+- Allowed Entra tenant and linked case worker receive an access JWT.
 - Unknown tenant is rejected.
-- Unknown or inactive case worker is rejected.
+- Unknown or deleted case worker is rejected.
 - Corporate-login callback rejects invalid state, nonce, issuer, audience, and PKCE.
 - Valid local fallback credentials issue an access JWT.
+- Fallback is unavailable while the corporate provider is healthy.
 - Invalid fallback credentials return a generic error and are rate-limited.
 - No application-managed MFA is required.
 
@@ -503,7 +512,7 @@ At the end of this phase, existing API routes must return `401` without a valid 
 - Correct e-mail/password issues an access JWT.
 - Incorrect credentials return the same generic error for existing and missing accounts.
 - Repeated failures are rate-limited.
-- Disabled administrators are rejected.
+- Deleted administrators are rejected.
 - No MFA is required.
 
 ### Refresh and logout
@@ -511,7 +520,7 @@ At the end of this phase, existing API routes must return `401` without a valid 
 - Valid refresh token rotates and returns a new access token.
 - Reuse of an already-rotated refresh token is rejected and audited.
 - Logout revokes the refresh token and clears cookies.
-- Refresh for a deleted or inactive principal is rejected.
+- Refresh for a deleted principal is rejected.
 
 ### Authorization
 
@@ -524,7 +533,7 @@ At the end of this phase, existing API routes must return `401` without a valid 
 ## Open decisions before implementation
 
 1. Confirm whether the Signicat product is MitID Business or MitID Private for Business.
-2. Decide how local case-worker fallback is enabled and who may enable it.
+2. Define the trusted outage or maintenance control for local case-worker fallback and who may activate it.
 3. Define the first-administrator bootstrap procedure.
 4. Obtain the Signicat sandbox account, OIDC client, redirect URI, and test users.
 5. Obtain the Entra test tenant/application and define municipality onboarding for production tenants.
