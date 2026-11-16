@@ -5,7 +5,10 @@
 This document captures the authentication and session-handling decisions made
 during planning. Phase 1 token configuration, authentication persistence,
 domain constraints, and their Prisma migrations have been implemented and
-applied. JWT enforcement and login behavior remain planned for later phases.
+applied. Phase 2 step 1, JWT signing and validation, is now implemented with
+HS256 and standard JWT wire claims. Phase 2 step 2, access and onboarding token
+purposes, is also implemented with separate lifetimes and claims. Refresh-token
+rotation and default-deny route protection remain planned for the next steps.
 
 ## Goals
 
