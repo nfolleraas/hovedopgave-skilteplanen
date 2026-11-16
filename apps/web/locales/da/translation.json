@@ -32,6 +32,20 @@
     "logOut": "Log af",
     "language": "Sprog"
   },
+  "municipality": {
+    "create": {
+      "title": "Opret kommune",
+      "success": "Kommunen er oprettet",
+      "error": "Kommunen kunne ikke oprettes",
+      "name": "Kommunens navn",
+      "region": "Region",
+      "phoneNumber": "Telefonnummer",
+      "email": "E-mail",
+      "addressError": "Vælg en gyldig adresse med husnummer.",
+      "cancel": "Annuller",
+      "save": "Gem kommune"
+    }
+  },
   "home": {
     "title": "Ansøgningsplatformen",
     "intro": "Velkommen til Ansøgningsplatformen"

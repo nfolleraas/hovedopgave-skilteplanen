@@ -1,0 +1,7 @@
+{
+  "municipality": {
+    "create": {
+      "address": "Adresse"
+    }
+  }
+}

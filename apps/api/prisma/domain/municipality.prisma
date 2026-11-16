@@ -1,5 +1,5 @@
 model Municipality {
-  id          Int          @id
+  id          Int         @id @default(autoincrement())
   name        String
   region      String
   email       String

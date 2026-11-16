@@ -32,6 +32,20 @@
     "logOut": "Log out",
     "language": "Language"
   },
+  "municipality": {
+    "create": {
+      "title": "Create municipality",
+      "success": "Municipality created successfully",
+      "error": "Could not create municipality",
+      "name": "Municipality name",
+      "region": "Region",
+      "phoneNumber": "Phone number",
+      "email": "Email",
+      "addressError": "Vælg en gyldig adresse med husnummer.",
+      "cancel": "Cancel",
+      "save": "Save municipality"
+    }
+  },
   "home": {
     "title": "Applicantplatform",
     "intro": "Welcome to Applicantplatform."
