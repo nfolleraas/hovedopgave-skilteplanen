@@ -1,13 +1,14 @@
 model CaseWorker {
-  employeeNumber String         @id
-  name           String
-  email          String
-  passwordHash   String
-  phoneNumber    String
-  isSuperUser    Boolean        @default(false)
-  municipalityId Int            
-  municipality   Municipality   @relation(fields: [municipalityId], references: [id])
-  notifications  Notification[]
-  applications   Application[]
-  feedbacks      Feedback[]
+  employeeNumber     String                       @id
+  name               String
+  email              String
+  passwordHash       String
+  phoneNumber        String
+  isSuperUser        Boolean                      @default(false)
+  municipalityId     Int
+  municipality       Municipality                 @relation(fields: [municipalityId], references: [id])
+  externalIdentities CaseWorkerExternalIdentity[]
+  notifications      Notification[]
+  applications       Application[]
+  feedbacks          Feedback[]
 }

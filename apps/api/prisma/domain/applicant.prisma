@@ -4,8 +4,8 @@ model Applicant {
   type            ApplicantType
   phoneNumber     String
   email           String
-  cvrNumber       String?
-  mitIdKey        String
+  cvrNumber       String?        @unique
+  mitIdKey        String?        @unique
   skilteplanenKey String?
   isActive        Boolean        @default(true)
   addressId       String         @unique

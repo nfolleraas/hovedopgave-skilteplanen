@@ -1,0 +1,79 @@
+model AuthTransaction {
+  uuid         String        @id @default(uuid())
+  provider     AuthProvider
+  loginType    AuthLoginType
+  stateHash    String        @unique
+  nonceHash    String
+  pkceVerifier String
+  returnPath   String?
+  createdAt    DateTime      @default(now())
+  expiresAt    DateTime
+  consumedAt   DateTime?
+}
+
+model PendingRegistration {
+  uuid                String        @id @default(uuid())
+  applicantType       ApplicantType
+  provider            AuthProvider
+  externalIdentityKey String?
+  cvrNumber           String?
+  providerSubject     String?
+  providerTenantId    String?
+  createdAt           DateTime      @default(now())
+  expiresAt           DateTime
+  consumedAt          DateTime?
+}
+
+model RefreshToken {
+  uuid          String        @id @default(uuid())
+  tokenHash     String        @unique
+  principalId   String
+  actor         AuthActor
+  createdAt     DateTime      @default(now())
+  expiresAt     DateTime
+  revokedAt     DateTime?
+  replacedById  String?       @unique
+  replacedBy    RefreshToken? @relation("RefreshTokenRotation", fields: [replacedById], references: [uuid], onDelete: SetNull)
+  replacedToken RefreshToken? @relation("RefreshTokenRotation")
+}
+
+model MunicipalityAuthProvider {
+  uuid                 String                       @id @default(uuid())
+  municipalityId       Int
+  provider             AuthProvider
+  issuer               String
+  tenantId             String
+  createdAt            DateTime                     @default(now())
+  updatedAt            DateTime                     @updatedAt
+  municipality         Municipality                 @relation(fields: [municipalityId], references: [id], onDelete: Cascade)
+  caseWorkerIdentities CaseWorkerExternalIdentity[]
+
+  @@unique([provider, issuer, tenantId])
+  @@unique([municipalityId, provider, tenantId])
+}
+
+model CaseWorkerExternalIdentity {
+  uuid                   String                   @id @default(uuid())
+  employeeNumber         String
+  municipalityProviderId String
+  subject                String
+  createdAt              DateTime                 @default(now())
+  updatedAt              DateTime                 @updatedAt
+  caseWorker             CaseWorker               @relation(fields: [employeeNumber], references: [employeeNumber], onDelete: Cascade)
+  municipalityProvider   MunicipalityAuthProvider @relation(fields: [municipalityProviderId], references: [uuid], onDelete: Cascade)
+
+  @@unique([municipalityProviderId, subject])
+  @@unique([employeeNumber, municipalityProviderId])
+}
+
+model AuthAuditEvent {
+  uuid        String             @id @default(uuid())
+  eventType   AuthAuditEventType
+  actor       AuthActor?
+  principalId String?
+  provider    AuthProvider?
+  success     Boolean
+  metadata    Json?
+  ipAddress   String?
+  occurredAt  DateTime           @default(now())
+}
