@@ -22,6 +22,12 @@ export type AuthConfig = {
 
 export const AUTH_CONFIG = Symbol('AUTH_CONFIG');
 
+/**
+ * Reads and trims a required environment variable.
+ * @param name - The environment variable name.
+ * @returns The non-empty environment variable value.
+ * @throws Error when the variable is missing or empty.
+ */
 function requiredString(name: string): string {
   const value = process.env[name]?.trim();
 
@@ -34,6 +40,12 @@ function requiredString(name: string): string {
   return value;
 }
 
+/**
+ * Reads a required positive integer environment variable.
+ * @param name - The environment variable name.
+ * @returns The parsed positive integer.
+ * @throws Error when the value is not a positive integer.
+ */
 function requiredPositiveInteger(name: string): number {
   const value = Number(requiredString(name));
 
@@ -46,6 +58,12 @@ function requiredPositiveInteger(name: string): number {
   return value;
 }
 
+/**
+ * Reads a required boolean environment variable.
+ * @param name - The environment variable name.
+ * @returns The parsed boolean value.
+ * @throws Error when the value is not true or false.
+ */
 function requiredBoolean(name: string): boolean {
   const value = requiredString(name).toLowerCase();
 
@@ -58,12 +76,18 @@ function requiredBoolean(name: string): boolean {
   return value === 'true';
 }
 
+/**
+ * Builds the validated authentication configuration from the environment.
+ * @returns The authentication configuration used by the API.
+ * @throws Error when a required setting is missing or invalid.
+ */
 function createAuthConfig(): AuthConfig {
   const secret = requiredString('AUTH_JWT_SECRET');
 
   if (secret.length < AUTH_SECRET_MIN_LENGTH) {
     throw new Error(
-      `AUTH_JWT_SECRET must be at least ${AUTH_SECRET_MIN_LENGTH} characters long.`,
+      `AUTH_JWT_SECRET must be at least ${AUTH_SECRET_MIN_LENGTH} ` +
+        'characters long.',
     );
   }
 

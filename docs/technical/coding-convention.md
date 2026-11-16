@@ -21,7 +21,10 @@ change.
 
 ## Comments and documentation
 
-Add a descriptive summary comment to every function and method. Include relevant parameters and return values in the documentation. Comment on complex logic to explain intent, reasoning, or a non-obvious constraint. Do not comment every line or repeat what the code says.
+Add a descriptive summary comment to every function and method. Include
+relevant parameters and return values in the documentation. Comment on
+complex logic to explain intent, reasoning, or a non-obvious constraint. Do
+not comment every line or repeat what the code says.
 Update or remove comments when behavior changes.
 
 ```ts
