@@ -65,14 +65,19 @@ apps/api/
 │   ├── schema.prisma          Prisma data model
 │   └── seed.ts                Development seed entry point
 ├── src/
+│   ├── common/                Code shared by modules, such as application types
 │   ├── config/                Application, authentication, and CORS config
+│   ├── generated/prisma/      Generated Prisma Client (not committed)
 │   ├── modules/
 │   │   ├── applicants/        Applicant controller, service, repository, DTOs
-│   │   └── auth/              Authentication controller, service, DTOs
-│   ├── prisma/                Prisma NestJS module and service
-│   ├── app.controller.ts      Root API controller
+│   │   ├── auth/              Authentication controller, service, DTOs
+│   │   ├── contact-persons/   Contact persons (UC-031–033): controller,
+│   │   │                      service, repository, DTOs, mapper, and rules
+│   │   ├── dev-applications/  Test-only applications; not loaded in production
+│   │   ├── health/            Database-backed health endpoint
+│   │   └── prisma/            Prisma NestJS module and service
 │   ├── app.module.ts          Root NestJS module
-│   ├── app.service.ts         Root API service
+│   ├── app.setup.ts           Global prefix and validation pipe
 │   └── main.ts                API bootstrap and HTTP configuration
 ├── test/                      API end-to-end tests
 ├── openapi.json               OpenAPI document
@@ -95,14 +100,17 @@ apps/web/
 │   ├── components/            Reusable layout and UI components
 │   ├── config/                Frontend environment configuration
 │   ├── context/               React context providers
+│   ├── features/              Feature logic shared by pages, such as
+│   │                          contact persons
 │   ├── hooks/                 Reusable React hooks
 │   ├── lib/                   Shared library integrations
 │   ├── pages/                 Route-level page components and tests
+│   ├── test/                  Test helpers and the happy-dom setup
 │   ├── types/                 Shared frontend and API types
 │   ├── utils/                 Small shared utilities
-│   ├── App.tsx                Legacy/root application component
 │   ├── index.css              Global styles
 │   └── main.tsx               Frontend bootstrap
+├── locales/                   Translation files and i18n scripts
 ├── index.html                 Vite HTML entry point
 ├── package.json               Web scripts and dependencies
 └── vite.config.ts             Vite configuration
@@ -117,10 +125,14 @@ building blocks belong under `src/components/`.
 docs/
 ├── agents/                    Agent setup documentation
 ├── api/                       API documentation
-└── technical/                Cross-cutting engineering documentation
-    ├── coding-convention.md   Coding and formatting conventions
-    ├── file-structure.md      This file
-    └── i18n.md                Frontend translation setup and usage
+├── development/               How to run and validate the project
+├── features/                  Feature documentation, such as contact
+│                              persons, and which code is a placeholder
+├── technical/                 Cross-cutting engineering documentation
+│   ├── coding-convention.md   Coding and formatting conventions
+│   ├── file-structure.md      This file
+│   └── i18n.md                Frontend translation setup and usage
+└── web/                       Web app, accessibility, and stylesheet
 ```
 
 Update this document when a new top-level application, major shared folder, or
