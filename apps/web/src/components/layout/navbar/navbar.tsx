@@ -29,7 +29,6 @@ export default function Navbar() {
   const navigationItems = [
     { label: t('navigation.home'), path: routes.home },
     { label: t('navigation.application'), path: routes.application },
-    { label: t('navigation.contacts'), path: routes.contacts },
     { label: t('navigation.messages'), path: routes.messages },
   ];
   const activeTab = navigationItems.findIndex(

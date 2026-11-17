@@ -26,14 +26,14 @@ import {
   supportedApplicationTypes,
 } from '../../../types/application.types.js';
 import { ApplicationType } from '../../../types/prisma-enums.js';
-import { labelAboveSlots } from './form-slots.js';
+import { labelAboveSlots } from './form-fields.js';
 
-export function contactsUrl(caseNumber: string): string {
-  return `/kontaktpersoner?${new URLSearchParams({ sag: caseNumber })}`;
+export function applicationUrl(caseNumber: string): string {
+  return `/ansoegning?${new URLSearchParams({ sag: caseNumber })}`;
 }
 
 /**
- * Test-only list shown at /kontaktpersoner without a case number, so a test
+ * Test-only list shown at /ansoegning without a case number, so a test
  * application can be opened or created without typing the URL.
  */
 export function DevApplicationList() {
@@ -61,7 +61,7 @@ export function DevApplicationList() {
     setError(null);
     try {
       const application = await createDevApplication(type);
-      window.location.assign(contactsUrl(application.caseNumber));
+      window.location.assign(applicationUrl(application.caseNumber));
     } catch {
       setError(t('devApplications.createError'));
       setIsCreating(false);
@@ -78,17 +78,19 @@ export function DevApplicationList() {
       >
         {t('devApplications.title')}
       </Typography>
-      <Typography color="text.secondary" sx={{ mb: 3 }} variant="body2">
+      <Typography color="text.secondary" sx={{ mb: 3 }}>
         {t('devApplications.intro')}
       </Typography>
 
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
-      )}
-
-      <Box sx={{ alignItems: 'end', display: 'flex', gap: 2, mb: 3 }}>
+      <Box
+        sx={{
+          alignItems: 'end',
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: 2,
+          mb: 3,
+        }}
+      >
         <TextField
           id="dev-application-type"
           label={t('devApplications.type')}
@@ -97,58 +99,70 @@ export function DevApplicationList() {
           }
           select
           slotProps={labelAboveSlots}
-          sx={{ minWidth: 220 }}
+          sx={{ minWidth: 260 }}
           value={type}
         >
           {supportedApplicationTypes.map((value) => (
             <MenuItem key={value} value={value}>
-              {t(`devApplications.types.${value}`)}
+              {t(`areas.labels.applicationType.${value}`)}
             </MenuItem>
           ))}
         </TextField>
         <Button
           disabled={isCreating}
           onClick={() => void create()}
+          sx={{ height: 56 }}
           variant="contained"
         >
           {t('devApplications.create')}
         </Button>
       </Box>
 
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
+
       {applications === null ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
           <CircularProgress aria-label={t('devApplications.loading')} />
         </Box>
       ) : applications.length === 0 ? (
-        <Typography variant="body2">{t('devApplications.none')}</Typography>
+        <Typography color="text.secondary">
+          {t('devApplications.none')}
+        </Typography>
       ) : (
-        <Paper variant="outlined">
+        <Paper sx={{ border: '1px solid #BDBDBD' }} variant="outlined">
           <Table size="small">
             <TableHead>
               <TableRow>
                 <TableCell>{t('devApplications.caseNumber')}</TableCell>
                 <TableCell>{t('devApplications.type')}</TableCell>
                 <TableCell>{t('devApplications.status')}</TableCell>
-                <TableCell>{t('devApplications.contactPersonCount')}</TableCell>
+                <TableCell align="right">
+                  {t('devApplications.areaCount')}
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {applications.map((application) => (
-                <TableRow key={application.caseNumber}>
+                <TableRow hover key={application.caseNumber}>
                   <TableCell>
-                    <Link href={contactsUrl(application.caseNumber)}>
+                    <Link
+                      href={applicationUrl(application.caseNumber)}
+                      sx={{ fontWeight: 600 }}
+                    >
                       {application.caseNumber}
                     </Link>
                   </TableCell>
                   <TableCell>
-                    {t(`devApplications.types.${application.type}`, {
-                      defaultValue: application.type,
-                    })}
+                    {t(`areas.labels.applicationType.${application.type}`)}
                   </TableCell>
                   <TableCell>
                     {t(`devApplications.statuses.${application.status}`)}
                   </TableCell>
-                  <TableCell>{application.contactPersonCount}</TableCell>
+                  <TableCell align="right">{application.areaCount}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
