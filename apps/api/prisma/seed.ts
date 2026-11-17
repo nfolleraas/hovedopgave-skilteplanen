@@ -1,5 +1,6 @@
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../src/generated/prisma/client.js';
+import { seedActors } from './seeders/actor.seeder.js';
 import { seedApplication } from './seeders/application.seeder.js';
 
 const connectionString = process.env.DATABASE_URL;
@@ -16,6 +17,15 @@ export async function seed() {
   // Application
   const application = await seedApplication(prisma);
   console.log('Seeded application:', application.caseNumber);
+
+  // Actors (needs the application above)
+  const { actors, applicationIds } = await seedActors(prisma);
+  console.log(
+    'Seeded actors:',
+    actors.map((actor) => actor.name).join(', '),
+    'on',
+    applicationIds.join(', '),
+  );
 }
 
 try {
