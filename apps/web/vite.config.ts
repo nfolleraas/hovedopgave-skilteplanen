@@ -1,6 +1,8 @@
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 
+const apiTarget = process.env.API_PROXY_TARGET ?? 'http://localhost:3000';
+
 // https://vite.dev/config/
 export default defineConfig({
   envDir: '../../.devcontainer',
@@ -8,8 +10,8 @@ export default defineConfig({
   server: {
     host: true,
     proxy: {
-      '/api': 'http://localhost:3000',
-      '/swagger': 'http://localhost:3000',
+      '/api': apiTarget,
+      '/swagger': apiTarget,
     },
   },
 });

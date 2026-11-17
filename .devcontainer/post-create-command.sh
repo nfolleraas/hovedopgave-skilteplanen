@@ -10,14 +10,15 @@ CLAUDE_HOME_DIR="${HOME}/.claude"
 
 cd "$REPO_ROOT"
 
-echo "Preparing workspace volumes"
-WORKSPACE_VOLUME_DIRS=(
+echo "Preparing dependency volumes"
+DEPENDENCY_VOLUME_DIRS=(
   "$REPO_ROOT/node_modules"
   "$REPO_ROOT/apps/api/node_modules"
   "$REPO_ROOT/apps/web/node_modules"
+  "${PLAYWRIGHT_BROWSERS_PATH:-$HOME/.cache/ms-playwright}"
 )
-sudo mkdir -p "${WORKSPACE_VOLUME_DIRS[@]}"
-sudo chown "$(id -u):$(id -g)" "${WORKSPACE_VOLUME_DIRS[@]}"
+sudo mkdir -p "${DEPENDENCY_VOLUME_DIRS[@]}"
+sudo chown "$(id -u):$(id -g)" "${DEPENDENCY_VOLUME_DIRS[@]}"
 
 echo "Preparing Codex volumes"
 sudo mkdir -p "$CODEX_HOME" "$CODEX_SDK_CACHE_DIR"
@@ -39,3 +40,6 @@ bash "$SCRIPT_DIR/setup-zsh.sh"
 
 echo "Installing workspace dependencies"
 bun install
+
+echo "Installing Playwright Chromium and its system dependencies"
+bun run --cwd apps/web playwright install --with-deps chromium

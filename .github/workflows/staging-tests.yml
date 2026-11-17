@@ -13,6 +13,20 @@ jobs:
     name: Frontend tests
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5432/playwright
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: playwright
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ci -d playwright"
+          --health-interval 5s --health-timeout 5s --health-retries 10
     steps:
       - uses: actions/checkout@v6
         with:
@@ -24,10 +38,21 @@ jobs:
         with:
           bun-version: '1.4.4'
       - run: bun install --frozen-lockfile
-      - run: bun run --filter web test
+      - name: Run frontend unit tests
+        run: bun run --filter web test:unit
+      - name: Prepare the Playwright database
+        working-directory: apps/api
+        run: |
+          bun run db:generate
+          bun run db:deploy
+      - name: Install Chromium
+        working-directory: apps/web
+        run: bun run playwright install --with-deps chromium
+      - name: Run frontend end-to-end tests
+        run: bun run --filter web test:e2e
 
   backend:
-    name: Backend unit tests
+    name: Backend tests
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -47,10 +72,9 @@ jobs:
           # Prisma reads this during generation. The unit tests mock the database.
           DATABASE_URL: postgresql://ci:ci@127.0.0.1:5432/ci
         run: bun run db:generate
-      - name: Test the road permit repository, controller, and service
+      - name: Run API unit tests
         working-directory: apps/api
-        run: >-
-          bun run test
-          src/modules/road-permit/road-permit.repository.spec.ts
-          src/modules/road-permit/road-permit.controller.spec.ts
-          src/modules/road-permit/road-permit.service.spec.ts
+        run: bun run test
+      - name: Run API end-to-end tests
+        working-directory: apps/api
+        run: bun run test:e2e

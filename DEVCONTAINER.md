@@ -64,12 +64,13 @@ kun symlinks til det, den faktisk erklærer. Kør altid `bun install` fra roden.
     }
   },
 
-  "forwardPorts": [5173, 3000, 5432, 8081],
+  "forwardPorts": [5173, 3000, 5432, 8081, 9323],
   "portsAttributes": {
     "5173": { "label": "web (vite)" },
     "3000": { "label": "api (nest)" },
     "5432": { "label": "db (postgres)" },
-    "8081": { "label": "webui (postgres)" }
+    "8081": { "label": "webui (postgres)" },
+    "9323": { "label": "Playwright UI" }
   },
 
   "mounts": [
@@ -127,7 +128,8 @@ kun symlinks til det, den faktisk erklærer. Kør altid `bun install` fra roden.
   viser den faktiske port.
 - **`portsAttributes`** sætter kun labels i Ports-panelet.
 - **`postCreateCommand`** klargør ejerskab for de navngivne volumes,
-  konfigurerer Zsh og kører `bun install`, når devcontaineren oprettes.
+  konfigurerer Zsh, kører `bun install` og installerer Playwrights Chromium med
+  de nødvendige systempakker, når devcontaineren oprettes.
   Zsh-scriptet kan køres igen sikkert. Når du har hentet ændringer i en
   `package.json`, skal du køre `bun install` manuelt.
 - **`mounts`** bevarer både Codex-brugerdata i `codex-home` og VS Code Agent
@@ -192,9 +194,11 @@ services:
         target: /workspaces/hovedopgave-skilteplanen/apps/web/node_modules
         volume:
           nocopy: true
+      - playwright-browsers:/home/node/.cache/ms-playwright
     command: sleep infinity
     environment:
       - DATABASE_URL=postgres://app:app@db:5432/app
+      - PLAYWRIGHT_BROWSERS_PATH=/home/node/.cache/ms-playwright
     depends_on:
       - db
   pgweb:
@@ -221,6 +225,7 @@ volumes:
   root-node-modules:
   api-node-modules:
   web-node-modules:
+  playwright-browsers:
 ```
 
 - **`app.build`** bygger `.devcontainer/Dockerfile`, som tager udgangspunkt i
@@ -250,7 +255,9 @@ volumes:
   der kræves ingen direkte værtseksponering af Postgres.
 - **De navngivne volumes** overlever `docker compose down` og
   container-rebuilds. `pgdata` bevarer databasen, mens de øvrige bevarer
-  installerede afhængigheder. De slettes kun, hvis volumes udtrykkeligt
+  installerede afhængigheder. `playwright-browsers` gemmer den Chromium-version,
+  som Playwright i `bun.lock` bruger. Hver maskine henter sin egen kopi ved
+  første oprettelse. Volumes slettes kun, hvis de udtrykkeligt
   fjernes. Bemærk de to forskellige `volumes:`-former: en _liste_ inde i en
   service og et _mapping_ øverst. Hvis dette gøres forkert, får man fejlen
   `volumes must be a mapping`.
