@@ -1,35 +1,25 @@
 import { createHmac, randomUUID, timingSafeEqual } from 'node:crypto';
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { AUTH_CONFIG, type AuthConfig } from '../../../config/auth.config.js';
+import {
+  mapJwtClaimsToPayload,
+  mapJwtHeader,
+  mapJwtPayloadToClaims,
+} from '../mappers/jwt.mapper.js';
 import type {
   AccessTokenInput,
   JwtClaims,
+  JwtHeader,
+  JwtPayload,
   OnboardingApplicantType,
   OnboardingTokenInput,
   TokenUse,
+  ValidatedJwtPayload,
 } from './jwt.types.js';
 
 const AUTH_ACTORS = ['APPLICANT', 'CASE_WORKER', 'ADMINISTRATOR'] as const;
 const ONBOARDING_APPLICANT_TYPES = ['Private', 'Business'] as const;
 const TOKEN_USES = ['ONBOARDING', 'ACCESS'] as const;
-
-type JwtHeader = {
-  alg: string;
-  typ: string;
-};
-
-type JwtPayload = {
-  iss: unknown;
-  aud: unknown;
-  sub: unknown;
-  actor: unknown;
-  tokenUse: unknown;
-  jti: unknown;
-  iat: unknown;
-  exp: unknown;
-  pendingRegistrationId: unknown;
-  applicantType: unknown;
-};
 
 /**
  * Encodes a JSON value using base64url without padding.
@@ -123,26 +113,8 @@ export class JwtService {
   sign(claims: JwtClaims): string {
     this.validateClaims(claims);
 
-    const header: JwtHeader = {
-      alg: this.config.jwt.algorithm,
-      typ: 'JWT',
-    };
-    const payload = {
-      iss: claims.issuer,
-      aud: claims.audience,
-      sub: claims.subject,
-      actor: claims.actor,
-      tokenUse: claims.tokenUse,
-      jti: claims.jwtId,
-      iat: claims.issuedAtTime,
-      exp: claims.expirationTime,
-      ...(claims.pendingRegistrationId === undefined
-        ? {}
-        : { pendingRegistrationId: claims.pendingRegistrationId }),
-      ...(claims.applicantType === undefined
-        ? {}
-        : { applicantType: claims.applicantType }),
-    };
+    const header = mapJwtHeader(this.config.jwt.algorithm);
+    const payload = mapJwtClaimsToPayload(claims);
     const encodedHeader = encodeJson(header);
     const encodedPayload = encodeJson(payload);
     const signingInput = `${encodedHeader}.${encodedPayload}`;
@@ -273,10 +245,7 @@ export class JwtService {
         throw new Error('Invalid JWT header.');
       }
 
-      return {
-        alg: header.alg,
-        typ: header.typ,
-      };
+      return mapJwtHeader(header.alg);
     } catch {
       throw this.invalidToken();
     }
@@ -343,15 +312,15 @@ export class JwtService {
       validatedApplicantType = applicantType;
     }
 
-    return {
-      issuer: payload.iss,
-      audience: payload.aud,
-      subject: payload.sub,
+    const validatedPayload: ValidatedJwtPayload = {
+      iss: payload.iss,
+      aud: payload.aud,
+      sub: payload.sub,
       actor: payload.actor,
       tokenUse: payload.tokenUse,
-      jwtId: payload.jti,
-      issuedAtTime: payload.iat,
-      expirationTime: payload.exp,
+      jti: payload.jti,
+      iat: payload.iat,
+      exp: payload.exp,
       ...(validatedPendingRegistrationId === undefined
         ? {}
         : { pendingRegistrationId: validatedPendingRegistrationId }),
@@ -359,6 +328,8 @@ export class JwtService {
         ? {}
         : { applicantType: validatedApplicantType }),
     };
+
+    return mapJwtPayloadToClaims(validatedPayload);
   }
 
   /**
