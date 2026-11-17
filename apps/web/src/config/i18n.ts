@@ -18,6 +18,8 @@ export const i18nReady = i18n
     },
     supportedLngs: ['en', 'da'],
     fallbackLng: 'en',
+    // React escapes text when rendering translated values.
+    interpolation: { escapeValue: false },
     debug: true,
   });
 
