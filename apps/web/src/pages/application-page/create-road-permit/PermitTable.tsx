@@ -38,7 +38,7 @@ export function PermitTable({
         size="small"
         sx={{
           overflowWrap: 'anywhere',
-          border: "1px solid grey",
+          border: '1px solid grey',
           '& .MuiTableCell-root': { verticalAlign: 'top' },
           '@media (max-width: 699px)': {
             display: 'block',

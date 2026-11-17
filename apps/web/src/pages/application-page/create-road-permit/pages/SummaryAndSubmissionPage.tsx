@@ -393,13 +393,16 @@ export function SummaryAndSubmissionPage({
             {confirmationError}
           </FormHelperText>
         )}
-        {submissionStatus === 'error'&& 
-        <Alert ref={submissionResultRef} role='alert' severity="error" tabIndex={-1}>
-          {t('permit.summary.submissionError')}
-        </Alert>
-        }
-
-        
+        {submissionStatus === 'error' && (
+          <Alert
+            ref={submissionResultRef}
+            role="alert"
+            severity="error"
+            tabIndex={-1}
+          >
+            {t('permit.summary.submissionError')}
+          </Alert>
+        )}
       </SummarySection>
       <Dialog
         aria-labelledby={submissionTitleId}

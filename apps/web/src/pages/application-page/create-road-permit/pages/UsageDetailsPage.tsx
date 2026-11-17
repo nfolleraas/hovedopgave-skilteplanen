@@ -285,7 +285,7 @@ export function UsageDetailsPage({
         }
         value={value.locationDescription}
       />
-        <DataforsyningenMap
+      <DataforsyningenMap
         onRoadLocationConfirm={(location) => {
           setRoadQuery('');
           onChange({ ...value, ...location });
