@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test';
 import { env } from '../config/env.js';
-import { roadSearchService } from './road-search.api.js';
+import { roadSearchService, toRoadSearchText } from './road-search.api.js';
 
 const originalFetch = globalThis.fetch;
 const originalToken = env.dataforsyningenToken;
@@ -57,6 +57,18 @@ describe('roadSearchService', () => {
     ]);
   });
 
+  test('replaces characters GSearch reads as operators with spaces', async () => {
+    await roadSearchService.search("Sankt Hans' Gade & | Ærøvej");
+
+    const url = new URL(String(fetchMock.mock.calls[0][0]));
+    expect(url.searchParams.get('q')).toBe('Sankt Hans Gade Ærøvej');
+  });
+
+  test('does not call the service when only special characters are left', async () => {
+    expect(await roadSearchService.search(' & ')).toEqual([]);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   test('fails without a token and does not call the service', async () => {
     env.dataforsyningenToken = undefined;
 
@@ -72,5 +84,17 @@ describe('roadSearchService', () => {
     await expect(roadSearchService.search('Strandvej')).rejects.toThrow(
       'status 503',
     );
+  });
+});
+
+describe('toRoadSearchText', () => {
+  test('keeps letters, digits and points', () => {
+    expect(toRoadSearchText(' H.C. Andersens Boulevard 1553 ')).toBe(
+      'H.C. Andersens Boulevard 1553',
+    );
+  });
+
+  test('cuts very long text', () => {
+    expect(toRoadSearchText('a'.repeat(300))).toHaveLength(100);
   });
 });

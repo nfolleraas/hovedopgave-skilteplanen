@@ -1,19 +1,38 @@
-import { Box, TextField, Typography } from '@mui/material';
+import CheckBoxIcon from '@mui/icons-material/CheckBox';
+import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
+import {
+  Alert,
+  Box,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  Paper,
+  TextField,
+  Typography,
+} from '@mui/material';
 import { type KeyboardEvent, useEffect, useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { roadSearchService } from '../../../../api/road-search.api.js';
+import {
+  roadSearchMaxLength,
+  roadSearchService,
+} from '../../../../api/road-search.api.js';
 import { useDebouncedValue } from '../../../../hooks/use-debounced-value.js';
 import type { RoadSearchResult } from '../../../../types/area.types.js';
 
 interface RoadSearchProps {
   selectedIds: ReadonlySet<string>;
-  onSelect: (road: RoadSearchResult) => void;
+  /** Selects a road, or removes it again if it is already selected. */
+  onToggle: (road: RoadSearchResult) => void;
 }
 
 const searchDelayMs = 250;
 
-/** Road search as an ARIA combobox: arrow keys move, Enter selects. */
-export function RoadSearch({ selectedIds, onSelect }: RoadSearchProps) {
+/**
+ * Road search as an ARIA combobox: arrow keys move, Enter selects or removes
+ * the active road. A checkbox icon and `aria-checked` show selected roads.
+ */
+export function RoadSearch({ selectedIds, onToggle }: RoadSearchProps) {
   const { t } = useTranslation();
   const listboxId = useId();
   const [query, setQuery] = useState('');
@@ -55,14 +74,10 @@ export function RoadSearch({ selectedIds, onSelect }: RoadSearchProps) {
     };
   }, [debouncedQuery]);
 
-  const showList = isOpen && searchedQuery !== '';
+  const hasAnswer = searchedQuery !== '' && !searchFailed;
+  const showPopup = isOpen && hasAnswer;
+  const showList = showPopup && results.length > 0;
   const optionId = (index: number) => `${listboxId}-option-${index}`;
-
-  function select(road: RoadSearchResult) {
-    if (!selectedIds.has(road.id)) {
-      onSelect(road);
-    }
-  }
 
   function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
     if (event.key === 'ArrowDown') {
@@ -74,7 +89,7 @@ export function RoadSearch({ selectedIds, onSelect }: RoadSearchProps) {
       setActiveIndex((index) => Math.max(index - 1, 0));
     } else if (event.key === 'Enter' && showList && results[activeIndex]) {
       event.preventDefault();
-      select(results[activeIndex]);
+      onToggle(results[activeIndex]);
     } else if (event.key === 'Escape') {
       setIsOpen(false);
     }
@@ -102,85 +117,94 @@ export function RoadSearch({ selectedIds, onSelect }: RoadSearchProps) {
             'aria-activedescendant':
               showList && activeIndex >= 0 ? optionId(activeIndex) : undefined,
             autoComplete: 'off',
+            maxLength: roadSearchMaxLength,
           },
         }}
         value={query}
       />
 
-      <Box
-        aria-label={t('mapStep.searchResults')}
-        component="ul"
-        id={listboxId}
-        role="listbox"
+      <Paper
+        elevation={3}
         sx={{
-          backgroundColor: 'background.paper',
-          border: showList ? '1px solid #BDBDBD' : 'none',
-          borderRadius: 1,
-          boxShadow: showList ? 3 : 'none',
-          display: showList ? 'block' : 'none',
+          border: '1px solid #BDBDBD',
+          display: showPopup ? 'block' : 'none',
           left: 0,
-          listStyle: 'none',
-          m: 0,
           maxHeight: 280,
           mt: 0.5,
           overflowY: 'auto',
-          p: 0,
           position: 'absolute',
           right: 0,
           zIndex: 10,
         }}
       >
-        {results.map((road, index) => {
-          const isSelected = selectedIds.has(road.id);
-          return (
-            <Box
-              aria-selected={index === activeIndex}
-              component="li"
-              id={optionId(index)}
-              key={road.id}
-              onClick={() => select(road)}
-              // Prevent the input from losing focus before the click.
-              onMouseDown={(event) => event.preventDefault()}
-              onMouseEnter={() => setActiveIndex(index)}
-              role="option"
-              sx={{
-                backgroundColor:
-                  index === activeIndex ? '#F7F9FC' : 'transparent',
-                cursor: 'pointer',
-                outline: index === activeIndex ? '2px solid #1562AD' : 'none',
-                outlineOffset: -2,
-                px: 2,
-                py: 1,
-              }}
-            >
-              <Typography sx={{ fontWeight: 600 }} variant="body2">
-                {road.roadName}
-                {isSelected && ` · ${t('mapStep.alreadySelected')}`}
-              </Typography>
-              <Typography color="text.secondary" variant="body2">
-                {road.postalCode} {road.city}
-              </Typography>
-            </Box>
-          );
-        })}
-      </Box>
-
-      <Box aria-live="polite" role="status" sx={{ mt: 1 }}>
-        {searchFailed && (
-          <Typography color="error" variant="body2">
-            {t('mapStep.searchError')}
-          </Typography>
-        )}
-        {!searchFailed && searchedQuery !== '' && results.length === 0 && (
-          <Typography color="text.secondary" variant="body2">
+        <List
+          aria-label={t('mapStep.searchResults')}
+          dense
+          disablePadding
+          id={listboxId}
+          role="listbox"
+        >
+          {results.map((road, index) => {
+            const isActive = index === activeIndex;
+            const isSelected = selectedIds.has(road.id);
+            return (
+              <ListItem
+                aria-checked={isSelected}
+                aria-selected={isActive}
+                id={optionId(index)}
+                key={road.id}
+                onClick={() => onToggle(road)}
+                // Keep focus in the input, so the list stays open.
+                onMouseDown={(event) => event.preventDefault()}
+                onMouseEnter={() => setActiveIndex(index)}
+                role="option"
+                sx={{
+                  backgroundColor: isActive ? '#F7F9FC' : 'transparent',
+                  cursor: 'pointer',
+                  outline: isActive ? '2px solid #1562AD' : 'none',
+                  outlineOffset: -2,
+                }}
+              >
+                <ListItemIcon sx={{ color: 'primary.main', minWidth: 36 }}>
+                  {isSelected ? <CheckBoxIcon /> : <CheckBoxOutlineBlankIcon />}
+                </ListItemIcon>
+                <ListItemText
+                  primary={road.roadName}
+                  secondary={`${road.postalCode} ${road.city}`}
+                  slotProps={{
+                    primary: { sx: { fontWeight: 600 }, variant: 'body2' },
+                    secondary: { variant: 'body2' },
+                  }}
+                />
+              </ListItem>
+            );
+          })}
+        </List>
+        {/* Outside the listbox, which may only contain options. */}
+        {results.length === 0 && (
+          <Typography color="text.secondary" sx={{ px: 2, py: 1.5 }}>
             {t('mapStep.noResults')}
           </Typography>
         )}
-        {showList && results.length > 0 && (
-          <Box component="span" sx={visuallyHidden}>
-            {t('mapStep.resultCount', { count: results.length })}
-          </Box>
-        )}
+      </Paper>
+
+      {searchFailed && (
+        <Alert role="alert" severity="error" sx={{ mt: 1 }}>
+          {t('mapStep.searchError')}
+        </Alert>
+      )}
+
+      {/* Announces the search result for screen readers. */}
+      <Box
+        aria-live="polite"
+        component="span"
+        role="status"
+        sx={visuallyHidden}
+      >
+        {hasAnswer &&
+          (results.length > 0
+            ? t('mapStep.resultCount', { count: results.length })
+            : t('mapStep.noResults'))}
       </Box>
     </Box>
   );

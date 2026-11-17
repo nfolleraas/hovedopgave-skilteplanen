@@ -2,6 +2,8 @@ import { Alert, Box, Button, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { createAreas } from '../../../../api/areas.api.js';
+import { ApiError } from '../../../../api/client.js';
+import { canEditAreas } from '../../../../features/areas/area-validation.js';
 import type {
   Area,
   AreaApplication,
@@ -37,6 +39,8 @@ export function MapStep({
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const selectedIds = new Set(selected.map((road) => road.id));
+  // Areas cannot be added once the application is submitted (UC-035 F2).
+  const canEdit = canEditAreas(application.status);
   // Counts blocked attempts to continue, so each one moves focus again.
   const [ownershipCheck, setOwnershipCheck] = useState(0);
 
@@ -79,8 +83,13 @@ export function MapStep({
       setSelected([]);
       setShowErrors(false);
       onNext();
-    } catch {
-      setError(t('mapStep.createError'));
+    } catch (error) {
+      // The status can change in another tab after the page was loaded.
+      setError(
+        error instanceof ApiError && error.code === 'APPLICATION_NOT_EDITABLE'
+          ? t('areas.notEditable')
+          : t('mapStep.createError'),
+      );
     } finally {
       setIsSaving(false);
     }
@@ -97,6 +106,11 @@ export function MapStep({
       >
         {t('mapStep.title')}
       </Typography>
+      {!canEdit && (
+        <Alert severity="info" sx={{ mb: 3 }}>
+          {t('areas.notEditable')}
+        </Alert>
+      )}
 
       <Box
         sx={{
@@ -106,43 +120,51 @@ export function MapStep({
         }}
       >
         <Box sx={{ display: 'grid', gap: 2 }}>
-          <RoadSearch
-            onSelect={(road) =>
-              setSelected((roads) => [...roads, { ...road, roadOwnership: '' }])
-            }
-            selectedIds={selectedIds}
-          />
+          {canEdit && (
+            <RoadSearch
+              onToggle={(road) =>
+                setSelected((roads) =>
+                  roads.some((candidate) => candidate.id === road.id)
+                    ? roads.filter((candidate) => candidate.id !== road.id)
+                    : [...roads, { ...road, roadOwnership: '' }],
+                )
+              }
+              selectedIds={selectedIds}
+            />
+          )}
           <MapPlaceholder />
         </Box>
 
-        <Box sx={{ display: 'grid', alignContent: 'start', gap: 3 }}>
-          <SelectedRoads
-            onOwnershipChange={(road, roadOwnership) =>
-              setSelected((roads) =>
-                roads.map((candidate) =>
-                  candidate.id === road.id
-                    ? { ...candidate, roadOwnership }
-                    : candidate,
-                ),
-              )
-            }
-            onRemove={(road) =>
-              setSelected((roads) =>
-                roads.filter((candidate) => candidate.id !== road.id),
-              )
-            }
-            roads={selected}
-            showErrors={showErrors}
-          />
-          <Box>
-            <Typography sx={{ fontWeight: 600, mb: 1 }} variant="body2">
-              {t('mapStep.cannotFindRoad')}
-            </Typography>
-            <Button onClick={onAddManually} variant="outlined">
-              {t('areas.addManually')}
-            </Button>
+        {canEdit && (
+          <Box sx={{ display: 'grid', alignContent: 'start', gap: 3 }}>
+            <SelectedRoads
+              onOwnershipChange={(road, roadOwnership) =>
+                setSelected((roads) =>
+                  roads.map((candidate) =>
+                    candidate.id === road.id
+                      ? { ...candidate, roadOwnership }
+                      : candidate,
+                  ),
+                )
+              }
+              onRemove={(road) =>
+                setSelected((roads) =>
+                  roads.filter((candidate) => candidate.id !== road.id),
+                )
+              }
+              roads={selected}
+              showErrors={showErrors}
+            />
+            <Box>
+              <Typography sx={{ fontWeight: 600, mb: 1 }} variant="body2">
+                {t('mapStep.cannotFindRoad')}
+              </Typography>
+              <Button onClick={onAddManually} variant="outlined">
+                {t('areas.addManually')}
+              </Button>
+            </Box>
           </Box>
-        </Box>
+        )}
       </Box>
 
       {error && (
@@ -153,7 +175,9 @@ export function MapStep({
 
       <WizardFooter
         busy={isSaving}
-        nextDisabled={selected.length === 0 && existingAreaCount === 0}
+        nextDisabled={
+          canEdit && selected.length === 0 && existingAreaCount === 0
+        }
         onBack={onBack}
         onNext={handleNext}
       />
