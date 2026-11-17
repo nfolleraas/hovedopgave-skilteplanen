@@ -7,8 +7,7 @@ import { emptyAreaFormValues, toAreaFormValues } from './area-validation.js';
 
 /**
  * Where the road came from. Searched roads cannot be renamed (UC-036). The
- * source is only known in the session that created the area, because the
- * database does not store it, so areas loaded from the API count as searched.
+ * API stores it as `isManual`, so it is kept after a page reload.
  */
 export type AreaSource = 'search' | 'manual';
 
@@ -31,7 +30,7 @@ export interface AreaEditState {
 
 export type AreaEditAction =
   | { type: 'loaded'; areas: Area[] }
-  | { type: 'added'; areas: Area[]; source: AreaSource }
+  | { type: 'added'; areas: Area[] }
   | { type: 'addManual' }
   | { type: 'open'; key: string }
   | { type: 'discardAndOpenPending' }
@@ -55,6 +54,14 @@ export const initialAreaEditState: AreaEditState = {
 /** The key the next manually added area gets. */
 export function nextManualKey(state: AreaEditState): string {
   return `new-${state.nextTempId}`;
+}
+
+function sourceOf(area: Area): AreaSource {
+  return area.isManual ? 'manual' : 'search';
+}
+
+function toEntry(area: Area): AreaEntry {
+  return { key: area.uuid, saved: area, source: sourceOf(area) };
 }
 
 export function isRoadEditable(entry: AreaEntry): boolean {
@@ -109,25 +116,14 @@ export function areaEditReducer(
 ): AreaEditState {
   switch (action.type) {
     case 'loaded': {
-      // Keep the source of areas created in this session.
-      const sources = new Map(
-        state.entries.map((entry) => [entry.key, entry.source]),
-      );
-      const entries = action.areas.map((area) => ({
-        key: area.uuid,
-        saved: area,
-        source: sources.get(area.uuid) ?? ('search' as const),
-      }));
+      const entries = action.areas.map(toEntry);
       return open({ ...state, entries }, state.activeKey);
     }
-    case 'added': {
-      const added = action.areas.map((area) => ({
-        key: area.uuid,
-        saved: area,
-        source: action.source,
-      }));
-      return { ...state, entries: [...state.entries, ...added] };
-    }
+    case 'added':
+      return {
+        ...state,
+        entries: [...state.entries, ...action.areas.map(toEntry)],
+      };
     case 'addManual': {
       if (isDirty(state)) {
         return state;
@@ -183,9 +179,7 @@ export function areaEditReducer(
       return { ...state, showErrors: true };
     case 'saved': {
       const entries = state.entries.map((entry) =>
-        entry.key === action.key
-          ? { ...entry, key: action.area.uuid, saved: action.area }
-          : entry,
+        entry.key === action.key ? toEntry(action.area) : entry,
       );
       const next = { ...state, entries, activeKey: action.area.uuid };
       // A saved area collapses, unless the user chose another area to open.

@@ -6,6 +6,7 @@ import type {
   RoadSection,
   RoadSide,
 } from '../../types/prisma-enums.js';
+import type { AreaSource } from './area-edit-state.js';
 
 // One place for enum labels. The Danish and English text lives in
 // locales/*/translation.json under `areas.labels`.
@@ -34,6 +35,11 @@ export const roadSideLabelKeys: Record<RoadSide, string> = {
 export const directionLabelKeys: Record<Direction, string> = {
   Along: 'areas.labels.direction.Along',
   Across: 'areas.labels.direction.Across',
+};
+
+export const areaSourceLabelKeys: Record<AreaSource, string> = {
+  manual: 'areas.labels.source.manual',
+  search: 'areas.labels.source.search',
 };
 
 export const applicationTypeLabelKeys: Record<

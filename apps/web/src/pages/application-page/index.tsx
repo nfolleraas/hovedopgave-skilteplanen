@@ -197,9 +197,7 @@ export default function ApplicationPage() {
               dispatch({ type: 'addManual' });
               showStep('areas');
             }}
-            onAreasCreated={(areas) =>
-              dispatch({ type: 'added', areas, source: 'search' })
-            }
+            onAreasCreated={(areas) => dispatch({ type: 'added', areas })}
             onBack={goBack}
             onNext={goNext}
           />

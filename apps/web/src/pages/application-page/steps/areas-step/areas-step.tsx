@@ -164,9 +164,14 @@ export function AreasStep({
     setSaveError(null);
     try {
       const input = toAreaInput(type, state.draft, { includeRoad });
+      // Only manual roads are created here; searched roads come from the
+      // map step. The API keeps the source so it survives a page reload.
       const area = active.saved
         ? await updateArea(active.saved.uuid, input)
-        : await createArea(application.caseNumber, input);
+        : await createArea(application.caseNumber, {
+            ...input,
+            isManual: includeRoad,
+          });
       dispatch({ type: 'saved', key: active.key, area });
       // The saved area collapses and a new area gets a new key, so focus
       // moves to the area's Edit button, where the user can continue.
@@ -375,6 +380,7 @@ export function AreasStep({
               roadOwnership={entry.saved?.roadOwnership ?? ''}
               saveError={isExpanded ? saveError : null}
               showAllErrors={state.showErrors}
+              source={entry.source}
             />
           );
         })}

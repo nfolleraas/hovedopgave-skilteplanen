@@ -1,7 +1,9 @@
 import { Alert, Box, Button, Paper, Typography } from '@mui/material';
 import { useTranslation } from 'react-i18next';
+import type { AreaSource } from '../../../../features/areas/area-edit-state.js';
 import {
   areaFieldLabelKeys,
+  areaSourceLabelKeys,
   roadOwnershipLabelKeys,
 } from '../../../../features/areas/area-labels.js';
 import type {
@@ -18,6 +20,7 @@ import { AreaForm } from './area-form.js';
 /** Element ids, so the areas step can move focus to a card. */
 export const areaCardIds = {
   title: (areaKey: string) => `area-${areaKey}-title`,
+  road: (areaKey: string) => `area-${areaKey}-road`,
   edit: (areaKey: string) => `area-${areaKey}-edit`,
   delete: (areaKey: string) => `area-${areaKey}-delete`,
 };
@@ -39,6 +42,8 @@ interface AreaCardProps {
   number: number;
   roadName: string;
   roadOwnership: RoadOwnership | '';
+  /** Whether the road was found on the map or typed in manually. */
+  source: AreaSource;
   /** Saved location details shown while the card is collapsed. */
   details: AreaDetails | null;
   isExpanded: boolean;
@@ -64,6 +69,7 @@ export function AreaCard({
   number,
   roadName,
   roadOwnership,
+  source,
   details,
   isExpanded,
   isMissingFields,
@@ -83,14 +89,21 @@ export function AreaCard({
 }: AreaCardProps) {
   const { t } = useTranslation();
   const titleId = areaCardIds.title(areaKey);
+  const roadId = areaCardIds.road(areaKey);
+  // Used in button labels and messages, where the full name is needed.
   const title = t('areas.cardTitle', {
     number,
     road: roadName || t('areas.newRoad'),
   });
+  // Third level below the area number and the road: road status and source.
+  const statusParts = [
+    roadOwnership && t(roadOwnershipLabelKeys[roadOwnership]),
+    t(areaSourceLabelKeys[source]),
+  ].filter(Boolean);
 
   return (
     <Paper
-      aria-labelledby={titleId}
+      aria-labelledby={`${titleId} ${roadId}`}
       component="section"
       sx={{
         border: isExpanded ? '2px solid #1562AD' : '1px solid #BDBDBD',
@@ -100,35 +113,35 @@ export function AreaCard({
     >
       <Box
         sx={{
-          alignItems: 'center',
+          alignItems: 'flex-start',
           display: 'flex',
           flexWrap: 'wrap',
           gap: 1,
           justifyContent: 'space-between',
         }}
       >
-        <Box
-          sx={{
-            alignItems: 'baseline',
-            columnGap: 1,
-            display: 'flex',
-            flexWrap: 'wrap',
-          }}
-        >
+        <Box>
           <Typography
             component="h2"
             id={titleId}
-            sx={{ fontWeight: 600 }}
+            sx={{ fontSize: '1.125rem', fontWeight: 600, lineHeight: 1.4 }}
             tabIndex={-1}
+          >
+            {t('areas.areaNumber', { number })}
+          </Typography>
+          <Typography
+            component="h3"
+            id={roadId}
+            sx={{ fontWeight: 500 }}
             variant="body1"
           >
-            {title}
+            {roadName || t('areas.newRoad')}
           </Typography>
           <Typography color="text.secondary" variant="body2">
-            {roadOwnership && t(roadOwnershipLabelKeys[roadOwnership])}
+            {statusParts.join(' · ')}
             {!isExpanded && isMissingFields && (
               <>
-                {roadOwnership && ' · '}
+                {' · '}
                 <Box component="span" sx={{ color: 'error.main' }}>
                   {t('areas.missingInfo')}
                 </Box>

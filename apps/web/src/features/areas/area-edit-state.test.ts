@@ -20,6 +20,7 @@ function buildArea(uuid: string, overrides: Partial<Area> = {}): Area {
     houseNumberFrom: '10',
     houseNumberTo: '24',
     alternativeDescription: null,
+    isManual: false,
     roadSection: 'Pavement',
     roadSectionDescription: null,
     roadSide: 'Right',
@@ -45,7 +46,6 @@ describe('create area (UC-034)', () => {
     state = areaEditReducer(state, {
       type: 'added',
       areas: [buildArea('a3', { roadName: 'Kirkestræde' })],
-      source: 'search',
     });
 
     expect(state.entries.map((entry) => entry.key)).toEqual(['a1', 'a2', 'a3']);
@@ -68,7 +68,7 @@ describe('create area (UC-034)', () => {
     state = areaEditReducer(state, {
       type: 'saved',
       key: 'new-1',
-      area: buildArea('a3', { roadName: 'Ny vej' }),
+      area: buildArea('a3', { roadName: 'Ny vej', isManual: true }),
     });
     const saved = state.entries.find((entry) => entry.key === 'a3');
     expect(saved?.source).toBe('manual');
@@ -89,6 +89,18 @@ describe('create area (UC-034)', () => {
     state = areaEditReducer(state, { type: 'addManual' });
     const manual = getActiveEntry(state);
     expect(manual && isRoadEditable(manual)).toBe(true);
+  });
+
+  test('a manual road stays editable after a page reload', () => {
+    const state = areaEditReducer(initialAreaEditState, {
+      type: 'loaded',
+      areas: [buildArea('a1'), buildArea('a2', { isManual: true })],
+    });
+    expect(state.entries.map((entry) => entry.source)).toEqual([
+      'search',
+      'manual',
+    ]);
+    expect(isRoadEditable(state.entries[1])).toBe(true);
   });
 });
 

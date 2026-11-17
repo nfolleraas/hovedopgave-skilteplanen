@@ -17,6 +17,8 @@ export interface Area {
   houseNumberFrom: string | null;
   houseNumberTo: string | null;
   alternativeDescription: string | null;
+  /** True when the road was typed in instead of found on the map. */
+  isManual: boolean;
   roadSection: RoadSection | null;
   roadSectionDescription: string | null;
   roadSide: RoadSide | null;
@@ -40,8 +42,11 @@ export interface ApplicationAreas {
 
 /** Fields sent when creating or updating an area. */
 export type AreaInput = Partial<
-  Omit<Area, 'uuid' | 'applicationId' | 'areaInSquareMeters'>
+  Omit<Area, 'uuid' | 'applicationId' | 'areaInSquareMeters' | 'isManual'>
 >;
+
+/** Where the road came from can only be set when the area is created. */
+export type AreaCreateInput = AreaInput & Partial<Pick<Area, 'isManual'>>;
 
 /** Form values are kept as text so the user's input is never reformatted. */
 export interface AreaFormValues {

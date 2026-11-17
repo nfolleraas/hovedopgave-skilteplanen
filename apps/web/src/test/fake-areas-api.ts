@@ -28,6 +28,7 @@ export function buildArea(uuid: string, overrides: Partial<Area> = {}): Area {
     roadName: 'Strandvej',
     roadOwnership: 'Municipality',
     postalCode: '5000',
+    isManual: false,
     ...emptyDetails,
     ...overrides,
   };

@@ -313,6 +313,8 @@
   },
   "areas": {
     "cardTitle": "Area {{number}} · {{road}}",
+    "areaNumber": "Area {{number}}",
+    "newRoad": "New road",
     "missingInfo": "missing information",
     "editArea": "Edit {{area}}",
     "edit": "Edit",
@@ -321,8 +323,8 @@
     "cancel": "Cancel",
     "save": "Save area",
     "characterCount": "{{length}} of {{max}} characters",
-    "or": "or",
     "houseNumberOrDescriptionHint": "Fill in house number from and to or an alternative description.",
+    "or": "or",
     "areaCalculated": "Calculated from length × width",
     "fields": {
       "areaInSquareMeters": "Area (m²)",
@@ -340,7 +342,6 @@
       "widthInMeters": "Width (m)",
       "depthInMeters": "Depth (m)"
     },
-    "newRoad": "New road",
     "saved": "{{area}} was saved.",
     "notEditable": "Areas can only be changed while the application is a draft or requires changes.",
     "saveError": "The area could not be saved. Try again later or contact support.",
@@ -402,6 +403,10 @@
       "applicationType": {
         "ExcavationPermit": "Excavation permit",
         "RoadUsePermit": "Road use permit"
+      },
+      "source": {
+        "manual": "Entered manually",
+        "search": "Found on the map"
       }
     }
   },

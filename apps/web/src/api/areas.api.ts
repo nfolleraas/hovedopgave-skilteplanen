@@ -1,4 +1,9 @@
-import type { ApplicationAreas, Area, AreaInput } from '../types/area.types.js';
+import type {
+  ApplicationAreas,
+  Area,
+  AreaCreateInput,
+  AreaInput,
+} from '../types/area.types.js';
 import { apiClient } from './client.js';
 
 export function getApplicationAreas(
@@ -10,14 +15,14 @@ export function getApplicationAreas(
 
 export function createAreas(
   applicationId: string,
-  areas: AreaInput[],
+  areas: AreaCreateInput[],
 ): Promise<Area[]> {
   return apiClient.post('/areas/bulk', { applicationId, areas });
 }
 
 export function createArea(
   applicationId: string,
-  area: AreaInput,
+  area: AreaCreateInput,
 ): Promise<Area> {
   return apiClient.post('/areas', { applicationId, ...area });
 }
