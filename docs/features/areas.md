@@ -60,6 +60,14 @@ Reglerne ligger i
   større end 0.
 - Felter, typen ikke bruger, afvises (`AREA_FIELDS_NOT_ALLOWED`).
 - Det sidste område kan ikke slettes (`LAST_AREA`, UC-035 F1).
+- Bogstavet i et husnummer gemmes med stort, fx `5a` → `5A`
+  (BEK nr. 271 af 2018, § 16, stk. 2). Formatet og rækkefølgen af husnumrene
+  kontrolleres ikke.
+
+Maks. længder og formater (fx postnummer med 4 cifre) tjekkes i DTO'erne i
+[`dto/create-area.dto.ts`](../../apps/api/src/modules/areas/dto/create-area.dto.ts):
+vejnavn og beskriv vejelement 200 tegn, husnr. 20 tegn og alternativ
+beskrivelse 500 tegn. Webappen bruger de samme grænser.
 
 ## Web
 
@@ -68,7 +76,7 @@ Reglerne ligger i
 | API-kald | [`api/areas.api.ts`](../../apps/web/src/api/areas.api.ts) |
 | Typer | [`types/area.types.ts`](../../apps/web/src/types/area.types.ts) |
 | Redigeringstilstand (reducer) | [`features/areas/area-edit-state.ts`](../../apps/web/src/features/areas/area-edit-state.ts) |
-| Validering (spejler API'ets regler) | [`features/areas/area-validation.ts`](../../apps/web/src/features/areas/area-validation.ts) |
+| Validering, talformat og maks. længder (spejler API'ets regler) | [`features/areas/area-validation.ts`](../../apps/web/src/features/areas/area-validation.ts) |
 | Kort-trin | [`steps/map-step/`](../../apps/web/src/pages/application-page/steps/map-step/) |
 | Områder-trin | [`steps/areas-step/`](../../apps/web/src/pages/application-page/steps/areas-step/) |
 
@@ -82,13 +90,33 @@ Flow i wizarden (`/ansoegning?sag=<sagsnummer>`):
      [`road-search.api.ts`](../../apps/web/src/api/road-search.api.ts).
      Tokenet ligger i `VITE_DATAFORSYNINGEN_TOKEN`. Vite lægger det i
      browserkoden, så det er synligt for brugerne af siden.
+   - Søgeteksten er højst 100 tegn. Tegn som `&`, `|`, `:` og anførselstegn
+     erstattes af mellemrum, før der søges, fordi GSearch ellers kan svare
+     HTTP 400. Bogstaver (også æ, ø, å), tal og punktum bevares.
+   - Resultatlisten er en MUI `List` med et afkrydsningsikon pr. vej. Klik
+     eller Enter vælger vejen, og vælger man en valgt vej igen, fjernes den.
+     "Ingen veje fundet" vises i listen, og en fejl i søgningen vises som en
+     `Alert` under feltet.
    - En vej, der krydser flere postnumre, vises én gang pr. postnummer, fordi
      et område kun har ét postnummer.
    - Dataforsyningen oplyser ikke, om vejen er kommunal eller privat. Ansøgeren
      vælger vejstatus for hver valgt vej, før der kan gås videre.
+   - Kan ansøgningen ikke ændres (status er ikke `Draft` eller
+     `ChangeRequired`), vises beskeden om det, og søgningen skjules. Ændres
+     status i en anden fane, viser oprettelsen samme besked.
 3. **Områder**: hvert område er et kort, og kun ét er åbent ad gangen.
-   - Veje fra søgningen kan ikke omdøbes. Kun manuelle veje kan.
-   - "Gem" validerer først lokalt og gemmer derefter.
+   - Vejstatus kan rettes på alle områder. Vejnavn og postnummer kan kun
+     rettes på en manuel vej, og kun i den session, hvor den blev oprettet
+     (se "Ikke bygget endnu").
+   - "Gem område" validerer først lokalt og gemmer derefter. Efter "Gem
+     område" og "Annuller" lukkes kortet igen.
+   - Formatfejl (fx `abc` i længde) vises, så snart man forlader feltet.
+     Manglende felter vises først, når man prøver at gemme.
+   - Tal skrives på dansk: komma er decimaltegn, og punktum er
+     tusindtalsseparator (`0,6`, `1.000`, `1.000,5`). `1.5` afvises.
+   - Postnummer-feltet tager kun cifre. Tekstfelterne har samme maks. længde
+     som API'et, og alternativ beskrivelse og beskriv vejelement viser antal
+     tegn.
    - Sletning kræver bekræftelse (UC-035 trin 4).
    - Skifter man område med ugemte ændringer, spørger en dialog om man vil
      gemme eller kassere.
@@ -97,20 +125,27 @@ Flow i wizarden (`/ansoegning?sag=<sagsnummer>`):
 
 ## Test
 
+Testene er unittests af kernen. Komponenterne testes manuelt efter
+testarket for UC-034, UC-035 og UC-036.
+
 | Slags | Hvor | Kør |
 | --- | --- | --- |
-| API unittest (regler, DTO'er, mapper, service, repository, controller) | `apps/api/src/modules/areas/**/*.spec.ts` | `bun run --filter api test` |
-| API funktionstest (HTTP + database, UC-034/035/036) | [`apps/api/test/areas.e2e-spec.ts`](../../apps/api/test/areas.e2e-spec.ts) | `bun run --filter api test:e2e` |
-| Web unittest (validering, reducer, API-kald, vejsøgning, labels) | `apps/web/src/{api,features/areas}/*.test.ts` | `bun run --filter web test` |
-| Web funktionstest (Kort- og Områder-trinnet i en DOM) | `apps/web/src/pages/application-page/steps/{map-step,areas-step}/*.test.tsx` | `bun run --filter web test` |
+| API unittest (regler og service) | `apps/api/src/modules/areas/**/*.spec.ts` | `bun run --filter api test` |
+| Web unittest (validering, reducer) | `apps/web/src/features/areas/*.test.ts` | `bun run --filter web test` |
+| Web unittest (API-klient, vejsøgning, vej-mapper) | `apps/web/src/api/**/*.test.ts` | `bun run --filter web test` |
 
-- API-funktionstestene kræver databasen fra dev containeren. De opretter
-  egne ansøgninger med sagsnummer `E2E-AREAS-…` og sletter dem igen bagefter.
-- Web-funktionstestene kører med happy-dom (se
-  [`apps/web/bunfig.toml`](../../apps/web/bunfig.toml)) og en falsk udgave af
-  område-API'et i
-  [`src/test/fake-areas-api.ts`](../../apps/web/src/test/fake-areas-api.ts).
-  Vejsøgningen hos Dataforsyningen kaldes ikke.
+- Service-testene bruger en falsk `AreasRepository`, så de kræver ikke
+  databasen.
+- Vejsøgningstestene erstatter `fetch`, så Dataforsyningen kaldes ikke.
+- [`src/test/fake-areas-api.ts`](../../apps/web/src/test/fake-areas-api.ts)
+  er en falsk udgave af område-API'et til komponenttest. Ingen test bruger den
+  i øjeblikket.
+
+## Pladsholdere
+
+Ansøgningslisten, testansøgningerne og de øvrige trin i wizarden er
+pladsholdere, indtil holdets egne features er klar. Hvad der kan udskiftes, og
+hvordan, står i [Pladsholdere og sammenfletning](placeholders.md).
 
 ## Ikke bygget endnu
 
@@ -124,3 +159,13 @@ Flow i wizarden (`/ansoegning?sag=<sagsnummer>`):
 - Sletning bliver ikke logget (UC-035 trin 8).
 - Område-endpoints har ingen login-kontrol, så det tjekkes ikke, at
   ansøgeren ejer ansøgningen (UC-035 forudsætning).
+- Databasen gemmer ikke, om en vej blev indtastet manuelt. Efter en
+  genindlæsning kan vejnavn og postnummer derfor ikke rettes på en manuel vej,
+  kun vejstatus. Det kræver et felt som `isManuallyAdded` på `Area`, dvs. en
+  ændring af Prisma-skemaet.
+- Dataforsyningen har meddelt, at GSearch lukker omkring 1. november 2026
+  (se [GSearch-dokumentationen](https://docs.dataforsyningen.dk/#gsearch)).
+  Vejsøgningen skal flyttes til den efterfølgende tjeneste, når den kendes.
+  Kun [`road-search.api.ts`](../../apps/web/src/api/road-search.api.ts) og
+  [`road.mapper.ts`](../../apps/web/src/api/mappers/road.mapper.ts) skal
+  ændres.

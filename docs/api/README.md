@@ -36,5 +36,8 @@ for shared development instructions.
 ## Guides
 
 - [Modules and seeders](modules-and-seeders.md): feature module structure,
-  dependency injection, root-module registration, and generic Prisma seeder
-  examples.
+  validation responsibilities, dependency injection, root-module registration,
+  and generic Prisma seeder examples.
+- [Areas](../features/areas.md): the areas endpoints and their rules.
+- [Placeholders](../features/placeholders.md): the test-only
+  `dev-applications` module and how to replace it.

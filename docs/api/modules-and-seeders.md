@@ -40,10 +40,16 @@ apps/api/src/modules/<feature>/
 ├── <feature>.module.ts            NestJS dependency-injection boundary
 ├── <feature>.repository.ts       Prisma queries for the feature
 ├── <feature>.service.ts           Business rules and orchestration
-└── dto/
-    ├── create-<feature>.dto.ts    Request body for create operations
-    └── update-<feature>.dto.ts    Request body for update operations
+├── dto/
+│   ├── create-<feature>.dto.ts    Request body for create operations
+│   └── update-<feature>.dto.ts    Request body for update operations
+├── mappers/                       Optional: Prisma result → API response
+└── rules/                         Optional: pure business rules (no Prisma)
 ```
+
+Use `mappers/` when the API response has a different shape from the Prisma
+model, and `rules/` when business rules are large enough to test on their own.
+The [areas module](../../apps/api/src/modules/areas/) uses both.
 
 The generated resource may include additional files, such as a spec file or an
 `entities/` folder. Keep the spec file when tests are needed, but remove
@@ -112,25 +118,49 @@ export class ModuleNameController {
 
 ### Validation responsibilities
 
-All validation involving the database or business rules happens in the service.
-DTOs, controllers, and repositories do not validate data:
+Each layer validates only what it is responsible for:
 
-- Input validation happens in the frontend before a request is sent.
-- Business-logic validation happens in the backend service.
-- Database-related validation, such as checking whether related records exist
-  or whether a business rule is satisfied, also happens in the backend service.
-- DTOs describe the request shape, controllers translate HTTP requests, and
-  repositories perform database operations without adding validation rules.
+- Input validation happens in the frontend before a request is sent, so the
+  user gets immediate, field-level feedback.
+- DTOs describe and check the request shape with `class-validator`
+  decorators: types, required fields, enum values, formats, and maximum
+  lengths. The global `ValidationPipe` in
+  [`app.setup.ts`](../../apps/api/src/app.setup.ts) runs these checks before
+  the controller is called. It also needs the decorators to strip and reject
+  unknown properties (`whitelist` and `forbidNonWhitelisted`), so every DTO
+  property must have at least one decorator.
+- Business-logic validation happens in the backend service. This includes
+  rules that depend on other data, such as an application's status or type.
+- Database-related validation, such as checking whether related records exist,
+  also happens in the backend service.
+- Controllers translate HTTP requests, and repositories perform database
+  operations without adding validation rules.
 
-This keeps validation and business decisions in one backend layer. The service
+Keep a DTO check to the shape of a single request. If a rule needs the
+database or depends on another record, it belongs in the service. The service
 should validate before calling the repository and should return an appropriate
 NestJS exception when the request cannot be processed. Frontend validation
-improves the user experience, but backend service validation remains necessary
-because API requests cannot be trusted to come only from the frontend.
+improves the user experience, but backend validation remains necessary because
+API requests cannot be trusted to come only from the frontend.
+
+When a limit exists in both a DTO and the frontend, such as a maximum length,
+use the same value in both places and mention the source of the value in a
+comment next to the frontend copy.
 
 The service coordinates validation and business behavior. The repository owns
 the Prisma calls, which keeps database details out of the service and makes
-both layers easier to test independently:
+both layers easier to test independently.
+
+Only repositories inject `PrismaService`. Controllers and services never call
+Prisma directly; they call a repository method instead. This also applies to a
+module that needs data from another domain model: add a method to that
+module's repository, or use the other module's exported service.
+
+```text
+Controller ──> Service ──> Repository ──> PrismaService
+```
+
+A service and its repository:
 
 ```ts
 // module-name.service.ts
@@ -158,7 +188,7 @@ export class ModuleNameService {
 // module-name.repository.ts
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '../../generated/prisma/client.js';
-import { PrismaService } from '../prisma/prisma.service.js';
+import { PrismaService } from '../../prisma/prisma.service.js';
 
 @Injectable()
 export class ModuleNameRepository {
@@ -228,7 +258,7 @@ apps/api/
 ├── prisma7.config.ts           Prisma CLI paths, datasource, and seed command
 └── src/
     ├── generated/prisma/       Generated Prisma Client; do not edit manually
-    └── modules/prisma/
+    └── prisma/
         ├── prisma.module.ts    Global NestJS module
         └── prisma.service.ts   NestJS-managed Prisma Client
 ```
@@ -282,7 +312,7 @@ warnings before committing the migration.
 
 ### PrismaService and dependency injection
 
-[`PrismaService`](../../apps/api/src/modules/prisma/prisma.service.ts) extends
+[`PrismaService`](../../apps/api/src/prisma/prisma.service.ts) extends
 the generated `PrismaClient`. It reads `DATABASE_URL`, creates the PostgreSQL
 adapter, connects during Nest's module initialization, and disconnects during
 module shutdown:
@@ -303,13 +333,14 @@ export class PrismaService
 }
 ```
 
-[`PrismaModule`](../../apps/api/src/modules/prisma/prisma.module.ts) is marked
+[`PrismaModule`](../../apps/api/src/prisma/prisma.module.ts) is marked
 `@Global()`, provides `PrismaService`, and exports it. Feature repositories can
-therefore inject the one application-managed client:
+therefore inject the one application-managed client without importing
+`PrismaModule` in their feature module:
 
 ```ts
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service.js';
+import { PrismaService } from '../../prisma/prisma.service.js';
 
 @Injectable()
 export class ModuleNameRepository {
