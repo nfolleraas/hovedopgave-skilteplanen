@@ -16,7 +16,7 @@ const applicationData = {
   title: 'Road work',
   applicantReference: 'ref-1',
   type: ApplicationType.RoadUsePermit,
-  trafficChange: TrafficChange.SpeedLimitWorkZone,
+  trafficChanges: [TrafficChange.SpeedLimitWorkZone],
   applicant: {
     create: {
       name: 'Test applicant',

@@ -11,7 +11,7 @@ model Application {
   signPlans              SignPlan[]
   documents              Document[]
   areas                  Area[]
-  trafficChange          TrafficChange?
+  trafficChanges         TrafficChange[]          @default([])
   applicantId            String?
   applicant              Applicant?              @relation(fields: [applicantId], references: [uuid], onDelete: Restrict)
   caseWorkerId           String?

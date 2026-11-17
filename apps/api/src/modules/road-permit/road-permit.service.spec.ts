@@ -3,6 +3,7 @@ import { vi } from 'vitest';
 import {
   ApplicationType,
   MaterialType,
+  TrafficChange,
   Usage,
 } from '../../generated/prisma/enums.js';
 import type { CreateRoadPermitDto } from './dto/create-road-permit.dto.js';
@@ -94,6 +95,7 @@ describe('RoadPermitService', () => {
       expect.objectContaining({
         title: 'Road work',
         type: ApplicationType.RoadUsePermit,
+        trafficChanges: [],
         areas: {
           create: {
             roadName: 'Adamsgade',
@@ -135,6 +137,42 @@ describe('RoadPermitService', () => {
         },
       }),
     );
+  });
+
+  it.each([
+    [['Påbud om ensrettet færdsel'], [TrafficChange.OnewayTraffic]],
+    [
+      [
+        'Hastighedsbegrænsning - hensyn til trafikanter og vejarbejdere',
+        'Standsning og Parkering',
+      ],
+      [
+        TrafficChange.SpeedLimitWorkZoneAndTrafficSafety,
+        TrafficChange.NoStoppingAndParking,
+      ],
+    ],
+  ])('maps all selected traffic changes %j', async (selections, changes) => {
+    await service.submit('permit-1', {
+      ...application,
+      roadMarking: { ...application.roadMarking, trafficChanges: selections },
+    });
+    expect(repository.submit).toHaveBeenCalledWith(
+      'permit-1',
+      expect.objectContaining({ trafficChanges: changes }),
+    );
+  });
+
+  it('rejects unsupported traffic changes before writing', async () => {
+    await expect(
+      service.submit('permit-1', {
+        ...application,
+        roadMarking: {
+          ...application.roadMarking,
+          trafficChanges: ['Unknown'],
+        },
+      }),
+    ).rejects.toThrow('roadMarking.trafficChanges[0]');
+    expect(repository.submit).not.toHaveBeenCalled();
   });
 
   it('maps an event permit and omits a blank applicant address', async () => {

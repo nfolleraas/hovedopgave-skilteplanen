@@ -1,3 +1,4 @@
+import { BadRequestException } from '@nestjs/common';
 import type { Prisma } from '../../../generated/prisma/client.js';
 import {
   ApplicantType,
@@ -35,11 +36,13 @@ const materialTypes: Record<string, MaterialType> = {
   Andet: MaterialType.Other,
 };
 
-const trafficChanges: Record<string, TrafficChange> = {
+const trafficChanges: Readonly<Record<string, TrafficChange>> = {
   'Hastighedsbegrænsning - hensyn til vejarbejder':
     TrafficChange.SpeedLimitWorkZone,
   'Hastighedsbegrænsning - hensyn til trafikanter':
     TrafficChange.SpeedLimitTrafficSafety,
+  'Hastighedsbegrænsning - hensyn til trafikanter og vejarbejdere':
+    TrafficChange.SpeedLimitWorkZoneAndTrafficSafety,
   'Ubetinget vigepligt i vejkryds':
     TrafficChange.UnconditionalObligationInIntersection,
   'Standsning og Parkering': TrafficChange.NoStoppingAndParking,
@@ -70,10 +73,17 @@ export function mapCreateRoadPermit(
     type: isEvent
       ? ApplicationType.RoadUsePermitEvent
       : ApplicationType.RoadUsePermit,
-    // TODO: The schema supports one traffic change; the form supports several.
-    trafficChange:
-      trafficChanges[dto.roadMarking.trafficChanges[0]] ??
-      TrafficChange.SpeedLimitWorkZone, // TODO: Placeholder for an unmapped selection.
+    trafficChanges: dto.roadMarking.trafficChanges.map((change, index) => {
+      if (
+        typeof change !== 'string' ||
+        !Object.hasOwn(trafficChanges, change)
+      ) {
+        throw new BadRequestException(
+          `roadMarking.trafficChanges[${index}] must be a supported traffic change.`,
+        );
+      }
+      return trafficChanges[change];
+    }),
     applicant: {
       create: {
         name: dto.applicant.name,
