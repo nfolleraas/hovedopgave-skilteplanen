@@ -7,8 +7,10 @@ during planning. Phase 1 token configuration, authentication persistence,
 domain constraints, and their Prisma migrations have been implemented and
 applied. Phase 2 step 1, JWT signing and validation, is now implemented with
 HS256 and standard JWT wire claims. Phase 2 step 2, access and onboarding token
-purposes, is also implemented with separate lifetimes and claims. Refresh-token
-rotation and default-deny route protection remain planned for the next steps.
+purposes, is also implemented with separate lifetimes and claims. Phase 2 step
+3 now implements hashed opaque refresh tokens, transactional rotation, reuse
+detection, and revocation. Phase 2 step 4 now applies a global default-deny
+access-token guard. Public and onboarding route metadata remain planned next.
 
 ## Goals
 
