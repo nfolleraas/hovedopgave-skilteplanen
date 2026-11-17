@@ -1,4 +1,7 @@
-import type { PrismaClient } from '../../src/generated/prisma/client.js';
+import type {
+  Application,
+  PrismaClient,
+} from '../../src/generated/prisma/client.js';
 import {
   ApplicantType,
   ApplicationType,
@@ -9,7 +12,9 @@ import {
 
 export const demoCaseNumber = 'DEMO-2026-0001';
 
-export async function seedApplication(prisma: PrismaClient) {
+export async function seedApplication(
+  prisma: PrismaClient,
+): Promise<Application> {
   return prisma.application.upsert({
     where: { caseNumber: demoCaseNumber },
     update: {},
