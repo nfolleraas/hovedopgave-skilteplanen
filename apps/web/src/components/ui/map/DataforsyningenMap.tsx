@@ -20,35 +20,22 @@ import {
   Typography,
   useMediaQuery,
 } from '@mui/material';
-import { defaults as defaultControls } from 'ol/control/defaults.js';
-import ScaleLine from 'ol/control/ScaleLine.js';
-import { defaults as defaultInteractions } from 'ol/interaction/defaults.js';
-import TileLayer from 'ol/layer/Tile.js';
-import OpenLayersMap from 'ol/Map.js';
-import { fromLonLat, transform } from 'ol/proj.js';
-import TileWMS from 'ol/source/TileWMS.js';
-import View from 'ol/View.js';
+import type OpenLayersMap from 'ol/Map.js';
+import { transform } from 'ol/proj.js';
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { RoadLocation } from '../../../utils/validateRoadLocation';
 import { visuallyHidden } from '../visuallyHidden';
 import { MapAddressSearch } from './MapAddressSearch';
 import {
-  baseLayerName,
   type CatalogLayerId,
   catalogLayers,
-  defaultLayers,
   type LayerId,
-  labelLayers,
   mapProjection,
-  type RoadOverlayId,
-  roadOverlays,
   token,
-  wmsUrl,
-  wmsVersion,
 } from './mapLayers';
 import { RoadLocationDialog } from './RoadLocationDialog';
-import { roadDataAttribution } from './roadData';
+import { useDataforsyningenMap } from './useDataforsyningenMap';
 import { useMapLayerCatalog } from './useMapLayerCatalog';
 import { useRoadSelection } from './useRoadSelection';
 import 'ol/ol.css';
@@ -141,11 +128,6 @@ export function DataforsyningenMap({
   const controlsRef = useRef<HTMLDivElement>(null);
   const targetRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<OpenLayersMap>(null);
-  const viewRef = useRef<View>(null);
-  const tileLayerRef = useRef<TileLayer<TileWMS>>(null);
-  const roadLayersRef = useRef<
-    { id: RoadOverlayId; layer: TileLayer<TileWMS> }[]
-  >([]);
   const [layersAnchor, setLayersAnchor] = useState<HTMLButtonElement | null>(
     null,
   );
@@ -165,14 +147,17 @@ export function DataforsyningenMap({
     useMapLayerCatalog(layersOpen);
   const catalog =
     layerCatalog.status === 'loaded' ? layerCatalog.catalog : undefined;
-  const [enabledLayers, setEnabledLayers] = useState<LayerId[]>([
-    ...defaultLayers,
-  ]);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [mapError, setMapError] = useState<MapError | null>(
     token ? null : 'unavailable',
   );
-  const reportedTileErrors = useRef(new Set<MapError>());
+  const { viewRef, enabledLayers, setLayerEnabled } = useDataforsyningenMap({
+    mapRef,
+    targetRef,
+    roadSelectionLayer,
+    catalog,
+    onTileError: setMapError,
+  });
 
   /** Clears the current map error toast. */
   const dismissMapError = useCallback(() => setMapError(null), []);
@@ -218,112 +203,6 @@ export function DataforsyningenMap({
   ] satisfies { id: LayerId; label: string }[];
 
   useEffect(() => {
-    if (!targetRef.current || !token) return;
-
-    const source = new TileWMS({
-      url: wmsUrl,
-      params: {
-        token,
-        LAYERS: [
-          baseLayerName,
-          ...defaultLayers.map((id) => labelLayers[id]),
-        ].join(','),
-        FORMAT: 'image/png',
-        VERSION: wmsVersion,
-        TRANSPARENT: true,
-      },
-      attributions:
-        '&copy; <a href="https://www.klimadatastyrelsen.dk/" target="_blank" rel="noopener noreferrer">Klimadatastyrelsen</a>',
-    });
-    /** Shows one toast for each kind of tile failure per layer selection. */
-    function reportTileFailure(error: MapError) {
-      if (reportedTileErrors.current.has(error)) return;
-      reportedTileErrors.current.add(error);
-      setMapError(error);
-    }
-
-    /** Reports a base-map tile failure. */
-    const reportTileError = () => reportTileFailure('unavailable');
-    source.on('tileloaderror', reportTileError);
-    /** Flags an optional road-overlay tile failure separately from the base map. */
-    const reportOverlayError = () => reportTileFailure('overlayError');
-    const roadLayers = roadOverlays.map(({ id, url, name }) => {
-      const overlaySource = new TileWMS({
-        url,
-        params: {
-          LAYERS: name,
-          FORMAT: 'image/png',
-          VERSION: wmsVersion,
-          TRANSPARENT: true,
-        },
-        attributions: roadDataAttribution,
-      });
-      overlaySource.on('tileloaderror', reportOverlayError);
-      return {
-        id,
-        layer: new TileLayer({ source: overlaySource, visible: false }),
-      };
-    });
-    roadLayersRef.current = roadLayers;
-    const view = new View({
-      center: fromLonLat([10.4, 55.7]),
-      zoom: 7,
-      projection: mapProjection,
-      minZoom: 6,
-      maxZoom: 20,
-    });
-    viewRef.current = view;
-
-    const tileLayer = new TileLayer({ source });
-    tileLayerRef.current = tileLayer;
-    const map = new OpenLayersMap({
-      target: targetRef.current,
-      layers: [
-        tileLayer,
-        ...roadLayers.map(({ layer }) => layer),
-        roadSelectionLayer,
-      ],
-      interactions: defaultInteractions({ onFocusOnly: true }),
-      controls: defaultControls({
-        attributionOptions: { collapsible: false },
-        rotate: false,
-        zoom: false,
-      }).extend([new ScaleLine({ units: 'metric' })]),
-      view,
-    });
-    mapRef.current = map;
-    return () => {
-      source.un('tileloaderror', reportTileError);
-      tileLayerRef.current = null;
-      for (const { layer } of roadLayers) {
-        layer.getSource()?.un('tileloaderror', reportOverlayError);
-      }
-      roadLayersRef.current = [];
-      mapRef.current = null;
-      map.dispose();
-    };
-  }, [roadSelectionLayer]);
-
-  useEffect(() => {
-    const source = tileLayerRef.current?.getSource();
-    const names = { ...catalog, ...labelLayers };
-    const layerNames = [
-      baseLayerName,
-      ...Object.entries(names)
-        .filter(([id]) => enabledLayers.includes(id as LayerId))
-        .map(([, name]) => name),
-    ].join(',');
-
-    if (source && source.getParams().LAYERS !== layerNames) {
-      source.updateParams({ LAYERS: layerNames });
-    }
-
-    for (const { id, layer } of roadLayersRef.current) {
-      layer.setVisible(enabledLayers.includes(id));
-    }
-  }, [enabledLayers, catalog]);
-
-  useEffect(() => {
     /** Keeps the fullscreen button in sync with the browser's fullscreen state. */
     const updateFullscreen = () =>
       setIsFullscreen(document.fullscreenElement === controlsRef.current);
@@ -343,15 +222,7 @@ export function DataforsyningenMap({
           <Switch
             checked={enabledLayers.includes(id)}
             disabled={disabled}
-            onChange={(event) => {
-              const { checked } = event.target;
-              reportedTileErrors.current.clear();
-              setEnabledLayers((previous) =>
-                checked
-                  ? [...previous, id]
-                  : previous.filter((layer) => layer !== id),
-              );
-            }}
+            onChange={(event) => setLayerEnabled(id, event.target.checked)}
             size="small"
             slotProps={{ input: { role: 'switch' } }}
           />

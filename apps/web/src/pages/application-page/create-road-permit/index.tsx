@@ -9,24 +9,14 @@ import {
   DialogTitle,
   Typography,
 } from '@mui/material';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  Link,
-  Navigate,
-  useBlocker,
-  useNavigate,
-  useSearchParams,
-} from 'react-router';
+import { Link, Navigate, useNavigate, useSearchParams } from 'react-router';
 import {
   getMunicipalities,
   type Municipality,
 } from '../../../api/municipalities.api';
-import {
-  getRoadPermitDraft,
-  saveRoadPermitDraft,
-  submitRoadPermitApplication,
-} from '../../../api/roadPermit.api';
+import { getRoadPermitDraft } from '../../../api/roadPermit.api';
 import { routes } from '../../../app/router';
 import {
   type DetailItem,
@@ -34,13 +24,11 @@ import {
 } from '../../../components/layout/masterDetail/masterDetail';
 import { visuallyHidden } from '../../../components/ui/visuallyHidden';
 import {
-  type CompanyInformation,
   type ContactInformation,
   emptyMaterialDraft,
   type MaterialDraft,
   type MaterialEntry,
   type RoadMarkingDetails,
-  type SubmissionStatus,
   type UsageDetails,
 } from './formTypes';
 import { ChooseMunicipalityAndTitlePage } from './pages/ChooseMunicipalityAndTitlePage';
@@ -51,10 +39,15 @@ import { RoadMarkingPage } from './pages/RoadMarkingPage';
 import { SummaryAndSubmissionPage } from './pages/SummaryAndSubmissionPage';
 import { UsageDetailsPage } from './pages/UsageDetailsPage';
 import type {
-  RoadPermitApplication,
   RoadPermitDraft,
   RoadPermitDraftSnapshot,
 } from './RoadPermitApplication.types';
+import {
+  exampleApplicant,
+  exampleDocument,
+  useRoadPermitWrites,
+} from './useRoadPermitWrites';
+import { useUnsavedDraftNavigation } from './useUnsavedDraftNavigation';
 import {
   hasMaterialDraft,
   validateContactInformation,
@@ -134,7 +127,30 @@ function RoadPermitDraftPage({ caseNumber }: { caseNumber: string }) {
   return <RoadPermitForm caseNumber={caseNumber} draft={result.draft} />;
 }
 
-/** Owns the editable form values and saves or submits them against one case number. */
+function useMunicipalityChoices() {
+  const [municipalities, setMunicipalities] = useState<Municipality[] | null>();
+
+  +useEffect(() => {
+    if (municipalities !== undefined) return;
+
+    let active = true;
+    void getMunicipalities().then(
+      (list) => {
+        if (active) setMunicipalities(list);
+      },
+      () => {
+        if (active) setMunicipalities(null);
+      },
+    );
+    return () => {
+      active = false;
+    };
+  }, [municipalities]);
+
+  return { municipalities, retry: () => setMunicipalities(undefined) };
+}
+
+/** Owns the editable form values and connects them to the permit steps. */
 function RoadPermitForm({
   caseNumber,
   draft,
@@ -148,7 +164,8 @@ function RoadPermitForm({
   const [municipalityName, setMunicipalityName] = useState<string | null>(
     draft.municipalityName ?? null,
   );
-  const [municipalities, setMunicipalities] = useState<Municipality[] | null>();
+  const { municipalities, retry: retryMunicipalities } =
+    useMunicipalityChoices();
   const [materials, setMaterials] = useState<MaterialEntry[]>(
     draft.materials ?? [],
   );
@@ -183,12 +200,6 @@ function RoadPermitForm({
   });
 
   const [confirmed, setConfirmed] = useState(false);
-  const [submissionStatus, setSubmissionStatus] =
-    useState<SubmissionStatus>('idle');
-  const [saveStatus, setSaveStatus] = useState<
-    'idle' | 'saving' | 'saved' | 'error'
-  >('idle');
-  const writePending = useRef(false);
   const currentDraft: RoadPermitDraft = {
     title,
     municipalityName,
@@ -198,131 +209,23 @@ function RoadPermitForm({
     contactInformation,
     roadMarking,
   };
-  const currentSnapshot = JSON.stringify(currentDraft);
-  const [savedSnapshot, setSavedSnapshot] = useState(currentSnapshot);
-  const hasUnsavedChanges =
-    currentSnapshot !== savedSnapshot && submissionStatus !== 'success';
-  const blocker = useBlocker(
-    ({ currentLocation, nextLocation }) =>
-      hasUnsavedChanges &&
-      (currentLocation.pathname !== nextLocation.pathname ||
-        currentLocation.search !== nextLocation.search),
+  const {
+    handleSave,
+    handleSubmit,
+    hasUnsavedChanges,
+    isWriting,
+    saveStatus,
+    submissionStatus,
+  } = useRoadPermitWrites(caseNumber, currentDraft);
+  const { blocker, saveAndLeave } = useUnsavedDraftNavigation(
+    hasUnsavedChanges,
+    handleSave,
   );
-  const isWriting = saveStatus === 'saving' || submissionStatus === 'sending';
-
-  useEffect(() => {
-    if (municipalities !== undefined) return;
-
-    let active = true;
-    void getMunicipalities().then(
-      (list) => {
-        if (active) setMunicipalities(list);
-      },
-      () => {
-        if (active) setMunicipalities(null);
-      },
-    );
-    return () => {
-      active = false;
-    };
-  }, [municipalities]);
-
-  useEffect(() => {
-    if (!hasUnsavedChanges) return;
-
-    /** Requests the browser confirmation for reloads and tab or window closure. */
-    function confirmUnload(event: BeforeUnloadEvent) {
-      event.preventDefault();
-      event.returnValue = '';
-    }
-
-    window.addEventListener('beforeunload', confirmUnload);
-    return () => window.removeEventListener('beforeunload', confirmUnload);
-  }, [hasUnsavedChanges]);
-
-  /** Saves the current snapshot without requiring a complete application. */
-  async function handleSave() {
-    if (writePending.current || submissionStatus === 'success') return false;
-
-    writePending.current = true;
-    setSaveStatus('saving');
-    try {
-      await saveRoadPermitDraft(caseNumber, currentDraft);
-      setSavedSnapshot(currentSnapshot);
-      setSaveStatus('saved');
-      return true;
-    } catch {
-      setSaveStatus('error');
-      return false;
-    } finally {
-      writePending.current = false;
-    }
-  }
-
-  /** Continues the blocked navigation only after the draft saves successfully. */
-  async function saveAndLeave() {
-    if (blocker.state !== 'blocked') return;
-    if (!hasUnsavedChanges || (await handleSave())) blocker.proceed();
-  }
 
   /** Returns to the application overview after the success animation. */
   const finishSubmission = useCallback(() => {
     void navigate(routes.application, { replace: true });
   }, [navigate]);
-
-  const applicant: CompanyInformation = {
-    name: 'Eksempel Entreprise ApS',
-    department: 'Vej og anlæg',
-    address1: '',
-    address2: '',
-    postalCode: '',
-    city: '',
-    contactPerson: 'Anna Jensen',
-    directPhone: '12345678',
-    mobile: '23456789',
-    email: 'kontakt@example.com',
-    companyPhone: '34567890',
-    cvr: '00000000',
-  };
-
-  const documentPlaceholder = {
-    name: 'Test Dokument',
-    DocumentType: 'Skilteplan',
-    Doc_URL: '/testDokument',
-    DateForUpload: '21-10-2001',
-  };
-
-  /** Builds the permit payload and records whether the request succeeds or fails. */
-  async function handleSubmit() {
-    if (!canSubmit || writePending.current) return;
-
-    const application: RoadPermitApplication = {
-      title,
-      municipalityName,
-      materials,
-      usageDetails: {
-        ...usageDetails,
-        postalCode: usageDetails.postalCode.trim(),
-        city: usageDetails.city.trim(),
-      },
-      contactInformation,
-      documentPlaceholder,
-      roadMarking,
-      applicant,
-      confirmed,
-    };
-    writePending.current = true;
-    setSaveStatus('idle');
-    setSubmissionStatus('sending');
-    try {
-      await submitRoadPermitApplication(caseNumber, application);
-      setSubmissionStatus('success');
-    } catch {
-      setSubmissionStatus('error');
-    } finally {
-      writePending.current = false;
-    }
-  }
 
   const municipalityErrors = validateMunicipalityAndTitle(
     title,
@@ -349,7 +252,7 @@ function RoadPermitForm({
           municipalities={municipalities}
           municipalityName={municipalityName}
           onMunicipalityChange={setMunicipalityName}
-          onRetryMunicipalities={() => setMunicipalities(undefined)}
+          onRetryMunicipalities={retryMunicipalities}
           onTitleChange={setTitle}
           title={title}
         />
@@ -414,13 +317,13 @@ function RoadPermitForm({
       content: (showErrors) => (
         <SummaryAndSubmissionPage
           applicant={{
-            ...applicant,
+            ...exampleApplicant,
             department: t('permit.summary.exampleDepartment'),
           }}
           confirmationError={showErrors ? confirmationError : undefined}
           confirmed={confirmed}
           contactInformation={contactInformation}
-          documentToUpload={documentPlaceholder}
+          documentToUpload={exampleDocument}
           materials={materials}
           municipalityName={municipalityName}
           onConfirmedChange={setConfirmed}
@@ -493,7 +396,7 @@ function RoadPermitForm({
       </Box>
       <MasterDetailGrid
         items={categories}
-        onSubmit={canSubmit ? handleSubmit : undefined}
+        onSubmit={canSubmit ? () => handleSubmit(confirmed) : undefined}
       />
       <Dialog
         aria-describedby="permit-unsaved-description"
