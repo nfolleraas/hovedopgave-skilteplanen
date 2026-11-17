@@ -8,5 +8,6 @@ import { MunicipalityService } from './municipality.service.js';
   imports: [PrismaModule],
   controllers: [MunicipalityController],
   providers: [MunicipalityRepository, MunicipalityService],
+  exports: [MunicipalityService],
 })
 export class MunicipalityModule {}

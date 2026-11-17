@@ -84,4 +84,38 @@ describe('AppModule (e2e)', () => {
   afterEach(async () => {
     await app.close();
   });
+
+  it('rejects bad submission and draft fields with a field-specific 400', async () => {
+    await request(app.getHttpServer())
+      .post('/api/road-permit/permit-1/submit')
+      .send({ title: 42 })
+      .expect(400)
+      .expect(({ body }) =>
+        expect(body.message).toBe('title must be a string.'),
+      );
+    await request(app.getHttpServer())
+      .patch('/api/road-permit/permit-1')
+      .send({ roadMarking: { trafficChanges: [42] } })
+      .expect(400)
+      .expect(({ body }) =>
+        expect(body.message).toBe(
+          'roadMarking.trafficChanges[0] must be a string.',
+        ),
+      );
+    expect(prisma.application.updateMany).not.toHaveBeenCalled();
+  });
+
+  it('reports a malformed stored draft without handing it to the form', async () => {
+    prisma.application.findFirst.mockResolvedValue({
+      caseNumber: 'permit-1',
+      status: 'Draft',
+      roadPermitDraft: { contactInformation: { email: false } },
+    });
+    await request(app.getHttpServer())
+      .get('/api/road-permit/permit-1')
+      .expect(422)
+      .expect(({ body }) =>
+        expect(body.message).toContain('contactInformation.email'),
+      );
+  });
 });

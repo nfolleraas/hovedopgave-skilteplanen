@@ -157,7 +157,10 @@
       "other": "Other"
     },
     "draft": {
+      "backToApplications": "Back to applications",
+      "invalidSnapshot": "The saved draft contains data that could not be loaded. Return to applications to start a new draft.",
       "loadError": "The application draft could not be loaded.",
+      "retryLoad": "Retry loading draft",
       "loading": "Loading your draft…",
       "saving": "Saving draft…",
       "saved": "Draft saved.",

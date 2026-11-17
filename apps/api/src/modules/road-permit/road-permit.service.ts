@@ -1,13 +1,22 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { CreateRoadPermitDto } from './dto/create-road-permit.dto.js';
-import { UpdateRoadPermitDto } from './dto/update-road-permit.dto.js';
+import {
+  BadRequestException,
+  Injectable,
+  UnprocessableEntityException,
+} from '@nestjs/common';
+import { MunicipalityService } from '../municipality/municipality.service.js';
 import { mapCreateRoadPermit } from './mappers/road-permit.mapper.js';
 import { RoadPermitRepository } from './road-permit.repository.js';
+import {
+  parseRoadPermitDraft,
+  parseRoadPermitSubmission,
+} from './road-permit.validation.js';
 
 @Injectable()
 export class RoadPermitService {
-  /** Receives the repository used for road-permit operations. */
-  constructor(private readonly roadPermitRepository: RoadPermitRepository) {}
+  constructor(
+    private readonly roadPermitRepository: RoadPermitRepository,
+    private readonly municipalities: MunicipalityService,
+  ) {}
 
   /** Starts a blank road-permit application. */
   create() {
@@ -15,34 +24,15 @@ export class RoadPermitService {
   }
 
   /** Checks the required submission fields and sends the existing draft for processing. */
-  async submit(id: string, dto: CreateRoadPermitDto) {
-    const usage = dto?.usageDetails;
-    const contact = dto?.contactInformation;
-    if (
-      dto?.confirmed !== true ||
-      !dto.title?.trim() ||
-      !dto.municipalityName?.trim() ||
-      !usage?.road?.trim() ||
-      !/^\d{4}$/.test(usage.postalCode?.trim()) ||
-      !usage.city?.trim() ||
-      !['Byggearbejde', 'Arrangement', 'Andet'].includes(usage.usage) ||
-      !Number.isFinite(Date.parse(usage.startDate)) ||
-      !Number.isFinite(Date.parse(usage.endDate)) ||
-      Date.parse(usage.endDate) < Date.parse(usage.startDate) ||
-      !contact?.name?.trim() ||
-      !contact.phone?.trim() ||
-      !contact.email?.trim() ||
-      !Array.isArray(dto.materials) ||
-      !Array.isArray(dto.roadMarking?.trafficChanges) ||
-      !Array.isArray(dto.roadMarking?.trafficPrecautions) ||
-      !dto.applicant
-    ) {
+  async submit(id: string, input: unknown) {
+    const dto = parseRoadPermitSubmission(input);
+    const data = mapCreateRoadPermit(dto);
+    if (!(await this.municipalities.exists(dto.municipalityName))) {
       throw new BadRequestException(
-        'Complete the application before submitting.',
+        'municipalityName must be a supported municipality.',
       );
     }
-
-    return this.roadPermitRepository.submit(id, mapCreateRoadPermit(dto));
+    return this.roadPermitRepository.submit(id, data);
   }
 
   /** Returns the summaries of applications in Draft status. */
@@ -51,13 +41,25 @@ export class RoadPermitService {
   }
 
   /** Loads the saved form values for the given draft case number. */
-  findOne(id: string) {
-    return this.roadPermitRepository.findOne(id);
+  async findOne(id: string) {
+    const draft = await this.roadPermitRepository.findOne(id);
+    try {
+      return {
+        ...draft,
+        roadPermitDraft: parseRoadPermitDraft(draft.roadPermitDraft ?? {}),
+      };
+    } catch (error) {
+      if (!(error instanceof BadRequestException)) throw error;
+      throw new UnprocessableEntityException(
+        `The saved draft is invalid. ${error.message}`,
+        { cause: error },
+      );
+    }
   }
 
   /** Saves an unfinished form without applying submission validation. */
-  update(id: string, updateRoadPermitDto: UpdateRoadPermitDto) {
-    return this.roadPermitRepository.update(id, updateRoadPermitDto);
+  update(id: string, input: unknown) {
+    return this.roadPermitRepository.update(id, parseRoadPermitDraft(input));
   }
 
   /** Passes the numeric permit ID to the repository for removal. */

@@ -157,7 +157,10 @@
       "other": "Andet"
     },
     "draft": {
+      "backToApplications": "Tilbage til ansøgninger",
+      "invalidSnapshot": "Den gemte kladde indeholder oplysninger, der ikke kunne indlæses. Gå tilbage til ansøgninger for at starte en ny kladde.",
       "loadError": "Ansøgningskladden kunne ikke indlæses.",
+      "retryLoad": "Prøv at indlæse kladden igen",
       "loading": "Indlæser din kladde…",
       "saving": "Gemmer kladde…",
       "saved": "Kladden er gemt.",

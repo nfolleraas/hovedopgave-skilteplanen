@@ -10,4 +10,8 @@ export class MunicipalityService {
     const municipalities = await this.municipalities.findAll();
     return municipalities.sort((a, b) => a.name.localeCompare(b.name, 'da'));
   }
+
+  exists(name: string) {
+    return this.municipalities.exists(name);
+  }
 }

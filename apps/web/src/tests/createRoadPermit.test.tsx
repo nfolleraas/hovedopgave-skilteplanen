@@ -49,6 +49,7 @@ const draftId = 'draft-123';
 /** Renders the permit form and its redirect destination in a memory router. */
 async function renderPermitFlow(
   initialEntry = `${routes.createRoadPermit}?draft=${draftId}`,
+  waitForDraft = initialEntry.startsWith(routes.createRoadPermit),
 ) {
   const router = createMemoryRouter(
     [
@@ -66,7 +67,7 @@ async function renderPermitFlow(
     { initialEntries: [initialEntry] },
   );
   const view = await renderWithTranslations(<RouterProvider router={router} />);
-  if (initialEntry.startsWith(routes.createRoadPermit)) {
+  if (waitForDraft) {
     await screen.findByRole('heading', { name: 'Municipality & title' });
   }
   return view;
@@ -129,7 +130,7 @@ describe('Road permit application', () => {
       { id: 3, name: 'Odense' },
     ]);
     createDraft.mockReset().mockResolvedValue({ caseNumber: draftId });
-    loadDraft.mockReset().mockResolvedValue({});
+    loadDraft.mockReset().mockResolvedValue({ status: 'loaded', draft: {} });
     listDrafts.mockReset().mockResolvedValue([]);
     saveDraft.mockReset().mockResolvedValue(undefined);
     submitApplication.mockReset();
@@ -160,7 +161,10 @@ describe('Road permit application', () => {
       { caseNumber: 'untitled-case', title: '', canResume: true },
       { caseNumber: 'legacy-case', title: 'Legacy permit', canResume: false },
     ]);
-    loadDraft.mockResolvedValueOnce({ title: 'Road work' });
+    loadDraft.mockResolvedValueOnce({
+      status: 'loaded',
+      draft: { title: 'Road work' },
+    });
     await renderPermitFlow(routes.application);
 
     const draftList = within(
@@ -222,8 +226,13 @@ describe('Road permit application', () => {
 
   it('loads the saved fields without creating a new draft', async () => {
     loadDraft.mockResolvedValueOnce({
-      title: 'Saved title',
-      municipalityName: 'Odense',
+      status: 'loaded',
+      draft: {
+        title: 'Saved title',
+        municipalityName: 'Odense',
+        usageDetails: { road: 'Adamsgade' },
+        contactInformation: { name: 'Contact' },
+      },
     });
     await renderPermitFlow();
     const title = await screen.findByRole<HTMLInputElement>('textbox', {
@@ -235,6 +244,37 @@ describe('Road permit application', () => {
         .checked,
     ).toBe(true);
     expect(createDraft).not.toHaveBeenCalled();
+  });
+
+  it('offers a way back to applications when a saved draft is malformed', async () => {
+    loadDraft.mockResolvedValueOnce({ status: 'invalid' });
+    await renderPermitFlow(undefined, false);
+    expect((await screen.findByRole('alert')).textContent).toContain(
+      'The saved draft contains data that could not be loaded.',
+    );
+    await userEvent
+      .setup()
+      .click(screen.getByRole('link', { name: 'Back to applications' }));
+    expect(
+      await screen.findByRole('button', {
+        name: 'Apply for a road occupancy permit',
+      }),
+    ).toBeTruthy();
+    expect(saveDraft).not.toHaveBeenCalled();
+  });
+
+  it('retries loading a temporarily unavailable draft', async () => {
+    loadDraft.mockRejectedValueOnce(new Error('Connection failed'));
+    await renderPermitFlow(undefined, false);
+    await userEvent
+      .setup()
+      .click(
+        await screen.findByRole('button', { name: 'Retry loading draft' }),
+      );
+    expect(
+      await screen.findByRole('heading', { name: 'Municipality & title' }),
+    ).toBeTruthy();
+    expect(loadDraft).toHaveBeenCalledTimes(2);
   });
 
   it('retries loading municipality choices without clearing the title', async () => {

@@ -6,6 +6,7 @@ import {
   TrafficChange,
   Usage,
 } from '../../generated/prisma/enums.js';
+import { MunicipalityService } from '../municipality/municipality.service.js';
 import type { CreateRoadPermitDto } from './dto/create-road-permit.dto.js';
 import { UpdateRoadPermitDto } from './dto/update-road-permit.dto.js';
 import { RoadPermitRepository } from './road-permit.repository.js';
@@ -56,6 +57,7 @@ const application: CreateRoadPermitDto = {
 };
 
 describe('RoadPermitService', () => {
+  const municipalities = { exists: vi.fn() };
   const repository = {
     create: vi.fn(),
     submit: vi.fn(),
@@ -68,10 +70,12 @@ describe('RoadPermitService', () => {
 
   beforeEach(async () => {
     vi.resetAllMocks();
+    municipalities.exists.mockResolvedValue(true);
     const module = await Test.createTestingModule({
       providers: [
         RoadPermitService,
         { provide: RoadPermitRepository, useValue: repository },
+        { provide: MunicipalityService, useValue: municipalities },
       ],
     }).compile();
 
@@ -208,7 +212,7 @@ describe('RoadPermitService', () => {
   it('rejects an incomplete submission without writing to the repository', async () => {
     await expect(
       service.submit('permit-1', { ...application, confirmed: false }),
-    ).rejects.toThrow('Complete the application before submitting.');
+    ).rejects.toThrow('confirmed must be true');
     expect(repository.submit).not.toHaveBeenCalled();
   });
 
@@ -220,12 +224,46 @@ describe('RoadPermitService', () => {
     expect(repository.findAll).toHaveBeenCalledExactlyOnceWith();
   });
 
-  it('finds a permit by ID through the repository', () => {
-    const permit = { caseNumber: 'permit-42' };
-    repository.findOne.mockReturnValue(permit);
+  it('loads an older draft without a saved snapshot as empty', async () => {
+    repository.findOne.mockResolvedValue({
+      caseNumber: 'permit-42',
+      roadPermitDraft: null,
+    });
 
-    expect(service.findOne('permit-42')).toBe(permit);
+    await expect(service.findOne('permit-42')).resolves.toEqual({
+      caseNumber: 'permit-42',
+      roadPermitDraft: {},
+    });
     expect(repository.findOne).toHaveBeenCalledExactlyOnceWith('permit-42');
+  });
+
+  it('rejects invalid submitted fields before looking up a municipality or writing', async () => {
+    await expect(
+      service.submit('permit-1', { ...application, title: 42 }),
+    ).rejects.toThrow('title must be a string');
+    await expect(
+      service.submit('permit-1', {
+        ...application,
+        usageDetails: { ...application.usageDetails, startDate: '2026-02-30' },
+      }),
+    ).rejects.toThrow('usageDetails.startDate must be a valid date');
+    await expect(
+      service.submit('permit-1', {
+        ...application,
+        materials: [{ ...application.materials[0], quantity: -1 }],
+      }),
+    ).rejects.toThrow('materials[0].quantity must be a positive whole number');
+    expect(municipalities.exists).not.toHaveBeenCalled();
+    expect(repository.submit).not.toHaveBeenCalled();
+  });
+
+  it('rejects a municipality outside the supported list before writing', async () => {
+    municipalities.exists.mockResolvedValue(false);
+    await expect(service.submit('permit-1', application)).rejects.toThrow(
+      'municipalityName must be a supported municipality',
+    );
+    expect(municipalities.exists).toHaveBeenCalledExactlyOnceWith('Odense');
+    expect(repository.submit).not.toHaveBeenCalled();
   });
 
   it('saves unfinished fields against the case number', () => {
@@ -236,6 +274,13 @@ describe('RoadPermitService', () => {
 
     expect(service.update('permit-42', dto)).toBe(result);
     expect(repository.update).toHaveBeenCalledExactlyOnceWith('permit-42', dto);
+  });
+
+  it('rejects incorrect types in unfinished fields before saving', () => {
+    expect(() =>
+      service.update('permit-42', { usageDetails: { city: [] } }),
+    ).toThrow('usageDetails.city must be a string');
+    expect(repository.update).not.toHaveBeenCalled();
   });
 
   it('removes a permit by ID through the repository', () => {

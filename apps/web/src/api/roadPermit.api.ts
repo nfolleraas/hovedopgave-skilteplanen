@@ -1,6 +1,8 @@
+import { isAxiosError } from 'axios';
 import type {
   RoadPermitApplication,
   RoadPermitDraft,
+  RoadPermitDraftSnapshot,
 } from '../pages/application-page/create-road-permit/RoadPermitApplication.types';
 import { apiClient } from './client.api';
 
@@ -22,10 +24,17 @@ export function createRoadPermitDraft() {
 
 /** Restores the saved values for this case number. */
 export async function getRoadPermitDraft(caseNumber: string) {
-  const response = await apiClient.get<{
-    roadPermitDraft: Partial<RoadPermitDraft>;
-  }>(`/road-permit/${encodeURIComponent(caseNumber)}`);
-  return response.roadPermitDraft;
+  try {
+    const response = await apiClient.get<{
+      roadPermitDraft: RoadPermitDraftSnapshot;
+    }>(`/road-permit/${encodeURIComponent(caseNumber)}`);
+    return { status: 'loaded', draft: response.roadPermitDraft } as const;
+  } catch (error) {
+    if (isAxiosError(error) && error.response?.status === 422) {
+      return { status: 'invalid' } as const;
+    }
+    throw error;
+  }
 }
 
 /** Saves the current form, including unfinished material edits. */

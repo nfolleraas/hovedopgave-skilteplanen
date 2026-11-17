@@ -1,16 +1,16 @@
-import { CreateRoadPermitDto } from './create-road-permit.dto.js';
+import type { CreateRoadPermitDto } from './create-road-permit.dto.js';
 
 export class UpdateRoadPermitDto {
-  title: string;
-  municipalityName: string | null;
-  materials: CreateRoadPermitDto['materials'];
-  usageDetails: CreateRoadPermitDto['usageDetails'];
-  contactInformation: CreateRoadPermitDto['contactInformation'];
-  roadMarking: CreateRoadPermitDto['roadMarking'];
-  materialDraft: {
-    editingId?: string;
+  title?: string;
+  municipalityName?: string | null;
+  materials?: CreateRoadPermitDto['materials'];
+  usageDetails?: Partial<CreateRoadPermitDto['usageDetails']>;
+  contactInformation?: Partial<CreateRoadPermitDto['contactInformation']>;
+  roadMarking?: Partial<CreateRoadPermitDto['roadMarking']>;
+  materialDraft?: Partial<{
+    editingId: string | null;
     type: string;
     quantity: string;
     notes: string;
-  };
+  }>;
 }

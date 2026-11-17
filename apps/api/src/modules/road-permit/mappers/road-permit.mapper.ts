@@ -1,16 +1,17 @@
-import { BadRequestException } from '@nestjs/common';
 import type { Prisma } from '../../../generated/prisma/client.js';
 import {
   ApplicantType,
   ApplicationType,
   Availability,
-  MaterialType,
-  TrafficCalmingMeasureScope,
   TrafficCalmingMeasureType,
-  TrafficChange,
-  Usage,
 } from '../../../generated/prisma/enums.js';
 import type { CreateRoadPermitDto } from '../dto/create-road-permit.dto.js';
+import {
+  materialTypes,
+  trafficChanges,
+  trafficScopes,
+  usageTypes,
+} from '../road-permit-options.js';
 
 export type CreateRoadPermitData = Omit<
   Prisma.ApplicationCreateInput,
@@ -22,38 +23,6 @@ export type CreateRoadPermitData = Omit<
       'applicationId'
     >;
   };
-};
-
-const usageTypes: Record<string, Usage> = {
-  Byggearbejde: Usage.Construction,
-  Arrangement: Usage.Other,
-  Andet: Usage.Other,
-};
-
-const materialTypes: Record<string, MaterialType> = {
-  Container: MaterialType.Container,
-  Stillads: MaterialType.Scaffolding,
-  Andet: MaterialType.Other,
-};
-
-const trafficChanges: Readonly<Record<string, TrafficChange>> = {
-  'Hastighedsbegrænsning - hensyn til vejarbejder':
-    TrafficChange.SpeedLimitWorkZone,
-  'Hastighedsbegrænsning - hensyn til trafikanter':
-    TrafficChange.SpeedLimitTrafficSafety,
-  'Hastighedsbegrænsning - hensyn til trafikanter og vejarbejdere':
-    TrafficChange.SpeedLimitWorkZoneAndTrafficSafety,
-  'Ubetinget vigepligt i vejkryds':
-    TrafficChange.UnconditionalObligationInIntersection,
-  'Standsning og Parkering': TrafficChange.NoStoppingAndParking,
-  'Påbud om ensrettet færdsel': TrafficChange.OnewayTraffic,
-};
-
-const trafficScopes: Record<string, TrafficCalmingMeasureScope> = {
-  Begge: TrafficCalmingMeasureScope.Both,
-  // TODO: Passing traffic has no exact enum; OncomingTraffic is a placeholder.
-  'Forbipasserende trafik': TrafficCalmingMeasureScope.OncomingTraffic,
-  'Bagfrakommende trafik': TrafficCalmingMeasureScope.FollowingTraffic,
 };
 
 /** Converts the submitted form into Prisma create data for the application, work area, applicant, and permit. */
@@ -73,17 +42,9 @@ export function mapCreateRoadPermit(
     type: isEvent
       ? ApplicationType.RoadUsePermitEvent
       : ApplicationType.RoadUsePermit,
-    trafficChanges: dto.roadMarking.trafficChanges.map((change, index) => {
-      if (
-        typeof change !== 'string' ||
-        !Object.hasOwn(trafficChanges, change)
-      ) {
-        throw new BadRequestException(
-          `roadMarking.trafficChanges[${index}] must be a supported traffic change.`,
-        );
-      }
-      return trafficChanges[change];
-    }),
+    trafficChanges: dto.roadMarking.trafficChanges.map(
+      (change) => trafficChanges[change],
+    ),
     applicant: {
       create: {
         name: dto.applicant.name,

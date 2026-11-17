@@ -11,4 +11,10 @@ export class MunicipalityRepository {
       select: { id: true, name: true },
     });
   }
+
+  async exists(name: string) {
+    return (
+      (await this.prisma.municipalityLookup.count({ where: { name } })) > 0
+    );
+  }
 }

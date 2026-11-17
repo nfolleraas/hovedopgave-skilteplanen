@@ -12,6 +12,7 @@ import {
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
+  Link,
   Navigate,
   useBlocker,
   useNavigate,
@@ -52,6 +53,7 @@ import { UsageDetailsPage } from './pages/UsageDetailsPage';
 import type {
   RoadPermitApplication,
   RoadPermitDraft,
+  RoadPermitDraftSnapshot,
 } from './RoadPermitApplication.types';
 import {
   hasMaterialDraft,
@@ -77,36 +79,59 @@ export default function CreateRoadPermitPage() {
 /** Loads a draft before allowing edits so saved data survives a page reload. */
 function RoadPermitDraftPage({ caseNumber }: { caseNumber: string }) {
   const { t } = useTranslation();
-  const [draft, setDraft] = useState<Partial<RoadPermitDraft>>();
-  const [loadError, setLoadError] = useState(false);
+  const [result, setResult] = useState<
+    Awaited<ReturnType<typeof getRoadPermitDraft>> | { status: 'unavailable' }
+  >();
 
   useEffect(() => {
+    if (result) return;
     let active = true;
     void getRoadPermitDraft(caseNumber).then(
       (data) => {
-        if (active) setDraft(data);
+        if (active) setResult(data);
       },
       () => {
-        if (active) setLoadError(true);
+        if (active) setResult({ status: 'unavailable' });
       },
     );
     return () => {
       active = false;
     };
-  }, [caseNumber]);
+  }, [caseNumber, result]);
 
-  if (!draft || loadError) {
+  if (result?.status !== 'loaded') {
     return (
       <Box component="main" id="main-content" sx={{ p: 3 }} tabIndex={-1}>
-        {loadError ? (
-          <Alert severity="error">{t('permit.draft.loadError')}</Alert>
+        {result ? (
+          <>
+            <Alert severity="error">
+              {result.status === 'invalid'
+                ? t('permit.draft.invalidSnapshot')
+                : t('permit.draft.loadError')}
+            </Alert>
+            {result.status === 'unavailable' && (
+              <Button
+                onClick={() => setResult(undefined)}
+                sx={{ minHeight: 44 }}
+              >
+                {t('permit.draft.retryLoad')}
+              </Button>
+            )}
+            <Button
+              component={Link}
+              sx={{ minHeight: 44 }}
+              to={routes.application}
+            >
+              {t('permit.draft.backToApplications')}
+            </Button>
+          </>
         ) : (
           <Typography role="status">{t('permit.draft.loading')}</Typography>
         )}
       </Box>
     );
   }
-  return <RoadPermitForm caseNumber={caseNumber} draft={draft} />;
+  return <RoadPermitForm caseNumber={caseNumber} draft={result.draft} />;
 }
 
 /** Owns the editable form values and saves or submits them against one case number. */
@@ -115,7 +140,7 @@ function RoadPermitForm({
   draft,
 }: {
   caseNumber: string;
-  draft: Partial<RoadPermitDraft>;
+  draft: RoadPermitDraftSnapshot;
 }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -127,37 +152,35 @@ function RoadPermitForm({
   const [materials, setMaterials] = useState<MaterialEntry[]>(
     draft.materials ?? [],
   );
-  const [materialDraft, setMaterialDraft] = useState<MaterialDraft>(
-    draft.materialDraft ?? emptyMaterialDraft,
-  );
-  const [usageDetails, setUsageDetails] = useState<UsageDetails>(
-    draft.usageDetails ?? {
-      usage: '',
-      startDate: '',
-      endDate: '',
-      locationDescription: '',
-      houseNumberFrom: '',
-      houseNumberTo: '',
-      road: '',
-      postalCode: '',
-      city: '',
-    },
-  );
+  const [materialDraft, setMaterialDraft] = useState<MaterialDraft>({
+    ...emptyMaterialDraft,
+    ...draft.materialDraft,
+  });
+  const [usageDetails, setUsageDetails] = useState<UsageDetails>({
+    usage: '',
+    startDate: '',
+    endDate: '',
+    locationDescription: '',
+    houseNumberFrom: '',
+    houseNumberTo: '',
+    road: '',
+    postalCode: '',
+    city: '',
+    ...draft.usageDetails,
+  });
   const [contactInformation, setContactInformation] =
-    useState<ContactInformation>(
-      draft.contactInformation ?? {
-        name: '',
-        phone: '',
-        email: '',
-      },
-    );
-  const [roadMarking, setRoadMarking] = useState<RoadMarkingDetails>(
-    draft.roadMarking ?? {
-      trafficChanges: [],
-      accessWays: '',
-      trafficPrecautions: [],
-    },
-  );
+    useState<ContactInformation>({
+      name: '',
+      phone: '',
+      email: '',
+      ...draft.contactInformation,
+    });
+  const [roadMarking, setRoadMarking] = useState<RoadMarkingDetails>({
+    trafficChanges: [],
+    accessWays: '',
+    trafficPrecautions: [],
+    ...draft.roadMarking,
+  });
 
   const [confirmed, setConfirmed] = useState(false);
   const [submissionStatus, setSubmissionStatus] =

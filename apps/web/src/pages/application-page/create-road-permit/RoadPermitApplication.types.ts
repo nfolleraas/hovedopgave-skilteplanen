@@ -33,3 +33,13 @@ export type RoadPermitDraft = Pick<
   | 'contactInformation'
   | 'roadMarking'
 > & { materialDraft: MaterialDraft };
+
+export type RoadPermitDraftSnapshot = Partial<{
+  title: string;
+  municipalityName: string | null;
+  materials: MaterialEntry[];
+  usageDetails: Partial<UsageDetails>;
+  contactInformation: Partial<ContactInformation>;
+  roadMarking: Partial<RoadMarkingDetails>;
+  materialDraft: Partial<MaterialDraft>;
+}>;
