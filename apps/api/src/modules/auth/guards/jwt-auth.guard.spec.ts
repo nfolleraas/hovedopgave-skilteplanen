@@ -1,6 +1,10 @@
 import { type ExecutionContext, UnauthorizedException } from '@nestjs/common';
+import type { Reflector } from '@nestjs/core';
 import type { AuthConfig } from '../../../config/auth.config.js';
 import type { AuthenticatedRequest } from '../auth-request.types.js';
+import { ALLOW_ANY_AUTHENTICATED_KEY } from '../decorators/allow-any-authenticated.decorator.js';
+import { ALLOW_ONBOARDING_KEY } from '../decorators/allow-onboarding.decorator.js';
+import { IS_PUBLIC_KEY } from '../decorators/public.decorator.js';
 import type { JwtService } from '../jwt/jwt.service.js';
 import type { JwtClaims } from '../jwt/jwt.types.js';
 import { JwtAuthGuard } from './jwt-auth.guard.js';
@@ -64,7 +68,9 @@ function createContext(cookie?: string): {
   } as AuthenticatedRequest;
   const context = {
     switchToHttp: () => ({ getRequest: () => request }),
-  } as ExecutionContext;
+    getHandler: () => createContext,
+    getClass: () => JwtAuthGuard,
+  } as unknown as ExecutionContext;
 
   return { context, request };
 }
@@ -72,10 +78,26 @@ function createContext(cookie?: string): {
 describe('JwtAuthGuard', () => {
   let guard: JwtAuthGuard;
   let jwtService: { verify: ReturnType<typeof vi.fn> };
+  let reflector: { getAllAndOverride: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
     jwtService = { verify: vi.fn() };
-    guard = new JwtAuthGuard(jwtService as unknown as JwtService, config);
+    reflector = { getAllAndOverride: vi.fn().mockReturnValue(false) };
+    guard = new JwtAuthGuard(
+      reflector as unknown as Reflector,
+      jwtService as unknown as JwtService,
+      config,
+    );
+  });
+
+  it('allows a public route without reading an access token', () => {
+    reflector.getAllAndOverride.mockImplementation(
+      (key) => key === IS_PUBLIC_KEY,
+    );
+    const { context } = createContext();
+
+    expect(guard.canActivate(context)).toBe(true);
+    expect(jwtService.verify).not.toHaveBeenCalled();
   });
 
   it('accepts a valid access-token cookie and attaches its claims', () => {
@@ -107,6 +129,52 @@ describe('JwtAuthGuard', () => {
     const { context } = createContext('sk_access=onboarding-token');
 
     expect(() => guard.canActivate(context)).toThrow(UnauthorizedException);
+  });
+
+  it('allows a valid onboarding token on an onboarding route', () => {
+    reflector.getAllAndOverride.mockImplementation(
+      (key) => key === ALLOW_ONBOARDING_KEY,
+    );
+    const onboardingClaims: JwtClaims = {
+      ...accessClaims,
+      subject: 'pending-123',
+      tokenUse: 'ONBOARDING',
+      pendingRegistrationId: 'pending-123',
+      applicantType: 'Private',
+    };
+    jwtService.verify.mockReturnValue(onboardingClaims);
+    const { context, request } = createContext('sk_access=onboarding-token');
+
+    expect(guard.canActivate(context)).toBe(true);
+    expect(request.auth).toEqual(onboardingClaims);
+  });
+
+  it('denies an access token on an onboarding-only route', () => {
+    reflector.getAllAndOverride.mockImplementation(
+      (key) => key === ALLOW_ONBOARDING_KEY,
+    );
+    jwtService.verify.mockReturnValue(accessClaims);
+    const { context } = createContext('sk_access=access-token');
+
+    expect(() => guard.canActivate(context)).toThrow(UnauthorizedException);
+  });
+
+  it('allows an onboarding token on a shared authenticated route', () => {
+    reflector.getAllAndOverride.mockImplementation(
+      (key) => key === ALLOW_ANY_AUTHENTICATED_KEY,
+    );
+    const onboardingClaims: JwtClaims = {
+      ...accessClaims,
+      subject: 'pending-123',
+      tokenUse: 'ONBOARDING',
+      pendingRegistrationId: 'pending-123',
+      applicantType: 'Private',
+    };
+    jwtService.verify.mockReturnValue(onboardingClaims);
+    const { context, request } = createContext('sk_access=onboarding-token');
+
+    expect(guard.canActivate(context)).toBe(true);
+    expect(request.auth).toEqual(onboardingClaims);
   });
 
   it('denies a malformed cookie value before JWT validation', () => {
