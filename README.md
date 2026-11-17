@@ -144,7 +144,7 @@ bun run lint                  # inde i apps/web
 | `build`      | `tsc -b && vite build`             | `nest build` til `dist/`  |
 | `lint`       | `biome lint .`                     | `biome lint .`            |
 | `test`       | –                                  | Vitest unit tests        |
-| `test:e2e`   | –                                  | Vitest e2e tests         |
+| `test:e2e`   | Playwright browser tests            | Vitest e2e tests         |
 | `preview`    | serverer produktionsbuild          | –                         |
 | `start:prod` | –                                  | `node dist/main`          |
 

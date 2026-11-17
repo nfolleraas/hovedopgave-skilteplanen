@@ -42,7 +42,40 @@ Run these from the repository root:
 bun run --filter web dev
 bun run --filter web build
 bun run --filter web lint
+bun run --filter web test:e2e
 ```
+
+## Browser tests
+
+Playwright runs the browser suite in desktop Chromium and mobile Chromium
+(Pixel 7 emulation). Install the browser once after `bun install`:
+
+```bash
+bun run --cwd apps/web playwright install --with-deps chromium
+bun run --filter web test:e2e
+bun run --filter web test:e2e:ui
+```
+
+The suite starts its own Vite server on `127.0.0.1:4173`; leave that port free.
+It covers navigation, keyboard skip navigation, Danish and English language
+detection and fallback, actor details, validation, editing, deletion, and
+recovery from API errors. Actor API responses are intercepted in the browser,
+so these frontend tests need no running API, database, or external address
+service. They do not verify backend persistence or external integrations.
+
+Tests live in [`apps/web/e2e/`](../../apps/web/e2e/) and configuration in
+[`playwright.config.ts`](../../apps/web/playwright.config.ts). The test server
+starts Vite directly to avoid rewriting translation catalogs via `dev`.
+Run `bun run --filter web locale:check` separately to verify extracted keys
+against the catalogs and parser configuration.
+
+After a run, open the HTML report with:
+
+```bash
+bun run --cwd apps/web playwright show-report
+```
+
+Reports and failure screenshots/traces are ignored by Git.
 
 The app's generated starter README is at
 [`apps/web/README.md`](../../apps/web/README.md). The root README is the source
