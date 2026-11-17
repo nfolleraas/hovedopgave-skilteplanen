@@ -10,7 +10,9 @@ HS256 and standard JWT wire claims. Phase 2 step 2, access and onboarding token
 purposes, is also implemented with separate lifetimes and claims. Phase 2 step
 3 now implements hashed opaque refresh tokens, transactional rotation, reuse
 detection, and revocation. Phase 2 step 4 now applies a global default-deny
-access-token guard. Public and onboarding route metadata remain planned next.
+access-token guard. Phase 2 step 5 adds explicit public and onboarding route
+metadata. Phase 2 step 6 limits Swagger to development, completing Phase 2.
+Phase 3 local authentication is planned next.
 
 ## Goals
 
@@ -110,7 +112,7 @@ After applicant creation succeeds, the backend consumes the pending registration
 - Store the refresh token in an `HttpOnly` cookie named `sk_refresh`.
 - Use `SameSite=Lax` for both cookies.
 - Set `Secure` outside local development.
-- Scope the refresh cookie to `/api/auth/refresh`.
+- Scope the refresh cookie to `/api/auth` so refresh and logout can both use it.
 - Keep the access cookie scoped to the API routes that require it.
 
 ### Authentication configuration
@@ -143,6 +145,8 @@ Recommended route metadata:
 
 - `@Public()` bypasses JWT authentication for the small set of public auth and health routes.
 - `@AllowOnboarding()` requires a valid onboarding JWT.
+- `@AllowAnyAuthenticated()` accepts a valid access JWT or onboarding JWT for
+  shared routes such as `GET /api/auth/me` and `POST /api/auth/logout`.
 - All other routes require `tokenUse: access`.
 - Role and resource guards run after authentication.
 
@@ -404,7 +408,8 @@ AuthModule
 │   └── administrator.guard.ts
 └── decorators/
     ├── public.decorator.ts
-    └── allow-onboarding.decorator.ts
+    ├── allow-onboarding.decorator.ts
+    └── allow-any-authenticated.decorator.ts
 ```
 
 Keep provider-specific claim mapping inside provider adapters. Domain services should receive a normalized authenticated identity.
@@ -542,7 +547,6 @@ At the end of this phase, existing API routes must return `401` without a valid 
 3. Define the first-administrator bootstrap procedure.
 4. Obtain the Signicat sandbox account, OIDC client, redirect URI, and test users.
 5. Obtain the Entra test tenant/application and define municipality onboarding for production tenants.
-6. Decide whether health and Swagger are public in each environment.
 
 ## Related diagrams and research
 

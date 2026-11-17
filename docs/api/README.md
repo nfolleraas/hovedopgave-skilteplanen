@@ -12,6 +12,10 @@ the global `/api` route prefix and listens on port `3000` by default. The
 current `GET /api` route returns a greeting. The web app's Vite server proxies
 `/api` requests to this service during development.
 
+Swagger is available at `/swagger` only when the API runs with
+`NODE_ENV=development`. It is not registered in test or production
+environments.
+
 The API connects to the development PostgreSQL service at hostname `db` using
 `DATABASE_URL`; the connection details and container setup are described in
 [DEVCONTAINER.md](../../DEVCONTAINER.md). Prisma models, migrations, and
