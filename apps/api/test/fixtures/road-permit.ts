@@ -1,0 +1,45 @@
+import type { CreateRoadPermitDto } from '../../src/modules/road-permit/dto/create-road-permit.dto.js';
+
+export const roadPermitSubmission: CreateRoadPermitDto = {
+  title: 'Road work',
+  municipalityName: 'Odense',
+  materials: [{ id: '1', type: 'Container', quantity: 2, notes: 'Waste' }],
+  usageDetails: {
+    usage: 'Byggearbejde',
+    startDate: '2026-11-16',
+    endDate: '2026-11-18',
+    road: ' Adamsgade ',
+    houseNumberFrom: '5',
+    houseNumberTo: '31',
+    postalCode: '5000',
+    city: ' Odense C ',
+    locationDescription: 'Along the pavement',
+  },
+  contactInformation: {
+    name: 'Site contact',
+    phone: '12345678',
+    email: 'site@example.com',
+  },
+  documentPlaceholder: {
+    name: '',
+    DocumentType: '',
+    Doc_URL: '',
+    DateForUpload: '',
+  },
+  roadMarking: { trafficChanges: [], accessWays: '', trafficPrecautions: [] },
+  applicant: {
+    name: 'Test applicant',
+    department: '',
+    address1: 'Testvej 12B',
+    address2: '',
+    postalCode: '8000',
+    city: 'Aarhus C',
+    contactPerson: '',
+    directPhone: '',
+    mobile: '',
+    email: 'applicant@example.com',
+    companyPhone: '87654321',
+    cvr: '12345678',
+  },
+  confirmed: true,
+};

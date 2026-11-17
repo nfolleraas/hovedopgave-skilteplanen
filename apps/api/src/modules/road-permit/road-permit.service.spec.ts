@@ -1,5 +1,6 @@
 import { Test } from '@nestjs/testing';
 import { vi } from 'vitest';
+import { roadPermitSubmission as application } from '../../../test/fixtures/road-permit.js';
 import {
   ApplicationType,
   MaterialType,
@@ -7,54 +8,9 @@ import {
   Usage,
 } from '../../generated/prisma/enums.js';
 import { MunicipalityService } from '../municipality/municipality.service.js';
-import type { CreateRoadPermitDto } from './dto/create-road-permit.dto.js';
 import { UpdateRoadPermitDto } from './dto/update-road-permit.dto.js';
 import { RoadPermitRepository } from './road-permit.repository.js';
 import { RoadPermitService } from './road-permit.service.js';
-
-const application: CreateRoadPermitDto = {
-  title: 'Road work',
-  municipalityName: 'Odense',
-  materials: [{ id: '1', type: 'Container', quantity: 2, notes: 'Waste' }],
-  usageDetails: {
-    usage: 'Byggearbejde',
-    startDate: '2026-11-16',
-    endDate: '2026-11-18',
-    road: ' Adamsgade ',
-    houseNumberFrom: '5',
-    houseNumberTo: '31',
-    postalCode: '5000',
-    city: ' Odense C ',
-    locationDescription: 'Along the pavement',
-  },
-  contactInformation: {
-    name: 'Site contact',
-    phone: '12345678',
-    email: 'site@example.com',
-  },
-  documentPlaceholder: {
-    name: '',
-    DocumentType: '',
-    Doc_URL: '',
-    DateForUpload: '',
-  },
-  roadMarking: { trafficChanges: [], accessWays: '', trafficPrecautions: [] },
-  applicant: {
-    name: 'Test applicant',
-    department: '',
-    address1: 'Testvej 12B',
-    address2: '',
-    postalCode: '8000',
-    city: 'Aarhus C',
-    contactPerson: '',
-    directPhone: '',
-    mobile: '',
-    email: 'applicant@example.com',
-    companyPhone: '87654321',
-    cvr: '12345678',
-  },
-  confirmed: true,
-};
 
 describe('RoadPermitService', () => {
   const municipalities = { exists: vi.fn() };
