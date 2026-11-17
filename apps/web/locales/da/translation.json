@@ -122,6 +122,8 @@
       "enterFullscreen": "Vis kort i fuld skærm",
       "layersZoomHint": "Nogle kortlag vises først, når du zoomer ind.",
       "layersLoading": "Indlæser flere kortlag…",
+      "layersLoadError": "Listen over kortlag kunne ikke indlæses.",
+      "layersRetry": "Prøv at indlæse kortlag igen",
       "layersUnavailable": "Nogle kortlag er ikke tilgængelige.",
       "title": "Kort over anvendelsesområdet",
       "search": {

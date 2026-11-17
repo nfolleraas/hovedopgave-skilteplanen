@@ -8,6 +8,7 @@ import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import {
   Alert,
   Box,
+  Button,
   FormControlLabel,
   FormGroup,
   IconButton,
@@ -21,7 +22,6 @@ import {
 } from '@mui/material';
 import { defaults as defaultControls } from 'ol/control/defaults.js';
 import ScaleLine from 'ol/control/ScaleLine.js';
-import WMSCapabilities from 'ol/format/WMSCapabilities.js';
 import { defaults as defaultInteractions } from 'ol/interaction/defaults.js';
 import TileLayer from 'ol/layer/Tile.js';
 import OpenLayersMap from 'ol/Map.js';
@@ -33,15 +33,26 @@ import { useTranslation } from 'react-i18next';
 import type { RoadLocation } from '../../../utils/validateRoadLocation';
 import { visuallyHidden } from '../visuallyHidden';
 import { MapAddressSearch } from './MapAddressSearch';
+import {
+  baseLayerName,
+  type CatalogLayerId,
+  catalogLayers,
+  defaultLayers,
+  type LayerId,
+  labelLayers,
+  mapProjection,
+  type RoadOverlayId,
+  roadOverlays,
+  token,
+  wmsUrl,
+  wmsVersion,
+} from './mapLayers';
 import { RoadLocationDialog } from './RoadLocationDialog';
-import { roadDataAttribution, roadReferenceLayerName } from './roadData';
+import { roadDataAttribution } from './roadData';
+import { useMapLayerCatalog } from './useMapLayerCatalog';
 import { useRoadSelection } from './useRoadSelection';
 import 'ol/ol.css';
 
-const token = import.meta.env.VITE_DATAFORSYNINGEN_TOKEN ?? '';
-const wmsUrl = 'https://api.dataforsyningen.dk/wms/forvaltning2';
-const wmsVersion = '1.1.1';
-const mapProjection = 'EPSG:3857';
 const errorToastDuration = 5000;
 type MapError = 'unavailable' | 'overlayError' | 'fullscreenError';
 
@@ -118,100 +129,6 @@ function MapErrorToast({
   );
 }
 
-const baseLayerName = 'Basis_kort';
-const labelLayers = {
-  streetNames: 'Vejnavne_basiskort',
-  houseNumbers: 'Husnummer',
-  placeNames: 'Stednavne_basiskort',
-} as const;
-const defaultLayers = ['streetNames', 'houseNumbers'] as const;
-
-const catalogLayers = {
-  parcels: /^(matrikel\s*[-–]?\s*geometri|matrikelskel\s+geometri)(?:,|$)/i,
-  municipalBoundaries: /^(?:dagi\s+)?kommune(?:gr(?:æ|ae|a)nser?|inddeling)\b/i,
-  traffic: /^tema\s+trafik\b/i,
-  hydrography: /^tema\s+hydro\b/i,
-  nature: /^tema\s+natur\b/i,
-  infrastructure: /^tema\s+teknik\b/i,
-};
-
-const roadOverlays = [
-  {
-    id: 'kilometerMarkers',
-    url: 'https://geocloud.vd.dk/vejman-stamdata/wms',
-    name: 'km-maerker',
-  },
-  {
-    id: 'roadReferenceLines',
-    url: 'https://geocloud.vd.dk/vrd/wms',
-    name: roadReferenceLayerName,
-  },
-] as const;
-
-type CatalogLayerId = keyof typeof catalogLayers;
-type RoadOverlayId = (typeof roadOverlays)[number]['id'];
-type LayerId = keyof typeof labelLayers | CatalogLayerId | RoadOverlayId;
-
-type WmsLayer = {
-  Name?: string;
-  Title?: string;
-  CRS?: string[];
-  SRS?: string[];
-  Layer?: WmsLayer[];
-};
-
-/** Resolves configured overlay IDs to the names advertised by the WMS layer catalog. */
-function readLayerNames(xml: string) {
-  const capabilities = new WMSCapabilities().read(xml) as {
-    Capability?: { Layer?: WmsLayer };
-  } | null;
-  const root = capabilities?.Capability?.Layer;
-  if (!root) throw new Error('Missing WMS layer catalog');
-
-  const entries: { name: string; title: string }[] = [];
-  /** Walks the WMS layer tree and retains layers that support the map projection directly or by inheritance. */
-  function collect(layer: WmsLayer, inheritsProjection: boolean) {
-    const supportsProjection =
-      inheritsProjection ||
-      [...(layer.CRS ?? []), ...(layer.SRS ?? [])].some((projection) =>
-        projection.split(/\s+/).includes(mapProjection),
-      );
-
-    if (layer.Name && supportsProjection) {
-      entries.push({
-        name: layer.Name,
-        title: (layer.Title ?? '').replace(/^[-–—]\s+/, ''),
-      });
-    }
-
-    for (const child of layer.Layer ?? []) {
-      collect(child, supportsProjection);
-    }
-  }
-
-  collect(root, false);
-
-  const names: Partial<Record<CatalogLayerId, string>> = {};
-  for (const id of Object.keys(catalogLayers) as CatalogLayerId[]) {
-    const pattern = catalogLayers[id];
-    const match = entries.find(
-      ({ name, title }) =>
-        pattern.test(title) || pattern.test(name.replaceAll('_', ' ')),
-    );
-    if (match) names[id] = match.name;
-  }
-
-  // Some catalogs publish municipal boundaries in the administrative group.
-  const administrativeGroup = entries.find(({ title }) =>
-    /^dagi\s*[-–]\s*adm(?:\.|inistrative)/i.test(title),
-  );
-  if (!names.municipalBoundaries && administrativeGroup) {
-    names.municipalBoundaries = administrativeGroup.name;
-  }
-
-  return names;
-}
-
 type DataforsyningenMapProps = {
   onRoadLocationConfirm: (location: RoadLocation) => void;
 };
@@ -243,9 +160,11 @@ export function DataforsyningenMap({
     setDrawingRoad,
     status: roadSelectionStatus,
   } = useRoadSelection(mapRef);
-  const [layerCatalog, setLayerCatalog] = useState<ReturnType<
-    typeof readLayerNames
-  > | null>(null);
+  const layersOpen = Boolean(layersAnchor);
+  const { layerCatalog, retry: retryLayerCatalog } =
+    useMapLayerCatalog(layersOpen);
+  const catalog =
+    layerCatalog.status === 'loaded' ? layerCatalog.catalog : undefined;
   const [enabledLayers, setEnabledLayers] = useState<LayerId[]>([
     ...defaultLayers,
   ]);
@@ -266,7 +185,6 @@ export function DataforsyningenMap({
   const helpId = useId();
   const layersId = useId();
   const layersHeadingId = useId();
-  const layersOpen = Boolean(layersAnchor);
   const roadSelectionMessages = {
     zoomIn: t('permit.map.roadSelection.zoomIn'),
     loading: t('permit.map.roadSelection.loading'),
@@ -388,7 +306,7 @@ export function DataforsyningenMap({
 
   useEffect(() => {
     const source = tileLayerRef.current?.getSource();
-    const names = { ...layerCatalog, ...labelLayers };
+    const names = { ...catalog, ...labelLayers };
     const layerNames = [
       baseLayerName,
       ...Object.entries(names)
@@ -403,35 +321,7 @@ export function DataforsyningenMap({
     for (const { id, layer } of roadLayersRef.current) {
       layer.setVisible(enabledLayers.includes(id));
     }
-  }, [enabledLayers, layerCatalog]);
-
-  useEffect(() => {
-    if (!layersOpen || layerCatalog !== null) return;
-
-    const controller = new AbortController();
-    const url = new URL(wmsUrl);
-    url.search = new URLSearchParams({
-      token,
-      SERVICE: 'WMS',
-      VERSION: wmsVersion,
-      REQUEST: 'GetCapabilities',
-    }).toString();
-
-    /** Fetches overlay names on demand and ignores results from cancelled requests. */
-    async function loadLayers() {
-      try {
-        const response = await fetch(url, { signal: controller.signal });
-        if (!response.ok) throw new Error('Could not load WMS layer catalog');
-        const catalog = readLayerNames(await response.text());
-        if (!controller.signal.aborted) setLayerCatalog(catalog);
-      } catch {
-        if (!controller.signal.aborted) setLayerCatalog({});
-      }
-    }
-
-    void loadLayers();
-    return () => controller.abort();
-  }, [layersOpen, layerCatalog]);
+  }, [enabledLayers, catalog]);
 
   useEffect(() => {
     /** Keeps the fullscreen button in sync with the browser's fullscreen state. */
@@ -445,8 +335,7 @@ export function DataforsyningenMap({
 
   /** Renders a toggle and disables it when its layer is absent from the catalog. */
   function renderLayerSwitch({ id, label }: (typeof layerOptions)[number]) {
-    const disabled =
-      id in catalogLayers && !layerCatalog?.[id as CatalogLayerId];
+    const disabled = id in catalogLayers && !catalog?.[id as CatalogLayerId];
 
     return (
       <FormControlLabel
@@ -594,9 +483,7 @@ export function DataforsyningenMap({
                 aria-label={t('permit.map.layers')}
                 color="primary"
                 onClick={(event) => {
-                  if (layerCatalog && !Object.keys(layerCatalog).length) {
-                    setLayerCatalog(null);
-                  }
+                  if (layerCatalog.status === 'failed') retryLayerCatalog();
                   setLayersAnchor(event.currentTarget);
                 }}
                 size="small"
@@ -672,13 +559,27 @@ export function DataforsyningenMap({
               <Typography sx={{ mt: 0.5 }} variant="body2">
                 {t('permit.map.layersZoomHint')}
               </Typography>
-              <Typography role="status" variant="body2">
-                {layerCatalog === null && t('permit.map.layersLoading')}
-                {layerCatalog &&
-                  Object.keys(layerCatalog).length <
-                    Object.keys(catalogLayers).length &&
-                  t('permit.map.layersUnavailable')}
-              </Typography>
+              {layerCatalog.status === 'failed' ? (
+                <Alert severity="error" sx={{ mt: 1 }}>
+                  {t('permit.map.layersLoadError')}
+                  <Button
+                    color="inherit"
+                    onClick={retryLayerCatalog}
+                    sx={{ display: 'block', minHeight: 44, mt: 0.5 }}
+                  >
+                    {t('permit.map.layersRetry')}
+                  </Button>
+                </Alert>
+              ) : (
+                <Typography role="status" variant="body2">
+                  {layerCatalog.status === 'loading' &&
+                    t('permit.map.layersLoading')}
+                  {catalog &&
+                    Object.keys(catalog).length <
+                      Object.keys(catalogLayers).length &&
+                    t('permit.map.layersUnavailable')}
+                </Typography>
+              )}
             </Popover>
           </Box>
         )}
@@ -687,7 +588,7 @@ export function DataforsyningenMap({
           aria-label={t('permit.map.title')}
           hidden={!token}
           onMouseEnter={(event) => {
-            event.currentTarget.focus({preventScroll: true});
+            event.currentTarget.focus({ preventScroll: true });
           }}
           ref={targetRef}
           role="region"

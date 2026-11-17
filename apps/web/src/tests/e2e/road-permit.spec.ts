@@ -228,6 +228,46 @@ test('validates, reviews and submits a road permit against its existing draft', 
   expect((await request.get(draftEndpoint)).status()).toBe(404);
 });
 
+test('recovers the map layer list after a failed request', async ({ page }) => {
+  await mockMapServices(page);
+  const catalog = /[?&]REQUEST=GetCapabilities/;
+  const cors = { 'access-control-allow-origin': '*' };
+  await page.route(catalog, (route) =>
+    route.fulfill({
+      headers: cors,
+      contentType: 'text/xml',
+      body: `<WMS_Capabilities version="1.3.0">
+      <Capability><Layer><CRS>EPSG:3857</CRS><Layer>
+        <Name>MatrikelGeometri</Name><Title>Matrikel geometri</Title>
+      </Layer></Layer></Capability>
+    </WMS_Capabilities>`,
+    }),
+  );
+  await page.route(
+    catalog,
+    (route) => route.fulfill({ status: 503, headers: cors }),
+    { times: 1 },
+  );
+
+  await startDraft(page);
+  await page
+    .getByRole('navigation', { name: 'Application steps' })
+    .getByRole('button', { name: 'Usage details' })
+    .click();
+  await page.getByRole('button', { name: 'Map layers' }).click();
+  const layers = page.getByRole('dialog', { name: 'Map layers' });
+  await expect(layers.getByRole('alert')).toContainText(
+    'The map layer list could not be loaded.',
+  );
+  const parcels = layers.getByRole('switch', { name: 'Cadastral parcels' });
+  await expect(parcels).toBeDisabled();
+  await layers
+    .getByRole('button', { name: 'Retry loading map layers' })
+    .click();
+  await expect(parcels).toBeEnabled();
+  await expect(layers.getByRole('alert')).toBeHidden();
+});
+
 test('locates an address and transfers a drawn road stretch to the form', async ({
   page,
 }) => {

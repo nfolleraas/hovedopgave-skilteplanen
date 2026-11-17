@@ -122,6 +122,8 @@
       "enterFullscreen": "Show the map in full screen",
       "layersZoomHint": "Some layers only appear when you zoom in.",
       "layersLoading": "Loading more map layers…",
+      "layersLoadError": "The map layer list could not be loaded.",
+      "layersRetry": "Retry loading map layers",
       "layersUnavailable": "Some map layers are unavailable.",
       "title": "Map of the area of use",
       "search": {
