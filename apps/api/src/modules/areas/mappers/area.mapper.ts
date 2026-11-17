@@ -25,6 +25,7 @@ export interface AreaResponse {
   houseNumberFrom: string | null;
   houseNumberTo: string | null;
   alternativeDescription: string | null;
+  isManual: boolean;
   roadSection: RoadSection | null;
   roadSectionDescription: string | null;
   roadSide: RoadSide | null;
@@ -45,6 +46,7 @@ export function toAreaResponse(area: AreaWithRelations): AreaResponse {
     houseNumberFrom: area.houseNumberFrom,
     houseNumberTo: area.houseNumberTo,
     alternativeDescription: area.alternativeDescription,
+    isManual: area.isManual,
     roadSection: area.areaDetail?.roadSection ?? null,
     roadSectionDescription: area.areaDetail?.roadSectionDescription ?? null,
     roadSide: area.areaDetail?.roadSide ?? null,

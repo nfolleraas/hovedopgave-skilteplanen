@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
+  IsBoolean,
   IsEnum,
   IsNotEmpty,
   IsNumber,
@@ -128,7 +129,19 @@ export class AreaFieldsDto {
   depthInMeters?: number | null;
 }
 
-export class CreateAreaDto extends AreaFieldsDto {
+/** Fields only set when an area is created. */
+export class AreaCreateFieldsDto extends AreaFieldsDto {
+  @ApiPropertyOptional({
+    default: false,
+    description:
+      'True when the road was typed in manually instead of found on the map.',
+  })
+  @IsOptional()
+  @IsBoolean()
+  isManual?: boolean;
+}
+
+export class CreateAreaDto extends AreaCreateFieldsDto {
   @ApiProperty({
     description: 'Case number of the application the area belongs to.',
     example: 'DEV-GRAVE-1',

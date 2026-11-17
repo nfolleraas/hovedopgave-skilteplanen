@@ -6,6 +6,9 @@ model Area {
   houseNumberTo          String?
   houseNumberFrom        String?
   alternativeDescription String?
+  // True when the applicant typed the road in instead of finding it on the
+  // map. Only manual roads can be renamed (UC-036).
+  isManual               Boolean       @default(false)
   // Optional because event applications only register the road itself.
   areaDetailId           String?       @unique
   areaDetail             AreaDetail?   @relation(fields: [areaDetailId], references: [uuid])

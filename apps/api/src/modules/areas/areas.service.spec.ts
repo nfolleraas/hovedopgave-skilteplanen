@@ -32,6 +32,7 @@ function buildArea(overrides: Record<string, unknown> = {}) {
     houseNumberFrom: null,
     houseNumberTo: null,
     alternativeDescription: null,
+    isManual: false,
     areaDetailId: 'detail-1',
     areaSizeId: 'size-1',
     applicationId: 'APP-1',
@@ -163,9 +164,11 @@ describe('AreasService', () => {
       applicationId: 'APP-1',
       ...road,
       ...completeDetails,
+      isManual: true,
     });
 
     const [[data]] = repository.addMany.mock.calls[0];
+    expect(data.isManual).toBe(true);
     expect(data.areaDetail).toEqual({
       create: {
         roadSection: RoadSection.Pavement,
@@ -200,6 +203,8 @@ describe('AreasService', () => {
 
       const [areas] = repository.addMany.mock.calls[0];
       expect(areas).toHaveLength(2);
+      // Roads from the map step are not manual.
+      expect(areas[0].isManual).toBe(false);
       expect(areas[0]).not.toHaveProperty('areaDetail');
       expect(areas[0]).not.toHaveProperty('areaSize');
     });

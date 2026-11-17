@@ -7,7 +7,11 @@ import {
 import { Prisma } from '../../generated/prisma/client.js';
 import { type ApplicationType, Status } from '../../generated/prisma/enums.js';
 import { type AreaApplication, AreasRepository } from './areas.repository.js';
-import { AreaFieldsDto, CreateAreaDto } from './dto/create-area.dto.js';
+import {
+  AreaCreateFieldsDto,
+  AreaFieldsDto,
+  CreateAreaDto,
+} from './dto/create-area.dto.js';
 import { CreateAreasDto } from './dto/create-areas.dto.js';
 import { UpdateAreaDto } from './dto/update-area.dto.js';
 import {
@@ -201,7 +205,7 @@ export class AreasService {
    */
   private toCreateData(
     application: AreaApplication,
-    fields: AreaFieldsDto,
+    fields: AreaCreateFieldsDto,
   ): Prisma.AreaCreateInput {
     this.assertNoUnusedFields(application.type, fields);
 
@@ -220,6 +224,7 @@ export class AreasService {
       houseNumberFrom: normalizeHouseNumber(fields.houseNumberFrom),
       houseNumberTo: normalizeHouseNumber(fields.houseNumberTo),
       alternativeDescription: fields.alternativeDescription ?? null,
+      isManual: fields.isManual ?? false,
       ...(hasDetails ? this.toDetailCreate(application.type, fields) : {}),
     };
   }
