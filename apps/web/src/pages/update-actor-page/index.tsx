@@ -5,11 +5,12 @@ import {
   Stack,
   Typography,
 } from '@mui/material';
+import type { ReactElement } from 'react';
 import { useParams } from 'react-router';
 import { ActorForm } from '../actors-page/actor-form.js';
 import { useActorsPage } from '../actors-page/actors-page.context.js';
 
-export default function UpdateActorPage() {
+export default function UpdateActorPage(): ReactElement {
   const { uuid } = useParams();
   const { actors, isLoading, loadFailed, retry, cancel, updateActor } =
     useActorsPage();

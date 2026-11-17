@@ -40,6 +40,25 @@ const { createActor, deleteActor, getActors, updateActor } = await import(
 axios.defaults.adapter = originalAdapter;
 
 describe('actor API', () => {
+  it('rejects missing application context before sending a create request', async () => {
+    let requests = 0;
+    respond = () => {
+      requests++;
+      return validActor;
+    };
+    for (const caseNumber of ['', '   ']) {
+      await assert.rejects(
+        createActor(caseNumber, {
+          ...validActor,
+          cvrNumber: undefined,
+          department: undefined,
+        }),
+        /valgt ansøgning/,
+      );
+    }
+    assert.equal(requests, 0);
+  });
+
   it('deletes an actor by uuid through the proxy without a request body', async () => {
     respond = (config) => {
       assert.equal(config.baseURL, '/api');

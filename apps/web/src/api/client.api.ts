@@ -30,12 +30,12 @@ export const apiClient = {
       method: 'GET',
       signal,
     }),
-  post: <T>(path: string, body: unknown) =>
+  post: <T>(path: string, body: unknown): Promise<T> =>
     request<T>(path, {
       method: 'POST',
       data: body,
     }),
-  postForm: <T>(path: string, body: FormData) =>
+  postForm: <T>(path: string, body: FormData): Promise<T> =>
     request<T>(path, {
       method: 'POST',
       data: body,
@@ -43,7 +43,7 @@ export const apiClient = {
         'Content-Type': undefined,
       },
     }),
-  patch: <T>(path: string, body: unknown) =>
+  patch: <T>(path: string, body: unknown): Promise<T> =>
     request<T>(path, {
       method: 'PATCH',
       data: body,

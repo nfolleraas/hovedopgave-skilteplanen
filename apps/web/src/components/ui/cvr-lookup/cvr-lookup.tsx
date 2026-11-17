@@ -1,4 +1,5 @@
 import { Box, Button, TextField } from '@mui/material';
+import type { ReactElement } from 'react';
 
 interface CvrLookupProps {
   value: string;
@@ -20,7 +21,7 @@ export function CvrLookup({
   error,
   onChange,
   onConfirm,
-}: CvrLookupProps) {
+}: CvrLookupProps): ReactElement {
   const canConfirm = !disabled && !loading && /^\d{8}$/.test(value.trim());
 
   return (

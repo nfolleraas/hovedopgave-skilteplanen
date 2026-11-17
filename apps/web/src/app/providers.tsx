@@ -1,5 +1,5 @@
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import type { ReactNode } from 'react';
+import type { ReactElement, ReactNode } from 'react';
 
 const theme = createTheme({
   palette: {
@@ -19,6 +19,6 @@ const theme = createTheme({
   },
 });
 
-export function Providers({ children }: { children: ReactNode }) {
+export function Providers({ children }: { children: ReactNode }): ReactElement {
   return <ThemeProvider theme={theme}>{children}</ThemeProvider>;
 }

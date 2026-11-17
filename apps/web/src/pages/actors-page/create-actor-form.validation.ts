@@ -1,10 +1,13 @@
 import {
   ActorRole,
   type ActorSubmission,
+  actorRoles,
   type CreateActorErrors,
   type CreateActorValues,
 } from './actor.types.js';
-import { actorRoles } from './actor-form.validation.js';
+
+export const eightDigitPattern = /^\d{8}$/;
+export const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function validateCreateActor(
   values: CreateActorValues,
@@ -12,7 +15,7 @@ export function validateCreateActor(
   const errors: CreateActorErrors = {};
   const required: Exclude<keyof CreateActorValues, 'address' | 'addressId'>[] =
     ['role', 'name', 'phoneNumber', 'email'];
-  if (values.role && values.role !== ActorRole.Private) {
+  if (values.role !== ActorRole.Private) {
     required.push('cvrNumber', 'department');
   }
   for (const field of required) {
@@ -28,17 +31,13 @@ export function validateCreateActor(
     errors.address = 'Vælg en adresse fra søgeresultaterne.';
   }
   const digitFields: ('phoneNumber' | 'cvrNumber')[] = ['phoneNumber'];
-  if (values.role && values.role !== ActorRole.Private)
-    digitFields.push('cvrNumber');
+  if (values.role !== ActorRole.Private) digitFields.push('cvrNumber');
   for (const field of digitFields) {
-    if (values[field].trim() && !/^\d{8}$/.test(values[field].trim())) {
+    if (values[field].trim() && !eightDigitPattern.test(values[field].trim())) {
       errors[field] = 'Angiv præcis 8 cifre.';
     }
   }
-  if (
-    values.email.trim() &&
-    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email.trim())
-  ) {
+  if (values.email.trim() && !emailPattern.test(values.email.trim())) {
     errors.email = 'Angiv en gyldig e-mailadresse.';
   }
   return errors;

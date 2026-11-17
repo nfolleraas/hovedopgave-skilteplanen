@@ -11,15 +11,17 @@ import {
   Stack,
   Typography,
 } from '@mui/material';
+import type { ReactElement } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { deleteActor as deleteActorRequest } from '../../api/actors.api.js';
 import { DeleteConfirmationDialog } from '../../components/ui/dialogs/delete-confirmation-dialog.js';
+import { reportError } from '../../lib/report-error.js';
 import type { SavedActor } from './actor.types.js';
 import { useActorsPage } from './actors-page.context.js';
 
-export default function ActorsPage() {
+export default function ActorsPage(): ReactElement {
   const { t } = useTranslation();
   const { actors, setActors, isLoading, loadFailed, retry } = useActorsPage();
   const navigate = useNavigate();
@@ -45,19 +47,19 @@ export default function ActorsPage() {
     }
   }, [deleteDialogExited, isDeleteOpen, isLoading, loadFailed]);
 
-  function openDeleteDialog(actor: SavedActor) {
+  function openDeleteDialog(actor: SavedActor): void {
     setDeleteDialogExited(false);
     setDeleteFailed(false);
     setActorToDelete(actor);
   }
 
-  function closeDeleteDialog() {
+  function closeDeleteDialog(): void {
     if (isDeleting) return;
     setActorToDelete(null);
     setDeleteFailed(false);
   }
 
-  async function deleteActor() {
+  async function deleteActor(): Promise<void> {
     if (!actorToDelete || isDeleting) return;
     setIsDeleting(true);
     setDeleteFailed(false);
@@ -70,7 +72,8 @@ export default function ActorsPage() {
       );
       setActorToDelete(null);
       retry();
-    } catch {
+    } catch (error: unknown) {
+      reportError('Deleting actor failed', error);
       setDeleteFailed(true);
     } finally {
       setIsDeleting(false);

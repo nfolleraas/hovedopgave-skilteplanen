@@ -7,6 +7,7 @@ import {
   DialogTitle,
   Typography,
 } from '@mui/material';
+import type { ReactElement } from 'react';
 import { useId } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -35,7 +36,7 @@ export function DeleteConfirmationDialog({
   onClose,
   onConfirm,
   onExited,
-}: DeleteConfirmationDialogProps) {
+}: DeleteConfirmationDialogProps): ReactElement {
   const { t } = useTranslation();
   const id = useId();
   const titleId = `${id}-title`;

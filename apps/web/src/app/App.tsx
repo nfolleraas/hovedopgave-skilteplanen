@@ -1,4 +1,5 @@
 import { Container, Typography } from '@mui/material';
+import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Route, Routes } from 'react-router';
 import Footer from '../components/layout/footer/footer.js';
@@ -9,7 +10,7 @@ import CreateActorPage from '../pages/create-actor-page/index.js';
 import UpdateActorPage from '../pages/update-actor-page/index.js';
 import { pages, routes } from './router.js';
 
-function NotFoundPage() {
+function NotFoundPage(): ReactElement {
   const { t } = useTranslation();
 
   return (
@@ -23,7 +24,7 @@ function NotFoundPage() {
   );
 }
 
-export default function App() {
+export default function App(): ReactElement {
   return (
     <>
       <a className="skip-link" href="#main-content">

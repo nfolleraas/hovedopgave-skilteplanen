@@ -1,7 +1,16 @@
-import { ActorRole } from '../../../../api/src/generated/prisma/enums.js';
 import type { VerifiedAddress } from '../../api/addresses.api.js';
 
-export { ActorRole };
+// Actor role values in the public API contract, independent of Prisma output.
+export const ActorRole = {
+  Supplier: 'Supplier',
+  Contractor: 'Contractor',
+  NetworkOperator: 'NetworkOperator',
+  ProjectCoordinator: 'ProjectCoordinator',
+  Private: 'Private',
+} as const;
+
+export type ActorRole = (typeof ActorRole)[keyof typeof ActorRole];
+export const actorRoles = Object.values(ActorRole);
 
 export type ApplicationType =
   | 'ExcavationPermit'

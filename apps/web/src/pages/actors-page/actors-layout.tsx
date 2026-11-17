@@ -1,4 +1,5 @@
 import { Box, Container, Stack, Typography } from '@mui/material';
+import type { ReactElement } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { Outlet, useLocation, useNavigate, useParams } from 'react-router';
 import {
@@ -6,10 +7,11 @@ import {
   getActors,
   updateActor as updateActorRequest,
 } from '../../api/actors.api.js';
+import { reportError } from '../../lib/report-error.js';
 import type { ActorSubmission, SavedActor } from './actor.types.js';
 import type { ActorsPageContext } from './actors-page.context.js';
 
-export default function ActorsLayout() {
+export default function ActorsLayout(): ReactElement {
   const navigate = useNavigate();
   const { caseNumber } = useParams();
   const { pathname } = useLocation();
@@ -44,16 +46,20 @@ export default function ActorsLayout() {
     setIsLoading(true);
     setLoadFailed(false);
 
-    getActors(controller.signal)
-      .then((savedActors) => {
+    async function loadActors(): Promise<void> {
+      try {
+        const savedActors = await getActors(controller.signal);
         if (!controller.signal.aborted) setActors(savedActors);
-      })
-      .catch(() => {
-        if (!controller.signal.aborted) setLoadFailed(true);
-      })
-      .finally(() => {
+      } catch (error: unknown) {
+        if (!controller.signal.aborted) {
+          reportError('Loading actors failed', error);
+          setLoadFailed(true);
+        }
+      } finally {
         if (!controller.signal.aborted) setIsLoading(false);
-      });
+      }
+    }
+    void loadActors();
 
     return () => controller.abort();
   }, [loadAttempt]);
@@ -61,14 +67,17 @@ export default function ActorsLayout() {
   async function createActor(
     applicationCaseNumber: string,
     actor: ActorSubmission,
-  ) {
+  ): Promise<void> {
     const saved = await createActorRequest(applicationCaseNumber, actor);
     setActors((current) => [...current, saved]);
     setLoadAttempt((current) => current + 1);
     navigate(basePath);
   }
 
-  async function updateActor(uuid: string, actor: ActorSubmission) {
+  async function updateActor(
+    uuid: string,
+    actor: ActorSubmission,
+  ): Promise<void> {
     const saved = await updateActorRequest(uuid, actor);
     setActors((current) =>
       current.map((existing) => (existing.uuid === uuid ? saved : existing)),

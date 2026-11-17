@@ -1,15 +1,12 @@
-import {
-  type ActorFormErrors,
-  type ActorFormValues,
-  ActorRole,
-  type ApplicationType,
+import type {
+  ActorFormErrors,
+  ActorFormValues,
+  ApplicationType,
 } from './actor.types.js';
 
-export const actorRoles = Object.values(ActorRole);
+import { validateCreateActor } from './create-actor-form.validation.js';
 
 const namePattern = /^[\p{L}]+(?:[ '-][\p{L}]+)*$/u;
-const eightDigitPattern = /^\d{8}$/;
-const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function emptyActorForm(): ActorFormValues {
   return {
@@ -33,47 +30,29 @@ export function validateActorForm(
   draft: ActorFormValues,
   t: (key: string) => string,
   verifiedAddressId: string | null,
-  applicationType?: ApplicationType,
+  _applicationType?: ApplicationType,
 ): ActorFormErrors {
+  const commonErrors = validateCreateActor({
+    ...draft,
+    addressId: verifiedAddressId,
+  });
   const errors: ActorFormErrors = {};
-  if (!draft.role) errors.role = t('actors.errors.role');
+  const messages = {
+    role: 'actors.errors.role',
+    name: 'actors.errors.name',
+    phoneNumber: 'actors.errors.phoneNumber',
+    email: 'actors.errors.email',
+    cvrNumber: 'actors.errors.cvrNumber',
+    department: 'actors.errors.department',
+    address: 'actors.errors.address',
+  } as const;
+  for (const field of Object.keys(messages) as (keyof typeof messages)[]) {
+    if (commonErrors[field]) errors[field] = t(messages[field]);
+  }
+  // Contact details and permit-specific availability remain placeholders until
+  // the contact-person feature branch is merged; they must not block saving.
   if (!namePattern.test(draft.name.trim())) {
     errors.name = t('actors.errors.name');
-  }
-  if (!eightDigitPattern.test(draft.phoneNumber)) {
-    errors.phoneNumber = t('actors.errors.phoneNumber');
-  }
-  if (!emailPattern.test(draft.email.trim())) {
-    errors.email = t('actors.errors.email');
-  }
-  if (draft.role !== ActorRole.Private) {
-    if (!eightDigitPattern.test(draft.cvrNumber)) {
-      errors.cvrNumber = t('actors.errors.cvrNumber');
-    }
-    if (!draft.department.trim()) {
-      errors.department = t('actors.errors.department');
-    }
-    if (!namePattern.test(draft.contactPerson.name.trim())) {
-      errors.contactPersonName = t('actors.errors.contactPersonName');
-    }
-    if (!emailPattern.test(draft.contactPerson.email.trim())) {
-      errors.contactPersonEmail = t('actors.errors.email');
-    }
-    if (!eightDigitPattern.test(draft.contactPerson.phoneNumber)) {
-      errors.contactPersonPhoneNumber = t('actors.errors.phoneNumber');
-    }
-    if (
-      applicationType === 'ExcavationPermit' &&
-      !draft.contactPerson.availability
-    ) {
-      errors.contactAvailability = t('actors.errors.contactAvailability');
-    }
-  }
-  if (
-    !verifiedAddressId ||
-    Object.values(draft.address).some((value) => !value.trim())
-  ) {
-    errors.address = t('actors.errors.address');
   }
   return errors;
 }

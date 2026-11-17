@@ -13,6 +13,6 @@ export type ActorsPageContext = {
   updateActor: (uuid: string, actor: ActorSubmission) => Promise<void>;
 };
 
-export function useActorsPage() {
+export function useActorsPage(): ActorsPageContext {
   return useOutletContext<ActorsPageContext>();
 }

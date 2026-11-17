@@ -74,6 +74,9 @@ export async function createActor(
   caseNumber: string,
   draft: ActorSubmission,
 ): Promise<SavedActor> {
+  if (!caseNumber.trim()) {
+    throw new Error('En aktør skal knyttes til en valgt ansøgning.');
+  }
   const data = await apiClient.post<unknown>('/actors', {
     ...draft,
     applicationCaseNumber: caseNumber,

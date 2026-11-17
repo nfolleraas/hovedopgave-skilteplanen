@@ -7,25 +7,31 @@ import {
   Stack,
   TextField,
 } from '@mui/material';
+import type { ReactElement } from 'react';
 import { type FormEvent, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { VerifiedAddress } from '../../api/addresses.api.js';
 import { lookupCompany } from '../../api/companies.api.js';
 import { AddressSearch } from '../../components/ui/address-search/address-search.js';
 import { CvrLookup } from '../../components/ui/cvr-lookup/cvr-lookup.js';
+import { reportError } from '../../lib/report-error.js';
 import {
   type ActorFormProps,
   ActorRole,
+  actorRoles,
   type CreateActorErrors,
   type CreateActorValues,
 } from './actor.types.js';
-import { actorRoles } from './actor-form.validation.js';
 import {
   toActorSubmission,
   validateCreateActor,
 } from './create-actor-form.validation.js';
 
-export function ActorForm({ initialActor, onCancel, onSave }: ActorFormProps) {
+export function ActorForm({
+  initialActor,
+  onCancel,
+  onSave,
+}: ActorFormProps): ReactElement {
   const { t } = useTranslation();
   const roleLabels: Record<ActorRole, string> = {
     [ActorRole.Supplier]: t('actors.roles.Supplier'),
@@ -72,7 +78,7 @@ export function ActorForm({ initialActor, onCancel, onSave }: ActorFormProps) {
   function change(
     field: Exclude<keyof CreateActorValues, 'address' | 'addressId'>,
     value: string,
-  ) {
+  ): void {
     if (field === 'cvrNumber' || field === 'role') {
       companyController.current?.abort();
       setLookingUpCompany(false);
@@ -83,7 +89,7 @@ export function ActorForm({ initialActor, onCancel, onSave }: ActorFormProps) {
     setErrors((current) => ({ ...current, [field]: undefined }));
   }
 
-  async function confirmCvr() {
+  async function confirmCvr(): Promise<void> {
     if (saving || lookingUpCompany || values.role === ActorRole.Private) return;
     const cvrNumber = values.cvrNumber.trim();
     if (!/^\d{8}$/.test(cvrNumber)) {
@@ -123,8 +129,9 @@ export function ActorForm({ initialActor, onCancel, onSave }: ActorFormProps) {
       setCompanyNotice(
         'Virksomhedens oplysninger er hentet. Kontrollér dem, før du gemmer.',
       );
-    } catch (error) {
+    } catch (error: unknown) {
       if (!controller.signal.aborted) {
+        reportError('Company lookup failed', error);
         setCompanyError(
           error instanceof Error && error.name === 'Error'
             ? error.message
@@ -139,12 +146,12 @@ export function ActorForm({ initialActor, onCancel, onSave }: ActorFormProps) {
   function changeAddress(
     address: VerifiedAddress | null,
     addressId: string | null,
-  ) {
+  ): void {
     setValues((current) => ({ ...current, address, addressId }));
     setErrors((current) => ({ ...current, address: undefined }));
   }
 
-  async function submit(event: FormEvent<HTMLFormElement>) {
+  async function submit(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
     if (saving || lookingUpCompany) return;
     const nextErrors = validateCreateActor(values);
@@ -164,7 +171,8 @@ export function ActorForm({ initialActor, onCancel, onSave }: ActorFormProps) {
     setSaveFailed(false);
     try {
       await onSave(toActorSubmission(values));
-    } catch {
+    } catch (error: unknown) {
+      reportError('Saving actor failed', error);
       setSaveFailed(true);
     } finally {
       setSaving(false);
@@ -175,7 +183,7 @@ export function ActorForm({ initialActor, onCancel, onSave }: ActorFormProps) {
     name: Exclude<keyof CreateActorValues, 'role' | 'address' | 'addressId'>,
     label: string,
     placeholder?: string,
-  ) {
+  ): ReactElement {
     const digits = ['phoneNumber', 'cvrNumber'].includes(name);
     return (
       <TextField

@@ -1,6 +1,7 @@
+import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 
-export default function LoginPage() {
+export default function LoginPage(): ReactElement {
   const { t } = useTranslation();
 
   return (

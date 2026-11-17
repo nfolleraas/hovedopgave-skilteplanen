@@ -1,10 +1,11 @@
 import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import { AppBar, Box, Button, Tab, Tabs, Toolbar } from '@mui/material';
+import type { ReactElement } from 'react';
 import { Link, matchPath, useLocation } from 'react-router';
 import { routes } from '../../../app/router.js';
 
-export default function Navbar() {
+export default function Navbar(): ReactElement {
   const { pathname } = useLocation();
   const navigationItems = [
     { label: 'Dashboard', path: routes.home },

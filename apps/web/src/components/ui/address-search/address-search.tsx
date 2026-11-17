@@ -1,4 +1,5 @@
 import { Autocomplete, TextField } from '@mui/material';
+import type { ReactElement } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -7,6 +8,7 @@ import {
   searchAddresses,
   type VerifiedAddress,
 } from '../../../api/addresses.api.js';
+import { reportError } from '../../../lib/report-error.js';
 
 interface AddressSearchProps {
   disabled?: boolean;
@@ -26,7 +28,7 @@ export function AddressSearch({
   initialAddress,
   initialAddressId,
   onChange,
-}: AddressSearchProps) {
+}: AddressSearchProps): ReactElement {
   const { t } = useTranslation();
   const initialAddressOption = initialAddress
     ? {
@@ -56,8 +58,11 @@ export function AddressSearch({
           controller.signal,
         );
         if (!controller.signal.aborted) setOptions(suggestions);
-      } catch {
-        if (!controller.signal.aborted) setFailed(true);
+      } catch (error: unknown) {
+        if (!controller.signal.aborted) {
+          reportError('Address search failed', error);
+          setFailed(true);
+        }
       } finally {
         if (!controller.signal.aborted) setSearching(false);
       }
@@ -74,7 +79,7 @@ export function AddressSearch({
    * @summary Replace the search text, cancelling pending requests
    * and clearing the previously verified address.
    */
-  function changeQuery(text: string) {
+  function changeQuery(text: string): void {
     searchController.current?.abort();
     lookupController.current?.abort();
     setQuery(text);
@@ -90,7 +95,9 @@ export function AddressSearch({
    * @summary Clear the selection, refine the search, or resolve a house-number
    * suggestion, publishing the address only if its lookup is still current.
    */
-  async function selectAddress(option: AddressSuggestion | null) {
+  async function selectAddress(
+    option: AddressSuggestion | null,
+  ): Promise<void> {
     if (!option) {
       changeQuery('');
       return;
@@ -113,8 +120,11 @@ export function AddressSearch({
     try {
       const address = await lookupAddress(option.id, controller.signal);
       if (!controller.signal.aborted) onChange(address, option.id);
-    } catch {
-      if (!controller.signal.aborted) setFailed(true);
+    } catch (error: unknown) {
+      if (!controller.signal.aborted) {
+        reportError('Address lookup failed', error);
+        setFailed(true);
+      }
     } finally {
       if (!controller.signal.aborted) setResolving(false);
     }

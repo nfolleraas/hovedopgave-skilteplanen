@@ -22,6 +22,18 @@ The [accessibility requirements](accessibility.md) define the minimum standard
 for accessible pages and components, including screen readers, keyboard-only
 navigation, visual accessibility, and clear language for non-technical users.
 
+## Temporary feature placeholders
+
+Until the application feature is merged, actor creation without a case number
+in the route uses the seeded application `DEMO-2026-0001`. An explicit route
+case number takes precedence. The application must exist in the database;
+API errors must still be reported if the seed is missing.
+
+Contact persons are implemented in a separate branch. Actor forms must allow
+saving without contact details or availability, and the active submission
+mapper omits contact-person data. Keep the placeholder shapes until that
+feature is integrated.
+
 ## Common commands
 
 Run these from the repository root:

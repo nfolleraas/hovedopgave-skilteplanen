@@ -76,27 +76,41 @@ describe('UC-040 actor form validation', () => {
     assert.equal(errors.address, 'actors.errors.address');
   });
 
-  it('requires valid contact person details for a business actor', () => {
+  it('does not validate placeholder contact details when saving a business actor', () => {
     const actor = validBusiness();
     actor.contactPerson.name = 'Jane 42';
     actor.contactPerson.email = 'invalid';
     actor.contactPerson.phoneNumber = '1234';
-    const errors = validateActorForm(actor, translate, verifiedAddressId);
-    assert.equal(errors.contactPersonName, 'actors.errors.contactPersonName');
-    assert.equal(errors.contactPersonEmail, 'actors.errors.email');
-    assert.equal(errors.contactPersonPhoneNumber, 'actors.errors.phoneNumber');
+    assert.deepEqual(
+      validateActorForm(actor, translate, verifiedAddressId),
+      {},
+    );
   });
 
-  it('requires availability for an excavation permit', () => {
+  it('allows empty placeholder contact details and availability for excavation permits', () => {
+    const actor = validBusiness();
+    actor.contactPerson = {
+      name: '',
+      email: '',
+      phoneNumber: '',
+      availability: '',
+    };
     const errors = validateActorForm(
-      validBusiness(),
+      actor,
       translate,
       verifiedAddressId,
       'ExcavationPermit',
     );
-    assert.equal(
-      errors.contactAvailability,
-      'actors.errors.contactAvailability',
+    assert.deepEqual(errors, {});
+  });
+
+  it('uses the same trimmed phone and email rules as the active actor form', () => {
+    const actor = validBusiness();
+    actor.phoneNumber = ' 12345678 ';
+    actor.email = ' kontakt@example.dk ';
+    assert.deepEqual(
+      validateActorForm(actor, translate, verifiedAddressId),
+      {},
     );
   });
 });
