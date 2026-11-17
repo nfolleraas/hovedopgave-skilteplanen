@@ -21,29 +21,11 @@
   "common": {
     "brandName": "Skilteplanen"
   },
-  "dialogs": {
-    "deleteConfirmation": {
-      "title": "Bekræft sletning",
-      "description": "Er du sikker på, at du vil slette {{name}}? Handlingen kan ikke fortrydes.",
-      "cancel": "Annuller",
-      "confirm": "Slet",
-      "deleting": "Sletter…"
-    }
-  },
   "actors": {
-    "deleteDescription": "Er du sikker på, at du vil slette {{name}}? Aktørens kontaktpersoner bliver også slettet.",
     "errors": {
-      "delete": "Aktøren kunne ikke slettes. Prøv igen.",
       "addressLookup": "Adressen kunne ikke verificeres. Prøv igen.",
-      "role": "Vælg en rolle.",
       "name": "Navn må kun indeholde bogstaver.",
-      "phoneNumber": "Telefonnummer skal være præcis 8 cifre.",
-      "email": "Indtast en gyldig e-mailadresse.",
-      "cvrNumber": "CVR-nummer skal være præcis 8 cifre.",
-      "department": "Indtast en afdeling.",
-      "contactPersonName": "Kontaktpersonens navn må kun indeholde bogstaver.",
-      "contactAvailability": "Vælg kontaktpersonens tilgængelighed.",
-      "address": "Vælg en adresse fra søgeresultaterne."
+      "delete": "Aktøren kunne ikke slettes. Prøv igen."
     },
     "addressSearching": "Søger efter adresser…",
     "addressSearchHint": "Skriv mindst 3 tegn for at søge.",
@@ -60,7 +42,17 @@
       "ProjectCoordinator": "Projektkoordinator",
       "Private": "Privat"
     },
-    "role": "Rolle"
+    "role": "Rolle",
+    "deleteDescription": "Er du sikker på, at du vil slette {{name}}? Aktørens kontaktpersoner bliver også slettet."
+  },
+  "dialogs": {
+    "deleteConfirmation": {
+      "title": "Bekræft sletning",
+      "description": "Er du sikker på, at du vil slette {{name}}? Handlingen kan ikke fortrydes.",
+      "cancel": "Annuller",
+      "deleting": "Sletter…",
+      "confirm": "Slet"
+    }
   },
   "home": {
     "title": "Ansøgningsplatformen",
