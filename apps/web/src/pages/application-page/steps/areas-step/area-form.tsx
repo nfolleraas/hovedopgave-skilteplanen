@@ -1,4 +1,10 @@
-import { Box, MenuItem, TextField, Typography } from '@mui/material';
+import {
+  Box,
+  FormHelperText,
+  MenuItem,
+  TextField,
+  Typography,
+} from '@mui/material';
 import { type ReactNode, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -194,54 +200,63 @@ export function AreaForm({
         </TextField>
       </Row>
 
-      <Box>
-        {/* Top-aligned, so a taller description box does not move the
-            other fields or the "eller" text. */}
-        <Box
-          sx={{
-            alignItems: 'start',
-            display: 'grid',
-            gap: 2,
-            // The description gets twice the width of a house number field.
-            gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr auto 2fr' },
-          }}
-        >
-          <TextField {...withHint('houseNumberFrom')} />
-          <TextField {...withHint('houseNumberTo')} />
-          <Typography
-            color="text.secondary"
+      {/* Top-aligned, so a taller description box does not move the other
+          fields or the "eller" text. The description gets the same width as
+          both house number fields together. */}
+      <Box
+        sx={{
+          alignItems: 'start',
+          display: 'grid',
+          gap: 2,
+          gridTemplateColumns: {
+            xs: '1fr',
+            sm: 'minmax(0, 2fr) auto minmax(0, 2fr)',
+          },
+        }}
+      >
+        <Box>
+          <Box
             sx={{
-              alignItems: 'center',
-              display: 'flex',
-              // Next to the fields, centred on a single-line input box.
-              height: { sm: singleLineInputHeight },
-              mt: { sm: labelAboveHeight },
+              display: 'grid',
+              gap: 2,
+              gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
             }}
-            variant="body2"
           >
-            {t('areas.or')}
-          </Typography>
-          <TextField
-            {...withHint('alternativeDescription')}
-            minRows={1}
-            multiline
-            sx={{
-              '& textarea': {
-                maxHeight: `calc(${descriptionMaxHeight} - 2 * ${outlinedInputPadding})`,
-                // MUI sets overflow inline while it resizes the box.
-                overflowY: 'auto !important',
-              },
-            }}
-          />
+            <TextField {...withHint('houseNumberFrom')} />
+            <TextField {...withHint('houseNumberTo')} />
+          </Box>
+          {/* Styled as helper text, so it lines up with the character count
+              below the description and sits right under the fields it
+              explains. */}
+          <FormHelperText id={hintId}>
+            {t('areas.houseNumberOrDescriptionHint')}
+          </FormHelperText>
         </Box>
         <Typography
           color="text.secondary"
-          id={hintId}
-          sx={{ mt: 0.5 }}
+          sx={{
+            alignItems: 'center',
+            display: 'flex',
+            // Next to the fields, centred on a single-line input box.
+            height: { sm: singleLineInputHeight },
+            mt: { sm: labelAboveHeight },
+          }}
           variant="body2"
         >
-          {t('areas.houseNumberOrDescriptionHint')}
+          {t('areas.or')}
         </Typography>
+        <TextField
+          {...withHint('alternativeDescription')}
+          minRows={1}
+          multiline
+          sx={{
+            '& textarea': {
+              maxHeight: `calc(${descriptionMaxHeight} - 2 * ${outlinedInputPadding})`,
+              // MUI sets overflow inline while it resizes the box.
+              overflowY: 'auto !important',
+            },
+          }}
+        />
       </Box>
 
       <Row>
