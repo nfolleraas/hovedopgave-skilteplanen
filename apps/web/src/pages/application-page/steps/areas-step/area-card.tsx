@@ -48,6 +48,8 @@ interface AreaCardProps {
   fieldSet: AreaFieldSet;
   draft: AreaFormValues | null;
   errors: AreaFieldErrors;
+  /** True after the user tried to save, so every error is shown. */
+  showAllErrors: boolean;
   isSaving: boolean;
   saveError: string | null;
   onEdit: () => void;
@@ -70,6 +72,7 @@ export function AreaCard({
   fieldSet,
   draft,
   errors,
+  showAllErrors,
   isSaving,
   saveError,
   onEdit,
@@ -194,6 +197,7 @@ export function AreaCard({
             idPrefix={`area-${areaKey}`}
             onChange={onChange}
             roadEditable={roadEditable}
+            showAllErrors={showAllErrors}
             values={draft}
           />
           {saveError && (

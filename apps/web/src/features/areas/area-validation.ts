@@ -45,13 +45,40 @@ export type AreaFieldError =
 
 export type AreaFieldErrors = Partial<Record<AreaFormField, AreaFieldError>>;
 
-/** Parses a number typed with either a Danish comma or a point. */
+/**
+ * Errors about the format of a value, which are shown as soon as the user
+ * leaves the field. Missing values are only shown when the user saves.
+ */
+export const formatErrors: readonly AreaFieldError[] = [
+  'positiveNumber',
+  'postalCode',
+];
+
+/**
+ * Maximum text lengths. They mirror the `@MaxLength` limits in
+ * apps/api/src/modules/areas/dto/create-area.dto.ts, so the form stops the
+ * user before the API would reject the request.
+ */
+export const areaTextMaxLengths = {
+  roadName: 200,
+  houseNumberFrom: 20,
+  houseNumberTo: 20,
+  alternativeDescription: 500,
+  roadSectionDescription: 200,
+} as const satisfies Partial<Record<AreaFormField, number>>;
+
+// Danish number format: a comma is the decimal mark and a point separates
+// thousands, e.g. `0,6`, `1000` or `1.000,5`. A point is not a decimal mark,
+// so `1.5` is rejected instead of being read as 15 or 1.5.
+const danishNumberPattern = /^(\d+|\d{1,3}(\.\d{3})+)(,\d+)?$/;
+
+/** Parses a number typed in Danish format, or undefined if it is not one. */
 export function parseDecimal(value: string): number | undefined {
-  const normalized = value.trim().replace(',', '.');
-  if (!/^\d+(\.\d+)?$/.test(normalized)) {
+  const trimmed = value.trim();
+  if (!danishNumberPattern.test(trimmed)) {
     return undefined;
   }
-  return Number(normalized);
+  return Number(trimmed.replaceAll('.', '').replace(',', '.'));
 }
 
 /** Area in m² = length × width, or undefined until both are valid. */
@@ -95,8 +122,9 @@ function checkPositive(
 }
 
 /**
- * Finds missing or invalid fields. Road fields are only checked for areas
- * that were entered manually (UC-034 A3).
+ * Finds missing or invalid fields. Road name and postal code are only
+ * checked for areas that were entered manually (UC-034 A3). The road status
+ * is checked for every area, because the applicant always chooses it.
  */
 export function validateArea(
   type: ApplicationType,
@@ -107,13 +135,14 @@ export function validateArea(
 
   if (options.includeRoad) {
     if (!hasText(values.roadName)) errors.roadName = 'required';
-    if (!values.roadOwnership) errors.roadOwnership = 'required';
     if (!/^\d{4}$/.test(values.postalCode.trim())) {
       errors.postalCode = hasText(values.postalCode)
         ? 'postalCode'
         : 'required';
     }
   }
+
+  if (!values.roadOwnership) errors.roadOwnership = 'required';
 
   const fieldSet = getAreaFieldSet(type);
 
@@ -163,6 +192,7 @@ export const emptyAreaFormValues: AreaFormValues = {
   depthInMeters: '',
 };
 
+/** Shows a saved number in the same format the user types it, e.g. `0,6`. */
 function formatNumber(value: number | null): string {
   return value === null ? '' : String(value).replace('.', ',');
 }
@@ -191,8 +221,8 @@ function textOrNull(value: string): string | null {
 }
 
 /**
- * Builds the request body. Only sends fields the application type uses,
- * and road fields only for manually entered roads.
+ * Builds the request body. Only sends fields the application type uses, and
+ * road name and postal code only for manually entered roads.
  */
 export function toAreaInput(
   type: ApplicationType,
@@ -203,9 +233,9 @@ export function toAreaInput(
 
   if (options.includeRoad) {
     input.roadName = values.roadName.trim();
-    if (values.roadOwnership) input.roadOwnership = values.roadOwnership;
     input.postalCode = values.postalCode.trim();
   }
+  if (values.roadOwnership) input.roadOwnership = values.roadOwnership;
 
   const fieldSet = getAreaFieldSet(type);
   input.houseNumberFrom = textOrNull(values.houseNumberFrom);

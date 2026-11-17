@@ -130,6 +130,16 @@ describe('fields per application type', () => {
     });
   });
 
+  test('every area needs a road status, also a searched road', () => {
+    expect(
+      validateArea(
+        ApplicationType.ExcavationPermit,
+        { ...complete, roadOwnership: '' },
+        searched,
+      ),
+    ).toEqual({ roadOwnership: 'required' });
+  });
+
   test('road element Other needs a description', () => {
     const values = { ...complete, roadSection: 'Other' as const };
     expect(
@@ -141,8 +151,16 @@ describe('fields per application type', () => {
 describe('area calculation', () => {
   test('parses Danish decimal commas', () => {
     expect(parseDecimal('0,6')).toBe(0.6);
-    expect(parseDecimal('1.2')).toBe(1.2);
+    expect(parseDecimal(' 18 ')).toBe(18);
     expect(parseDecimal('1,2,3')).toBeUndefined();
+  });
+
+  test('a point separates thousands and is not a decimal mark', () => {
+    expect(parseDecimal('1.000')).toBe(1000);
+    expect(parseDecimal('1.000,5')).toBe(1000.5);
+    expect(parseDecimal('12.345.678')).toBe(12345678);
+    expect(parseDecimal('1.5')).toBeUndefined();
+    expect(parseDecimal('1000.000,5')).toBeUndefined();
   });
 
   test('area is length times width with one decimal and a comma', () => {
@@ -204,10 +222,11 @@ test('a saved area becomes form text with Danish decimal commas (UC-036)', () =>
 });
 
 describe('request body', () => {
-  test('a searched road only sends the details', () => {
+  test('a searched road sends the road status and the details', () => {
     expect(
       toAreaInput(ApplicationType.ExcavationPermit, complete, searched),
     ).toEqual({
+      roadOwnership: 'Municipality',
       houseNumberFrom: '10',
       houseNumberTo: '24',
       alternativeDescription: null,

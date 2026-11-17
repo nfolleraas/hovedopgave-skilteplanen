@@ -122,7 +122,8 @@ export function AreasStep({
   }
 
   // Areas start collapsed. A form only opens through "Redigér" or
-  // "Indtast vej manuelt", and the page closes it when the step is left.
+  // "Indtast vej manuelt", and it closes again after "Gem område",
+  // "Annuller", or when the step is left.
 
   useEffect(() => {
     if (showSummary) summaryRef.current?.focus();
@@ -167,8 +168,9 @@ export function AreasStep({
         ? await updateArea(active.saved.uuid, input)
         : await createArea(application.caseNumber, input);
       dispatch({ type: 'saved', key: active.key, area });
-      // A new area gets a new key, so its card and Save button are replaced.
-      if (manageFocus) setFocusId(areaCardIds.title(area.uuid));
+      // The saved area collapses and a new area gets a new key, so focus
+      // moves to the area's Edit button, where the user can continue.
+      if (manageFocus) setFocusId(areaCardIds.edit(area.uuid));
       setNotice({
         severity: 'success',
         message: t('areas.saved', { area: titleFor(active) }),
@@ -338,7 +340,7 @@ export function AreasStep({
               canEditApplication={canEdit}
               details={entry.saved ?? null}
               draft={isExpanded ? state.draft : null}
-              errors={isExpanded && state.showErrors ? errorsFor(entry) : {}}
+              errors={isExpanded ? errorsFor(entry) : {}}
               fieldSet={fieldSet}
               isExpanded={isExpanded}
               isMissingFields={Object.keys(savedErrorsFor(entry)).length > 0}
@@ -347,8 +349,10 @@ export function AreasStep({
               number={index + 1}
               onCancel={() => {
                 setSaveError(null);
-                // A new, unsaved area disappears when cancelled.
-                if (!entry.saved) focusAfterRemoving(entry.key);
+                // The area collapses, so focus returns to its Edit button. A
+                // new, unsaved area disappears.
+                if (entry.saved) setFocusId(areaCardIds.edit(entry.key));
+                else focusAfterRemoving(entry.key);
                 dispatch({ type: 'cancel' });
               }}
               onChange={(field, value) =>
@@ -370,6 +374,7 @@ export function AreasStep({
               }
               roadOwnership={entry.saved?.roadOwnership ?? ''}
               saveError={isExpanded ? saveError : null}
+              showAllErrors={state.showErrors}
             />
           );
         })}

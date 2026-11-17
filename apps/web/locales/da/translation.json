@@ -370,7 +370,7 @@
     },
     "errors": {
       "required": "Skal udfyldes",
-      "positiveNumber": "Skal være et tal større end 0",
+      "positiveNumber": "Skal være et tal større end 0. Brug komma til decimaler, fx 0,6",
       "postalCode": "Skal være 4 cifre",
       "houseNumberOrDescription": "Udfyld husnr. fra og til eller en alternativ beskrivelse"
     },
@@ -402,7 +402,8 @@
         "ExcavationPermit": "Gravetilladelse",
         "RoadUsePermit": "Råden over vejareal"
       }
-    }
+    },
+    "characterCount": "{{length}} af {{max}} tegn"
   },
   "mapStep": {
     "mapPlaceholder": "Interaktivt kort kommer senere",

@@ -72,7 +72,7 @@ describe('create area (UC-034)', () => {
     });
     const saved = state.entries.find((entry) => entry.key === 'a3');
     expect(saved?.source).toBe('manual');
-    expect(state.activeKey).toBe('a3');
+    expect(state.activeKey).toBeNull();
   });
 
   test('cancelling an unsaved manual area removes it', () => {
@@ -105,7 +105,7 @@ describe('update area (UC-036)', () => {
     expect(isDirty(state)).toBe(false);
   });
 
-  test('Annuller restores the saved values', () => {
+  test('Annuller discards the changes and collapses the area', () => {
     let state = areaEditReducer(loaded(), { type: 'open', key: 'a1' });
     state = areaEditReducer(state, {
       type: 'change',
@@ -115,8 +115,12 @@ describe('update area (UC-036)', () => {
     expect(isDirty(state)).toBe(true);
 
     state = areaEditReducer(state, { type: 'cancel' });
-    expect(state.draft?.lengthInMeters).toBe('18');
+    expect(state.activeKey).toBeNull();
+    expect(state.draft).toBeNull();
     expect(isDirty(state)).toBe(false);
+
+    state = areaEditReducer(state, { type: 'open', key: 'a1' });
+    expect(state.draft?.lengthInMeters).toBe('18');
   });
 
   test('opening another area with unsaved changes asks first', () => {
@@ -135,7 +139,7 @@ describe('update area (UC-036)', () => {
     expect(state.draft?.roadName).toBe('Havnegade');
   });
 
-  test('a saved area stays open and is no longer dirty', () => {
+  test('a saved area collapses and keeps the saved values', () => {
     let state = areaEditReducer(loaded(), { type: 'open', key: 'a1' });
     state = areaEditReducer(state, {
       type: 'change',
@@ -148,9 +152,27 @@ describe('update area (UC-036)', () => {
       area: buildArea('a1', { lengthInMeters: 25 }),
     });
 
-    expect(state.activeKey).toBe('a1');
-    expect(state.draft?.lengthInMeters).toBe('25');
+    expect(state.activeKey).toBeNull();
     expect(isDirty(state)).toBe(false);
+    expect(state.entries[0].saved?.lengthInMeters).toBe(25);
+  });
+
+  test('saving from the unsaved changes dialog opens the chosen area', () => {
+    let state = areaEditReducer(loaded(), { type: 'open', key: 'a1' });
+    state = areaEditReducer(state, {
+      type: 'change',
+      field: 'lengthInMeters',
+      value: '25',
+    });
+    state = areaEditReducer(state, { type: 'open', key: 'a2' });
+    state = areaEditReducer(state, {
+      type: 'saved',
+      key: 'a1',
+      area: buildArea('a1', { lengthInMeters: 25 }),
+    });
+
+    expect(state.activeKey).toBe('a2');
+    expect(state.pendingKey).toBeNull();
   });
 });
 

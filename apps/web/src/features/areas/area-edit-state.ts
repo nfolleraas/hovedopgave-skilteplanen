@@ -5,7 +5,11 @@ import type {
 } from '../../types/area.types.js';
 import { emptyAreaFormValues, toAreaFormValues } from './area-validation.js';
 
-/** Where the road came from. Searched roads cannot be renamed (UC-036). */
+/**
+ * Where the road came from. Searched roads cannot be renamed (UC-036). The
+ * source is only known in the session that created the area, because the
+ * database does not store it, so areas loaded from the API count as searched.
+ */
 export type AreaSource = 'search' | 'manual';
 
 export interface AreaEntry {
@@ -164,11 +168,9 @@ export function areaEditReducer(
       if (!active) {
         return state;
       }
-      // A manual area that was never saved disappears on cancel.
-      if (!active.saved) {
-        return open(dropUnsavedActive(state), null);
-      }
-      return open(state, active.key);
+      // Cancelling discards the changes and collapses the area. A manual
+      // area that was never saved disappears.
+      return open(dropUnsavedActive(state), null);
     }
     case 'close':
       // Used when the step is left. Unsaved input is kept, but an untouched
@@ -186,7 +188,8 @@ export function areaEditReducer(
           : entry,
       );
       const next = { ...state, entries, activeKey: action.area.uuid };
-      return open(next, state.pendingKey ?? action.area.uuid);
+      // A saved area collapses, unless the user chose another area to open.
+      return open(next, state.pendingKey);
     }
     case 'removed': {
       const entries = state.entries.filter((entry) => entry.key !== action.key);

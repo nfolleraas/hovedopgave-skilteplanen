@@ -370,7 +370,7 @@
     },
     "errors": {
       "required": "Required",
-      "positiveNumber": "Must be a number greater than 0",
+      "positiveNumber": "Must be a number greater than 0. Use a comma for decimals, e.g. 0,6",
       "postalCode": "Must be 4 digits",
       "houseNumberOrDescription": "Fill in house number from and to or an alternative description"
     },
@@ -402,7 +402,8 @@
         "ExcavationPermit": "Excavation permit",
         "RoadUsePermit": "Road use permit"
       }
-    }
+    },
+    "characterCount": "{{length}} of {{max}} characters"
   },
   "mapStep": {
     "mapPlaceholder": "Interactive map coming later",
