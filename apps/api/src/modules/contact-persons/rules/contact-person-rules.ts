@@ -47,12 +47,38 @@ export function canEditContactPersons(status: Status): boolean {
   return editableStatuses.includes(status);
 }
 
+/**
+ * An application must keep at least one contact person, so the last one
+ * cannot be deleted (UC-032 F1, UC-004 F7).
+ */
+export function canDeleteContactPerson(contactPersonCount: number): boolean {
+  return contactPersonCount > 1;
+}
+
 function hasText(value: string | null | undefined): boolean {
   return typeof value === 'string' && value.trim().length > 0;
 }
 
-/** Matches text, an @, text, a dot and text, e.g. `navn@firma.dk`. */
-const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+/**
+ * Text, an @ and a domain with at least one dot, e.g. `navn@firma.dk`. The
+ * domain cannot have empty parts, so `navn@firma..dk` and `navn@firma.dk.`
+ * are rejected. The web app uses the same pattern.
+ */
+const emailPattern = /^[^\s@]+@[^\s@.]+(\.[^\s@.]+)+$/;
+
+/**
+ * Removes spaces around the name and email, so `" Jens "` is saved as
+ * `"Jens"` and a name of only spaces counts as missing. Fields that are not
+ * in the input stay out of the result.
+ */
+export function trimContactPersonText<T extends ContactPersonRuleInput>(
+  input: T,
+): T {
+  const result = { ...input };
+  if (typeof result.name === 'string') result.name = result.name.trim();
+  if (typeof result.email === 'string') result.email = result.email.trim();
+  return result;
+}
 
 const phonePattern = /^\d{8}$/;
 

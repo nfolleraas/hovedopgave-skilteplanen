@@ -65,6 +65,7 @@ describe('ContactPersonsService', () => {
     getById: ReturnType<typeof vi.fn>;
     update: ReturnType<typeof vi.fn>;
     delete: ReturnType<typeof vi.fn>;
+    countByApplication: ReturnType<typeof vi.fn>;
     getApplication: ReturnType<typeof vi.fn>;
     getActorsByApplication: ReturnType<typeof vi.fn>;
     getActorOnApplication: ReturnType<typeof vi.fn>;
@@ -77,6 +78,7 @@ describe('ContactPersonsService', () => {
       getById: vi.fn(),
       update: vi.fn(),
       delete: vi.fn(),
+      countByApplication: vi.fn(),
       getApplication: vi.fn(),
       getActorsByApplication: vi.fn().mockResolvedValue([actor]),
       getActorOnApplication: vi.fn().mockResolvedValue(actor),
@@ -152,6 +154,35 @@ describe('ContactPersonsService', () => {
         email: 'jens@example.com',
       });
       expect(result.availability).toBe(Availability.Evening);
+    });
+
+    it('removes spaces around the name and email before saving', async () => {
+      repository.getApplication.mockResolvedValue(buildApplication());
+      repository.add.mockResolvedValue(buildContactPerson());
+
+      await service.create({
+        ...createDto,
+        name: '  Jens Jensen ',
+        email: ' jens@example.com  ',
+      });
+
+      expect(repository.add).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Jens Jensen',
+          email: 'jens@example.com',
+        }),
+      );
+    });
+
+    it('rejects a name of only spaces (UC-031 F1)', async () => {
+      repository.getApplication.mockResolvedValue(buildApplication());
+
+      await expect(
+        service.create({ ...createDto, name: '   ' }),
+      ).rejects.toMatchObject({
+        response: { code: 'CONTACT_PERSON_INVALID', invalidFields: ['name'] },
+      });
+      expect(repository.add).not.toHaveBeenCalled();
     });
 
     it('sets availability to Day for road use applications (UC-031 A1)', async () => {
@@ -240,6 +271,18 @@ describe('ContactPersonsService', () => {
       expect(result.name).toBe('Ny Kontakt');
     });
 
+    it('removes spaces around an updated name', async () => {
+      repository.getById.mockResolvedValue(buildContactPerson());
+      repository.update.mockResolvedValue(buildContactPerson());
+
+      await service.update('contact-1', { name: ' Ny Kontakt ' });
+
+      expect(repository.update).toHaveBeenCalledWith(
+        'contact-1',
+        expect.objectContaining({ name: 'Ny Kontakt' }),
+      );
+    });
+
     it('keeps saved fields that are not part of the update', async () => {
       repository.getById.mockResolvedValue(
         buildContactPerson({ availability: Availability.Night }),
@@ -299,11 +342,22 @@ describe('ContactPersonsService', () => {
   describe('remove (UC-032)', () => {
     it('deletes the contact person', async () => {
       repository.getById.mockResolvedValue(buildContactPerson());
+      repository.countByApplication.mockResolvedValue(2);
       repository.delete.mockResolvedValue(buildContactPerson());
 
       await service.remove('contact-1');
 
       expect(repository.delete).toHaveBeenCalledWith('contact-1');
+    });
+
+    it('does not delete the last contact person (UC-032 F1)', async () => {
+      repository.getById.mockResolvedValue(buildContactPerson());
+      repository.countByApplication.mockResolvedValue(1);
+
+      await expect(service.remove('contact-1')).rejects.toMatchObject({
+        response: { code: 'LAST_CONTACT_PERSON' },
+      });
+      expect(repository.delete).not.toHaveBeenCalled();
     });
 
     it('rejects a missing contact person', async () => {

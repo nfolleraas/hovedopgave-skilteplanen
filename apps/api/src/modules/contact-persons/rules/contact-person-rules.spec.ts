@@ -4,9 +4,11 @@ import {
   Status,
 } from '../../../generated/prisma/enums.js';
 import {
+  canDeleteContactPerson,
   canEditContactPersons,
   findInvalidContactPersonFields,
   getContactPersonFieldSet,
+  trimContactPersonText,
 } from './contact-person-rules.js';
 
 const completeInput = {
@@ -43,6 +45,27 @@ describe('canEditContactPersons', () => {
     expect(canEditContactPersons(Status.InProgress)).toBe(false);
     expect(canEditContactPersons(Status.Approved)).toBe(false);
     expect(canEditContactPersons(Status.Rejected)).toBe(false);
+  });
+});
+
+describe('trimContactPersonText', () => {
+  it('removes spaces around the name and email', () => {
+    expect(
+      trimContactPersonText({ name: '  Jens  ', email: ' jens@firma.dk ' }),
+    ).toEqual({ name: 'Jens', email: 'jens@firma.dk' });
+  });
+
+  it('leaves out fields that were not sent', () => {
+    expect(trimContactPersonText({ phoneNumber: '12345678' })).toEqual({
+      phoneNumber: '12345678',
+    });
+  });
+});
+
+describe('canDeleteContactPerson', () => {
+  it('keeps the last contact person on the application (UC-032 F1)', () => {
+    expect(canDeleteContactPerson(1)).toBe(false);
+    expect(canDeleteContactPerson(2)).toBe(true);
   });
 });
 
@@ -95,7 +118,16 @@ describe('findInvalidContactPersonFields', () => {
   });
 
   it('requires a valid email format (UC-031 F4)', () => {
-    for (const email of ['', 'jens', 'jens@firma', 'jens firma@a.dk']) {
+    for (const email of [
+      '',
+      'jens',
+      'jens@firma',
+      'jens firma@a.dk',
+      'jens@@firma.dk',
+      'jens@firma..dk',
+      'jens@firma.dk.',
+      'jens@.dk',
+    ]) {
       expect(
         findInvalidContactPersonFields(ApplicationType.ExcavationPermit, {
           ...completeInput,
@@ -109,5 +141,22 @@ describe('findInvalidContactPersonFields', () => {
     expect(
       findInvalidContactPersonFields(ApplicationType.ExcavationPermit, {}),
     ).toEqual(['name', 'availability', 'phoneNumber', 'email']);
+  });
+});
+
+describe('email format', () => {
+  it('accepts ordinary addresses', () => {
+    for (const email of [
+      'jens@firma.dk',
+      'jens.jensen@firma.co.uk',
+      'jens+test@sub.firma.dk',
+    ]) {
+      expect(
+        findInvalidContactPersonFields(ApplicationType.ExcavationPermit, {
+          ...completeInput,
+          email,
+        }),
+      ).toEqual([]);
+    }
   });
 });

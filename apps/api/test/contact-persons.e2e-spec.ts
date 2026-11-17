@@ -186,6 +186,19 @@ describe('/api/contact-persons (e2e)', () => {
       availability: 'Evening',
     });
 
+    // The last contact person cannot be deleted (UC-032 F1).
+    await request(app.getHttpServer())
+      .delete(`/api/contact-persons/${contact.uuid}`)
+      .expect(400)
+      .expect(({ body }) => {
+        expect(body.code).toBe('LAST_CONTACT_PERSON');
+      });
+
+    await post({
+      applicationId: caseNumber,
+      actorId: actor.uuid,
+      ...validContact,
+    }).expect(201);
     await request(app.getHttpServer())
       .delete(`/api/contact-persons/${contact.uuid}`)
       .expect(204);
@@ -218,6 +231,23 @@ describe('/api/contact-persons (e2e)', () => {
     );
     expect(actorIds.filter((id: string) => id === actor.uuid)).toHaveLength(2);
     expect(actorIds).toContain(secondActor.uuid);
+  });
+
+  it('removes spaces around the name and email', async () => {
+    const { caseNumber, actor } = await createApplication('trim');
+
+    const response = await post({
+      applicationId: caseNumber,
+      actorId: actor.uuid,
+      ...validContact,
+      name: '  Jens Jensen ',
+      email: ' jens@example.com  ',
+    }).expect(201);
+
+    expect(response.body).toMatchObject({
+      name: 'Jens Jensen',
+      email: 'jens@example.com',
+    });
   });
 
   it('rejects an actor that is not on the application', async () => {

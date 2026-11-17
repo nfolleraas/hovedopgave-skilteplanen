@@ -42,6 +42,10 @@ export class ContactPersonsRepository {
     });
   }
 
+  async countByApplication(applicationId: string): Promise<number> {
+    return await this.prisma.contactPerson.count({ where: { applicationId } });
+  }
+
   async update(
     uuid: string,
     updatedContactPerson: Prisma.ContactPersonUpdateInput,

@@ -26,10 +26,12 @@ import {
 } from './mappers/contact-person.mapper.js';
 import {
   type ContactPersonRuleInput,
+  canDeleteContactPerson,
   canEditContactPersons,
   defaultAvailability,
   findInvalidContactPersonFields,
   getContactPersonFieldSet,
+  trimContactPersonText,
 } from './rules/contact-person-rules.js';
 
 export interface ApplicationContactPersons {
@@ -70,15 +72,16 @@ export class ContactPersonsService {
     await this.assertActorOnApplication(dto.actorId, application.caseNumber);
     this.assertNoUnusedFields(application.type, dto);
 
-    const input = this.withResolvedAvailability(application.type, dto);
+    const fields = trimContactPersonText(dto);
+    const input = this.withResolvedAvailability(application.type, fields);
     this.assertValid(application.type, input);
 
     const created = await this.contactPersons.add({
       application: { connect: { caseNumber: application.caseNumber } },
       actor: { connect: { uuid: dto.actorId } },
-      name: dto.name,
-      phoneNumber: dto.phoneNumber,
-      email: dto.email,
+      name: fields.name,
+      phoneNumber: fields.phoneNumber,
+      email: fields.email,
       // assertValid has already checked that a value is present.
       availability: input.availability as Availability,
     });
@@ -95,21 +98,22 @@ export class ContactPersonsService {
     this.assertEditable(application);
     this.assertNoUnusedFields(application.type, dto);
 
+    const changes = trimContactPersonText(stripUndefined(dto));
     const merged = this.withResolvedAvailability(application.type, {
       name: existing.name,
       availability: existing.availability,
       phoneNumber: existing.phoneNumber,
       email: existing.email,
-      ...stripUndefined(dto),
+      ...changes,
     });
     this.assertValid(application.type, merged);
 
     const updated = await this.contactPersons.update(id, {
-      name: dto.name,
+      name: changes.name,
       // assertValid has already checked that a value is present.
       availability: merged.availability as Availability,
-      phoneNumber: dto.phoneNumber,
-      email: dto.email,
+      phoneNumber: changes.phoneNumber,
+      email: changes.email,
     });
 
     return toContactPersonResponse(updated);
@@ -120,9 +124,20 @@ export class ContactPersonsService {
     const contactPerson = await this.getContactPerson(id);
     this.assertEditable(contactPerson.application);
 
-    // TODO(UC-032 F1): log a failed delete once a log service exists. For
+    const count = await this.contactPersons.countByApplication(
+      contactPerson.applicationId,
+    );
+    if (!canDeleteContactPerson(count)) {
+      throw new BadRequestException({
+        code: 'LAST_CONTACT_PERSON',
+        message: 'An application must have at least one contact person.',
+      });
+    }
+
+    // TODO(UC-032 F4): log a failed delete once a log service exists. For
     // now the error reaches the client, which shows UC-032's error message.
     await this.contactPersons.delete(id);
+    // TODO(UC-032 postcondition): log the deletion once a log service exists.
   }
 
   /** UC-031 starts from an actor on the application (UC-040 step 7). */
