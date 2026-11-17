@@ -11,6 +11,8 @@ import { type FormEvent, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { VerifiedAddress } from '../../api/addresses.api.js';
 import { lookupCompany } from '../../api/companies.api.js';
+import { AddressSearch } from '../../components/ui/address-search/address-search.js';
+import { CvrLookup } from '../../components/ui/cvr-lookup/cvr-lookup.js';
 import {
   type ActorFormProps,
   ActorRole,
@@ -18,12 +20,10 @@ import {
   type CreateActorValues,
 } from './actor.types.js';
 import { actorRoles } from './actor-form.validation.js';
-import { AddressSearch } from './address-search.js';
 import {
   toActorSubmission,
   validateCreateActor,
 } from './create-actor-form.validation.js';
-import { CvrLookup } from './cvr-lookup.js';
 
 export function ActorForm({ initialActor, onCancel, onSave }: ActorFormProps) {
   const { t } = useTranslation();

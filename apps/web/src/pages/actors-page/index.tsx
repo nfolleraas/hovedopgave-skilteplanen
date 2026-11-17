@@ -5,10 +5,6 @@ import {
   Alert,
   Button,
   CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
   Divider,
   IconButton,
   Paper,
@@ -16,12 +12,15 @@ import {
   Typography,
 } from '@mui/material';
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { deleteActor as deleteActorRequest } from '../../api/actors.api.js';
+import { DeleteConfirmationDialog } from '../../components/ui/dialogs/delete-confirmation-dialog.js';
 import type { SavedActor } from './actor.types.js';
 import { useActorsPage } from './actors-page.context.js';
 
 export default function ActorsPage() {
+  const { t } = useTranslation();
   const { actors, setActors, isLoading, loadFailed, retry } = useActorsPage();
   const navigate = useNavigate();
   const [actorToDelete, setActorToDelete] = useState<SavedActor | null>(null);
@@ -195,45 +194,18 @@ export default function ActorsPage() {
           </Button>
         </Stack>
       </Paper>
-      <Dialog
-        aria-describedby="delete-actor-description"
-        aria-labelledby="delete-actor-title"
+      <DeleteConfirmationDialog
+        description={t('actors.deleteDescription', {
+          name: actorToDelete?.name ?? '',
+        })}
+        error={deleteFailed ? t('actors.errors.delete') : undefined}
+        isDeleting={isDeleting}
+        name={actorToDelete?.name ?? ''}
         onClose={closeDeleteDialog}
+        onConfirm={deleteActor}
+        onExited={() => setDeleteDialogExited(true)}
         open={isDeleteOpen}
-        slotProps={{
-          transition: { onExited: () => setDeleteDialogExited(true) },
-        }}
-      >
-        <DialogTitle id="delete-actor-title">Slet aktør?</DialogTitle>
-        <DialogContent aria-busy={isDeleting}>
-          {deleteFailed && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              Aktøren kunne ikke slettes. Prøv igen.
-            </Alert>
-          )}
-          <Typography
-            color="text.secondary"
-            id="delete-actor-description"
-            sx={{ overflowWrap: 'anywhere' }}
-          >
-            Er du sikker på, at du vil slette {actorToDelete?.name}? Aktørens
-            kontaktpersoner bliver også slettet.
-          </Typography>
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button autoFocus disabled={isDeleting} onClick={closeDeleteDialog}>
-            Annuller
-          </Button>
-          <Button
-            color="error"
-            disabled={isDeleting}
-            onClick={deleteActor}
-            variant="contained"
-          >
-            {isDeleting ? 'Sletter…' : 'Slet'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      />
     </>
   );
 }

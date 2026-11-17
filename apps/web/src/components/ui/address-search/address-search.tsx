@@ -5,8 +5,16 @@ import {
   type AddressSuggestion,
   lookupAddress,
   searchAddresses,
-} from '../../api/addresses.api.js';
-import type { AddressSearchProps } from './actor.types.js';
+  type VerifiedAddress,
+} from '../../../api/addresses.api.js';
+
+interface AddressSearchProps {
+  disabled?: boolean;
+  error?: string;
+  initialAddress?: VerifiedAddress;
+  initialAddressId?: string;
+  onChange: (address: VerifiedAddress | null, id: string | null) => void;
+}
 
 /**
  * @summary Render a debounced address search that resolves selected house

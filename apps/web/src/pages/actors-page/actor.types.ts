@@ -106,11 +106,3 @@ export type ActorFormProps = {
   onCancel: () => void;
   onSave: (actor: ActorSubmission) => void | Promise<void>;
 };
-
-export type AddressSearchProps = {
-  disabled?: boolean;
-  error?: string;
-  initialAddress?: VerifiedAddress;
-  initialAddressId?: string;
-  onChange: (address: VerifiedAddress | null, id: string | null) => void;
-};

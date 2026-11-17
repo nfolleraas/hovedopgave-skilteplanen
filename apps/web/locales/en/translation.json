@@ -21,16 +21,20 @@
   "common": {
     "brandName": "Skilteplanen"
   },
+  "dialogs": {
+    "deleteConfirmation": {
+      "title": "Confirm deletion",
+      "description": "Are you sure you want to delete {{name}}?",
+      "cancel": "Cancel",
+      "confirm": "Delete",
+      "deleting": "Deleting…"
+    }
+  },
   "actors": {
-    "roles": {
-      "Supplier": "Supplier",
-      "Contractor": "Contractor",
-      "NetworkOperator": "Network operator",
-      "ProjectCoordinator": "Project coordinator",
-      "Private": "Private"
-    },
-    "role": "Role",
+    "deleteDescription": "Are you sure you want to delete {{name}}? The actor's contact persons will also be deleted.",
     "errors": {
+      "delete": "The actor could not be deleted. Try again.",
+      "addressLookup": "The address could not be verified. Try again.",
       "role": "Choose a role.",
       "name": "Name may only contain letters.",
       "phoneNumber": "Phone number must contain exactly 8 digits.",
@@ -39,8 +43,7 @@
       "department": "Enter a department.",
       "contactPersonName": "Contact person's name may only contain letters.",
       "contactAvailability": "Choose the contact person's availability.",
-      "address": "Choose an address from the search results.",
-      "addressLookup": "The address could not be verified. Try again."
+      "address": "Choose an address from the search results."
     },
     "addressSearching": "Searching for addresses…",
     "addressSearchHint": "Enter at least 3 characters to search.",
@@ -49,7 +52,15 @@
     "addressNoMatches": "No addresses found. Try a more specific search.",
     "addressOpen": "Show address suggestions",
     "address": "Address",
-    "addressPlaceholder": "Street, number, postal code and city"
+    "addressPlaceholder": "Street, number, postal code and city",
+    "roles": {
+      "Supplier": "Supplier",
+      "Contractor": "Contractor",
+      "NetworkOperator": "Network operator",
+      "ProjectCoordinator": "Project coordinator",
+      "Private": "Private"
+    },
+    "role": "Role"
   },
   "home": {
     "title": "Applicantplatform",
