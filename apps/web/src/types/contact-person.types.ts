@@ -1,9 +1,5 @@
-import type {
-  ActorRole,
-  ApplicationType,
-  Availability,
-  Status,
-} from './prisma-enums.js';
+import type { WizardApplication } from './application.types.js';
+import type { ActorRole, Availability } from './prisma-enums.js';
 
 /** Contact person as returned by the contact persons API. */
 export interface ContactPerson {
@@ -17,11 +13,7 @@ export interface ContactPerson {
   email: string;
 }
 
-export interface ContactPersonApplication {
-  caseNumber: string;
-  type: ApplicationType;
-  status: Status;
-}
+export type ContactPersonApplication = WizardApplication;
 
 /** An actor on the application, as the contact persons API returns it. */
 export interface ContactPersonActor {

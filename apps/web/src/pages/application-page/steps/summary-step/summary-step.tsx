@@ -4,22 +4,29 @@ import { useTranslation } from 'react-i18next';
 import type { ApplicationDraft } from '../../../../features/application-draft/application-draft.js';
 import {
   hasErrors,
-  validateActors,
-  validateContactPersons,
   validatePeriod,
   validateSignPlanAndTraffic,
   validateTasks,
 } from '../../../../features/application-draft/draft-validation.js';
-import { roadOwnershipLabelKeys } from '../../../../features/areas/area-labels.js';
-import type { Area, AreaApplication } from '../../../../types/area.types.js';
+import {
+  actorRoleLabelKeys,
+  availabilityLabelKeys,
+  formatPhoneNumber,
+} from '../../../../features/contact-persons/contact-person-labels.js';
+import type { WizardApplication } from '../../../../types/application.types.js';
+import type {
+  ContactPerson,
+  ContactPersonActor,
+} from '../../../../types/contact-person.types.js';
 import { ApplicationType } from '../../../../types/prisma-enums.js';
 import type { ApplicationStepId } from '../../application-steps.js';
 import { WizardFooter } from '../../components/wizard-footer.js';
 
 interface SummaryStepProps {
-  application: AreaApplication;
+  application: WizardApplication;
   draft: ApplicationDraft;
-  areas: Area[];
+  actors: ContactPersonActor[];
+  contactPersons: ContactPerson[];
   onBack: () => void;
   onGoTo: (step: ApplicationStepId) => void;
 }
@@ -28,7 +35,8 @@ interface SummaryStepProps {
 export function SummaryStep({
   application,
   draft,
-  areas,
+  actors,
+  contactPersons,
   onBack,
   onGoTo,
 }: SummaryStepProps) {
@@ -43,9 +51,8 @@ export function SummaryStep({
   const incomplete: Record<string, boolean> = {
     municipalityAndPeriod: hasErrors(validatePeriod(type, period)),
     tasks: hasErrors(validateTasks(type, draft)),
-    otherActors: hasErrors(validateActors(draft)),
-    contactInfo: hasErrors(validateContactPersons(draft)),
-    areas: areas.length === 0,
+    // At least one contact person is required (UC-004 F7).
+    contactInfo: contactPersons.length === 0,
     signPlanAndTraffic: hasErrors(validateSignPlanAndTraffic(draft)),
   };
   const anyIncomplete = Object.values(incomplete).some(Boolean);
@@ -82,7 +89,7 @@ export function SummaryStep({
           'municipalityAndPeriod',
           <>
             <Row label={t('wizard.summary.applicationType')}>
-              {t(`areas.labels.applicationType.${type}`)}
+              {t(`wizard.enums.ApplicationType.${type}`)}
             </Row>
             <Row label={t('wizard.period.municipality')}>
               {text(period.municipality)}
@@ -132,56 +139,46 @@ export function SummaryStep({
 
         {section(
           'otherActors',
-          draft.actors.length === 0 ? (
+          actors.length === 0 ? (
             <Typography color="text.secondary" variant="body2">
               {t('wizard.actors.none')}
             </Typography>
           ) : (
-            draft.actors.map((actor) => (
-              <Row
-                key={actor.id}
-                label={enumLabel('ActorRole', actor.role)}
-              >{`${text(actor.name)} · ${text(actor.phoneNumber)}`}</Row>
+            actors.map((actor) => (
+              <Row key={actor.uuid} label={t(actorRoleLabelKeys[actor.role])}>
+                {actor.name}
+              </Row>
             ))
           ),
         )}
 
         {section(
           'contactInfo',
-          draft.contactPersons.map((contact) => (
-            <Row
-              key={contact.id}
-              label={text(contact.name)}
-            >{`${enumLabel('Availability', contact.availability)} · ${text(contact.phoneNumber)} · ${text(contact.email)}`}</Row>
-          )),
-        )}
-
-        {section(
-          'areas',
-          areas.length === 0 ? (
+          contactPersons.length === 0 ? (
             <Typography color="text.secondary" variant="body2">
-              {t('wizard.summary.noAreas')}
+              {t('wizard.summary.noContacts')}
             </Typography>
           ) : (
-            areas.map((area, index) => (
-              <Row
-                key={area.uuid}
-                label={t('areas.cardTitle', {
-                  number: index + 1,
-                  road: area.roadName,
-                })}
-              >
+            contactPersons.map((contact) => (
+              <Row key={contact.uuid} label={contact.name}>
                 {[
-                  t(roadOwnershipLabelKeys[area.roadOwnership]),
-                  area.areaInSquareMeters
-                    ? `${area.areaInSquareMeters} m²`
-                    : undefined,
+                  actors.find((actor) => actor.uuid === contact.actorId)?.name,
+                  t(availabilityLabelKeys[contact.availability]),
+                  formatPhoneNumber(contact.phoneNumber),
+                  contact.email,
                 ]
                   .filter(Boolean)
                   .join(' · ')}
               </Row>
             ))
           ),
+        )}
+
+        {section(
+          'areas',
+          <Typography color="text.secondary" variant="body2">
+            {t('wizard.summary.areasPlaceholder')}
+          </Typography>,
         )}
 
         {section(
@@ -270,7 +267,7 @@ function SummarySection({
           </Typography>
           {incomplete && (
             <Typography sx={{ color: 'error.main' }} variant="body2">
-              {t('areas.missingInfo')}
+              {t('wizard.summary.missingInfo')}
             </Typography>
           )}
         </Box>
@@ -280,7 +277,7 @@ function SummarySection({
           size="small"
           variant="outlined"
         >
-          {t('areas.edit')}
+          {t('wizard.summary.edit')}
         </Button>
       </Box>
       <Box component="dl" sx={{ display: 'grid', gap: 0.5, m: 0 }}>

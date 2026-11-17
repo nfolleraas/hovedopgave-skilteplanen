@@ -58,11 +58,51 @@ describe('contactPersonEditReducer', () => {
     ]);
 
     expect(state.entries[0]).toMatchObject({ key: 'a' });
-    expect(state.activeKey).toBe('a');
+    // The form closes after saving.
+    expect(state.activeKey).toBeNull();
     expect(isDirty(state)).toBe(false);
   });
 
-  test('change marks the draft dirty and cancel restores it (UC-033 A4)', () => {
+  test('saved opens the contact person that was waiting', () => {
+    const state = reduce([
+      {
+        type: 'loaded',
+        contactPersons: [buildContactPerson('a'), buildContactPerson('b')],
+      },
+      { type: 'open', key: 'a' },
+      { type: 'change', field: 'name', value: 'Ny Kontakt' },
+      { type: 'open', key: 'b' },
+      {
+        type: 'saved',
+        key: 'a',
+        contactPerson: buildContactPerson('a', { name: 'Ny Kontakt' }),
+      },
+    ]);
+
+    expect(state.activeKey).toBe('b');
+    expect(state.pendingKey).toBeNull();
+  });
+
+  test('setActor moves a new contact person to another actor', () => {
+    const state = reduce([
+      { type: 'addNew', actorId: 'actor-x' },
+      { type: 'setActor', actorId: 'actor-y' },
+    ]);
+
+    expect(state.entries[0]).toMatchObject({ actorId: 'actor-y' });
+  });
+
+  test('setActor does not move a saved contact person', () => {
+    const state = reduce([
+      { type: 'loaded', contactPersons: [buildContactPerson('a')] },
+      { type: 'open', key: 'a' },
+      { type: 'setActor', actorId: 'actor-y' },
+    ]);
+
+    expect(state.entries[0]).toMatchObject({ actorId: 'actor-a' });
+  });
+
+  test('change marks the draft dirty and cancel discards it', () => {
     const loaded = reduce([
       { type: 'loaded', contactPersons: [buildContactPerson('a')] },
       { type: 'open', key: 'a' },
@@ -71,8 +111,11 @@ describe('contactPersonEditReducer', () => {
     expect(isDirty(loaded)).toBe(true);
 
     const cancelled = reduce([{ type: 'cancel' }], loaded);
+    expect(cancelled.activeKey).toBeNull();
     expect(isDirty(cancelled)).toBe(false);
-    expect(cancelled.draft?.name).toBe('Jens Jensen');
+
+    const reopened = reduce([{ type: 'open', key: 'a' }], cancelled);
+    expect(reopened.draft?.name).toBe('Jens Jensen');
   });
 
   test('cancel removes a new contact person that was never saved', () => {

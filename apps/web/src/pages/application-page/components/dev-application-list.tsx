@@ -104,7 +104,7 @@ export function DevApplicationList() {
         >
           {supportedApplicationTypes.map((value) => (
             <MenuItem key={value} value={value}>
-              {t(`areas.labels.applicationType.${value}`)}
+              {t(`wizard.enums.ApplicationType.${value}`)}
             </MenuItem>
           ))}
         </TextField>
@@ -141,7 +141,7 @@ export function DevApplicationList() {
                 <TableCell>{t('devApplications.type')}</TableCell>
                 <TableCell>{t('devApplications.status')}</TableCell>
                 <TableCell align="right">
-                  {t('devApplications.areaCount')}
+                  {t('devApplications.contactPersonCount')}
                 </TableCell>
               </TableRow>
             </TableHead>
@@ -157,12 +157,14 @@ export function DevApplicationList() {
                     </Link>
                   </TableCell>
                   <TableCell>
-                    {t(`areas.labels.applicationType.${application.type}`)}
+                    {t(`wizard.enums.ApplicationType.${application.type}`)}
                   </TableCell>
                   <TableCell>
                     {t(`devApplications.statuses.${application.status}`)}
                   </TableCell>
-                  <TableCell align="right">{application.areaCount}</TableCell>
+                  <TableCell align="right">
+                    {application.contactPersonCount}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

@@ -14,6 +14,8 @@ export default {
     /^translation:areas\.deleteDialog\.none$/,
     /^translation:mapStep\.resultCount_/,
     /^translation:devApplications\.statuses(\.|$)/,
+    /^translation:contacts\.errors(\.|$)/,
+    /^translation:contacts\.fields(\.|$)/,
     /^translation:wizard\.enums(\.|$)/,
     /^translation:wizard\.errors(\.|$)/,
     /^translation:wizard\.period\.intro(\.|$)/,

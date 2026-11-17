@@ -1,5 +1,8 @@
 import type { ApplicationDraft } from '../../../features/application-draft/application-draft.js';
-import type { AreaApplication } from '../../../types/area.types.js';
+import type { WizardApplication } from '../../../types/application.types.js';
+
+/** Runs before a step is left. Resolves false to stay on the step. */
+export type LeaveGuard = () => Promise<boolean>;
 
 export type DraftUpdater = (
   update: (draft: ApplicationDraft) => ApplicationDraft,
@@ -7,7 +10,7 @@ export type DraftUpdater = (
 
 /** Props shared by the steps that edit the application draft. */
 export interface DraftStepProps {
-  application: AreaApplication;
+  application: WizardApplication;
   draft: ApplicationDraft;
   update: DraftUpdater;
   onBack: () => void;

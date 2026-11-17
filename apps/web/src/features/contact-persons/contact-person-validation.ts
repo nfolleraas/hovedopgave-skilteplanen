@@ -31,6 +31,14 @@ export function canEditContactPersons(status: Status): boolean {
   return status === 'Draft' || status === 'ChangeRequired';
 }
 
+/**
+ * The last contact person on an application cannot be deleted
+ * (UC-032 F1). The API checks this again.
+ */
+export function canDeleteContactPerson(savedCount: number): boolean {
+  return savedCount > 1;
+}
+
 export type ContactPersonFieldError = 'required' | 'phoneNumber' | 'email';
 
 export type ContactPersonFieldErrors = Partial<
@@ -41,8 +49,12 @@ function hasText(value: string): boolean {
   return value.trim().length > 0;
 }
 
-/** Matches text, an @, text, a dot and text, e.g. `navn@firma.dk`. */
-const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+/**
+ * Text, an @ and a domain with at least one dot, e.g. `navn@firma.dk`. The
+ * domain cannot have empty parts, so `navn@firma..dk` and `navn@firma.dk.`
+ * are rejected.
+ */
+const emailPattern = /^[^\s@]+@[^\s@.]+(\.[^\s@.]+)+$/;
 
 const phonePattern = /^\d{8}$/;
 
@@ -68,6 +80,23 @@ export function validateContactPerson(
   }
 
   return errors;
+}
+
+/**
+ * Keeps only the digits of a typed or pasted phone number, so
+ * `22 33 44 55` and `22-33-44-55` become `22334455`. A Danish country code
+ * in front (`+45` or `0045`) is removed. Other input is left for the
+ * validation to reject, so nothing is cut off silently.
+ */
+export function normalizePhoneInput(raw: string): string {
+  const digits = raw.replace(/\D/g, '');
+  const hasCountryCode = /^\s*(\+|00)45/.test(raw);
+  return hasCountryCode ? digits.replace(/^(00)?45/, '') : digits;
+}
+
+/** Spaces are never valid in an email address, so they are removed. */
+export function normalizeEmailInput(raw: string): string {
+  return raw.replace(/\s/g, '');
 }
 
 export const emptyContactPersonFormValues: ContactPersonFormValues = {

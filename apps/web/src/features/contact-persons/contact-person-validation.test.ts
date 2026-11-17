@@ -2,7 +2,10 @@ import { describe, expect, test } from 'bun:test';
 import type { ContactPersonFormValues } from '../../types/contact-person.types.js';
 import { ApplicationType, Availability } from '../../types/prisma-enums.js';
 import {
+  canDeleteContactPerson,
   canEditContactPersons,
+  normalizeEmailInput,
+  normalizePhoneInput,
   toContactPersonInput,
   validateContactPerson,
 } from './contact-person-validation.js';
@@ -119,4 +122,64 @@ describe('canEditContactPersons', () => {
     expect(canEditContactPersons('Approved')).toBe(false);
     expect(canEditContactPersons('InProgress')).toBe(false);
   });
+});
+
+describe('canDeleteContactPerson', () => {
+  test('keeps the last contact person (UC-032 F1)', () => {
+    expect(canDeleteContactPerson(1)).toBe(false);
+    expect(canDeleteContactPerson(2)).toBe(true);
+  });
+});
+
+describe('normalizePhoneInput', () => {
+  test.each([
+    ['12345678', '12345678'],
+    ['22 33 44 55', '22334455'],
+    ['22-33-44-55', '22334455'],
+    ['+45 22 33 44 55', '22334455'],
+    ['0045 22334455', '22334455'],
+    ['abc', ''],
+    ['1234', '1234'],
+  ])('turns %p into %p', (input, expected) => {
+    expect(normalizePhoneInput(input)).toBe(expected);
+  });
+
+  test('keeps a number that is too long, so the validation can reject it', () => {
+    expect(normalizePhoneInput('1234567890')).toBe('1234567890');
+  });
+});
+
+describe('normalizeEmailInput', () => {
+  test('removes spaces', () => {
+    expect(normalizeEmailInput(' jens @firma.dk ')).toBe('jens@firma.dk');
+  });
+});
+
+describe('email format', () => {
+  test.each([
+    'jens@@firma.dk',
+    'jens@firma..dk',
+    'jens@firma.dk.',
+    'jens@.dk',
+    'jens@firma',
+  ])('rejects %p', (email) => {
+    expect(
+      validateContactPerson(ApplicationType.ExcavationPermit, {
+        ...completeValues,
+        email,
+      }),
+    ).toEqual({ email: 'email' });
+  });
+
+  test.each(['jens@firma.dk', 'jens.jensen@firma.co.uk'])(
+    'accepts %p',
+    (email) => {
+      expect(
+        validateContactPerson(ApplicationType.ExcavationPermit, {
+          ...completeValues,
+          email,
+        }),
+      ).toEqual({});
+    },
+  );
 });

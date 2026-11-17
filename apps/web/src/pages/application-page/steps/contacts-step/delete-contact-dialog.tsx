@@ -8,12 +8,16 @@ import {
   DialogTitle,
 } from '@mui/material';
 import { useTranslation } from 'react-i18next';
-import { availabilityLabelKeys } from '../../../features/contact-persons/contact-person-labels.js';
-import type { ContactPerson } from '../../../types/contact-person.types.js';
+import {
+  availabilityLabelKeys,
+  formatPhoneNumber,
+} from '../../../../features/contact-persons/contact-person-labels.js';
+import type { ContactPerson } from '../../../../types/contact-person.types.js';
 
 interface DeleteContactDialogProps {
   contactPerson: ContactPerson | null;
-  actorLabel: string;
+  /** The actor's name, e.g. "Vejbyg A/S". */
+  actorName: string;
   isDeleting: boolean;
   error: string | null;
   onCancel: () => void;
@@ -21,13 +25,13 @@ interface DeleteContactDialogProps {
 }
 
 /**
- * Confirmation with the contact person's details (UC-032 step 3). The page
+ * Confirmation with the contact person's details (UC-032 step 4). The step
  * moves focus after closing, because a deleted contact person's button no
  * longer exists.
  */
 export function DeleteContactDialog({
   contactPerson,
-  actorLabel,
+  actorName,
   isDeleting,
   error,
   onCancel,
@@ -47,30 +51,22 @@ export function DeleteContactDialog({
         {t('contacts.deleteDialog.title')}
       </DialogTitle>
       <DialogContent>
-        <DialogContentText component="div" id="delete-contact-description">
-          <strong>{contactPerson?.name}</strong>
-          <br />
-          {actorLabel && (
-            <>
-              {t('contacts.deleteDialog.actor', { value: actorLabel })}
-              <br />
-            </>
-          )}
-          {t('contacts.deleteDialog.availability', {
-            value: contactPerson
-              ? t(availabilityLabelKeys[contactPerson.availability])
-              : '',
-          })}
-          <br />
-          {t('contacts.deleteDialog.phoneNumber', {
-            value: contactPerson?.phoneNumber,
-          })}
-          <br />
-          {t('contacts.deleteDialog.email', { value: contactPerson?.email })}
-          <br />
-          <br />
-          {t('contacts.deleteDialog.warning')}
-        </DialogContentText>
+        {contactPerson && (
+          <DialogContentText component="div" id="delete-contact-description">
+            <strong>
+              {actorName
+                ? `${contactPerson.name} · ${actorName}`
+                : contactPerson.name}
+            </strong>
+            <br />
+            {`${t(availabilityLabelKeys[contactPerson.availability])} · ${formatPhoneNumber(contactPerson.phoneNumber)}`}
+            <br />
+            {contactPerson.email}
+            <br />
+            <br />
+            {t('contacts.deleteDialog.warning')}
+          </DialogContentText>
+        )}
         {error && (
           <Alert severity="error" sx={{ mt: 2 }}>
             {error}

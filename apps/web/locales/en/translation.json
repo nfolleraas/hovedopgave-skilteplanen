@@ -24,7 +24,6 @@
   "navigation": {
     "home": "Home",
     "application": "Application",
-    "contacts": "Contact persons",
     "messages": "Messages",
     "logoHome": "Applicantplatform – go to the home page",
     "main": "Main navigation",
@@ -32,47 +31,6 @@
     "settings": "Settings",
     "logOut": "Log out",
     "language": "Language"
-  },
-  "contacts": {
-    "cardTitle": "Contact person {{number}} {{name}}",
-    "editContactFor": "Edit {{contact}}",
-    "edit": "Edit",
-    "deleteContactFor": "Delete {{contact}}",
-    "delete": "Delete contact person",
-    "forActor": "Actor: {{actor}}",
-    "cancel": "Cancel",
-    "save": "Save contact person",
-    "availabilityFixed": "Availability is set to day for road use applications.",
-    "deleteDialog": {
-      "title": "Delete contact person?",
-      "actor": "Actor: {{value}}",
-      "availability": "Availability: {{value}}",
-      "phoneNumber": "Phone number: {{value}}",
-      "email": "Email: {{value}}",
-      "warning": "The contact person and their details are deleted permanently.",
-      "confirm": "Delete"
-    },
-    "unsavedDialog": {
-      "title": "Save the changes?",
-      "text": "{{contact}} has changes that are not saved.",
-      "discard": "Discard changes",
-      "save": "Save"
-    },
-    "newContact": "New contact person",
-    "notEditable": "Contact persons can only be changed while the application is a draft or requires changes.",
-    "actorNotFound": "The actor is no longer on the application. Reload the page.",
-    "saveError": "The contact person could not be saved, try again later or contact support.",
-    "saved": "{{contact}} has been saved.",
-    "deleted": "The contact person {{name}} has been deleted.",
-    "deleteError": "The contact person could not be deleted, try again later or contact support.",
-    "actorLabel": "{{name}} ({{role}})",
-    "title": "Contact persons",
-    "subtitle": "Application {{caseNumber}}",
-    "none": "The application has no contact persons yet.",
-    "noActors": "The application has no actors yet. Create an actor before you create a contact person.",
-    "actor": "Actor",
-    "addContact": "+ Create contact person",
-    "loading": "Loading contact persons"
   },
   "devApplications": {
     "loadError": "The applications could not be loaded. Is the API running?",
@@ -86,7 +44,335 @@
     "caseNumber": "Case number",
     "status": "Status",
     "contactPersonCount": "Contact persons",
-    "backToList": "← All test applications"
+    "backToList": "← All test applications",
+    "statuses": {
+      "Draft": "Draft",
+      "InProgress": "In progress",
+      "Approved": "Approved",
+      "Rejected": "Rejected",
+      "ChangeRequired": "Change required"
+    }
+  },
+  "wizard": {
+    "delete": "Delete",
+    "stepHasErrors_one": "There is {{count}} error on this step. Fix the field marked in red.",
+    "stepHasErrors_other": "There are {{count}} errors on this step. Fix the fields marked in red.",
+    "areasPlaceholder": "Placeholder: The map and areas (UC-034–036) are built in the areas feature and are not part of this test version.",
+    "actors": {
+      "intro": "Add other actors on the application, e.g. a contractor or supplier. This step can be skipped.",
+      "placeholder": "Placeholder: These are test actors that were created with the test application. Creating and editing actors (UC-040–042) is built in the actors feature.",
+      "none": "There are no other actors on the application."
+    },
+    "documents": {
+      "intro": "Upload drawings or pictures to the application. Only PNG and JPG are allowed.",
+      "dropHint": "Drag files here, or",
+      "choose": "Choose files",
+      "wrongType": "Wrong file type, only PNG and JPG are allowed: {{files}}",
+      "none": "No documents have been added.",
+      "notUploaded": "Only kept in this browser until upload is built."
+    },
+    "deleteItem": "Delete {{item}}",
+    "period": {
+      "municipality": "Municipality",
+      "title": "Title",
+      "permitType": "Type",
+      "noticeInfo": "A notice can come with extra terms from the municipality. Contact the municipality if you have questions.",
+      "startDate": "Start date",
+      "endDate": "End date",
+      "usage": "Use of the road area",
+      "usageDescription": "Describe the usage",
+      "intro": {
+        "ExcavationPermit": "Choose the municipality, type and period of the excavation permit.",
+        "RoadUsePermit": "Choose the municipality, title, usage and period of the road use."
+      }
+    },
+    "signPlan": {
+      "signPlanTitle": "Sign plan",
+      "signPlanIntro": "Choose a standard sign plan, or upload your own.",
+      "signPlanType": "Standard plan",
+      "group": "Group",
+      "plan": "Plan",
+      "uploadSignPlan": "Upload sign plan",
+      "noFile": "No file chosen",
+      "trafficTitle": "Traffic changes",
+      "trafficChanges": "Traffic changes",
+      "measuresTitle": "Traffic calming measures",
+      "measureTitle": "Traffic calming measure {{number}}",
+      "measureType": "Type",
+      "scope": "Scope",
+      "protectionLevel": "Protection level",
+      "measureDescription": "Description",
+      "addMeasure": "+ Add traffic calming measure"
+    },
+    "summary": {
+      "intro": "Review application {{caseNumber}} before you send it.",
+      "applicationType": "Application type",
+      "period": "Period",
+      "noContacts": "There are no contact persons.",
+      "areasPlaceholder": "Areas are shown here once the areas feature is merged.",
+      "files": "Files",
+      "incomplete": "Some steps are missing information. Fix them before the application can be sent.",
+      "submitNotBuilt": "Sending is not built yet, so the application has not been sent.",
+      "submit": "Send application",
+      "missingInfo": "missing information",
+      "editSection": "Edit {{section}}",
+      "edit": "Edit"
+    },
+    "tasks": {
+      "taskTitle": "Task {{number}}",
+      "materialTitle": "Equipment {{number}}",
+      "introTasks": "Add the tasks to be carried out. There must be at least one.",
+      "introMaterials": "Enter the equipment that will be placed on the road area.",
+      "cableType": "Cable type",
+      "cableSubtypes": "Network parts",
+      "cableTypesDescription": "Note on cable type",
+      "cableSubtypesDescription": "Note on network part",
+      "workCategories": "Type of work",
+      "executionMethods": "Execution method",
+      "workCategoriesDescription": "Note on type of work",
+      "executionMethodsDescription": "Note on execution method",
+      "addTask": "+ Add task",
+      "materialType": "Equipment type",
+      "amount": "Amount",
+      "materialDescription": "Note",
+      "addMaterial": "+ Add equipment"
+    },
+    "errors": {
+      "required": "Required",
+      "endBeforeStart": "End date cannot be before start date",
+      "startInPast": "Start date cannot be before today",
+      "phone": "Phone number must be 8 digits",
+      "email": "Invalid email address",
+      "cvr": "CVR number must be 8 digits",
+      "lettersOnly": "Letters only",
+      "positiveWhole": "Must be a whole number of at least 1",
+      "atLeastOneTask": "There must be at least one task.",
+      "atLeastOneMaterial": "There must be at least one item of equipment.",
+      "atLeastOneContact": "There must be at least one contact person.",
+      "atLeastOneMeasure": "Choose at least one traffic calming measure."
+    },
+    "enums": {
+      "ApplicationType": {
+        "ExcavationPermit": "Excavation permit",
+        "RoadUsePermit": "Road use permit"
+      },
+      "ActorRole": {
+        "Supplier": "Supplier",
+        "Contractor": "Contractor",
+        "NetworkOperator": "Network operator",
+        "ProjectCoordinator": "Project coordinator",
+        "Private": "Private"
+      },
+      "Availability": {
+        "Day": "Day",
+        "Evening": "Evening",
+        "Night": "Night",
+        "AllDay": "24 hours"
+      },
+      "CableSubtype": {
+        "MainLine": "Main line",
+        "ServiceLine": "Service line",
+        "StreetCabinet": "Street cabinet",
+        "Other": "Other"
+      },
+      "CableType": {
+        "Telephone": "Telephone",
+        "Water": "Water",
+        "Power": "Power",
+        "Sewage": "Sewage",
+        "Gas": "Gas",
+        "DistrictHeating": "District heating",
+        "Coax": "Coax",
+        "Fiber": "Fibre",
+        "Other": "Other"
+      },
+      "ExecutionMethod": {
+        "Excavation": "Excavation",
+        "ExistingPipe": "Existing pipe",
+        "Ploughing": "Ploughing",
+        "ChainTrenching": "Chain trenching",
+        "SoilDisplacement": "Soil displacement",
+        "PipeCracking": "Pipe cracking",
+        "PipeRamming": "Pipe ramming",
+        "UndergroundDrilling": "Underground drilling",
+        "UndergroundDirectionalDrilling": "Directional drilling",
+        "Other": "Other"
+      },
+      "MaterialType": {
+        "Banner": "Banner",
+        "TemporarySign": "Temporary sign",
+        "PermanentSign": "Permanent sign",
+        "DrillingRig": "Drilling rig",
+        "Container": "Container",
+        "Crane": "Crane",
+        "Truck": "Truck",
+        "Lift": "Lift",
+        "OfficeCabin": "Office cabin",
+        "WelfareCabin": "Welfare cabin",
+        "TrenchlessUnit": "Trenchless unit",
+        "ReliningUnit": "Relining unit",
+        "Scaffolding": "Scaffolding",
+        "LoadingTower": "Loading tower",
+        "Tent": "Tent",
+        "Stage": "Stage",
+        "Grandstand": "Grandstand",
+        "Other": "Other"
+      },
+      "PermitType": {
+        "Application": "Application",
+        "Notice": "Notice"
+      },
+      "SignPlanType": {
+        "MarkingCityArea": "Marking in urban area",
+        "MarkingHighway": "Marking on motorway",
+        "MarkingRuralArea": "Marking in rural area",
+        "AuthorityMarkingPlan": "Authority's marking plan",
+        "AttachSpecificMarkingPlan": "Attach specific marking plan"
+      },
+      "TrafficCalmingMeasureScope": {
+        "OncomingTraffic": "Oncoming traffic",
+        "FollowingTraffic": "Following traffic",
+        "Both": "Both"
+      },
+      "TrafficCalmingMeasureType": {
+        "A": "Type A",
+        "B": "Type B",
+        "C": "Type C",
+        "D": "Type D",
+        "E": "Type E",
+        "F": "Type F",
+        "G": "Type G",
+        "H": "Type H",
+        "I": "Type I"
+      },
+      "TrafficChange": {
+        "SpeedLimitWorkZone": "Speed limit at work zone",
+        "SpeedLimitTrafficSafety": "Speed limit for traffic safety",
+        "OnewayTraffic": "One-way traffic",
+        "TrafficLight": "Traffic lights",
+        "NoStoppingAndParking": "No stopping or parking",
+        "UnconditionalObligationInIntersection": "Give way at junction"
+      },
+      "Usage": {
+        "AsphaltWork": "Asphalt work",
+        "Construction": "Construction",
+        "Renovation": "Renovation",
+        "MaterialSpace": "Material storage",
+        "StreetFurnitureInstallation": "Street furniture",
+        "BannerInstallation": "Banner installation",
+        "SignInstallment": "Sign installation",
+        "MarketStand": "Market stall",
+        "OutdoorServing": "Outdoor serving",
+        "WaterDischarge": "Water discharge",
+        "ProductDisplay": "Product display",
+        "Other": "Other"
+      },
+      "WorkCategory": {
+        "Establishment": "Establishment",
+        "Repair": "Repair",
+        "JointBay": "Joint bay",
+        "CableError": "Cable fault",
+        "Renovation": "Renovation",
+        "Decommission": "Decommissioning",
+        "AlarmError": "Alarm fault",
+        "Removal": "Removal",
+        "Cleaning": "Cleaning",
+        "TrialHole": "Trial hole",
+        "Investigation": "Investigation",
+        "Other": "Other"
+      }
+    }
+  },
+  "applicationWizard": {
+    "stepsLabel": "Application steps",
+    "back": "Back",
+    "next": "Next",
+    "documentTitle": "{{step}} – Application platform",
+    "loading": "Loading the application",
+    "steps": {
+      "otherActors": "Other actors",
+      "contactInfo": "Contact information",
+      "documents": "Documents and drawings",
+      "municipalityAndPeriod": "Municipality & period",
+      "signPlanAndTraffic": "Sign plan and traffic",
+      "summary": "Summary & submission",
+      "tasks": "Tasks",
+      "map": "Map",
+      "areas": "Areas"
+    },
+    "caseNotFound": "The application was not found.",
+    "loadError": "The application could not be loaded. Try again later or contact support."
+  },
+  "contacts": {
+    "availabilityFixed": "For road use applications, availability is always Day.",
+    "actorGroup": "{{role}} · {{name}}",
+    "unknownActor": "Unknown actor",
+    "listTitle": "Contact persons ({{number}})",
+    "noActors": "The application has no actors yet. Add an actor under “Other actors” before you create a contact person.",
+    "none": "There are no contact persons yet.",
+    "addContact": "+ Add contact person",
+    "newContact": "New contact person",
+    "fillInForm": "fill in the form",
+    "openInForm": "Being edited in the form",
+    "editContactFor": "Edit {{name}}",
+    "edit": "Edit",
+    "deleteContactFor": "Delete {{name}}",
+    "delete": "Delete",
+    "actorLabel": "{{name}} ({{role}})",
+    "editTitle": "Edit contact person",
+    "cannotSaveYet": "The contact person cannot be saved yet. Correct the fields marked in red.",
+    "actor": "Link to actor",
+    "actorReadOnly": "Actor",
+    "cancel": "Cancel",
+    "save": "Save contact person",
+    "saveChanges": "Save changes",
+    "saveError": "The contact person could not be saved. Try again later or contact support.",
+    "notEditable": "Contact persons can only be changed while the application is a draft or requires changes.",
+    "actorNotFound": "The actor is no longer on the application. Reload the page.",
+    "notFound": "The contact person no longer exists. It may have been deleted in another tab. Reload the page.",
+    "rejectedByServer": "The details were rejected. Check the fields and try again.",
+    "updated": "The changes to {{name}} have been saved.",
+    "created": "The contact person {{name}} has been created.",
+    "lastContactError": "The application must have at least one contact person. Create a new contact person before you delete this one.",
+    "deleted": "The contact person {{name}} has been deleted.",
+    "alreadyDeleted": "The contact person {{name}} had already been deleted.",
+    "deleteError": "The contact person could not be deleted. Try again later or contact support.",
+    "intro": "Add the people the municipality can contact about the application. There must be at least one contact person.",
+    "panelHint": "Choose “Edit” next to a contact person, or add a new one.",
+    "atLeastOne": "There must be at least one contact person before you can continue.",
+    "deleteDialog": {
+      "title": "Delete contact person?",
+      "warning": "The contact person is deleted from the application and cannot be restored.",
+      "confirm": "Delete"
+    },
+    "unsavedDialog": {
+      "title": "Save the changes?",
+      "text": "{{contact}} has unsaved changes.",
+      "discard": "Discard changes",
+      "save": "Save"
+    },
+    "errors": {
+      "name": {
+        "required": "Enter a name"
+      },
+      "availability": {
+        "required": "Choose an availability"
+      },
+      "phoneNumber": {
+        "required": "Enter a phone number",
+        "phoneNumber": "The phone number must be 8 digits"
+      },
+      "email": {
+        "required": "Enter an email address",
+        "email": "Enter a valid email address, e.g. name@company.dk"
+      }
+    },
+    "fields": {
+      "name": "Name",
+      "availability": "Availability",
+      "phoneNumber": "Phone number",
+      "email": "Email"
+    }
   },
   "home": {
     "title": "Applicantplatform",

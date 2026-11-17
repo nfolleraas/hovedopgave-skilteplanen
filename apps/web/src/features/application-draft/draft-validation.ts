@@ -1,15 +1,12 @@
 import {
-  ActorRole,
   ApplicationType,
   CableType,
   PermitType,
   Usage,
 } from '../../types/prisma-enums.js';
 import type {
-  ActorDraft,
   ApplicationDraft,
   CableTaskDraft,
-  ContactPersonDraft,
   MaterialDraft,
   PeriodDraft,
 } from './application-draft.js';
@@ -18,26 +15,16 @@ export type DraftError =
   | 'required'
   | 'endBeforeStart'
   | 'startInPast'
-  | 'phone'
-  | 'email'
-  | 'cvr'
-  | 'lettersOnly'
   | 'positiveWhole'
   | 'atLeastOneTask'
   | 'atLeastOneMaterial'
-  | 'atLeastOneContact'
   | 'atLeastOneMeasure';
 
 /**
  * Errors keyed by field path, e.g. `period.startDate` or
- * `contactPersons.<id>.email`. List-level errors use the list name.
+ * `cableTasks.<id>.cableType`. List-level errors use the list name.
  */
 export type DraftErrors = Record<string, DraftError>;
-
-const phonePattern = /^\d{8}$/;
-const cvrPattern = /^\d{8}$/;
-const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const lettersPattern = /^[\p{L} '-]+$/u;
 
 function today(): string {
   const now = new Date();
@@ -152,66 +139,6 @@ export function validateTasks(
   // At least one material is required (UC-007 F2).
   if (draft.materials.length === 0) errors.materials = 'atLeastOneMaterial';
   for (const material of draft.materials) validateMaterial(errors, material);
-  return errors;
-}
-
-function validatePhoneAndEmail(
-  errors: DraftErrors,
-  path: string,
-  item: { phoneNumber: string; email: string },
-): void {
-  if (!phonePattern.test(item.phoneNumber.trim())) {
-    errors[`${path}.phoneNumber`] = 'phone';
-  }
-  if (!emailPattern.test(item.email.trim())) {
-    errors[`${path}.email`] = 'email';
-  }
-}
-
-/** UC-040 F1–F6. Private actors have no CVR, department or contact. */
-function validateActor(errors: DraftErrors, actor: ActorDraft): void {
-  const path = `actors.${actor.id}`;
-  requireText(errors, `${path}.role`, actor.role);
-  if (!lettersPattern.test(actor.name.trim())) {
-    errors[`${path}.name`] = actor.name.trim() ? 'lettersOnly' : 'required';
-  }
-  validatePhoneAndEmail(errors, path, actor);
-  if (actor.role && actor.role !== ActorRole.Private) {
-    if (!cvrPattern.test(actor.cvrNumber.trim())) {
-      errors[`${path}.cvrNumber`] = 'cvr';
-    }
-    const contact = actor.contactPersonName.trim();
-    if (contact && !lettersPattern.test(contact)) {
-      errors[`${path}.contactPersonName`] = 'lettersOnly';
-    }
-  }
-}
-
-export function validateActors(draft: ApplicationDraft): DraftErrors {
-  const errors: DraftErrors = {};
-  for (const actor of draft.actors) validateActor(errors, actor);
-  return errors;
-}
-
-/** UC-031 F1–F4, UC-004 F7. */
-function validateContactPerson(
-  errors: DraftErrors,
-  contact: ContactPersonDraft,
-): void {
-  const path = `contactPersons.${contact.id}`;
-  requireText(errors, `${path}.name`, contact.name);
-  requireText(errors, `${path}.availability`, contact.availability);
-  validatePhoneAndEmail(errors, path, contact);
-}
-
-export function validateContactPersons(draft: ApplicationDraft): DraftErrors {
-  const errors: DraftErrors = {};
-  if (draft.contactPersons.length === 0) {
-    errors.contactPersons = 'atLeastOneContact';
-  }
-  for (const contact of draft.contactPersons) {
-    validateContactPerson(errors, contact);
-  }
   return errors;
 }
 

@@ -1,6 +1,4 @@
 import type {
-  ActorRole,
-  Availability,
   CableSubtype,
   CableType,
   ExecutionMethod,
@@ -17,6 +15,8 @@ import type {
 // Client-side draft of the parts of an application that are not saved yet.
 // Field names follow the Prisma domain models so the draft can be sent to
 // the API once those endpoints exist. Values are kept as text while editing.
+// Actors and contact persons are not part of the draft: they are stored
+// through the API (contact persons, UC-031–033).
 
 /** Fields from ExcavationPermit and RoadUsePermit (UC-004, UC-007). */
 export interface PeriodDraft {
@@ -50,27 +50,6 @@ export interface MaterialDraft {
   description: string;
 }
 
-/** Actor (UC-040). */
-export interface ActorDraft {
-  id: string;
-  role: ActorRole | '';
-  name: string;
-  phoneNumber: string;
-  email: string;
-  cvrNumber: string;
-  department: string;
-  contactPersonName: string;
-}
-
-/** ContactPerson (UC-031). */
-export interface ContactPersonDraft {
-  id: string;
-  name: string;
-  availability: Availability | '';
-  phoneNumber: string;
-  email: string;
-}
-
 /** TrafficCalmingMeasure. */
 export interface TrafficCalmingMeasureDraft {
   id: string;
@@ -99,8 +78,6 @@ export interface ApplicationDraft {
   period: PeriodDraft;
   cableTasks: CableTaskDraft[];
   materials: MaterialDraft[];
-  actors: ActorDraft[];
-  contactPersons: ContactPersonDraft[];
   signPlan: SignPlanDraft;
   trafficChanges: TrafficChange[];
   trafficCalmingMeasures: TrafficCalmingMeasureDraft[];
@@ -129,29 +106,6 @@ export function emptyMaterial(): MaterialDraft {
   return { id: newId(), type: '', amount: '', description: '' };
 }
 
-export function emptyActor(): ActorDraft {
-  return {
-    id: newId(),
-    role: '',
-    name: '',
-    phoneNumber: '',
-    email: '',
-    cvrNumber: '',
-    department: '',
-    contactPersonName: '',
-  };
-}
-
-export function emptyContactPerson(): ContactPersonDraft {
-  return {
-    id: newId(),
-    name: '',
-    availability: '',
-    phoneNumber: '',
-    email: '',
-  };
-}
-
 export function emptyTrafficCalmingMeasure(): TrafficCalmingMeasureDraft {
   return {
     id: newId(),
@@ -175,8 +129,6 @@ export function emptyApplicationDraft(): ApplicationDraft {
     },
     cableTasks: [emptyCableTask()],
     materials: [emptyMaterial()],
-    actors: [],
-    contactPersons: [emptyContactPerson()],
     signPlan: { signPlanType: '', group: '', plan: '', fileName: '' },
     trafficChanges: [],
     trafficCalmingMeasures: [],

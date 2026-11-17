@@ -1,21 +1,21 @@
 import type { ContactPersonFormField } from '../../types/contact-person.types.js';
 import type { ActorRole, Availability } from '../../types/prisma-enums.js';
 
+// Enum labels are shared with the rest of the wizard and live in
+// locales/*/translation.json under `wizard.enums`.
 export const actorRoleLabelKeys: Record<ActorRole, string> = {
-  Supplier: 'contacts.labels.actorRole.Supplier',
-  Contractor: 'contacts.labels.actorRole.Contractor',
-  NetworkOperator: 'contacts.labels.actorRole.NetworkOperator',
-  ProjectCoordinator: 'contacts.labels.actorRole.ProjectCoordinator',
-  Private: 'contacts.labels.actorRole.Private',
+  Supplier: 'wizard.enums.ActorRole.Supplier',
+  Contractor: 'wizard.enums.ActorRole.Contractor',
+  NetworkOperator: 'wizard.enums.ActorRole.NetworkOperator',
+  ProjectCoordinator: 'wizard.enums.ActorRole.ProjectCoordinator',
+  Private: 'wizard.enums.ActorRole.Private',
 };
 
-// One place for enum labels. The Danish and English text lives in
-// locales/*/translation.json under `contacts.labels`.
 export const availabilityLabelKeys: Record<Availability, string> = {
-  Day: 'contacts.labels.availability.Day',
-  Evening: 'contacts.labels.availability.Evening',
-  Night: 'contacts.labels.availability.Night',
-  AllDay: 'contacts.labels.availability.AllDay',
+  Day: 'wizard.enums.Availability.Day',
+  Evening: 'wizard.enums.Availability.Evening',
+  Night: 'wizard.enums.Availability.Night',
+  AllDay: 'wizard.enums.Availability.AllDay',
 };
 
 export const contactPersonFieldLabelKeys: Record<
@@ -27,3 +27,10 @@ export const contactPersonFieldLabelKeys: Record<
   phoneNumber: 'contacts.fields.phoneNumber',
   email: 'contacts.fields.email',
 };
+
+/** Shows an 8 digit phone number in pairs, e.g. `22 33 44 55`. */
+export function formatPhoneNumber(phoneNumber: string): string {
+  return /^\d{8}$/.test(phoneNumber)
+    ? phoneNumber.replace(/(\d{2})(?=\d)/g, '$1 ')
+    : phoneNumber;
+}

@@ -1,4 +1,4 @@
-import { ApplicationType } from './prisma-enums.js';
+import { ApplicationType, type Status } from './prisma-enums.js';
 
 /**
  * The application types the system supports. The Prisma enum also has
@@ -12,3 +12,10 @@ export const supportedApplicationTypes = [
 
 export type SupportedApplicationType =
   (typeof supportedApplicationTypes)[number];
+
+/** What every wizard step needs to know about the application. */
+export interface WizardApplication {
+  caseNumber: string;
+  type: ApplicationType;
+  status: Status;
+}

@@ -29,6 +29,7 @@ export interface ContactPersonEditState {
 export type ContactPersonEditAction =
   | { type: 'loaded'; contactPersons: ContactPerson[] }
   | { type: 'addNew'; actorId: string }
+  | { type: 'setActor'; actorId: string }
   | { type: 'open'; key: string }
   | { type: 'discardAndOpenPending' }
   | { type: 'cancelPending' }
@@ -146,6 +147,17 @@ export function contactPersonEditReducer(
       return open(dropUnsavedActive(state), state.pendingKey);
     case 'cancelPending':
       return { ...state, pendingKey: null };
+    case 'setActor':
+      // Only a new contact person can move to another actor; the API does
+      // not change the actor of a saved one.
+      return {
+        ...state,
+        entries: state.entries.map((entry) =>
+          entry.key === state.activeKey && !entry.saved
+            ? { ...entry, actorId: action.actorId }
+            : entry,
+        ),
+      };
     case 'change':
       if (!state.draft) {
         return state;
@@ -154,17 +166,10 @@ export function contactPersonEditReducer(
         ...state,
         draft: { ...state.draft, [action.field]: action.value },
       };
-    case 'cancel': {
-      const active = getActiveEntry(state);
-      if (!active) {
-        return state;
-      }
-      // A new contact person that was never saved disappears on cancel.
-      if (!active.saved) {
-        return open(dropUnsavedActive(state), null);
-      }
-      return open(state, active.key);
-    }
+    case 'cancel':
+      // Closes the form without saving. A new contact person that was never
+      // saved disappears. Also used when the step is left.
+      return open(dropUnsavedActive(state), null);
     case 'showErrors':
       return { ...state, showErrors: true };
     case 'saved': {
@@ -177,8 +182,9 @@ export function contactPersonEditReducer(
             }
           : entry,
       );
-      const next = { ...state, entries, activeKey: action.contactPerson.uuid };
-      return open(next, state.pendingKey ?? action.contactPerson.uuid);
+      // The form closes after saving, unless another contact person was
+      // waiting to be opened.
+      return open({ ...state, entries }, state.pendingKey);
     }
     case 'removed': {
       const entries = state.entries.filter((entry) => entry.key !== action.key);
