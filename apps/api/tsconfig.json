@@ -19,5 +19,7 @@
     "strict": true,
     "strictPropertyInitialization": false,
     "types": ["vitest/globals", "node"]
-  }
+  },
+  "include": ["src/**/*.ts", "test/**/*.ts", "prisma/**/*.ts", "*.ts"],
+  "exclude": ["node_modules", "dist"]
 }
