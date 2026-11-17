@@ -1,17 +1,21 @@
 import type { Prisma } from '../../../generated/prisma/client.js';
-import { ActorRole } from '../../../generated/prisma/enums.js';
 import { toAddressCreateInput } from '../../address/mappers/address.mapper.js';
 import type { CreateActorDto } from '../dto/create-actor.dto.js';
 
 import type { UpdateActorDto } from '../dto/update-actor.dto.js';
 
+type ActorCreationData = Omit<CreateActorDto, 'cvrNumber' | 'department'> & {
+  cvrNumber?: string | null;
+  department?: string | null;
+};
+
 export class ActorMapper {
   /**
-   * @summary Map actor creation data with normalized fields,
-   * role-specific values, and application and address relations.
+   * @summary Map actor creation data to normalized fields
+   * and application and address relations.
    */
   toCreateInput(
-    dto: CreateActorDto,
+    dto: ActorCreationData,
     existingAddressId?: string,
   ): Prisma.ActorCreateInput {
     return {
@@ -19,9 +23,8 @@ export class ActorMapper {
       name: dto.name.trim(),
       phoneNumber: dto.phoneNumber,
       email: dto.email.trim(),
-      cvrNumber: dto.role === ActorRole.Private ? null : dto.cvrNumber,
-      department:
-        dto.role === ActorRole.Private ? null : dto.department?.trim(),
+      cvrNumber: dto.cvrNumber,
+      department: dto.department?.trim() ?? dto.department,
       applications: {
         connect: { caseNumber: dto.applicationCaseNumber },
       },

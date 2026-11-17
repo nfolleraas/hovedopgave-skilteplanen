@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '../../generated/prisma/client.js';
+import { type Actor, Prisma } from '../../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 
 @Injectable()
@@ -14,20 +14,33 @@ export class ActorsRepository {
     });
   }
 
-  /** @summary Update an actor and return its related details. */
-  update(uuid: string, data: Prisma.ActorUpdateInput) {
-    return this.prisma.actor.update({
-      where: { uuid },
-      data,
-      include: { address: true, contactPersons: true },
-    });
+  /** @summary Update an actor, returning null if the actor is missing. */
+  async update(uuid: string, data: Prisma.ActorUpdateInput) {
+    try {
+      return await this.prisma.actor.update({
+        where: { uuid },
+        data,
+        include: { address: true, contactPersons: true },
+      });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2025'
+      ) {
+        // Missing relations can also cause P2025; only report a missing actor
+        // when the actor itself no longer exists.
+        const actor = await this.prisma.actor.findUnique({ where: { uuid } });
+        if (!actor) return null;
+      }
+      throw error;
+    }
   }
 
   /**
    * @summary Delete an actor and its contact persons atomically,
    * returning null if the actor does not exist.
    */
-  async delete(uuid: string) {
+  async delete(uuid: string): Promise<Actor | null> {
     try {
       return await this.prisma.$transaction(async (transaction) => {
         await transaction.contactPerson.deleteMany({

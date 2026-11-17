@@ -58,8 +58,13 @@ describe('ActorMapper', () => {
       });
     });
 
-    it('clears business fields and omits the contact person for private actors', () => {
-      const input = mapper.toCreateInput({ ...dto, role: ActorRole.Private });
+    it('maps role-specific values supplied by the service without applying policy', () => {
+      const input = mapper.toCreateInput({
+        ...dto,
+        role: ActorRole.Private,
+        cvrNumber: null,
+        department: null,
+      });
 
       expect(input).toMatchObject({
         role: ActorRole.Private,
@@ -67,6 +72,14 @@ describe('ActorMapper', () => {
         department: null,
       });
       expect(input).not.toHaveProperty('contactPersons');
+    });
+
+    it('preserves supplied business fields regardless of role', () => {
+      const input = mapper.toCreateInput({ ...dto, role: ActorRole.Private });
+      expect(input).toMatchObject({
+        cvrNumber: dto.cvrNumber,
+        department: 'Anlæg',
+      });
     });
 
     it('supports omitted optional business fields', () => {

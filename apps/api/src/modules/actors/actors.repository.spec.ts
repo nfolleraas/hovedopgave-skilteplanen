@@ -67,6 +67,51 @@ describe('ActorsRepository', () => {
     });
   });
 
+  it('returns null when the actor to update is missing', async () => {
+    update.mockRejectedValue(
+      new Prisma.PrismaClientKnownRequestError('Record not found', {
+        code: 'P2025',
+        clientVersion: '7',
+      }),
+    );
+    findUnique.mockResolvedValue(null);
+
+    await expect(
+      repository.update('missing-id', { name: 'Updated' }),
+    ).resolves.toBeNull();
+    expect(findUnique).toHaveBeenCalledExactlyOnceWith({
+      where: { uuid: 'missing-id' },
+    });
+  });
+
+  it('preserves missing-relation errors when the actor still exists', async () => {
+    const error = new Prisma.PrismaClientKnownRequestError(
+      'Address not found',
+      { code: 'P2025', clientVersion: '7' },
+    );
+    update.mockRejectedValue(error);
+    findUnique.mockResolvedValue({ uuid: 'actor-id' });
+
+    await expect(
+      repository.update('actor-id', {
+        address: { connect: { uuid: 'missing-address' } },
+      }),
+    ).rejects.toBe(error);
+  });
+
+  it('propagates other Prisma update errors without checking actor existence', async () => {
+    const error = new Prisma.PrismaClientKnownRequestError(
+      'Constraint failed',
+      { code: 'P2003', clientVersion: '7' },
+    );
+    update.mockRejectedValue(error);
+
+    await expect(
+      repository.update('actor-id', { name: 'Updated' }),
+    ).rejects.toBe(error);
+    expect(findUnique).not.toHaveBeenCalled();
+  });
+
   it('deletes the related contact persons before the actor in a transaction', async () => {
     const deletedActor = { uuid: 'actor-id', name: 'Deleted Actor' };
     deleteContactPersons.mockResolvedValue({ count: 1 });

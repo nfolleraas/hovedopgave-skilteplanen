@@ -13,6 +13,8 @@ import { ActorsRepository } from '../src/modules/actors/actors.repository.js';
 import { ActorsService } from '../src/modules/actors/actors.service.js';
 import type { CreateActorDto } from '../src/modules/actors/dto/create-actor.dto.js';
 import { ActorMapper } from '../src/modules/actors/mappers/actor.mapper.js';
+import { AddressRepository } from '../src/modules/address/address.repository.js';
+import { AddressService } from '../src/modules/address/address.service.js';
 import { ApplicationsRepository } from '../src/modules/applications/applications.repository.js';
 import { PrismaService } from '../src/prisma.service.js';
 
@@ -23,7 +25,13 @@ describe('ActorsService database write', () => {
   const repository = new ActorsRepository(prisma);
   const mapper = new ActorMapper();
   const applicationsRepository = new ApplicationsRepository(prisma);
-  const service = new ActorsService(applicationsRepository, repository, mapper);
+  const addressService = new AddressService(new AddressRepository(prisma));
+  const service = new ActorsService(
+    applicationsRepository,
+    repository,
+    mapper,
+    addressService,
+  );
   const dto: CreateActorDto = {
     applicationCaseNumber: caseNumber,
     role: ActorRole.Contractor,
@@ -154,8 +162,8 @@ describe('ActorsService database write', () => {
     ).toBe(0);
     const failedStreet = `Failed street ${marker}`;
     const duplicateIdMapper = Object.assign(new ActorMapper(), {
-      toCreateInput: (input: CreateActorDto) => ({
-        ...mapper.toCreateInput(input),
+      toCreateInput: (...args: Parameters<ActorMapper['toCreateInput']>) => ({
+        ...mapper.toCreateInput(...args),
         uuid: saved.uuid,
       }),
     });
@@ -163,6 +171,7 @@ describe('ActorsService database write', () => {
       applicationsRepository,
       repository,
       duplicateIdMapper,
+      addressService,
     );
 
     await expect(
@@ -244,6 +253,14 @@ describe('ActorsService database write', () => {
       actorIds.push(response.body.uuid);
       expect(response.body.address.uuid).toBe(existing.uuid);
     }
+    const directActor = await service.create({
+      ...dto,
+      address,
+      email: `direct-shared-${marker}@example.com`,
+    });
+    actorIds.push(directActor.uuid);
+    expect(directActor.address.uuid).toBe(existing.uuid);
+
     expect(await prisma.address.count({ where: address })).toBe(1);
 
     for (const field of [

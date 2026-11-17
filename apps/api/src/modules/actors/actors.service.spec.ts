@@ -1,6 +1,6 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
-import { Prisma } from '../../generated/prisma/client.js';
 import { ActorRole, ApplicationType } from '../../generated/prisma/enums.js';
+import { AddressService } from '../address/address.service.js';
 import { ApplicationsRepository } from '../applications/applications.repository.js';
 import { ActorsRepository } from './actors.repository.js';
 import { ActorsService } from './actors.service.js';
@@ -14,6 +14,7 @@ describe('ActorsService', () => {
   const get = vi.fn();
   const getAll = vi.fn();
   const findApplication = vi.fn();
+  const findMatching = vi.fn();
   let service: ActorsService;
 
   const dto = {
@@ -40,6 +41,9 @@ describe('ActorsService', () => {
   beforeEach(() => {
     create.mockReset();
     update.mockReset();
+    update.mockResolvedValue({ uuid: 'actor-id' });
+    findMatching.mockReset();
+    findMatching.mockResolvedValue(null);
     deleteActor.mockReset();
     get.mockReset();
     get.mockResolvedValue({
@@ -60,6 +64,7 @@ describe('ActorsService', () => {
         getAll,
       } as unknown as ActorsRepository,
       new ActorMapper(),
+      { findMatching } as unknown as AddressService,
     );
   });
 
@@ -100,8 +105,10 @@ describe('ActorsService', () => {
     expect(deleteActor).toHaveBeenCalledExactlyOnceWith('actor-id');
   });
 
-  it('connects the existing address passed by the controller when creating an actor', async () => {
-    await service.create(dto, 'existing-address-id');
+  it('looks up and reuses a matching address when creating an actor', async () => {
+    findMatching.mockResolvedValue({ uuid: 'existing-address-id' });
+    await service.create(dto);
+    expect(findMatching).toHaveBeenCalledExactlyOnceWith(dto.address);
 
     expect(create).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -110,12 +117,10 @@ describe('ActorsService', () => {
     );
   });
 
-  it('connects the existing address passed by the controller when updating an actor', async () => {
-    await service.update(
-      'actor-id',
-      { address: dto.address },
-      'existing-address-id',
-    );
+  it('looks up and reuses a matching address when updating an actor', async () => {
+    findMatching.mockResolvedValue({ uuid: 'existing-address-id' });
+    await service.update('actor-id', { address: dto.address });
+    expect(findMatching).toHaveBeenCalledExactlyOnceWith(dto.address);
 
     expect(update).toHaveBeenCalledExactlyOnceWith('actor-id', {
       address: { connect: { uuid: 'existing-address-id' } },
@@ -201,6 +206,7 @@ describe('ActorsService', () => {
 
     await expect(service.create(dto)).rejects.toThrow('Application not found');
     expect(create).not.toHaveBeenCalled();
+    expect(findMatching).not.toHaveBeenCalled();
   });
 
   it('skips contact person and business fields for a private actor', async () => {
@@ -298,31 +304,44 @@ describe('ActorsService', () => {
   });
 
   it('reports a missing actor during update as not found', async () => {
-    update.mockRejectedValue(
-      new Prisma.PrismaClientKnownRequestError('Record not found', {
-        code: 'P2025',
-        clientVersion: '7.0.0',
-      }),
-    );
-    get.mockResolvedValue(null);
+    update.mockResolvedValue(null);
 
     await expect(
       service.update('missing-id', { name: 'Updated' }),
     ).rejects.toThrow(new NotFoundException('Actor not found'));
   });
 
-  it('preserves missing-relation errors when the actor still exists', async () => {
-    const error = new Prisma.PrismaClientKnownRequestError(
-      'Address not found',
-      {
-        code: 'P2025',
-        clientVersion: '7.0.0',
-      },
-    );
-    update.mockRejectedValue(error);
+  it('skips address lookup for updates without an address', async () => {
+    await service.update('actor-id', { name: 'Updated' });
+    expect(findMatching).not.toHaveBeenCalled();
+  });
 
-    await expect(service.update('actor-id', { name: 'Updated' })).rejects.toBe(
-      error,
+  it.each(['create', 'update'] as const)(
+    'does not write an actor when address lookup fails during %s',
+    async (operation) => {
+      const error = new Error('Address lookup failed');
+      findMatching.mockRejectedValue(error);
+
+      const result =
+        operation === 'create'
+          ? service.create(dto)
+          : service.update('actor-id', { address: dto.address });
+      await expect(result).rejects.toBe(error);
+      expect(create).not.toHaveBeenCalled();
+      expect(update).not.toHaveBeenCalled();
+    },
+  );
+
+  it('applies private actor rules without mutating the request', async () => {
+    const input = { ...dto, role: ActorRole.Private };
+    const original = structuredClone(input);
+    await service.create(input);
+    expect(input).toEqual(original);
+    expect(create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        cvrNumber: null,
+        department: null,
+      }),
     );
   });
 
