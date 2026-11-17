@@ -76,8 +76,9 @@ Use `db:deploy` for applying already-committed migrations in deployment or CI
 environments. Use `db:reset` only when intentionally rebuilding the local
 development database, because it destroys local database data.
 
-See [API modules and seeders](../api/modules-and-seeders.md) for the complete
-Prisma script reference, migration guidance, and seeder instructions.
+See [API modules](../api/modules.md) for the complete Prisma script reference
+and migration guidance. See [API seeders](../api/seeders.md) for seeder
+structure and registration.
 
 ## Database and environment
 

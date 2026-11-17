@@ -35,6 +35,6 @@ for shared development instructions.
 
 ## Guides
 
-- [Modules and seeders](modules-and-seeders.md): feature module structure,
-  dependency injection, root-module registration, and generic Prisma seeder
-  examples.
+- [Modules](modules.md): feature structure, dependency injection,
+  repositories, Prisma, and migrations.
+- [Seeders](seeders.md): repeatable development data and seeder registration.

@@ -1,9 +1,9 @@
-# API modules and seeders
+# API modules
 
 This guide describes the recommended way to add a business feature to the
-NestJS API and to add development data for it. Examples use generic names and
-placeholder values so they can be copied without coupling the documentation to
-one domain feature.
+NestJS API, including its module structure, repository boundary, and Prisma
+workflow. Examples use generic names and placeholder values so they can be
+copied without coupling the documentation to one domain feature.
 
 ## Generate a module
 
@@ -51,6 +51,12 @@ The generated resource may include additional files, such as a spec file or an
 example, a read-only feature may not need create or update DTOs. Tests should be
 placed next to the file they test, using the repository's existing test
 conventions.
+
+As a rule of thumb, each TypeScript source file should define only one class.
+Put collaborating services, repositories, controllers, and transaction-scoped
+repository implementations in separate files. Shared interfaces and type
+aliases belong in a focused `.types.ts` file when they would otherwise make a
+class file harder to scan.
 
 ### Create the module
 
@@ -131,6 +137,11 @@ because API requests cannot be trusted to come only from the frontend.
 The service coordinates validation and business behavior. The repository owns
 the Prisma calls, which keeps database details out of the service and makes
 both layers easier to test independently:
+
+`PrismaService` must only be injected into repository classes. Controllers,
+services, guards, and provider adapters must access persisted data through a
+repository instead of importing or injecting `PrismaService` directly. This
+boundary also applies to simple queries such as health checks.
 
 ```ts
 // module-name.service.ts
@@ -321,6 +332,10 @@ export class ModuleNameRepository {
 }
 ```
 
+The global export is for repository providers only. Do not inject
+`PrismaService` into feature services or controllers; create a repository for
+the feature and inject that repository instead.
+
 Do not create a new `PrismaClient` inside a controller, service, or repository.
 Using `PrismaService` gives Nest control over the connection lifecycle and
 avoids unnecessary database connections. Seeders are separate CLI programs and
@@ -408,86 +423,6 @@ Use `db:deploy` when the migration already exists in version control. Use
 and migration history are out of sync, inspect the state and migration files
 first; do not reset automatically, especially outside local development.
 
-## Seeders
-
-Seeders belong in [`apps/api/prisma/seeders/`](../../apps/api/prisma/seeders/).
-Each logical dataset gets its own file. The top-level
-[`prisma/seed.ts`](../../apps/api/prisma/seed.ts) is only the entry point: it
-creates Prisma, calls the seeder functions in dependency order, and disconnects
-from the database.
-
-```text
-apps/api/prisma/
-├── seed.ts
-└── seeders/
-    ├── <feature>.seeder.ts
-    └── <another-feature>.seeder.ts
-```
-
-### Create a feature seeder
-
-Use a named function that accepts the generated `PrismaClient`. Keep the data
-for one logical feature in this file and use `upsert` (or another deliberate
-idempotent strategy) so running the seed command repeatedly does not create
-duplicates:
-
-```ts
-import type { PrismaClient } from '../../src/generated/prisma/client.js';
-
-const seedKey = 'example-key';
-
-export async function seedModuleName(prisma: PrismaClient) {
-  return prisma.moduleName.upsert({
-    where: { key: seedKey },
-    update: {},
-    create: {
-      key: seedKey,
-      label: 'Example label',
-      enabled: true,
-    },
-  });
-}
-```
-
-The value used in `where` must identify the same record on every run. Prefer a
-stable unique key from the Prisma model rather than a generated UUID. If the
-seeded record depends on another record, call the other seeder first or create
-the related data in the same nested Prisma operation.
-
-### Register the seeder in `seed.ts`
-
-Import each seeder explicitly and call it in the order required by foreign-key
-dependencies:
-
-```ts
-import { PrismaPg } from '@prisma/adapter-pg';
-import { PrismaClient } from '../src/generated/prisma/client.js';
-import { seedModuleName } from './seeders/module-name.seeder.js';
-
-const connectionString = process.env.DATABASE_URL;
-
-if (!connectionString) {
-  throw new Error('DATABASE_URL must be set to seed the database.');
-}
-
-const prisma = new PrismaClient({
-  adapter: new PrismaPg({ connectionString }),
-});
-
-export async function seed() {
-  const moduleName = await seedModuleName(prisma);
-
-  console.log('Seeded module:', moduleName.key);
-}
-
-try {
-  await seed();
-} finally {
-  await prisma.$disconnect();
-}
-```
-
-Do not instantiate a second `PrismaClient` inside an individual seeder. The
-shared client from `seed.ts` ensures all seeders use the same connection and
-that the entry point controls cleanup.
+For development-data conventions and commands, see
+[API seeders](seeders.md).
 
