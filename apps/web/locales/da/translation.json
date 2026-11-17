@@ -320,6 +320,7 @@
     "delete": "Slet område",
     "cancel": "Annuller",
     "save": "Gem område",
+    "characterCount": "{{length}} af {{max}} tegn",
     "or": "eller",
     "houseNumberOrDescriptionHint": "Udfyld husnr. fra og til eller en alternativ beskrivelse.",
     "areaCalculated": "Beregnes ud fra længde × bredde",
@@ -402,8 +403,7 @@
         "ExcavationPermit": "Gravetilladelse",
         "RoadUsePermit": "Råden over vejareal"
       }
-    },
-    "characterCount": "{{length}} af {{max}} tegn"
+    }
   },
   "mapStep": {
     "mapPlaceholder": "Interaktivt kort kommer senere",
@@ -413,8 +413,8 @@
     "searchLabel": "Søg vej",
     "searchPlaceholder": "Fx Strandvej eller Strandvej 5000",
     "searchResults": "Søgeresultater",
-    "searchError": "Vejsøgningen virker ikke lige nu. Prøv igen senere, eller tilføj vejen manuelt.",
     "noResults": "Ingen veje fundet",
+    "searchError": "Vejsøgningen virker ikke lige nu. Prøv igen senere, eller tilføj vejen manuelt.",
     "resultCount_one": "{{count}} vej fundet. Brug pil op og ned og tryk Enter for at vælge eller fravælge en vej.",
     "resultCount_other": "{{count}} veje fundet. Brug pil op og ned og tryk Enter for at vælge eller fravælge en vej.",
     "selectedRoads": "Valgte veje",

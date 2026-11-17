@@ -320,6 +320,7 @@
     "delete": "Delete area",
     "cancel": "Cancel",
     "save": "Save area",
+    "characterCount": "{{length}} of {{max}} characters",
     "or": "or",
     "houseNumberOrDescriptionHint": "Fill in house number from and to or an alternative description.",
     "areaCalculated": "Calculated from length × width",
@@ -402,8 +403,7 @@
         "ExcavationPermit": "Excavation permit",
         "RoadUsePermit": "Road use permit"
       }
-    },
-    "characterCount": "{{length}} of {{max}} characters"
+    }
   },
   "mapStep": {
     "mapPlaceholder": "Interactive map coming later",
@@ -413,8 +413,8 @@
     "searchLabel": "Search road",
     "searchPlaceholder": "E.g. Strandvej or Strandvej 5000",
     "searchResults": "Search results",
-    "searchError": "The road search is not working right now. Try again later, or add the road manually.",
     "noResults": "No roads found",
+    "searchError": "The road search is not working right now. Try again later, or add the road manually.",
     "resultCount_one": "{{count}} road found. Use the up and down arrows and press Enter to select or deselect a road.",
     "resultCount_other": "{{count}} roads found. Use the up and down arrows and press Enter to select or deselect a road.",
     "selectedRoads": "Selected roads",
