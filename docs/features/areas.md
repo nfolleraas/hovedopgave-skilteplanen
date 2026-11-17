@@ -27,7 +27,8 @@ Et område gemmes i PostgreSQL i tre tabeller
 ([`apps/api/prisma/domain/`](../../apps/api/prisma/domain/)):
 
 - `Area`: vejnavn, vejstatus, postnummer, husnr. fra/til, alternativ
-  beskrivelse og `applicationId` (ansøgningens sagsnummer).
+  beskrivelse, `isManual` (vejen er indtastet manuelt, ikke fundet på
+  kortet) og `applicationId` (ansøgningens sagsnummer).
 - `AreaDetail` (Områdeinformation): vejelement, beskrivelse af vejelement,
   vejside og retning.
 - `AreaSize` (OmrådeAreal): længde, bredde, dybde og areal i m².
@@ -105,9 +106,15 @@ Flow i wizarden (`/ansoegning?sag=<sagsnummer>`):
      `ChangeRequired`), vises beskeden om det, og søgningen skjules. Ændres
      status i en anden fane, viser oprettelsen samme besked.
 3. **Områder**: hvert område er et kort, og kun ét er åbent ad gangen.
+   - Kortets overskrift er "Område N" (h2), derunder vejnavnet (h3) og en
+     linje med vejstatus og om vejen er "Fundet på kortet" eller "Indtastet
+     manuelt".
    - Vejstatus kan rettes på alle områder. Vejnavn og postnummer kan kun
-     rettes på en manuel vej, og kun i den session, hvor den blev oprettet
-     (se "Ikke bygget endnu").
+     rettes på en manuel vej. `Area.isManual` gemmer det, så det også gælder
+     efter en genindlæsning. Feltet sættes kun ved oprettelse og kan ikke
+     ændres med `PATCH`.
+   - Hjælpeteksten om husnumre står lige under husnr.-felterne i samme stil
+     og på samme linje som tegntælleren under alternativ beskrivelse.
    - "Gem område" validerer først lokalt og gemmer derefter. Efter "Gem
      område" og "Annuller" lukkes kortet igen.
    - Formatfejl (fx `abc` i længde) vises, så snart man forlader feltet.
@@ -159,10 +166,6 @@ hvordan, står i [Pladsholdere og sammenfletning](placeholders.md).
 - Sletning bliver ikke logget (UC-035 trin 8).
 - Område-endpoints har ingen login-kontrol, så det tjekkes ikke, at
   ansøgeren ejer ansøgningen (UC-035 forudsætning).
-- Databasen gemmer ikke, om en vej blev indtastet manuelt. Efter en
-  genindlæsning kan vejnavn og postnummer derfor ikke rettes på en manuel vej,
-  kun vejstatus. Det kræver et felt som `isManuallyAdded` på `Area`, dvs. en
-  ændring af Prisma-skemaet.
 - Dataforsyningen har meddelt, at GSearch lukker omkring 1. november 2026
   (se [GSearch-dokumentationen](https://docs.dataforsyningen.dk/#gsearch)).
   Vejsøgningen skal flyttes til den efterfølgende tjeneste, når den kendes.
