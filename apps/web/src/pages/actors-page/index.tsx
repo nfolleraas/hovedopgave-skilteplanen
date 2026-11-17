@@ -1,8 +1,10 @@
 import AddIcon from '@mui/icons-material/Add';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {
   Alert,
+  Box,
   Button,
   CircularProgress,
   Divider,
@@ -25,6 +27,7 @@ export default function ActorsPage(): ReactElement {
   const { t } = useTranslation();
   const { actors, setActors, isLoading, loadFailed, retry } = useActorsPage();
   const navigate = useNavigate();
+  const [expandedActors, setExpandedActors] = useState<Set<string>>(new Set());
   const [actorToDelete, setActorToDelete] = useState<SavedActor | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteFailed, setDeleteFailed] = useState(false);
@@ -34,6 +37,15 @@ export default function ActorsPage(): ReactElement {
   const retryButton = useRef<HTMLButtonElement>(null);
   const restoreFocusAfterDelete = useRef(false);
   const isDeleteOpen = actorToDelete !== null;
+
+  function toggleActor(uuid: string): void {
+    setExpandedActors((current) => {
+      const next = new Set(current);
+      if (next.has(uuid)) next.delete(uuid);
+      else next.add(uuid);
+      return next;
+    });
+  }
 
   useEffect(() => {
     if (
@@ -122,54 +134,117 @@ export default function ActorsPage(): ReactElement {
         ) : (
           <Stack divider={<Divider flexItem />}>
             {actors.map((actor) => (
-              <Stack
-                direction="row"
-                key={actor.uuid}
-                spacing={2}
-                sx={{
-                  alignItems: 'center',
-                  minHeight: 64,
-                  px: 2.5,
-                  py: 1,
-                }}
-              >
-                <Typography
+              <Box key={actor.uuid}>
+                <Stack
+                  direction="row"
+                  spacing={2}
                   sx={{
-                    flex: 1,
-                    minWidth: 0,
-                    overflowWrap: 'anywhere',
-                    fontWeight: 600,
+                    alignItems: 'center',
+                    minHeight: 64,
+                    px: 2.5,
+                    py: 1,
                   }}
                 >
-                  {actor.name}
-                </Typography>
-                <IconButton
-                  aria-label={`Rediger ${actor.name}`}
-                  onClick={() =>
-                    navigate(`actors/${encodeURIComponent(actor.uuid)}/edit`)
-                  }
-                  sx={{
-                    color: '#1562AD',
-                    flexShrink: 0,
-                    minWidth: 44,
-                    minHeight: 44,
-                  }}
+                  <Button
+                    aria-controls={`actor-details-${actor.uuid}`}
+                    aria-expanded={expandedActors.has(actor.uuid)}
+                    endIcon={
+                      <ExpandMoreIcon
+                        sx={{
+                          transform: expandedActors.has(actor.uuid)
+                            ? 'rotate(180deg)'
+                            : 'none',
+                        }}
+                      />
+                    }
+                    onClick={() => toggleActor(actor.uuid)}
+                    sx={{
+                      flex: 1,
+                      minWidth: 0,
+                      minHeight: 44,
+                      justifyContent: 'space-between',
+                      textAlign: 'left',
+                      textTransform: 'none',
+                      overflowWrap: 'anywhere',
+                      fontWeight: 600,
+                    }}
+                  >
+                    {actor.name}
+                  </Button>
+                  <IconButton
+                    aria-label={`Rediger ${actor.name}`}
+                    onClick={() =>
+                      navigate(`actors/${encodeURIComponent(actor.uuid)}/edit`)
+                    }
+                    sx={{
+                      color: '#1562AD',
+                      flexShrink: 0,
+                      minWidth: 44,
+                      minHeight: 44,
+                    }}
+                  >
+                    <EditOutlinedIcon />
+                  </IconButton>
+                  <IconButton
+                    aria-label={`Slet ${actor.name}`}
+                    onClick={() => openDeleteDialog(actor)}
+                    sx={{
+                      color: '#424242',
+                      flexShrink: 0,
+                      minWidth: 44,
+                      minHeight: 44,
+                    }}
+                  >
+                    <DeleteOutlineIcon />
+                  </IconButton>
+                </Stack>
+                <Box
+                  hidden={!expandedActors.has(actor.uuid)}
+                  id={`actor-details-${actor.uuid}`}
+                  sx={{ bgcolor: '#F7F9FC', px: 3.5, py: 2 }}
                 >
-                  <EditOutlinedIcon />
-                </IconButton>
-                <IconButton
-                  aria-label={`Slet ${actor.name}`}
-                  onClick={() => openDeleteDialog(actor)}
-                  sx={{
-                    color: '#424242',
-                    flexShrink: 0,
-                    minWidth: 44,
-                    minHeight: 44,
-                  }}
-                >
-                  <DeleteOutlineIcon />
-                </IconButton>
-              </Stack>
+                  <Box
+                    component="dl"
+                    sx={{
+                      m: 0,
+                      display: 'grid',
+                      gridTemplateColumns: {
+                        xs: 'minmax(0, 1fr)',
+                        sm: 'repeat(2, minmax(0, 1fr))',
+                      },
+                      gap: 2,
+                      overflowWrap: 'anywhere',
+                    }}
+                  >
+                    {[
+                      [t('actors.role'), t(`actors.roles.${actor.role}`)],
+                      ['Telefonnummer', actor.phoneNumber],
+                      ['E-mail', actor.email],
+                      [
+                        t('actors.address'),
+                        `${actor.address.street} ${actor.address.houseNumber}, ${actor.address.postalCode} ${actor.address.city}`,
+                      ],
+                      ['CVR-nummer', actor.cvrNumber],
+                      ['Afdeling', actor.department],
+                    ].map(([label, value]) =>
+                      value ? (
+                        <Box key={label}>
+                          <Typography
+                            color="text.secondary"
+                            component="dt"
+                            variant="body2"
+                          >
+                            {label}
+                          </Typography>
+                          <Typography component="dd" sx={{ m: 0 }}>
+                            {value}
+                          </Typography>
+                        </Box>
+                      ) : null,
+                    )}
+                  </Box>
+                </Box>
+              </Box>
             ))}
           </Stack>
         )}
