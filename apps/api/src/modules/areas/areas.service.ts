@@ -21,6 +21,7 @@ import {
   canEditAreas,
   findInvalidAreaFields,
   getAreaFieldSet,
+  normalizeHouseNumber,
 } from './rules/area-rules.js';
 
 const detailFields = [
@@ -85,8 +86,8 @@ export class AreasService {
       roadName: dto.roadName,
       roadOwnership: dto.roadOwnership,
       postalCode: dto.postalCode,
-      houseNumberFrom: dto.houseNumberFrom,
-      houseNumberTo: dto.houseNumberTo,
+      houseNumberFrom: normalizeOptionalHouseNumber(dto.houseNumberFrom),
+      houseNumberTo: normalizeOptionalHouseNumber(dto.houseNumberTo),
       alternativeDescription: dto.alternativeDescription,
       ...this.toDetailUpsert(application.type, merged),
     });
@@ -216,8 +217,8 @@ export class AreasService {
       roadName: fields.roadName,
       roadOwnership: fields.roadOwnership,
       postalCode: fields.postalCode,
-      houseNumberFrom: fields.houseNumberFrom ?? null,
-      houseNumberTo: fields.houseNumberTo ?? null,
+      houseNumberFrom: normalizeHouseNumber(fields.houseNumberFrom),
+      houseNumberTo: normalizeHouseNumber(fields.houseNumberTo),
       alternativeDescription: fields.alternativeDescription ?? null,
       ...(hasDetails ? this.toDetailCreate(application.type, fields) : {}),
     };
@@ -289,6 +290,13 @@ function flattenRuleInput(area: AreaWithRelations): AreaRuleInput {
     widthInMeters: response.widthInMeters,
     depthInMeters: response.depthInMeters,
   };
+}
+
+/** Leaves a field out of an update (undefined) instead of clearing it. */
+function normalizeOptionalHouseNumber(
+  value: string | null | undefined,
+): string | null | undefined {
+  return value === undefined ? undefined : normalizeHouseNumber(value);
 }
 
 function stripUndefined<T extends object>(value: T): Partial<T> {

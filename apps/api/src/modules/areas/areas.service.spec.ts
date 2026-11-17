@@ -272,6 +272,21 @@ describe('AreasService', () => {
       expect(data.areaDetail.upsert.update.roadSide).toBe(RoadSide.Right);
     });
 
+    it('stores house number letters in uppercase', async () => {
+      repository.getById.mockResolvedValue(buildArea());
+      repository.update.mockResolvedValue(buildArea());
+
+      await service.update('area-1', {
+        ...validUpdate,
+        houseNumberFrom: '5a',
+        houseNumberTo: '9b',
+      });
+
+      const data = repository.update.mock.calls[0][1];
+      expect(data.houseNumberFrom).toBe('5A');
+      expect(data.houseNumberTo).toBe('9B');
+    });
+
     it('keeps saved details that are not part of the update', async () => {
       repository.getById.mockResolvedValue(buildCompleteArea());
       repository.update.mockResolvedValue(buildCompleteArea());

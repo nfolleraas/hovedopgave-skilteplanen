@@ -102,6 +102,18 @@ export function findInvalidAreaFields(
   return invalid;
 }
 
+/**
+ * Stores a house number the way Danish addresses write it: a house number's
+ * letter is uppercase, e.g. `5a` becomes `5A` (BEK nr. 271 af 2018, § 16,
+ * stk. 2). Blank values become null. The format itself is not checked.
+ */
+export function normalizeHouseNumber(
+  value: string | null | undefined,
+): string | null {
+  if (!hasText(value)) return null;
+  return (value as string).trim().toUpperCase();
+}
+
 export function calculateAreaInSquareMeters(
   lengthInMeters: number,
   widthInMeters: number,

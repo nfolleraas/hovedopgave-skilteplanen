@@ -9,6 +9,7 @@ import {
   calculateAreaInSquareMeters,
   canEditAreas,
   findInvalidAreaFields,
+  normalizeHouseNumber,
 } from './area-rules.js';
 
 const completeExcavationArea: AreaRuleInput = {
@@ -101,6 +102,13 @@ describe('area rules', () => {
         }),
       ).toEqual(['roadSectionDescription']);
     });
+  });
+
+  it('writes the letter of a house number in uppercase', () => {
+    expect(normalizeHouseNumber(' 5a ')).toBe('5A');
+    expect(normalizeHouseNumber('12')).toBe('12');
+    expect(normalizeHouseNumber('  ')).toBeNull();
+    expect(normalizeHouseNumber(null)).toBeNull();
   });
 
   it('calculates the area as length times width', () => {
