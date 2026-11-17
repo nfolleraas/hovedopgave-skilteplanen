@@ -270,6 +270,16 @@ describe('/api/contact-persons (e2e)', () => {
     expect(response.body.code).toBe('APPLICATION_NOT_FOUND');
   });
 
+  it('rejects a list request without an applicationId', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/api/contact-persons')
+      .expect(400);
+    expect(response.body.message).toEqual([
+      'applicationId should not be empty',
+      'applicationId must be a string',
+    ]);
+  });
+
   it('lists the invalid fields (UC-031 F1, F2, F4)', async () => {
     const { caseNumber, actor } = await createApplication('invalid');
 

@@ -12,6 +12,7 @@ import {
 } from '@nestjs/common';
 import { ContactPersonsService } from './contact-persons.service.js';
 import { CreateContactPersonDto } from './dto/create-contact-person.dto.js';
+import { FindContactPersonsQueryDto } from './dto/find-contact-persons-query.dto.js';
 import { UpdateContactPersonDto } from './dto/update-contact-person.dto.js';
 
 @Controller('contact-persons')
@@ -24,8 +25,8 @@ export class ContactPersonsController {
   }
 
   @Get()
-  findByApplication(@Query('applicationId') applicationId: string) {
-    return this.contactPersonsService.findByApplication(applicationId);
+  findByApplication(@Query() query: FindContactPersonsQueryDto) {
+    return this.contactPersonsService.findByApplication(query.applicationId);
   }
 
   @Get(':id')
