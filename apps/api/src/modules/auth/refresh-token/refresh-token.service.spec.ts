@@ -16,7 +16,7 @@ vi.hoisted(() => {
   process.env.AUTH_ACCESS_COOKIE_NAME = 'sk_access';
   process.env.AUTH_REFRESH_COOKIE_NAME = 'sk_refresh';
   process.env.AUTH_ACCESS_COOKIE_PATH = '/api';
-  process.env.AUTH_REFRESH_COOKIE_PATH = '/api/auth/refresh';
+  process.env.AUTH_REFRESH_COOKIE_PATH = '/api/auth';
   process.env.AUTH_COOKIE_SECURE = 'false';
 });
 
@@ -36,7 +36,7 @@ const config: AuthConfig = {
     accessName: 'sk_access',
     refreshName: 'sk_refresh',
     accessPath: '/api',
-    refreshPath: '/api/auth/refresh',
+    refreshPath: '/api/auth',
     secure: false,
     sameSite: 'lax',
   },

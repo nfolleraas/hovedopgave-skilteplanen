@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AUTH_CONFIG, type AuthConfig } from '../../../config/auth.config.js';
+import { readCookie } from '../auth-cookie.utils.js';
 import type { AuthenticatedRequest } from '../auth-request.types.js';
 import { ALLOW_ANY_AUTHENTICATED_KEY } from '../decorators/allow-any-authenticated.decorator.js';
 import { ALLOW_ONBOARDING_KEY } from '../decorators/allow-onboarding.decorator.js';
@@ -45,7 +46,10 @@ export class JwtAuthGuard implements CanActivate {
     }
 
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
-    const token = this.readAccessToken(request.headers.cookie);
+    const token = readCookie(
+      request.headers.cookie,
+      this.config.cookies.accessName,
+    );
 
     if (!token) {
       throw new UnauthorizedException('Authentication required.');
@@ -76,47 +80,5 @@ export class JwtAuthGuard implements CanActivate {
     request.auth = claims;
 
     return true;
-  }
-
-  /**
-   * Reads the configured access-token cookie from an HTTP Cookie header.
-   * @param cookieHeader - The raw Cookie header supplied by the client.
-   * @returns The decoded cookie value, or undefined when it is unavailable or
-   * malformed.
-   */
-  private readAccessToken(
-    cookieHeader: string | undefined,
-  ): string | undefined {
-    if (!cookieHeader) {
-      return undefined;
-    }
-
-    for (const cookie of cookieHeader.split(';')) {
-      const separatorIndex = cookie.indexOf('=');
-
-      if (separatorIndex < 0) {
-        continue;
-      }
-
-      const name = cookie.slice(0, separatorIndex).trim();
-
-      if (name !== this.config.cookies.accessName) {
-        continue;
-      }
-
-      const value = cookie.slice(separatorIndex + 1).trim();
-
-      if (!value) {
-        return undefined;
-      }
-
-      try {
-        return decodeURIComponent(value);
-      } catch {
-        return undefined;
-      }
-    }
-
-    return undefined;
   }
 }
