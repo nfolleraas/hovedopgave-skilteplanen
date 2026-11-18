@@ -128,21 +128,6 @@ test('validates, reviews and submits a road permit against its existing draft', 
   await chooseMunicipality(page);
   await next.click();
 
-  await page.getByRole('combobox', { name: /material type/i }).click();
-  await page.getByRole('option', { name: 'Container' }).click();
-  await page.getByRole('spinbutton', { name: 'Quantity' }).fill('2');
-  await next.click();
-  await expect(validation).toContainText(
-    'Add the material, save your changes, or cancel the draft.',
-  );
-  await page.getByRole('button', { name: 'Add material' }).click();
-  await expect(
-    page
-      .getByRole('table', { name: 'Materials list' })
-      .getByRole('row', { name: /Container 2/ }),
-  ).toBeVisible();
-  await next.click();
-
   await page.getByRole('combobox', { name: /type of use/i }).click();
   await page.getByRole('option', { name: 'Construction work' }).click();
   await page.getByLabel('Start date').fill('2030-11-16');
@@ -164,6 +149,21 @@ test('validates, reviews and submits a road permit against its existing draft', 
   );
   await page.getByLabel('House number from').fill('12');
   await page.getByLabel('House number to').fill('20');
+  await next.click();
+
+  await page.getByRole('combobox', { name: /material type/i }).click();
+  await page.getByRole('option', { name: 'Container' }).click();
+  await page.getByRole('spinbutton', { name: 'Quantity' }).fill('2');
+  await next.click();
+  await expect(validation).toContainText(
+    'Add the material, save your changes, or cancel the draft.',
+  );
+  await page.getByRole('button', { name: 'Add material' }).click();
+  await expect(
+    page
+      .getByRole('table', { name: 'Materials list' })
+      .getByRole('row', { name: /Container 2/ }),
+  ).toBeVisible();
   await next.click();
 
   await page.getByLabel(/^name\b/i).fill('Test Contact');

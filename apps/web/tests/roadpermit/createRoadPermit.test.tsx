@@ -99,19 +99,15 @@ async function chooseMunicipality(user: UserEvent) {
   await user.click(screen.getByRole('radio', { name: 'Odense' }));
 }
 
-/** Completes the first two steps and advances to usage details. */
-async function completeMunicipalityAndMaterials(user: UserEvent) {
+/** Completes the municipality step and advances to usage details. */
+async function advanceToUsage(user: UserEvent) {
   await chooseMunicipality(user);
-  await next(user);
-  await user.click(screen.getByRole('combobox', { name: /material type/i }));
-  await user.click(screen.getByRole('option', { name: 'Container' }));
-  await user.click(button('Add material'));
   await next(user);
 }
 
 /** Completes the required steps and leaves the form on the submission summary. */
 async function fillRequiredDetails(user: UserEvent) {
-  await completeMunicipalityAndMaterials(user);
+  await advanceToUsage(user);
 
   await user.click(screen.getByRole('combobox', { name: /type of use/i }));
   await user.click(screen.getByRole('option', { name: 'Construction work' }));
@@ -129,6 +125,11 @@ async function fillRequiredDetails(user: UserEvent) {
   await user.type(screen.getByLabelText(/house number to/i), '31');
   await user.type(screen.getByLabelText(/postal code/i), '5000');
   await user.type(screen.getByLabelText(/^city\b/i), 'Odense C');
+  await next(user);
+
+  await user.click(screen.getByRole('combobox', { name: /material type/i }));
+  await user.click(screen.getByRole('option', { name: 'Container' }));
+  await user.click(button('Add material'));
   await next(user);
 
   await user.type(screen.getByLabelText(/^name\b/i), 'Test Contact');
@@ -611,8 +612,7 @@ describe('Road permit application', () => {
   it('requires at least one material in the list before advancing', async () => {
     const user = userEvent.setup();
     await renderPermitFlow();
-    await chooseMunicipality(user);
-    await next(user);
+    await user.click(button('Materials'));
     await next(user);
 
     const steps = within(
@@ -653,7 +653,7 @@ describe('Road permit application', () => {
       }),
     ).toBeTruthy();
     await next(user);
-    expect(screen.getByRole('heading', { name: 'Usage details' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Contact details' })).toBeTruthy();
   });
 
   it('requires an explicit traffic measure before advancing', async () => {
@@ -708,7 +708,7 @@ describe('Road permit application', () => {
     );
     vi.stubGlobal('fetch', lookup);
     await renderPermitFlow();
-    await completeMunicipalityAndMaterials(user);
+    await advanceToUsage(user);
 
     const road = screen.getByRole<HTMLInputElement>('combobox', {
       name: /^road\b/i,
@@ -762,7 +762,7 @@ describe('Road permit application', () => {
       ),
     );
     await renderPermitFlow();
-    await completeMunicipalityAndMaterials(user);
+    await advanceToUsage(user);
 
     const road = screen.getByRole<HTMLInputElement>('combobox', {
       name: /^road\b/i,
