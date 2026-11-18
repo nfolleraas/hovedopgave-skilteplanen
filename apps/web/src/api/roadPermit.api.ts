@@ -17,6 +17,11 @@ export function listApplicationDrafts() {
   return apiClient.get<ApplicationDraftSummary[]>('/road-permit/drafts');
 }
 
+/** Loads the material types supported by the road-permit API. */
+export function getRoadPermitMaterialTypes() {
+  return apiClient.get<string[]>('/road-permit/material-types');
+}
+
 /** Creates an empty application with Draft status. */
 export function createRoadPermitDraft() {
   return apiClient.post<{ caseNumber: string }>('/road-permit', {});

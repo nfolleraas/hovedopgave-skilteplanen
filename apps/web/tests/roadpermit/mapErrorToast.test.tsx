@@ -1,6 +1,6 @@
 import { act, fireEvent, screen } from '@testing-library/react';
 import { afterEach, expect, it, vi } from 'vitest';
-import { renderWithTranslations } from './renderWithTranslations';
+import { renderWithTranslations } from '../renderWithTranslations';
 
 afterEach(() => {
   vi.useRealTimers();
@@ -11,7 +11,7 @@ it('resumes the countdown with the time remaining before hover', async () => {
   vi.stubEnv('VITE_DATAFORSYNINGEN_TOKEN', '');
   vi.useFakeTimers();
   const { DataforsyningenMap } = await import(
-    '../components/ui/map/DataforsyningenMap'
+    '../../src/components/ui/map/DataforsyningenMap'
   );
 
   await renderWithTranslations(
@@ -36,7 +36,7 @@ it('dismisses the map error toast after five seconds', async () => {
   vi.stubEnv('VITE_DATAFORSYNINGEN_TOKEN', '');
   vi.useFakeTimers();
   const { DataforsyningenMap } = await import(
-    '../components/ui/map/DataforsyningenMap'
+    '../../src/components/ui/map/DataforsyningenMap'
   );
 
   await renderWithTranslations(

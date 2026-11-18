@@ -12,7 +12,8 @@ export const usageTypes: Readonly<Record<string, Usage>> = {
 };
 
 export const materialTypes: Readonly<Record<string, MaterialType>> = {
-  Container: MaterialType.Container,
+  ...MaterialType,
+  // Accept localized values stored by older clients.
   Stillads: MaterialType.Scaffolding,
   Andet: MaterialType.Other,
 };

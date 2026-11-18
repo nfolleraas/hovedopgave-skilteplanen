@@ -3,7 +3,7 @@ import Feature from 'ol/Feature.js';
 import LineString from 'ol/geom/LineString.js';
 import MultiLineString from 'ol/geom/MultiLineString.js';
 import { describe, expect, it } from 'vitest';
-import { snapRoadLine } from '../components/ui/map/snapRoadLine';
+import { snapRoadLine } from '../../src/components/ui/map/snapRoadLine';
 
 const roads = [
   new Feature(

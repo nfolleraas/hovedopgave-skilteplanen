@@ -1,4 +1,11 @@
-import { Box, Button, MenuItem, TextField, Typography } from '@mui/material';
+import {
+  Alert,
+  Box,
+  Button,
+  MenuItem,
+  TextField,
+  Typography,
+} from '@mui/material';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -7,14 +14,16 @@ import {
   type MaterialEntry,
 } from '../formTypes';
 import { PermitTable } from '../PermitTable';
-import { getMaterialTypes } from '../permitOptions';
+import { getMaterialTypes, normalizeMaterialType } from '../permitOptions';
 import { hasMaterialDraft } from '../validation';
 
 type MaterialsPageProps = {
   materials: MaterialEntry[];
   draft: MaterialDraft;
+  materialTypes: string[] | null | undefined;
   onMaterialsChange: (materials: MaterialEntry[]) => void;
   onDraftChange: (draft: MaterialDraft) => void;
+  onRetryMaterialTypes: () => void;
   showErrors: boolean;
 };
 
@@ -22,8 +31,10 @@ type MaterialsPageProps = {
 export function MaterialsPage({
   materials,
   draft,
+  materialTypes,
   onMaterialsChange,
   onDraftChange,
+  onRetryMaterialTypes,
   showErrors,
 }: MaterialsPageProps) {
   const { t } = useTranslation();
@@ -35,14 +46,18 @@ export function MaterialsPage({
   const typeRef = useRef<{ focus: () => void }>(null);
   const quantityRef = useRef<HTMLInputElement>(null);
   const listHeadingRef = useRef<HTMLHeadingElement>(null);
-  const materialTypes = getMaterialTypes(t);
+  const materialLabels = getMaterialTypes(t);
+  const canSelectType = Boolean(materialTypes?.length);
+  const selectedType = normalizeMaterialType(draft.type);
   const pendingDraft = hasMaterialDraft(draft);
   const showFieldErrors = submitted || (showErrors && pendingDraft);
   const quantity = Number(draft.quantity);
-  const validType = Object.hasOwn(materialTypes, draft.type);
+  const validType = materialTypes?.includes(selectedType) ?? false;
   const validQuantity = Number.isSafeInteger(quantity) && quantity >= 1;
   const announcedMaterial =
-    announcement && (materialTypes[announcement.type] ?? announcement.type);
+    announcement &&
+    (materialLabels[normalizeMaterialType(announcement.type)] ??
+      announcement.type);
 
   /** Clears the material editor and its submitted validation state. */
   function resetDraft() {
@@ -52,6 +67,7 @@ export function MaterialsPage({
 
   /** Validates the draft and adds or replaces the material before clearing the editor. */
   function saveMaterial() {
+    if (!canSelectType) return;
     setSubmitted(true);
     if (!validType) {
       typeRef.current?.focus();
@@ -64,7 +80,7 @@ export function MaterialsPage({
 
     const entry: MaterialEntry = {
       id: draft.editingId ?? crypto.randomUUID(),
-      type: draft.type,
+      type: selectedType,
       quantity,
       notes: draft.notes.trim(),
     };
@@ -78,7 +94,7 @@ export function MaterialsPage({
     );
     setAnnouncement({
       action: draft.editingId ? 'updated' : 'added',
-      type: draft.type,
+      type: selectedType,
     });
     resetDraft();
   }
@@ -88,6 +104,18 @@ export function MaterialsPage({
       <Typography color="text.secondary" variant="body2">
         {t('permit.materials.intro')}
       </Typography>
+      {materialTypes !== undefined && !canSelectType && (
+        <Alert
+          action={
+            <Button onClick={onRetryMaterialTypes} size="small">
+              {t('permit.materials.retryTypes')}
+            </Button>
+          }
+          severity="error"
+        >
+          {t('permit.materials.loadTypesError')}
+        </Alert>
+      )}
       <Box
         component="form"
         noValidate
@@ -108,12 +136,15 @@ export function MaterialsPage({
           }}
         >
           <TextField
-            error={showFieldErrors && !validType}
+            disabled={!canSelectType}
+            error={canSelectType && showFieldErrors && !validType}
             fullWidth
             helperText={
-              showFieldErrors && !validType
-                ? t('permit.errors.materialType')
-                : undefined
+              materialTypes === undefined
+                ? t('permit.materials.loadingTypes')
+                : canSelectType && showFieldErrors && !validType
+                  ? t('permit.errors.materialType')
+                  : undefined
             }
             id="material-type"
             inputRef={typeRef}
@@ -124,14 +155,29 @@ export function MaterialsPage({
             }
             required
             select
-            value={draft.type}
+            slotProps={{
+              select: {
+                MenuProps: {
+                  slotProps: {
+                    paper: {
+                      sx: {
+                        maxHeight: 'min(496px, calc(100dvh - 64px))',
+                        overflowY: 'auto',
+                        '& .MuiMenuItem-root': { minHeight: 48 },
+                      },
+                    },
+                  },
+                },
+              },
+            }}
+            value={validType ? selectedType : ''}
           >
-            <MenuItem disabled value="">
+            <MenuItem disabled sx={{ display: 'none' }} value="">
               {t('permit.materials.choose')}
             </MenuItem>
-            {Object.entries(materialTypes).map(([type, label]) => (
+            {materialTypes?.map((type) => (
               <MenuItem key={type} value={type}>
-                {label}
+                {materialLabels[type] ?? type}
               </MenuItem>
             ))}
           </TextField>
@@ -176,7 +222,12 @@ export function MaterialsPage({
             justifyContent: 'end',
           }}
         >
-          <Button sx={{ minHeight: 44 }} type="submit" variant="contained">
+          <Button
+            disabled={!canSelectType}
+            sx={{ minHeight: 44 }}
+            type="submit"
+            variant="contained"
+          >
             {draft.editingId
               ? t('permit.materials.save')
               : t('permit.materials.add')}
@@ -240,7 +291,9 @@ export function MaterialsPage({
             label={t('permit.materials.list')}
             outlined
             rows={materials.map((material, index) => {
-              const label = materialTypes[material.type] ?? material.type;
+              const label =
+                materialLabels[normalizeMaterialType(material.type)] ??
+                material.type;
               return {
                 id: material.id,
                 cells: [

@@ -138,6 +138,12 @@ export function UsageDetailsPage({
           value={value.endDate}
         />
       </Box>
+      <DataforsyningenMap
+        onRoadLocationConfirm={(location) => {
+          setRoadQuery('');
+          onChange({ ...value, ...location });
+        }}
+      />
       <Typography component="h3" variant="h6">
         {t('permit.usage.location')}
       </Typography>
@@ -222,6 +228,7 @@ export function UsageDetailsPage({
           gap: 3,
         }}
       >
+        
         <TextField
           error={Boolean(errors?.postalCode)}
           fullWidth
@@ -284,12 +291,6 @@ export function UsageDetailsPage({
           onChange({ ...value, locationDescription: event.target.value })
         }
         value={value.locationDescription}
-      />
-      <DataforsyningenMap
-        onRoadLocationConfirm={(location) => {
-          setRoadQuery('');
-          onChange({ ...value, ...location });
-        }}
       />
     </Box>
   );

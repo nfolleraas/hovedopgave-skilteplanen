@@ -3,6 +3,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import {
   Alert,
   Box,
+  Button,
   Checkbox,
   CircularProgress,
   Dialog,
@@ -21,6 +22,7 @@ import {
   Typography,
   useMediaQuery,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { type ReactNode, useEffect, useId, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { visuallyHidden } from '../../../../components/ui/visuallyHidden';
@@ -37,8 +39,14 @@ import {
   getMaterialTypes,
   getTrafficChangeOptions,
   getUsageTypes,
+  normalizeMaterialType,
 } from '../permitOptions';
 import { getTrafficMeasureLabels } from '../trafficMeasures';
+import type {
+  validateContactInformation,
+  validateMunicipalityAndTitle,
+  validateUsageDetails,
+} from '../validation';
 
 type SummaryAndSubmissionPageProps = {
   title: string;
@@ -51,6 +59,13 @@ type SummaryAndSubmissionPageProps = {
   documentToUpload: any;
   confirmed: boolean;
   confirmationError?: string;
+  validationErrors?: {
+    municipality: ReturnType<typeof validateMunicipalityAndTitle>;
+    usage: ReturnType<typeof validateUsageDetails>;
+    contact: ReturnType<typeof validateContactInformation>;
+    materials: string[];
+    trafficMeasure?: string;
+  };
   submissionStatus: SubmissionStatus;
   onConfirmedChange: (confirmed: boolean) => void;
   onSubmissionComplete: () => void;
@@ -64,10 +79,11 @@ function SummaryFacts({
   entries,
   singleColumn,
 }: {
-  entries: [string, ReactNode][];
+  entries: [label: string, value: ReactNode, error?: string][];
   singleColumn?: boolean;
 }) {
   const { t } = useTranslation();
+  const factsId = useId();
   return (
     <Box
       component="dl"
@@ -81,20 +97,29 @@ function SummaryFacts({
         gap: 2,
       }}
     >
-      {entries.map(([label, value]) => (
+      {entries.map(([label, value, error], index) => (
         <Box
+          aria-describedby={error ? `${factsId}-${index}-error` : undefined}
+          aria-labelledby={error ? `${factsId}-${index}-label` : undefined}
+          data-summary-error={error ? '' : undefined}
           key={label}
+          role={error ? 'group' : undefined}
           sx={{
             border: 1,
-            borderColor: 'text.secondary',
+            borderColor: error ? 'error.dark' : 'text.secondary',
+            bgcolor: error
+              ? (theme) => alpha(theme.palette.error.main, 0.07)
+              : undefined,
             borderRadius: 1,
             px: 1.75,
             mt: 0.75,
             overflowWrap: 'anywhere',
           }}
+          tabIndex={error ? -1 : undefined}
         >
           <Typography
             component="dt"
+            id={`${factsId}-${index}-label`}
             sx={{
               mt: '-0.75em',
               px: 0.5,
@@ -102,7 +127,7 @@ function SummaryFacts({
               width: 'fit-content',
               maxWidth: '100%',
               bgcolor: 'background.paper',
-              color: 'text.secondary',
+              color: error ? 'error.dark' : 'text.secondary',
             }}
             variant="body2"
           >
@@ -112,20 +137,51 @@ function SummaryFacts({
             component="dd"
             sx={{ m: 0, py: 0.75, whiteSpace: 'pre-wrap' }}
           >
-            {value || (
-              <>
-                <Box aria-hidden="true" component="span">
-                  —
-                </Box>
-                <Box component="span" sx={visuallyHidden}>
-                  {t('permit.summary.notProvided')}
-                </Box>
-              </>
+            {value ||
+              (!error && (
+                <>
+                  <Box aria-hidden="true" component="span">
+                    —
+                  </Box>
+                  <Box component="span" sx={visuallyHidden}>
+                    {t('permit.summary.notProvided')}
+                  </Box>
+                </>
+              ))}
+            {error && (
+              <Typography
+                color="error.dark"
+                component="span"
+                id={`${factsId}-${index}-error`}
+                sx={{ display: 'block' }}
+                variant="body2"
+              >
+                {error}
+              </Typography>
             )}
           </Typography>
         </Box>
       ))}
     </Box>
+  );
+}
+
+function SummaryIssue({ message }: { message: string }) {
+  return (
+    <Typography
+      color="error.dark"
+      data-summary-error=""
+      sx={(theme) => ({
+        bgcolor: alpha(theme.palette.error.main, 0.07),
+        border: 1,
+        borderColor: 'error.dark',
+        borderRadius: 1,
+        p: 1.75,
+      })}
+      tabIndex={-1}
+    >
+      {message}
+    </Typography>
   );
 }
 
@@ -164,6 +220,7 @@ export function SummaryAndSubmissionPage({
   confirmed,
   documentToUpload,
   confirmationError,
+  validationErrors,
   submissionStatus,
   onConfirmedChange,
   onSubmissionComplete,
@@ -171,6 +228,7 @@ export function SummaryAndSubmissionPage({
   const { t, i18n } = useTranslation();
   const submissionTitleId = useId();
   const submissionResultRef = useRef<HTMLParagraphElement>(null);
+  const summaryRef = useRef<HTMLDivElement>(null);
   const reduceMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
   const submitted = submissionStatus === 'success';
   const animationDuration = reduceMotion ? 0 : checkmarkDuration;
@@ -194,6 +252,14 @@ export function SummaryAndSubmissionPage({
   const usageTypes = getUsageTypes(t);
   const trafficChanges = getTrafficChangeOptions(t);
   const trafficMeasures = getTrafficMeasureLabels(t);
+  const materialError = validationErrors?.materials.join(' ');
+  const hasValidationErrors =
+    validationErrors &&
+    (Boolean(materialError) ||
+      Boolean(validationErrors.trafficMeasure) ||
+      Object.values(validationErrors.municipality).some(Boolean) ||
+      Object.values(validationErrors.usage).some(Boolean) ||
+      Object.values(validationErrors.contact).some(Boolean));
   const dateFormat = new Intl.DateTimeFormat(i18n.resolvedLanguage, {
     dateStyle: 'medium',
     timeZone: 'UTC',
@@ -208,14 +274,33 @@ export function SummaryAndSubmissionPage({
   };
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+    <Box
+      ref={summaryRef}
+      sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}
+    >
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         <SummaryFacts
           entries={[
-            [t('permit.municipality.title'), title],
-            [t('permit.municipality.label'), municipalityName],
-            [t('permit.usage.startDate'), formatDate(usageDetails.startDate)],
-            [t('permit.usage.endDate'), formatDate(usageDetails.endDate)],
+            [
+              t('permit.municipality.title'),
+              title,
+              validationErrors?.municipality.title,
+            ],
+            [
+              t('permit.municipality.label'),
+              municipalityName,
+              validationErrors?.municipality.municipality,
+            ],
+            [
+              t('permit.usage.startDate'),
+              formatDate(usageDetails.startDate),
+              validationErrors?.usage.startDate,
+            ],
+            [
+              t('permit.usage.endDate'),
+              formatDate(usageDetails.endDate),
+              validationErrors?.usage.endDate,
+            ],
           ]}
         />
         <SummaryFacts
@@ -223,6 +308,7 @@ export function SummaryAndSubmissionPage({
             [
               t('permit.usage.label'),
               usageTypes[usageDetails.usage] ?? usageDetails.usage,
+              validationErrors?.usage.usage,
             ],
           ]}
           singleColumn
@@ -241,23 +327,39 @@ export function SummaryAndSubmissionPage({
             rows={materials.map((material) => ({
               id: material.id,
               cells: [
-                materialTypes[material.type] ?? material.type,
+                materialTypes[normalizeMaterialType(material.type)] ??
+                  material.type,
                 material.quantity,
                 material.notes || '—',
               ],
             }))}
           />
         ) : (
-          <Typography>{t('permit.materials.empty')}</Typography>
+          !materialError && (
+            <Typography>{t('permit.materials.empty')}</Typography>
+          )
         )}
+        {materialError && <SummaryIssue message={materialError} />}
       </SummarySection>
       <Divider />
       <SummarySection title={t('permit.steps.contact')}>
         <SummaryFacts
           entries={[
-            [t('permit.contact.name'), contactInformation.name],
-            [t('permit.contact.phone'), contactInformation.phone],
-            [t('permit.contact.email'), contactInformation.email],
+            [
+              t('permit.contact.name'),
+              contactInformation.name,
+              validationErrors?.contact.name,
+            ],
+            [
+              t('permit.contact.phone'),
+              contactInformation.phone,
+              validationErrors?.contact.phone,
+            ],
+            [
+              t('permit.contact.email'),
+              contactInformation.email,
+              validationErrors?.contact.email,
+            ],
           ]}
         />
       </SummarySection>
@@ -265,11 +367,31 @@ export function SummaryAndSubmissionPage({
       <SummarySection title={t('permit.usage.location')}>
         <SummaryFacts
           entries={[
-            [t('permit.usage.road'), usageDetails.road],
-            [t('permit.usage.houseNumberFrom'), usageDetails.houseNumberFrom],
-            [t('permit.usage.houseNumberTo'), usageDetails.houseNumberTo],
-            [t('permit.usage.postalCode'), usageDetails.postalCode],
-            [t('permit.usage.city'), usageDetails.city],
+            [
+              t('permit.usage.road'),
+              usageDetails.road,
+              validationErrors?.usage.road,
+            ],
+            [
+              t('permit.usage.houseNumberFrom'),
+              usageDetails.houseNumberFrom,
+              validationErrors?.usage.houseNumberFrom,
+            ],
+            [
+              t('permit.usage.houseNumberTo'),
+              usageDetails.houseNumberTo,
+              validationErrors?.usage.houseNumberTo,
+            ],
+            [
+              t('permit.usage.postalCode'),
+              usageDetails.postalCode,
+              validationErrors?.usage.postalCode,
+            ],
+            [
+              t('permit.usage.city'),
+              usageDetails.city,
+              validationErrors?.usage.city,
+            ],
             [
               t('permit.usage.locationDescription'),
               usageDetails.locationDescription,
@@ -314,6 +436,8 @@ export function SummaryAndSubmissionPage({
               ],
             }))}
           />
+        ) : validationErrors?.trafficMeasure ? (
+          <SummaryIssue message={validationErrors.trafficMeasure} />
         ) : (
           <Typography>{t('permit.roadMarking.noMeasures')}</Typography>
         )}
@@ -392,6 +516,38 @@ export function SummaryAndSubmissionPage({
           <FormHelperText error id="application-confirmation-error">
             {confirmationError}
           </FormHelperText>
+        )}
+        {hasValidationErrors && (
+          <Alert
+            action={
+              <Button
+                onClick={() => {
+                  const firstError =
+                    summaryRef.current?.querySelector<HTMLElement>(
+                      '[data-summary-error]',
+                    );
+                  firstError?.focus({ preventScroll: true });
+                  firstError?.scrollIntoView({
+                    behavior: reduceMotion ? 'instant' : 'smooth',
+                    block: 'center',
+                  });
+                }}
+                size="small"
+                sx={{ color: 'primary.main', minHeight: 36 }}
+                variant="text"
+              >
+                {t('permit.summary.seeMissingFields')}
+              </Button>
+            }
+            severity="error"
+            sx={{
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              '& .MuiAlert-action': { py: 0 },
+            }}
+          >
+            {t('permit.summary.validationError')}
+          </Alert>
         )}
         {submissionStatus === 'error' && (
           <Alert

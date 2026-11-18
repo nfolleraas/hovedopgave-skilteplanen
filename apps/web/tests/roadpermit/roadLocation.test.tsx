@@ -1,9 +1,9 @@
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
-import { RoadLocationDialog } from '../components/ui/map/RoadLocationDialog';
-import type { RoadLocation } from '../utils/validateRoadLocation';
-import { renderWithTranslations } from './renderWithTranslations';
+import { RoadLocationDialog } from '../../src/components/ui/map/RoadLocationDialog';
+import type { RoadLocation } from '../../src/utils/validateRoadLocation';
+import { renderWithTranslations } from '../renderWithTranslations';
 
 const suggestion: RoadLocation = {
   road: 'Adamsgade',

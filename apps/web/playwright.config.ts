@@ -12,12 +12,12 @@ export default defineConfig({
   forbidOnly: Boolean(process.env.CI),
   fullyParallel: true,
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
-  testDir: './src/tests/e2e',
+  testDir: './tests/roadpermit/e2e',
   use: {
     actionTimeout: 8_000,
     baseURL,
+    contextOptions: { reducedMotion: 'reduce' },
     locale: 'en-GB',
-    reducedMotion: 'reduce',
     trace: 'retain-on-failure',
   },
   webServer: [

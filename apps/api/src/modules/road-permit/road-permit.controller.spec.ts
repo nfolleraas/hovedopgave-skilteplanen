@@ -1,6 +1,7 @@
 import { NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { afterEach, vi } from 'vitest';
+import { MaterialType } from '../../generated/prisma/enums.js';
 import { CreateRoadPermitDto } from './dto/create-road-permit.dto.js';
 import { UpdateRoadPermitDto } from './dto/update-road-permit.dto.js';
 import { RoadPermitController } from './road-permit.controller.js';
@@ -28,6 +29,10 @@ describe('RoadPermitController', () => {
   });
 
   afterEach(() => vi.unstubAllEnvs());
+
+  it('lists all material types from the Prisma enum', () => {
+    expect(controller.getMaterialTypes()).toEqual(Object.values(MaterialType));
+  });
 
   it('returns the blank draft created by the service', async () => {
     const draft = { caseNumber: 'permit-1', status: 'Draft' };

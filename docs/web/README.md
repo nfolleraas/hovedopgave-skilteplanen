@@ -43,11 +43,12 @@ bun run --filter web lint
 
 From the repository root, add `--filter web` after `bun run`.
 
-The Vitest tests live in [`apps/web/src/tests/`](../../apps/web/src/tests/).
-They use simulated DOM interactions, with permit submission and map service
-responses mocked.
+Frontend tests live in [`apps/web/tests/`](../../apps/web/tests/). The Vitest
+tests for road permits and their map tools are in
+[`roadpermit/`](../../apps/web/tests/roadpermit/). They use simulated DOM
+interactions, with permit submission and map service responses mocked.
 
-The Playwright tests in [`apps/web/src/tests/e2e/`](../../apps/web/src/tests/e2e/)
+The Playwright tests in [`roadpermit/e2e/`](../../apps/web/tests/roadpermit/e2e/)
 run Vite and the API against `DATABASE_URL` from `.devcontainer/.env`. The tests
 create and submit applications in that database. The dev container installs
 Chromium and its system dependencies on creation and caches the browser in the

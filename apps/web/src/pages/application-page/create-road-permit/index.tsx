@@ -12,11 +12,11 @@ import {
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router';
+import { getMunicipalities } from '../../../api/municipalities.api';
 import {
-  getMunicipalities,
-  type Municipality,
-} from '../../../api/municipalities.api';
-import { getRoadPermitDraft } from '../../../api/roadPermit.api';
+  getRoadPermitDraft,
+  getRoadPermitMaterialTypes,
+} from '../../../api/roadPermit.api';
 import { routes } from '../../../app/router';
 import {
   type DetailItem,
@@ -127,27 +127,27 @@ function RoadPermitDraftPage({ caseNumber }: { caseNumber: string }) {
   return <RoadPermitForm caseNumber={caseNumber} draft={result.draft} />;
 }
 
-function useMunicipalityChoices() {
-  const [municipalities, setMunicipalities] = useState<Municipality[] | null>();
+function usePermitChoices<T>(load: () => Promise<T[]>) {
+  const [choices, setChoices] = useState<T[] | null>();
 
-  +useEffect(() => {
-    if (municipalities !== undefined) return;
+  useEffect(() => {
+    if (choices !== undefined) return;
 
     let active = true;
-    void getMunicipalities().then(
+    void load().then(
       (list) => {
-        if (active) setMunicipalities(list);
+        if (active) setChoices(list);
       },
       () => {
-        if (active) setMunicipalities(null);
+        if (active) setChoices(null);
       },
     );
     return () => {
       active = false;
     };
-  }, [municipalities]);
+  }, [choices, load]);
 
-  return { municipalities, retry: () => setMunicipalities(undefined) };
+  return { choices, retry: () => setChoices(undefined) };
 }
 
 /** Owns the editable form values and connects them to the permit steps. */
@@ -164,8 +164,10 @@ function RoadPermitForm({
   const [municipalityName, setMunicipalityName] = useState<string | null>(
     draft.municipalityName ?? null,
   );
-  const { municipalities, retry: retryMunicipalities } =
-    useMunicipalityChoices();
+  const { choices: municipalities, retry: retryMunicipalities } =
+    usePermitChoices(getMunicipalities);
+  const { choices: materialTypes, retry: retryMaterialTypes } =
+    usePermitChoices(getRoadPermitMaterialTypes);
   const [materials, setMaterials] = useState<MaterialEntry[]>(
     draft.materials ?? [],
   );
@@ -235,6 +237,17 @@ function RoadPermitForm({
   );
   const usageErrors = validateUsageDetails(usageDetails, t);
   const contactErrors = validateContactInformation(contactInformation, t);
+  const materialErrors = getValidationErrors({
+    materials: materials.length
+      ? undefined
+      : t('permit.errors.materialsRequired'),
+    materialDraft: hasMaterialDraft(materialDraft)
+      ? t('permit.errors.materialDraft')
+      : undefined,
+  });
+  const trafficMeasureError = roadMarking.trafficPrecautions.length
+    ? undefined
+    : t('permit.errors.trafficMeasureRequired');
   const confirmationError = confirmed
     ? undefined
     : t('permit.errors.confirmation');
@@ -258,22 +271,7 @@ function RoadPermitForm({
         />
       ),
     },
-    {
-      id: 'materials',
-      label: t('permit.steps.materials'),
-      validationErrors: hasMaterialDraft(materialDraft)
-        ? [t('permit.errors.materialDraft')]
-        : undefined,
-      content: (showErrors) => (
-        <MaterialsPage
-          draft={materialDraft}
-          materials={materials}
-          onDraftChange={setMaterialDraft}
-          onMaterialsChange={setMaterials}
-          showErrors={showErrors}
-        />
-      ),
-    },
+    
     {
       id: 'usage-details',
       label: t('permit.steps.usage'),
@@ -283,6 +281,22 @@ function RoadPermitForm({
           errors={showErrors ? usageErrors : undefined}
           onChange={setUsageDetails}
           value={usageDetails}
+        />
+      ),
+    },
+    {
+      id: 'materials',
+      label: t('permit.steps.materials'),
+      validationErrors: materialErrors,
+      content: (showErrors) => (
+        <MaterialsPage
+          draft={materialDraft}
+          materials={materials}
+          materialTypes={materialTypes}
+          onDraftChange={setMaterialDraft}
+          onMaterialsChange={setMaterials}
+          onRetryMaterialTypes={retryMaterialTypes}
+          showErrors={showErrors}
         />
       ),
     },
@@ -298,9 +312,11 @@ function RoadPermitForm({
         />
       ),
     },
+  
     {
       id: 'road-marking',
       label: t('permit.steps.roadMarking'),
+      validationErrors: trafficMeasureError ? [trafficMeasureError] : undefined,
       content: (
         <RoadMarkingPage onChange={setRoadMarking} value={roadMarking} />
       ),
@@ -332,6 +348,17 @@ function RoadPermitForm({
           submissionStatus={submissionStatus}
           title={title}
           usageDetails={usageDetails}
+          validationErrors={
+            confirmed
+              ? {
+                  municipality: municipalityErrors,
+                  usage: usageErrors,
+                  contact: contactErrors,
+                  materials: materialErrors,
+                  trafficMeasure: trafficMeasureError,
+                }
+              : undefined
+          }
         />
       ),
     },
@@ -397,6 +424,7 @@ function RoadPermitForm({
       <MasterDetailGrid
         items={categories}
         onSubmit={canSubmit ? () => handleSubmit(confirmed) : undefined}
+        showStepValidation
       />
       <Dialog
         aria-describedby="permit-unsaved-description"

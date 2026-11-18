@@ -250,6 +250,11 @@ export function parseRoadPermitSubmission(value: unknown) {
     'companyPhone',
   );
 
+  requireValue(
+    dto.materials.length > 0,
+    'materials',
+    'must contain at least one material',
+  );
   dto.materials.forEach((material, index) => {
     const path = `materials[${index}]`;
     requireValue(
@@ -270,6 +275,11 @@ export function parseRoadPermitSubmission(value: unknown) {
       'must be a supported traffic change',
     );
   });
+  requireValue(
+    dto.roadMarking.trafficPrecautions.length > 0,
+    'roadMarking.trafficPrecautions',
+    'must contain at least one traffic measure',
+  );
   dto.roadMarking.trafficPrecautions.forEach((measure, index) => {
     const path = `roadMarking.trafficPrecautions[${index}]`;
     requireValue(

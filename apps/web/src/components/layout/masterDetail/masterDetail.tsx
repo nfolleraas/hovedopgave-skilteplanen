@@ -1,5 +1,7 @@
+import CheckIcon from '@mui/icons-material/Check';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import PriorityHighIcon from '@mui/icons-material/PriorityHigh';
 import {
   Alert,
   Box,
@@ -9,8 +11,10 @@ import {
   ListItem,
   ListItemButton,
   Paper,
+  Tooltip,
   Typography,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { type ReactNode, useEffect, useId, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { visuallyHidden } from '../../ui/visuallyHidden';
@@ -27,14 +31,19 @@ export type DetailItem = {
 type MasterDetailGridProps = {
   items: DetailItem[];
   onSubmit?: () => void;
+  showStepValidation?: boolean;
 };
 
 /** Renders the application steps, their content, and the controls for navigation and submission. */
-export function MasterDetailGrid({ items, onSubmit }: MasterDetailGridProps) {
+export function MasterDetailGrid({
+  items,
+  onSubmit,
+  showStepValidation = false,
+}: MasterDetailGridProps) {
   const { t } = useTranslation();
   const [selectedId, setSelectedId] = useState(items[0]?.id);
   const [mobileListOpen, setMobileListOpen] = useState(false);
-  const [invalidAttempts, setInvalidAttempts] = useState(new Set<string>());
+  const [checkedSteps, setCheckedSteps] = useState(new Set<string>());
   const [focusRequest, setFocusRequest] = useState<{
     target: 'heading' | 'error';
   }>();
@@ -45,7 +54,7 @@ export function MasterDetailGrid({ items, onSubmit }: MasterDetailGridProps) {
   const selectedIndex = items.findIndex((item) => item.id === selectedId);
   const selectedItem = items[selectedIndex];
   const isLastStep = selectedIndex === items.length - 1;
-  const showErrors = invalidAttempts.has(selectedId);
+  const showErrors = checkedSteps.has(selectedId);
   const progress = t('permit.steps.progress', {
     step: selectedIndex + 1,
     total: items.length,
@@ -63,13 +72,24 @@ export function MasterDetailGrid({ items, onSubmit }: MasterDetailGridProps) {
     setFocusRequest({ target });
   }
 
+  function recordValidation(id: string) {
+    setCheckedSteps((steps) =>
+      steps.has(id) ? steps : new Set(steps).add(id),
+    );
+  }
+
+  function selectStep(id: string) {
+    if (showStepValidation && id !== selectedId) recordValidation(selectedId);
+    goToStep(id);
+  }
+
   /** Validates the current step before advancing and checks every step before submitting. */
   function handleNext() {
     const invalidItem = isLastStep
       ? items.find((item) => item.validationErrors?.length)
       : selectedItem;
     if (invalidItem?.validationErrors?.length) {
-      setInvalidAttempts((attempts) => new Set(attempts).add(invalidItem.id));
+      recordValidation(invalidItem.id);
       goToStep(invalidItem.id, 'error');
       return;
     }
@@ -77,6 +97,7 @@ export function MasterDetailGrid({ items, onSubmit }: MasterDetailGridProps) {
     if (isLastStep) {
       onSubmit?.();
     } else {
+      if (showStepValidation) recordValidation(selectedId);
       goToStep(items[selectedIndex + 1].id);
     }
   }
@@ -146,69 +167,149 @@ export function MasterDetailGrid({ items, onSubmit }: MasterDetailGridProps) {
             </Typography>
           </Box>
           <List component="ol" disablePadding sx={{ p: 1.5 }}>
-            {items.map((item, index) => (
-              <ListItem
-                disablePadding
-                key={item.id}
-                sx={{ mb: 0.5, '&:last-child': { mb: 0 } }}
-              >
-                <ListItemButton
-                  aria-current={item.id === selectedId ? 'step' : undefined}
-                  component="button"
-                  onClick={() => goToStep(item.id)}
-                  selected={item.id === selectedId}
-                  sx={{
-                    minHeight: { xs: 56, md: 72 },
-                    gap: 2,
-                    width: '100%',
-                    textAlign: 'start',
-                    overflowWrap: 'anywhere',
-                    px: 2,
-                    py: { xs: 1.5, md: 2 },
-                    borderRadius: 2,
-                    '&:hover': { bgcolor: '#F7F9FC' },
-                    '&.Mui-selected': {
-                      bgcolor: 'primary.main',
-                      color: 'primary.contrastText',
-                      '&:hover': { bgcolor: 'primary.dark' },
-                    },
-                  }}
-                  type="button"
+            {items.map((item, index) => {
+              const isSelected = item.id === selectedId;
+              const validationErrors = item.validationErrors ?? [];
+              const validationStatus =
+                showStepValidation && checkedSteps.has(item.id)
+                  ? validationErrors.length
+                    ? 'error'
+                    : 'success'
+                  : undefined;
+              const statusId = `${listId}-${item.id}-status`;
+              const StatusIcon =
+                validationStatus === 'error' ? PriorityHighIcon : CheckIcon;
+
+              return (
+                <ListItem
+                  disablePadding
+                  key={item.id}
+                  sx={{ mb: 0.5, '&:last-child': { mb: 0 } }}
                 >
-                  <Box
-                    aria-hidden="true"
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      width: { xs: 32, md: 40 },
-                      height: { xs: 32, md: 40 },
-                      flexShrink: 0,
-                      borderRadius: '50%',
-                      bgcolor:
-                        item.id === selectedId
-                          ? 'rgba(255, 255, 255, 0.2)'
-                          : '#F5F5F5',
-                      color:
-                        item.id === selectedId ? 'inherit' : 'text.primary',
-                      fontSize: { xs: 14, md: 16 },
-                      fontWeight: 600,
+                  <Tooltip
+                    arrow
+                    describeChild
+                    leaveDelay={150}
+                    placement="right"
+                    slotProps={{
+                      tooltip: {
+                        sx: {
+                          bgcolor: 'grey.800',
+                          fontSize: 14,
+                          lineHeight: 1.6,
+                          px: 1.5,
+                          py: 1,
+                        },
+                      },
+                      arrow: { sx: { color: 'grey.800' } },
                     }}
+                    title={
+                      validationStatus === 'error' && (
+                        <Box component="ul" sx={{ m: 0, pl: 2 }}>
+                          {validationErrors.map((message) => (
+                            <li key={message}>{message}</li>
+                          ))}
+                        </Box>
+                      )
+                    }
                   >
-                    {index + 1}
-                  </Box>
-                  <Typography
-                    sx={{
-                      fontWeight: item.id === selectedId ? 700 : 600,
-                      fontSize: { md: 16 },
-                    }}
-                    variant="body2"
-                  >
-                    {item.label}
-                  </Typography>
-                </ListItemButton>
-              </ListItem>
-            ))}
+                    <ListItemButton
+                      aria-current={isSelected ? 'step' : undefined}
+                      aria-describedby={validationStatus ? statusId : undefined}
+                      component="button"
+                      onClick={() => selectStep(item.id)}
+                      selected={isSelected}
+                      sx={(theme) => {
+                        const statusColor = validationStatus
+                          ? theme.palette[validationStatus].main
+                          : undefined;
+                        const tint = statusColor && alpha(statusColor, 0.12);
+                        const hoverTint =
+                          statusColor && alpha(statusColor, 0.2);
+                        return {
+                          minHeight: { xs: 56, md: 72 },
+                          gap: 2,
+                          width: '100%',
+                          textAlign: 'start',
+                          overflowWrap: 'anywhere',
+                          px: 2,
+                          py: { xs: 1.5, md: 2 },
+                          borderRadius: 2,
+                          bgcolor: tint,
+                          '&:hover': { bgcolor: hoverTint ?? '#F7F9FC' },
+                          '&.Mui-selected': {
+                            bgcolor: tint ?? 'primary.main',
+                            color: tint
+                              ? 'text.primary'
+                              : 'primary.contrastText',
+                            boxShadow: tint
+                              ? `inset 0 0 0 2px ${theme.palette.primary.main}`
+                              : undefined,
+                            '&:hover': { bgcolor: hoverTint ?? 'primary.dark' },
+                          },
+                          '&.Mui-focusVisible': {
+                            outline: '2px solid',
+                            outlineColor: 'primary.dark',
+                            outlineOffset: 2,
+                          },
+                        };
+                      }}
+                      type="button"
+                    >
+                      <Box
+                        aria-hidden="true"
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          width: { xs: 32, md: 40 },
+                          height: { xs: 32, md: 40 },
+                          flexShrink: 0,
+                          borderRadius: '50%',
+                          bgcolor:
+                            isSelected && !validationStatus
+                              ? 'rgba(255, 255, 255, 0.2)'
+                              : '#F5F5F5',
+                          fontSize: { xs: 14, md: 16 },
+                          fontWeight: 600,
+                        }}
+                      >
+                        {index + 1}
+                      </Box>
+                      <Typography
+                        sx={{
+                          fontWeight: isSelected ? 700 : 600,
+                          fontSize: { md: 16 },
+                        }}
+                        variant="body2"
+                      >
+                        {item.label}
+                      </Typography>
+                      {validationStatus && (
+                        <StatusIcon
+                          fontSize="small"
+                          sx={{
+                            color: `${validationStatus}.dark`,
+                            flexShrink: 0,
+                            marginInlineStart: 'auto',
+                          }}
+                        />
+                      )}
+                    </ListItemButton>
+                  </Tooltip>
+                  {validationStatus && (
+                    <Box component="span" id={statusId} sx={visuallyHidden}>
+                      {validationStatus === 'error'
+                        ? [
+                            t('permit.steps.needsAttention'),
+                            ...validationErrors,
+                          ].join(' ')
+                        : t('permit.steps.complete')}
+                    </Box>
+                  )}
+                </ListItem>
+              );
+            })}
           </List>
         </Paper>
         <Paper

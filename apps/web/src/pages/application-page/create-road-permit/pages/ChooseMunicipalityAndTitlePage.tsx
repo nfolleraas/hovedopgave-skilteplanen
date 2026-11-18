@@ -8,7 +8,7 @@ import {
   Typography,
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Municipality } from '../../../../api/municipalities.api';
 import { visuallyHidden } from '../../../../components/ui/visuallyHidden';
@@ -36,6 +36,7 @@ export function ChooseMunicipalityAndTitlePage({
 }: ChooseMunicipalityAndTitlePageProps) {
   const { t } = useTranslation();
   const [search, setSearch] = useState('');
+  const municipalityListRef = useRef<HTMLFieldSetElement>(null);
   const query = search.trim().toLocaleLowerCase('da');
   const matches = (municipalities ?? []).filter(({ name }) =>
     name.toLocaleLowerCase('da').includes(query),
@@ -87,11 +88,25 @@ export function ChooseMunicipalityAndTitlePage({
             inputProps={{
               'aria-controls': 'municipality-list',
               'aria-describedby': description,
+              'aria-invalid': Boolean(errors?.municipality),
               'aria-label': t('permit.municipality.search'),
             }}
             onChange={(event) => {
               setSearch(event.target.value);
               if (municipalityName !== null) onMunicipalityChange(null);
+            }}
+            onKeyDown={(event) => {
+              if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+
+              const results =
+                municipalityListRef.current?.querySelectorAll<HTMLInputElement>(
+                  'input[type="radio"]',
+                );
+              if (!results?.length) return;
+
+              event.preventDefault();
+              const index = event.key === 'ArrowDown' ? 0 : results.length - 1;
+              results[index].focus();
             }}
             placeholder={t('permit.municipality.searchPlaceholder')}
             sx={{
@@ -116,6 +131,7 @@ export function ChooseMunicipalityAndTitlePage({
             }
             component="fieldset"
             id="municipality-list"
+            ref={municipalityListRef}
             sx={{ border: 0, m: 0, minWidth: 0, p: 0 }}
           >
             <Box component="legend" sx={visuallyHidden}>
@@ -173,6 +189,12 @@ export function ChooseMunicipalityAndTitlePage({
                           block: 'nearest',
                         })
                       }
+                      onKeyDown={(event) => {
+                        if (event.key !== 'Enter') return;
+
+                        event.preventDefault();
+                        onMunicipalityChange(name);
+                      }}
                       required
                       sx={visuallyHidden}
                       type="radio"

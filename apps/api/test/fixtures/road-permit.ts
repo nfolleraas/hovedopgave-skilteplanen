@@ -26,7 +26,18 @@ export const roadPermitSubmission: CreateRoadPermitDto = {
     Doc_URL: '',
     DateForUpload: '',
   },
-  roadMarking: { trafficChanges: [], accessWays: '', trafficPrecautions: [] },
+  roadMarking: {
+    trafficChanges: [],
+    accessWays: '',
+    trafficPrecautions: [
+      {
+        type: 'I',
+        protectionLevel: 'Ingen beskyttelsesgrad',
+        scope: 'Begge',
+        description: 'Ingen foranstaltninger',
+      },
+    ],
+  },
   applicant: {
     name: 'Test applicant',
     department: '',

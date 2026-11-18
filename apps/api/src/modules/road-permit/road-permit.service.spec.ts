@@ -158,6 +158,46 @@ describe('RoadPermitService', () => {
     );
   });
 
+  it.each(Object.values(MaterialType))(
+    'accepts the Prisma material type %s',
+    async (type) => {
+      await service.submit('permit-1', {
+        ...application,
+        materials: [{ ...application.materials[0], type }],
+      });
+      expect(repository.submit).toHaveBeenCalledWith(
+        'permit-1',
+        expect.objectContaining({
+          roadUsePermit: {
+            create: expect.objectContaining({
+              materials: { create: [expect.objectContaining({ type })] },
+            }),
+          },
+        }),
+      );
+    },
+  );
+
+  it.each([
+    ['Stillads', MaterialType.Scaffolding],
+    ['Andet', MaterialType.Other],
+  ])('accepts the legacy material type %s', async (legacyType, type) => {
+    await service.submit('permit-1', {
+      ...application,
+      materials: [{ ...application.materials[0], type: legacyType }],
+    });
+    expect(repository.submit).toHaveBeenCalledWith(
+      'permit-1',
+      expect.objectContaining({
+        roadUsePermit: {
+          create: expect.objectContaining({
+            materials: { create: [expect.objectContaining({ type })] },
+          }),
+        },
+      }),
+    );
+  });
+
   it('propagates a repository failure when submitting a permit', async () => {
     const error = new Error('Write failed');
     repository.submit.mockRejectedValue(error);
@@ -204,11 +244,22 @@ describe('RoadPermitService', () => {
       }),
     ).rejects.toThrow('usageDetails.startDate must be a valid date');
     await expect(
+      service.submit('permit-1', { ...application, materials: [] }),
+    ).rejects.toThrow('materials must contain at least one material');
+    await expect(
       service.submit('permit-1', {
         ...application,
         materials: [{ ...application.materials[0], quantity: -1 }],
       }),
     ).rejects.toThrow('materials[0].quantity must be a positive whole number');
+    await expect(
+      service.submit('permit-1', {
+        ...application,
+        roadMarking: { ...application.roadMarking, trafficPrecautions: [] },
+      }),
+    ).rejects.toThrow(
+      'roadMarking.trafficPrecautions must contain at least one traffic measure',
+    );
     expect(municipalities.exists).not.toHaveBeenCalled();
     expect(repository.submit).not.toHaveBeenCalled();
   });
@@ -225,6 +276,8 @@ describe('RoadPermitService', () => {
   it('saves unfinished fields against the case number', () => {
     const dto = new UpdateRoadPermitDto();
     dto.title = 'Updated road work';
+    dto.materials = [];
+    dto.roadMarking = { trafficPrecautions: [] };
     const result = { ...dto, caseNumber: 'permit-42' };
     repository.update.mockReturnValue(result);
 

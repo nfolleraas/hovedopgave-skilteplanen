@@ -166,45 +166,55 @@ export function RoadMarkingPage({ value, onChange }: RoadMarkingProps) {
         }
         value={accessWays}
       />
-      <PermitTable
-        columns={[
-          { label: t('permit.roadMarking.measureColumn') },
-          { label: t('permit.roadMarking.protectionColumn') },
-          { label: t('permit.roadMarking.scopeColumn') },
-          { label: t('permit.roadMarking.descriptionColumn') },
-          { label: t('permit.roadMarking.choiceColumn') },
-        ]}
-        label={t('permit.roadMarking.measures')}
-        rows={trafficMeasures.map((measure) => {
-          const text = labels[measure.type];
-          const detailsId = `traffic-measure-${measure.type}`;
+      <Box component="fieldset" sx={{ border: 0, m: 0, minWidth: 0, p: 0 }}>
+        <Typography
+          color="text.secondary"
+          component="legend"
+          sx={{ mb: 1, p: 0 }}
+          variant="body2"
+        >
+          {t('permit.errors.trafficMeasureRequired')}
+        </Typography>
+        <PermitTable
+          columns={[
+            { label: t('permit.roadMarking.measureColumn') },
+            { label: t('permit.roadMarking.protectionColumn') },
+            { label: t('permit.roadMarking.scopeColumn') },
+            { label: t('permit.roadMarking.descriptionColumn') },
+            { label: t('permit.roadMarking.choiceColumn') },
+          ]}
+          label={t('permit.roadMarking.measures')}
+          rows={trafficMeasures.map((measure) => {
+            const text = labels[measure.type];
+            const detailsId = `traffic-measure-${measure.type}`;
 
-          return {
-            id: measure.type,
-            cells: [
-              measure.type,
-              text.protection,
-              text.scope,
-              <Box id={detailsId} key="description">
-                {text.description}
-              </Box>,
-              <Checkbox
-                checked={trafficPrecautions.some(
-                  (item) => item.type === measure.type,
-                )}
-                key="selection"
-                onChange={(_, checked) => changeMeasure(measure, checked)}
-                slotProps={{
-                  input: {
-                    'aria-label': text.name,
-                    'aria-describedby': detailsId,
-                  },
-                }}
-              />,
-            ],
-          };
-        })}
-      />
+            return {
+              id: measure.type,
+              cells: [
+                measure.type,
+                text.protection,
+                text.scope,
+                <Box id={detailsId} key="description">
+                  {text.description}
+                </Box>,
+                <Checkbox
+                  checked={trafficPrecautions.some(
+                    (item) => item.type === measure.type,
+                  )}
+                  key="selection"
+                  onChange={(_, checked) => changeMeasure(measure, checked)}
+                  slotProps={{
+                    input: {
+                      'aria-label': text.name,
+                      'aria-describedby': detailsId,
+                    },
+                  }}
+                />,
+              ],
+            };
+          })}
+        />
+      </Box>
     </Box>
   );
 }

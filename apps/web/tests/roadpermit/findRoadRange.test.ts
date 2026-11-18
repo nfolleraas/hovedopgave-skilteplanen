@@ -3,12 +3,12 @@ import Feature from 'ol/Feature.js';
 import LineString from 'ol/geom/LineString.js';
 import { fromLonLat } from 'ol/proj.js';
 import { describe, expect, it, vi } from 'vitest';
-import { findRoadName } from '../components/ui/map/findRoadName';
-import { findRoadRange } from '../components/ui/map/findRoadRange';
-import { getAddressData } from '../utils/adressevaelger';
+import { findRoadName } from '../../src/components/ui/map/findRoadName';
+import { findRoadRange } from '../../src/components/ui/map/findRoadRange';
+import { getAddressData } from '../../src/utils/adressevaelger';
 
-vi.mock('../utils/adressevaelger');
-vi.mock('../components/ui/map/findRoadName');
+vi.mock('../../src/utils/adressevaelger');
+vi.mock('../../src/components/ui/map/findRoadName');
 
 const endpoints = [
   [10.38, 55.4],

@@ -5,12 +5,12 @@ import en from '../../locales/en/translation.json';
 import {
   emptyMaterialDraft,
   type UsageDetails,
-} from '../pages/application-page/create-road-permit/formTypes';
+} from '../../src/pages/application-page/create-road-permit/formTypes';
 import {
   hasMaterialDraft,
   validateContactInformation,
   validateUsageDetails,
-} from '../pages/application-page/create-road-permit/validation';
+} from '../../src/pages/application-page/create-road-permit/validation';
 
 const i18n = createInstance();
 beforeAll(async () => {

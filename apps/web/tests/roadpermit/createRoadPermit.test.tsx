@@ -8,38 +8,41 @@ import {
 import userEvent, { type UserEvent } from '@testing-library/user-event';
 import { createMemoryRouter, Link, RouterProvider } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { getMunicipalities } from '../api/municipalities.api';
+import { getMunicipalities } from '../../src/api/municipalities.api';
 import {
   createRoadPermitDraft,
   getRoadPermitDraft,
+  getRoadPermitMaterialTypes,
   listApplicationDrafts,
   saveRoadPermitDraft,
   submitRoadPermitApplication,
-} from '../api/roadPermit.api';
-import { routes } from '../app/router';
-import ApplicationPage from '../pages/application-page';
-import CreateRoadPermitPage from '../pages/application-page/create-road-permit';
-import { renderWithTranslations } from './renderWithTranslations';
+} from '../../src/api/roadPermit.api';
+import { routes } from '../../src/app/router';
+import ApplicationPage from '../../src/pages/application-page';
+import CreateRoadPermitPage from '../../src/pages/application-page/create-road-permit';
+import { renderWithTranslations } from '../renderWithTranslations';
 
-vi.mock('../api/roadPermit.api', () => ({
+vi.mock('../../src/api/roadPermit.api', () => ({
   createRoadPermitDraft: vi.fn(),
   getRoadPermitDraft: vi.fn(),
+  getRoadPermitMaterialTypes: vi.fn(),
   listApplicationDrafts: vi.fn(),
   saveRoadPermitDraft: vi.fn(),
   submitRoadPermitApplication: vi.fn(),
 }));
 
-vi.mock('../api/municipalities.api', () => ({
+vi.mock('../../src/api/municipalities.api', () => ({
   getMunicipalities: vi.fn(),
 }));
 
-vi.mock('../components/ui/map/DataforsyningenMap', () => ({
+vi.mock('../../src/components/ui/map/DataforsyningenMap', () => ({
   /** Replaces the map so the workflow tests can enter the address manually. */
   DataforsyningenMap: () => null,
 }));
 
 const createDraft = vi.mocked(createRoadPermitDraft);
 const loadMunicipalities = vi.mocked(getMunicipalities);
+const loadMaterialTypes = vi.mocked(getRoadPermitMaterialTypes);
 const loadDraft = vi.mocked(getRoadPermitDraft);
 const listDrafts = vi.mocked(listApplicationDrafts);
 const saveDraft = vi.mocked(saveRoadPermitDraft);
@@ -50,6 +53,7 @@ const draftId = 'draft-123';
 async function renderPermitFlow(
   initialEntry = `${routes.createRoadPermit}?draft=${draftId}`,
   waitForDraft = initialEntry.startsWith(routes.createRoadPermit),
+  language: 'en' | 'da' = 'en',
 ) {
   const router = createMemoryRouter(
     [
@@ -66,9 +70,14 @@ async function renderPermitFlow(
     ],
     { initialEntries: [initialEntry] },
   );
-  const view = await renderWithTranslations(<RouterProvider router={router} />);
+  const view = await renderWithTranslations(
+    <RouterProvider router={router} />,
+    language,
+  );
   if (waitForDraft) {
-    await screen.findByRole('heading', { name: 'Municipality & title' });
+    await screen.findByRole('heading', {
+      name: language === 'da' ? 'Kommune & titel' : 'Municipality & title',
+    });
   }
   return view;
 }
@@ -90,11 +99,19 @@ async function chooseMunicipality(user: UserEvent) {
   await user.click(screen.getByRole('radio', { name: 'Odense' }));
 }
 
-/** Completes the required steps and leaves the form on the submission summary. */
-async function fillRequiredDetails(user: UserEvent) {
+/** Completes the first two steps and advances to usage details. */
+async function completeMunicipalityAndMaterials(user: UserEvent) {
   await chooseMunicipality(user);
   await next(user);
+  await user.click(screen.getByRole('combobox', { name: /material type/i }));
+  await user.click(screen.getByRole('option', { name: 'Container' }));
+  await user.click(button('Add material'));
   await next(user);
+}
+
+/** Completes the required steps and leaves the form on the submission summary. */
+async function fillRequiredDetails(user: UserEvent) {
+  await completeMunicipalityAndMaterials(user);
 
   await user.click(screen.getByRole('combobox', { name: /type of use/i }));
   await user.click(screen.getByRole('option', { name: 'Construction work' }));
@@ -118,12 +135,37 @@ async function fillRequiredDetails(user: UserEvent) {
   await user.type(screen.getByLabelText(/phone number/i), '12345678');
   await user.type(screen.getByLabelText(/^email\b/i), 'test@example.com');
   await next(user);
+  await user.click(
+    screen.getByRole('checkbox', { name: 'Type B', exact: true }),
+  );
   await next(user);
   await next(user);
 }
 
 describe('Road permit application', () => {
   beforeEach(() => {
+    loadMaterialTypes
+      .mockReset()
+      .mockResolvedValue([
+        'Banner',
+        'TemporarySign',
+        'PermanentSign',
+        'DrillingRig',
+        'Container',
+        'Crane',
+        'Truck',
+        'Lift',
+        'OfficeCabin',
+        'WelfareCabin',
+        'TrenchlessUnit',
+        'ReliningUnit',
+        'Scaffolding',
+        'LoadingTower',
+        'Tent',
+        'Stage',
+        'Grandstand',
+        'Other',
+      ]);
     loadMunicipalities.mockReset().mockResolvedValue([
       { id: 1, name: 'Albertslund' },
       { id: 2, name: 'Billund' },
@@ -407,31 +449,187 @@ describe('Road permit application', () => {
     expect(submitApplication).not.toHaveBeenCalled();
   });
 
-  it('filters municipalities and keeps the selection when going back', async () => {
+  it('marks the step left through the sidebar and updates it when corrected', async () => {
     const user = userEvent.setup();
     await renderPermitFlow();
 
+    const steps = within(
+      screen.getByRole('navigation', { name: 'Application steps' }),
+    );
+    const firstStep = steps.getByRole('button', {
+      name: 'Choose municipality & title',
+    });
+    expect(firstStep.hasAttribute('aria-describedby')).toBe(false);
+
+    await user.click(steps.getByRole('button', { name: 'Contact details' }));
+
+    expect(document.activeElement).toBe(
+      screen.getByRole('heading', { name: 'Contact details' }),
+    );
+    expect(
+      steps.getByRole('button', {
+        name: 'Choose municipality & title',
+        description: /Missing or invalid information.*Enter a title/,
+      }),
+    ).toBe(firstStep);
+    expect(screen.queryByRole('alert')).toBeNull();
+
+    await user.hover(firstStep);
+    const missingFields = within(await screen.findByRole('tooltip'));
+    expect(missingFields.getByText('Enter a title.')).toBeTruthy();
+    expect(
+      missingFields.getByText('Select a municipality from the list.'),
+    ).toBeTruthy();
+    await user.keyboard('{Escape}');
+    await waitFor(() => expect(screen.queryByRole('tooltip')).toBeNull());
+
+    await user.click(firstStep);
+    expect(
+      within(screen.getByRole('alert')).getByText('Enter a title.'),
+    ).toBeTruthy();
     await chooseMunicipality(user);
-    expect(screen.getAllByRole('radio')).toHaveLength(1);
+    await user.click(steps.getByRole('button', { name: 'Materials' }));
+
+    expect(
+      steps.getByRole('button', {
+        name: 'Choose municipality & title',
+        description: 'Step complete',
+      }),
+    ).toBe(firstStep);
+  });
+
+  it('selects a filtered municipality by keyboard and keeps it when going back', async () => {
+    const user = userEvent.setup();
+    await renderPermitFlow();
+
+    await user.type(
+      screen.getByRole('textbox', { name: /title/i }),
+      'Road work',
+    );
+    await user.type(screen.getByRole('searchbox'), 'l');
+    expect(screen.getAllByRole('radio')).toHaveLength(2);
+    await user.keyboard('{ArrowDown}');
+    expect(document.activeElement).toBe(
+      screen.getByRole('radio', { name: 'Albertslund' }),
+    );
+    await user.tab({ shift: true });
+    await user.keyboard('{ArrowUp}');
+    const billund = screen.getByRole<HTMLInputElement>('radio', {
+      name: 'Billund',
+    });
+    expect(document.activeElement).toBe(billund);
+    await user.keyboard('{Enter}');
+    expect(billund.checked).toBe(true);
     await next(user);
     await user.click(button('Back'));
 
     expect(screen.getByRole<HTMLInputElement>('searchbox').value).toBe(
-      'Odense',
+      'Billund',
     );
     expect(
-      screen.getByRole<HTMLInputElement>('radio', { name: 'Odense' }).checked,
+      screen.getByRole<HTMLInputElement>('radio', { name: 'Billund' }).checked,
     ).toBe(true);
     expect(
       screen.getByRole<HTMLInputElement>('textbox', { name: /title/i }).value,
     ).toBe('Road work');
   });
 
-  it('blocks an unfinished material draft until it is added', async () => {
+  it.each([
+    [
+      'en',
+      'Materials',
+      'Material type',
+      'Crane',
+      'Scaffolding',
+      'Other',
+      'Add material',
+    ],
+    [
+      'da',
+      'Materiale',
+      'Materialetype',
+      'Kran',
+      'Stillads',
+      'Andet',
+      'Tilføj materiale',
+    ],
+  ] as const)(
+    'loads and translates API material choices in %s',
+    async (language, step, label, crane, scaffolding, other, add) => {
+      const user = userEvent.setup();
+      loadMaterialTypes.mockResolvedValue(['Crane', 'Scaffolding', 'Other']);
+      await renderPermitFlow(undefined, undefined, language);
+      await user.click(button(step));
+      await user.click(
+        screen.getByRole('combobox', { name: new RegExp(label) }),
+      );
+      expect(
+        screen
+          .getAllByRole('option')
+          .filter((option) => option.getAttribute('aria-disabled') !== 'true'),
+      ).toHaveLength(3);
+      expect(screen.getByRole('option', { name: scaffolding })).toBeTruthy();
+      expect(screen.getByRole('option', { name: other })).toBeTruthy();
+      await user.click(screen.getByRole('option', { name: crane }));
+      await user.click(button(add));
+      expect(within(screen.getByRole('table')).getByText(crane)).toBeTruthy();
+      expect(loadMaterialTypes).toHaveBeenCalledExactlyOnceWith();
+    },
+  );
+
+  it('retries material choices and preserves a legacy material draft', async () => {
+    const user = userEvent.setup();
+    loadMaterialTypes.mockRejectedValueOnce(new Error('Unavailable'));
+    loadDraft.mockResolvedValue({
+      status: 'loaded',
+      draft: { materialDraft: { type: 'Stillads', quantity: '2' } },
+    });
+    await renderPermitFlow();
+    await user.click(button('Materials'));
+    expect(button('Add material').disabled).toBe(true);
+    await user.click(
+      within(screen.getByRole('alert')).getByRole('button', {
+        name: 'Try again',
+      }),
+    );
+    await waitFor(() => expect(button('Add material').disabled).toBe(false));
+    expect(
+      screen.getByRole('combobox', { name: /material type/i }).textContent,
+    ).toBe('Scaffolding');
+    await user.click(button('Add material'));
+    await user.click(button('Save draft'));
+    expect(saveDraft).toHaveBeenCalledWith(
+      draftId,
+      expect.objectContaining({
+        materials: [
+          expect.objectContaining({ type: 'Scaffolding', quantity: 2 }),
+        ],
+      }),
+    );
+  });
+
+  it('requires at least one material in the list before advancing', async () => {
     const user = userEvent.setup();
     await renderPermitFlow();
     await chooseMunicipality(user);
     await next(user);
+    await next(user);
+
+    const steps = within(
+      screen.getByRole('navigation', { name: 'Application steps' }),
+    );
+    expect(
+      within(screen.getByRole('alert')).getByText(
+        'Add at least one material to the list.',
+      ),
+    ).toBeTruthy();
+    expect(
+      steps.getByRole('button', {
+        name: 'Materials',
+        description:
+          /Missing or invalid information.*Add at least one material/,
+      }),
+    ).toBeTruthy();
 
     await user.click(screen.getByRole('combobox', { name: /material type/i }));
     await user.click(screen.getByRole('option', { name: 'Container' }));
@@ -447,8 +645,43 @@ describe('Road permit application', () => {
     expect(
       within(screen.getByRole('table')).getByText('Container'),
     ).toBeTruthy();
+    expect(screen.queryByRole('alert')).toBeNull();
+    expect(
+      steps.getByRole('button', {
+        name: 'Materials',
+        description: 'Step complete',
+      }),
+    ).toBeTruthy();
     await next(user);
     expect(screen.getByRole('heading', { name: 'Usage details' })).toBeTruthy();
+  });
+
+  it('requires an explicit traffic measure before advancing', async () => {
+    const user = userEvent.setup();
+    await renderPermitFlow();
+    await user.click(button('Road markings'));
+    await next(user);
+
+    expect(
+      within(screen.getByRole('alert')).getByText(
+        'Select at least one traffic measure.',
+      ),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole('button', {
+        name: 'Road markings',
+        description: /Select at least one traffic measure/,
+      }),
+    ).toBeTruthy();
+
+    await user.click(
+      screen.getByRole('checkbox', { name: 'Type I', exact: true }),
+    );
+    expect(screen.queryByRole('alert')).toBeNull();
+    await next(user);
+    expect(
+      screen.getByRole('heading', { name: 'Attachments for the application' }),
+    ).toBeTruthy();
   });
 
   it('suggests roads with their postal districts and fills the selected location', async () => {
@@ -475,9 +708,7 @@ describe('Road permit application', () => {
     );
     vi.stubGlobal('fetch', lookup);
     await renderPermitFlow();
-    await chooseMunicipality(user);
-    await next(user);
-    await next(user);
+    await completeMunicipalityAndMaterials(user);
 
     const road = screen.getByRole<HTMLInputElement>('combobox', {
       name: /^road\b/i,
@@ -531,9 +762,7 @@ describe('Road permit application', () => {
       ),
     );
     await renderPermitFlow();
-    await chooseMunicipality(user);
-    await next(user);
-    await next(user);
+    await completeMunicipalityAndMaterials(user);
 
     const road = screen.getByRole<HTMLInputElement>('combobox', {
       name: /^road\b/i,
@@ -549,6 +778,61 @@ describe('Road permit application', () => {
     expect(screen.getByLabelText<HTMLInputElement>(/^city\b/i).value).toBe(
       'Odense S',
     );
+  });
+
+  it('highlights incomplete summary fields and only scrolls when requested', async () => {
+    const user = userEvent.setup();
+    const scrollIntoView = vi.mocked(HTMLElement.prototype.scrollIntoView);
+    scrollIntoView.mockClear();
+    await renderPermitFlow();
+    await user.click(button('Review & submission'));
+    const confirmation = screen.getByRole('checkbox', { name: /I declare/i });
+    expect(screen.queryByText('Enter a title.')).toBeNull();
+    await user.click(confirmation);
+    expect(scrollIntoView).not.toHaveBeenCalled();
+    expect(document.activeElement).toBe(confirmation);
+
+    for (const message of [
+      'Enter a title.',
+      'Select a municipality from the list.',
+      'Add at least one material to the list.',
+      'Select a start date.',
+      'Enter a valid email address.',
+      'Select at least one traffic measure.',
+    ]) {
+      expect(screen.getByText(message)).toBeTruthy();
+    }
+    expect(button('Submit application').disabled).toBe(true);
+    expect(
+      screen.getByRole('heading', { name: 'Review & submission' }),
+    ).toBeTruthy();
+    const alert = within(screen.getByRole('alert'));
+    expect(alert.getByText('Fix the highlighted fields.')).toBeTruthy();
+    await user.click(alert.getByRole('button', { name: 'See what’s missing' }));
+    expect(scrollIntoView).toHaveBeenCalledExactlyOnceWith({
+      behavior: 'smooth',
+      block: 'center',
+    });
+    const title = screen.getByRole('group', { name: 'Title' });
+    expect(scrollIntoView.mock.contexts[0]).toBe(title);
+    expect(document.activeElement).toBe(title);
+
+    await user.click(button('Choose municipality & title'));
+    await chooseMunicipality(user);
+    await user.click(button('Review & submission'));
+    expect(screen.queryByText('Enter a title.')).toBeNull();
+    await user.click(button('See what’s missing'));
+    expect(document.activeElement).toBe(
+      screen.getByRole('group', { name: 'Start date' }),
+    );
+    const checkedConfirmation = screen.getByRole('checkbox', {
+      name: /I declare/i,
+    });
+    await user.click(checkedConfirmation);
+    expect(
+      screen.queryByText('Add at least one material to the list.'),
+    ).toBeNull();
+    expect(screen.queryByText('Fix the highlighted fields.')).toBeNull();
   });
 
   it('requires confirmation and redirects after showing submission success', async () => {
@@ -569,6 +853,7 @@ describe('Road permit application', () => {
     const submit = button('Submit application');
     expect(submit.disabled).toBe(true);
     await user.click(screen.getByRole('checkbox', { name: /I declare/i }));
+    expect(screen.queryByRole('alert')).toBeNull();
     expect(submit.disabled).toBe(false);
     await user.click(submit);
 

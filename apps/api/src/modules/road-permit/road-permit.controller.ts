@@ -9,6 +9,7 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
+import { MaterialType } from '../../generated/prisma/enums.js';
 import { CreateRoadPermitDto } from './dto/create-road-permit.dto.js';
 import { UpdateRoadPermitDto } from './dto/update-road-permit.dto.js';
 import { RoadPermitService } from './road-permit.service.js';
@@ -43,6 +44,12 @@ export class RoadPermitController {
   findAll() {
     if (process.env.NODE_ENV !== 'development') throw new NotFoundException();
     return this.roadPermitService.findAll();
+  }
+
+  /** Lists the material types accepted by the Prisma schema. */
+  @Get('material-types')
+  getMaterialTypes() {
+    return Object.values(MaterialType);
   }
 
   /** Loads a road-permit draft by its case number. */
