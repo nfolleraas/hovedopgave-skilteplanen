@@ -27,9 +27,9 @@ navigation, visual accessibility, and clear language for non-technical users.
 Run these from the repository root:
 
 ```bash
-bun run --filter web dev
-bun run --filter web build
-bun run --filter web lint
+bun run --cwd apps/web dev
+bun run --cwd apps/web build
+bun run --cwd apps/web lint
 ```
 
 The app's generated starter README is at

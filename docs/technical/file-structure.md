@@ -68,16 +68,15 @@ apps/api/
 │   ├── config/                Application, authentication, and CORS config
 │   ├── modules/
 │   │   ├── applicants/        Applicant controller, service, repository, DTOs
-│   │   └── auth/              Authentication controller, service, DTOs
+│   │   └── auth/              Authentication module and colocated API tests
 │   ├── prisma/                Prisma NestJS module and service
 │   ├── app.controller.ts      Root API controller
 │   ├── app.module.ts          Root NestJS module
 │   ├── app.service.ts         Root API service
 │   └── main.ts                API bootstrap and HTTP configuration
-├── test/                      API end-to-end tests
 ├── openapi.json               OpenAPI document
 ├── package.json               API scripts and dependencies
-└── vitest.config*.ts          Unit and end-to-end test configuration
+└── vitest.config*.ts          Unit and API test configuration
 ```
 
 API modules are organized by business capability. A module's controller,

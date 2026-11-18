@@ -12,6 +12,10 @@ the global `/api` route prefix and listens on port `3000` by default. The
 current `GET /api` route returns a greeting. The web app's Vite server proxies
 `/api` requests to this service during development.
 
+Swagger is available at `/swagger` only when the API runs with
+`NODE_ENV=development`. It is not registered in test or production
+environments.
+
 The API connects to the development PostgreSQL service at hostname `db` using
 `DATABASE_URL`; the connection details and container setup are described in
 [DEVCONTAINER.md](../../DEVCONTAINER.md). Prisma models, migrations, and
@@ -22,11 +26,11 @@ development seeders live under [`apps/api/prisma/`](../../apps/api/prisma/).
 Run these from the repository root:
 
 ```bash
-bun run --filter api dev
-bun run --filter api build
-bun run --filter api test
-bun run --filter api test:e2e
-bun run --filter api lint
+bun run --cwd apps/api dev
+bun run --cwd apps/api build
+bun run --cwd apps/api test
+bun run --cwd apps/api test:api
+bun run --cwd apps/api lint
 ```
 
 The generated NestJS starter README is at
@@ -35,6 +39,10 @@ for shared development instructions.
 
 ## Guides
 
-- [Modules and seeders](modules-and-seeders.md): feature module structure,
-  dependency injection, root-module registration, and generic Prisma seeder
-  examples.
+- [Modules](modules.md): feature structure, dependency injection,
+  repositories, Prisma, and migrations.
+- [Seeders](seeders.md): repeatable development data and seeder registration.
+- [First administrator bootstrap](administrator-bootstrap.md): create the
+  initial local administrator without a committed default credential.
+- [Signicat sandbox](signicat.md): configure and validate the server-side OIDC
+  client used for MitID applicant authentication.

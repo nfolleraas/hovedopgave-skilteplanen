@@ -1,6 +1,6 @@
 model Administrator {
   uuid         String @id @default(uuid())
   name         String
-  email        String
+  email        String @unique
   passwordHash String
 }
