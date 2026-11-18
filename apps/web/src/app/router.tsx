@@ -6,12 +6,14 @@ import PrivateApplicantPage from '../pages/create-applicant-page/private.js';
 import HomePage from '../pages/home-page/index.js';
 import LoginPage from '../pages/login-page/index.js';
 import MessagesPage from '../pages/messages-page/index.js';
+import ProfilePage from '../pages/profile-page/index.js';
 
 export const routes = {
   home: '/',
   application: '/ansoegning',
   contacts: '/kontaktpersoner',
   messages: '/beskeder',
+  profile: '/profil',
   login: '/login',
   createBusinessApplicant: '/opret-erhverv',
   createPrivateApplicant: '/opret-privat',
@@ -22,6 +24,7 @@ export const pages: Record<string, ComponentType> = {
   [routes.application]: ApplicationPage,
   [routes.contacts]: ContactsPage,
   [routes.messages]: MessagesPage,
+  [routes.profile]: ProfilePage,
   [routes.login]: LoginPage,
   [routes.createBusinessApplicant]: BusinessApplicantPage,
   [routes.createPrivateApplicant]: PrivateApplicantPage,

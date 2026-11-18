@@ -35,3 +35,24 @@ bun run --filter web lint
 The app's generated starter README is at
 [`apps/web/README.md`](../../apps/web/README.md). The root README is the source
 for shared development instructions.
+
+## Browser end-to-end tests
+
+Install Chromium once from the web workspace:
+
+```sh
+cd apps/web
+bun run playwright install --with-deps chromium
+```
+
+Run the suite from the repository root:
+
+```sh
+bun run --filter web test:e2e
+```
+
+The suite uses ports `5190` and `3190`. It requires a PostgreSQL connection
+through `DATABASE_URL` with permission to create databases. It applies the
+project migrations to a temporary database, starts the real API, and drops the
+database after the run. Address suggestions use a fixed fixture so the tests
+do not depend on the external address service.

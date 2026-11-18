@@ -11,4 +11,3 @@ export function isValidPhoneNumber(value: string): boolean {
 export function isValidCvrNumber(value: string): boolean {
   return /^\d{8}$/.test(value);
 }
-

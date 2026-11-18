@@ -129,6 +129,13 @@ export default function Navbar() {
           onClose={() => setMenuAnchor(null)}
           open={menuOpen}
         >
+          <MenuItem
+            component={Link}
+            onClick={() => setMenuAnchor(null)}
+            to={routes.profile}
+          >
+            {t('navigation.profile')}
+          </MenuItem>
           <MenuItem onClick={() => setMenuAnchor(null)}>
             {t('navigation.settings')}
           </MenuItem>

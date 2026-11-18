@@ -12,7 +12,10 @@ import type { AddressSuggestion } from '../../api/addresses.api.js';
 import AddressAutocomplete from '../../components/address/address-autocomplete.js';
 import { useApplicants } from '../../hooks/use-applicants.js';
 import { parseAddress } from './address-parser.js';
-import { isValidCvrNumber, isValidPhoneNumber } from './applicant-validation.js';
+import {
+  isValidCvrNumber,
+  isValidPhoneNumber,
+} from './applicant-validation.js';
 
 type ApplicantType = 'business' | 'private';
 
@@ -22,6 +25,7 @@ interface ApplicantFormProps {
 
 export default function ApplicantForm({ applicantType }: ApplicantFormProps) {
   const isBusiness = applicantType === 'business';
+  const title = isBusiness ? 'Opret erhvervsansøger' : 'Opret privatansøger';
   const [selectedAddress, setSelectedAddress] =
     useState<AddressSuggestion | null>(null);
   const navigate = useNavigate();
@@ -70,9 +74,7 @@ export default function ApplicantForm({ applicantType }: ApplicantFormProps) {
         type: applicantType,
         phoneNumber,
         email: String(formData.get('email') ?? '').trim(),
-        ...(isBusiness
-          ? { cvrNumber }
-          : {}),
+        ...(isBusiness ? { cvrNumber } : {}),
         ...parseAddress(selectedAddress),
       });
 
@@ -87,10 +89,11 @@ export default function ApplicantForm({ applicantType }: ApplicantFormProps) {
   }
 
   return (
-    <Container maxWidth="md">
+    <Container component="main" maxWidth="md">
+      <title>{title}</title>
       <Box component="form" onSubmit={handleSubmit} sx={{ mt: 5 }}>
-        <Typography sx={{ mb: 4 }} variant="h4">
-          Opret ansøger
+        <Typography component="h1" sx={{ mb: 4 }} variant="h4">
+          {title}
         </Typography>
 
         <TextField

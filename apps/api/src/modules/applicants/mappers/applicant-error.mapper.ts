@@ -2,9 +2,12 @@ import { ConflictException } from '@nestjs/common';
 import { Prisma } from '../../../generated/prisma/client.js';
 
 /**
- * Maps Prisma errors for applicant creation into user-friendly HTTP exceptions.
+ * Maps Prisma errors for applicant writes into user-friendly HTTP exceptions.
  */
-export function mapApplicantCreateError(error: unknown): never {
+export function mapApplicantCreateError(
+  error: unknown,
+  options?: { includeField: boolean },
+): never {
   if (
     error instanceof Prisma.PrismaClientKnownRequestError &&
     error.code === 'P2002'
@@ -18,8 +21,9 @@ export function mapApplicantCreateError(error: unknown): never {
       target.includes('Applicant_email') ||
       target.includes('email_lower')
     ) {
+      const message = 'Der findes allerede en ansøger med den e-mail.';
       throw new ConflictException(
-        'Der findes allerede en ansøger med den e-mail.',
+        options?.includeField ? { message, fields: ['email'] } : message,
       );
     }
 
@@ -28,8 +32,9 @@ export function mapApplicantCreateError(error: unknown): never {
       target.includes('Applicant_cvr') ||
       target.includes('cvr_number')
     ) {
+      const message = 'Der findes allerede en ansøger med det CVR-nummer.';
       throw new ConflictException(
-        'Der findes allerede en ansøger med det CVR-nummer.',
+        options?.includeField ? { message, fields: ['cvrNumber'] } : message,
       );
     }
 

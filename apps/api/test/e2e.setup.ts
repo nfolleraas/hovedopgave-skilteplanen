@@ -78,4 +78,3 @@ const port = Number(parsed.port || '5432');
 
 await waitForHost(host, 20_000);
 await waitForPort(host, port, 20_000);
-

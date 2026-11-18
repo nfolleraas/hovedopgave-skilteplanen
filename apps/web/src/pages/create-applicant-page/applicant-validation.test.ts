@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'bun:test';
-import { isValidCvrNumber, isValidPhoneNumber } from './applicant-validation.js';
+import {
+  isValidCvrNumber,
+  isValidPhoneNumber,
+} from './applicant-validation.js';
 
 describe('isValidPhoneNumber', () => {
   it('accepts an 8-digit value', () => {
@@ -28,4 +31,3 @@ describe('isValidCvrNumber', () => {
     expect(isValidCvrNumber('abcdefgh')).toBe(false);
   });
 });
-

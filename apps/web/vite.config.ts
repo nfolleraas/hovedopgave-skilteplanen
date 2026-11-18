@@ -11,7 +11,7 @@ export default defineConfig({
       interval: 1000,
     },
     proxy: {
-      '/api': 'http://localhost:3000',
+      '/api': process.env.WEB_API_PROXY_TARGET ?? 'http://localhost:3000',
       '/swagger': 'http://localhost:3000',
     },
   },

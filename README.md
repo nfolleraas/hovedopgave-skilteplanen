@@ -128,6 +128,18 @@ bun run --filter web dev
 bun run --filter api dev
 ```
 
+For at afprøve profilredigering lokalt, opret en testansøger, og find dens
+`uuid` i tabellen `Applicant` via pgweb. Start derefter udviklingsserverne fra
+roden med testansøgerens ID:
+
+```sh
+NODE_ENV=development DEV_PROFILE_APPLICANT_ID=DIT_TEST_UUID bun run dev
+```
+
+Åbn **Profil** i brugermenuen. Alle, der kan tilgå denne udviklingsinstans,
+kan redigere den valgte testansøger, så brug kun syntetiske testdata. API'et
+kræver begge miljøvariabler for at gøre testprofilen tilgængelig.
+
 ### Per-app scripts
 
 Kør dem fra roden med et workspace-filter, eller med almindelig `bun run` inde

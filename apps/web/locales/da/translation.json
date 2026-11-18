@@ -28,6 +28,7 @@
     "logoHome": "Ansøgningsplatformen – gå til forsiden",
     "main": "Hovednavigation",
     "openUserMenu": "Åbn brugermenu",
+    "profile": "Profil",
     "settings": "Indstillinger",
     "logOut": "Log af",
     "language": "Sprog"
@@ -39,5 +40,21 @@
   "login": {
     "title": "Log ind",
     "formPlaceholder": "Her kommer loginformularen."
+  },
+  "profile": {
+    "name": "Navn",
+    "email": "E-mail",
+    "phoneNumber": "Telefonnummer",
+    "cvrNumber": "CVR-nr.",
+    "unavailable": "Der er ingen aktiv testprofil tilgængelig.",
+    "loadError": "Profilen kunne ikke hentes. Prøv igen senere.",
+    "loading": "Henter profil…",
+    "saved": "Profilen er opdateret.",
+    "saveError": "Ændringerne kunne ikke gemmes. Prøv igen.",
+    "duplicate": "Værdien er allerede i brug.",
+    "invalidField": "Indtast en gyldig værdi for {{field}}.",
+    "save": "Gem",
+    "cancel": "Annullér",
+    "edit": "Redigér profil"
   }
 }

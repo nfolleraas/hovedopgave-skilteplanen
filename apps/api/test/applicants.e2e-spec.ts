@@ -3,6 +3,7 @@ import type { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { App } from 'supertest/types.js';
+import { vi } from 'vitest';
 import { AppModule } from './../src/app.module.js';
 import { PrismaService } from './../src/modules/prisma/prisma.service.js';
 
@@ -22,6 +23,74 @@ describe('Applicants (e2e)', () => {
 
   afterAll(async () => {
     await app.close();
+  });
+
+  it('updates only the configured development profile and rejects invalid input', async () => {
+    const email = `profile-e2e-${randomUUID()}@example.com`;
+    const applicant = await prisma.applicant.create({
+      data: {
+        name: 'Original name',
+        type: 'Private',
+        phoneNumber: '12345678',
+        email,
+        address: {
+          create: {
+            street: 'Vestergade',
+            houseNumber: '1',
+            postalCode: '8000',
+            city: 'Aarhus C',
+          },
+        },
+      },
+    });
+
+    try {
+      const api = request(app.getHttpServer());
+      const path = '/applicants/profile';
+      const update = { name: 'Updated name', email, phoneNumber: '87654321' };
+      vi.stubEnv('DEV_PROFILE_APPLICANT_ID', applicant.uuid);
+      vi.stubEnv('NODE_ENV', 'production');
+      await api.get(path).expect(404);
+      await api.patch(path).send(update).expect(404);
+
+      vi.stubEnv('NODE_ENV', 'development');
+      const invalid = await api
+        .patch(path)
+        .send({ ...update, phoneNumber: '123' })
+        .expect(400);
+      expect(invalid.body.fields).toEqual(['phoneNumber']);
+
+      const original = await api.get(path).expect(200);
+      expect(original.body).toEqual({
+        name: 'Original name',
+        email,
+        phoneNumber: '12345678',
+        type: 'Private',
+        cvrNumber: null,
+      });
+
+      const result = await api
+        .patch(path)
+        .send({ ...update, type: 'Business', cvrNumber: '12345678' })
+        .expect(200);
+      expect(result.body).toEqual({
+        ...update,
+        type: 'Private',
+        cvrNumber: null,
+      });
+      const saved = await prisma.applicant.findUniqueOrThrow({
+        where: { uuid: applicant.uuid },
+      });
+      expect(saved).toMatchObject({
+        ...update,
+        type: 'Private',
+        cvrNumber: null,
+      });
+    } finally {
+      vi.unstubAllEnvs();
+      await prisma.applicant.delete({ where: { uuid: applicant.uuid } });
+      await prisma.address.delete({ where: { uuid: applicant.addressId } });
+    }
   });
 
   it('creates an applicant and its address', async () => {

@@ -38,11 +38,12 @@ describe('mapApplicantCreateError', () => {
     });
 
     expect(() => mapApplicantCreateError(error)).toThrow(ConflictException);
-    expect(() => mapApplicantCreateError(error)).toThrow('Ansøger findes allerede.');
+    expect(() => mapApplicantCreateError(error)).toThrow(
+      'Ansøger findes allerede.',
+    );
   });
 
   it('rethrows non-Prisma errors unchanged', () => {
     expect(() => mapApplicantCreateError(new Error('boom'))).toThrow('boom');
   });
 });
-

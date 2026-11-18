@@ -72,6 +72,30 @@ describe('ApplicantsService', () => {
     expect(repository.createApplicant).not.toHaveBeenCalled();
   });
 
+  it.each([{}, { email: 123 }, { email: 'test@example.com', cvrNumber: 123 }])(
+    'rejects malformed creation input without calling the repository (%j)',
+    async (input) => {
+      await expect(
+        service.createApplicant({
+          ...validApplicant,
+          email: undefined,
+          ...input,
+        }),
+      ).rejects.toBeInstanceOf(BadRequestException);
+      expect(repository.createApplicant).not.toHaveBeenCalled();
+    },
+  );
+
+  it('omits CVR when creating a private applicant', async () => {
+    await service.createApplicant({ ...validApplicant, cvrNumber: '12345678' });
+
+    expect(repository.createApplicant).toHaveBeenCalledWith({
+      ...validApplicant,
+      email: 'test@example.com',
+      cvrNumber: undefined,
+    });
+  });
+
   it('rejects an invalid email without calling the repository', async () => {
     const invalidApplicant: CreateApplicantDto = {
       ...validApplicant,

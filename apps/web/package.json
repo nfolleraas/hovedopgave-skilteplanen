@@ -10,7 +10,8 @@
     "lint": "biome lint .",
     "preview": "vite preview",
     "locale:extract": "i18next 'src/**/*.{ts,tsx}' --config locales/i18next-parser.config.mjs",
-    "locale:check": "node locales/check-locales.mjs"
+    "locale:check": "node locales/check-locales.mjs",
+    "test:e2e": "bun run --filter api build && playwright test"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -26,6 +27,7 @@
     "react-router": "^8.5.1"
   },
   "devDependencies": {
+    "@playwright/test": "1.65.1",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",

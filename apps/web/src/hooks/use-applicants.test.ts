@@ -90,4 +90,3 @@ describe('useApplicants', () => {
     ).rejects.toThrow('Kunne ikke gemme ansøger.');
   });
 });
-
