@@ -20,6 +20,16 @@ vi.hoisted(() => {
   process.env.AUTH_ACCESS_COOKIE_PATH = '/api';
   process.env.AUTH_REFRESH_COOKIE_PATH = '/api/auth';
   process.env.AUTH_COOKIE_SECURE = 'false';
+  process.env.SIGNICAT_ENABLED = 'true';
+  process.env.SIGNICAT_ISSUER_URL =
+    'https://example.sandbox.signicat.dev/auth/open';
+  process.env.SIGNICAT_CLIENT_ID = 'sandbox-client-id';
+  process.env.SIGNICAT_CLIENT_SECRET = 'sandbox-client-secret';
+  process.env.SIGNICAT_REDIRECT_URI =
+    'https://application.example/api/auth/mitid/callback';
+  process.env.SIGNICAT_PRIVATE_SCOPES = 'openid profile mitid-extra';
+  process.env.SIGNICAT_BUSINESS_SCOPES =
+    'openid profile mitid-extra mitid-business';
 });
 
 describe('Administrator authentication API', () => {

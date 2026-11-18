@@ -44,3 +44,5 @@ for shared development instructions.
 - [Seeders](seeders.md): repeatable development data and seeder registration.
 - [First administrator bootstrap](administrator-bootstrap.md): create the
   initial local administrator without a committed default credential.
+- [Signicat sandbox](signicat.md): configure and validate the server-side OIDC
+  client used for MitID applicant authentication.

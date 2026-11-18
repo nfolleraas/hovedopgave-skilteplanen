@@ -15,7 +15,10 @@ metadata. Phase 2 step 6 limits Swagger to development, completing Phase 2.
 Phase 3 now implements API-only Argon2id password handling, administrator
 login, administrator login rate limiting and auditing, and a first-account
 bootstrap procedure. Case workers continue to authenticate only through Entra
-ID.
+ID. Phase 4 step 1 now supports explicitly enabled, validated server-side
+Signicat sandbox OIDC configuration, including its redirect URI and private
+and business scopes. Phase 4 step 2, OIDC authorization transactions and
+callbacks, is next.
 
 ## Goals
 
