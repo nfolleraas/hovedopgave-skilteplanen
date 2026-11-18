@@ -51,7 +51,7 @@ Run all commands from the repository root. Use `bun run` for root scripts and
 bun run --cwd apps/web build
 bun run --cwd apps/api build
 bun run --cwd apps/api test
-bun run --cwd apps/api test:e2e
+bun run --cwd apps/api test:api
 bun run check
 ```
 

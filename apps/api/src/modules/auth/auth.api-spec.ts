@@ -3,13 +3,13 @@ import { APP_GUARD } from '@nestjs/core';
 import { Test, type TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import type { App } from 'supertest/types.js';
-import { AUTH_CONFIG, type AuthConfig } from '../src/config/auth.config.js';
-import { AuthController } from '../src/modules/auth/auth.controller.js';
-import { AuthService } from '../src/modules/auth/auth.service.js';
-import { JwtAuthGuard } from '../src/modules/auth/guards/jwt-auth.guard.js';
-import { JwtService } from '../src/modules/auth/jwt/jwt.service.js';
-import type { JwtClaims } from '../src/modules/auth/jwt/jwt.types.js';
-import { RefreshTokenService } from '../src/modules/auth/refresh-token/refresh-token.service.js';
+import { AUTH_CONFIG, type AuthConfig } from '../../config/auth.config.js';
+import { AuthController } from './auth.controller.js';
+import { AuthService } from './auth.service.js';
+import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
+import { JwtService } from './jwt/jwt.service.js';
+import type { JwtClaims } from './jwt/jwt.types.js';
+import { RefreshTokenService } from './refresh-token/refresh-token.service.js';
 
 vi.hoisted(() => {
   process.env.AUTH_JWT_SECRET = 'test-secret-with-at-least-32-characters';
@@ -56,7 +56,7 @@ const accessClaims: JwtClaims = {
   expirationTime: 1_795_000_600,
 };
 
-describe('Authentication routes (e2e)', () => {
+describe('Authentication API', () => {
   let app: INestApplication<App>;
   let jwtService: { verify: ReturnType<typeof vi.fn> };
   let refreshTokenService: {

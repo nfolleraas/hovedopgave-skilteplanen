@@ -67,8 +67,8 @@ $ bun run --cwd apps/api start:prod
 # unit tests
 $ bun run --cwd apps/api test
 
-# e2e tests
-$ bun run --cwd apps/api test:e2e
+# API endpoint tests
+$ bun run --cwd apps/api test:api
 
 # test coverage
 $ bun run --cwd apps/api test:cov

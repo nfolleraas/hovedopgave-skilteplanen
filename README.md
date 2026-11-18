@@ -137,7 +137,7 @@ Scripts, der hører til en bestemt app, køres med `bun run --cwd`:
 ```bash
 bun run --cwd apps/web lint
 bun run --cwd apps/api test
-bun run --cwd apps/api test:e2e
+bun run --cwd apps/api test:api
 ```
 
 | Script       | `web`                              | `api`                     |
@@ -146,7 +146,7 @@ bun run --cwd apps/api test:e2e
 | `build`      | `tsc -b && vite build`             | `nest build` til `dist/`  |
 | `lint`       | `biome lint .`                     | `biome lint .`            |
 | `test`       | –                                  | Vitest unit tests        |
-| `test:e2e`   | –                                  | Vitest e2e tests         |
+| `test:api`   | –                                  | Vitest API tests         |
 | `preview`    | serverer produktionsbuild          | –                         |
 | `start:prod` | –                                  | `node dist/main`          |
 

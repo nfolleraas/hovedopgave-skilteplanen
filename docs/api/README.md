@@ -29,7 +29,7 @@ Run these from the repository root:
 bun run --cwd apps/api dev
 bun run --cwd apps/api build
 bun run --cwd apps/api test
-bun run --cwd apps/api test:e2e
+bun run --cwd apps/api test:api
 bun run --cwd apps/api lint
 ```
 

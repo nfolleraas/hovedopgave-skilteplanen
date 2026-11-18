@@ -8,8 +8,9 @@ This repository is a Danish 5th-semester Datamatiker project for Skilteplanen. I
 - Before implementing or changing web UI components, read and follow the [web stylesheet](docs/web/styles/stylesheet.md), including its component-specific variants.
 - Keep changes focused and follow the existing TypeScript, React, NestJS, and Biome conventions.
 - Run all Bun commands from `/workspaces/hovedopgave-skilteplanen`. Use `bun run <script>` for root scripts and `bun run --cwd apps/web <script>` or `bun run --cwd apps/api <script>` for app scripts. Do not introduce another package manager or lockfile.
+- In a managed coding-agent sandbox, Bun 1.4.4 may report `Script not found` or `No package.json found`, or crash while reading a valid manifest. Retry the exact Bun command with sandbox escalation; do not bypass the package script or treat these messages as a repository configuration error unless the escalated command also fails.
 - `bun run check` runs Biome checks. `bun run check:fix` writes safe fixes. App scripts and database/container commands are documented in `README.md` and `DEVCONTAINER.md`.
-- API unit and e2e tests are defined in `apps/api`; the web app currently has no test script. Run relevant checks for code changes and report what was run.
+- API unit and endpoint tests are defined in `apps/api`; the web app currently has no test script. Run relevant checks for code changes and report what was run.
 - In the API, inject `PrismaService` only into repository classes, and normally keep one class per source file. See `docs/api/modules.md`.
 - Do not commit secrets, local environment files, generated build output, or dependency directories.
 - For commits, preserve the configured Git author and do not add Codex as an author or co-author, or add attribution trailers, unless explicitly requested.
@@ -18,7 +19,7 @@ This repository is a Danish 5th-semester Datamatiker project for Skilteplanen. I
 ## Project map
 
 - `apps/web/`: React frontend, Vite development server, and Biome configuration inherited from the root.
-- `apps/api/`: NestJS API and Vitest unit/e2e tests.
+- `apps/api/`: NestJS API and Vitest unit/API endpoint tests.
 - `.devcontainer/` and `DEVCONTAINER.md`: development environment and its documentation.
 - `.agents/skills/`: repository-specific reusable agent workflows.
 - `.codex/`: Codex project configuration and hook implementation files.

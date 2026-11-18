@@ -3,10 +3,10 @@ import type { INestApplication } from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import type { App } from 'supertest/types.js';
-import { AppModule } from '../src/app.module.js';
-import { JwtService } from '../src/modules/auth/jwt/jwt.service.js';
-import { PasswordService } from '../src/modules/auth/password/password.service.js';
-import { PrismaService } from '../src/modules/prisma/prisma.service.js';
+import { AppModule } from '../../../app.module.js';
+import { PrismaService } from '../../prisma/prisma.service.js';
+import { JwtService } from '../jwt/jwt.service.js';
+import { PasswordService } from '../password/password.service.js';
 
 vi.hoisted(() => {
   process.env.AUTH_JWT_SECRET = 'test-secret-with-at-least-32-characters';
@@ -22,7 +22,7 @@ vi.hoisted(() => {
   process.env.AUTH_COOKIE_SECURE = 'false';
 });
 
-describe('Administrator login route (e2e)', () => {
+describe('Administrator authentication API', () => {
   const administratorId = randomUUID();
   const email = `admin-e2e-${administratorId}@example.com`;
   const password = 'correct horse battery staple';
