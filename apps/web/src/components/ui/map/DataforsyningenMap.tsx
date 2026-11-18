@@ -458,7 +458,7 @@ export function DataforsyningenMap({
           aria-describedby={helpId}
           aria-label={t('permit.map.title')}
           hidden={!token}
-          onMouseEnter={(event) => {
+          onPointerDown={(event) => {
             event.currentTarget.focus({ preventScroll: true });
           }}
           ref={targetRef}
