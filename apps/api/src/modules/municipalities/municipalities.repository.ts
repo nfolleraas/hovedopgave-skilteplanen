@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../prisma.service.js';
+import { PrismaService } from '../prisma/prisma.service.js';
 import { CreateMunicipalityDto } from './dto/create-municipality.dto.js';
 import { UpdateMunicipalityDto } from './dto/update-municipality.dto.js';
 
@@ -30,13 +30,14 @@ export class MunicipalitiesRepository {
           },
         },
       },
+      include: { address: true },
     });
   }
+
   update(id: number, data: UpdateMunicipalityDto) {
     return this.prisma.municipality.update({
       where: { id },
       data: {
-        name: data.name,
         email: data.email,
         phoneNumber: data.phoneNumber,
         address: {
@@ -48,6 +49,7 @@ export class MunicipalitiesRepository {
           },
         },
       },
+      include: { address: true },
     });
   }
 }

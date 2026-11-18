@@ -7,8 +7,11 @@ import type {
 const API_URL = '/api/municipalities';
 
 // Get a municipality by ID
-export async function getMunicipality(id: number): Promise<Municipality> {
-  const response = await fetch(`${API_URL}/${id}`);
+export async function getMunicipality(
+  id: number,
+  signal?: AbortSignal,
+): Promise<Municipality> {
+  const response = await fetch(`${API_URL}/${id}`, { signal });
 
   if (!response.ok) {
     throw new Error('Kunne ikke hente kommunen');

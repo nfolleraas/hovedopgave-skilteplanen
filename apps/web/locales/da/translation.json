@@ -2,6 +2,29 @@
   "notFound": {
     "title": "Siden blev ikke fundet"
   },
+  "address": {
+    "lookupError": "Adresser kunne ikke hentes. Prøv at søge igen.",
+    "noOptions": "Ingen forslag. Prøv vejnavn, husnummer og postnummer.",
+    "help": "Vælg en adresse eller et vejforslag.",
+    "label": "Adresse",
+    "placeholder": "Søg efter adresse…"
+  },
+  "admin": {
+    "openMenu": "Åbn administrationsmenu",
+    "title": "Administration"
+  },
+  "navigation": {
+    "skipToContent": "Gå til hovedindhold",
+    "home": "Hjem",
+    "application": "Ansøgning",
+    "messages": "Beskeder",
+    "logoHome": "Ansøgningsplatformen – gå til forsiden",
+    "main": "Hovednavigation",
+    "openUserMenu": "Åbn brugermenu",
+    "settings": "Indstillinger",
+    "logOut": "Log af",
+    "language": "Sprog"
+  },
   "footer": {
     "shortcuts": "Genveje",
     "aboutUs": "Om os",
@@ -21,30 +44,32 @@
   "common": {
     "brandName": "Skilteplanen"
   },
-  "navigation": {
-    "home": "Hjem",
-    "application": "Ansøgning",
-    "messages": "Beskeder",
-    "logoHome": "Ansøgningsplatformen – gå til forsiden",
-    "main": "Hovednavigation",
-    "openUserMenu": "Åbn brugermenu",
-    "settings": "Indstillinger",
-    "logOut": "Log af",
-    "language": "Sprog"
-  },
   "municipality": {
+    "update": {
+      "title": "Opdater kommuneoplysninger",
+      "loadError": "Kommunen kunne ikke hentes. Kontroller adressen eller prøv igen.",
+      "loading": "Henter kommuneoplysninger…",
+      "success": "Kommuneoplysningerne er gemt.",
+      "saveError": "Ændringerne kunne ikke gemmes. Prøv igen.",
+      "saving": "Gemmer…",
+      "save": "Gem ændringer"
+    },
     "create": {
+      "phoneNumber": "Telefonnummer",
+      "email": "E-mail",
+      "addressError": "Vælg en gyldig adresse med husnummer.",
+      "cancel": "Annuller",
       "title": "Opret kommune",
       "success": "Kommunen er oprettet",
       "error": "Kommunen kunne ikke oprettes",
       "name": "Kommunens navn",
       "region": "Region",
-      "phoneNumber": "Telefonnummer",
-      "email": "E-mail",
-      "addressError": "Vælg en gyldig adresse med husnummer.",
-      "cancel": "Annuller",
       "save": "Gem kommune"
     }
+  },
+  "caseworker": {
+    "title": "Sagsbehandling",
+    "openMenu": "Åbn sagsbehandlermenu"
   },
   "home": {
     "title": "Ansøgningsplatformen",

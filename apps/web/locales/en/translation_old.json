@@ -3,5 +3,10 @@
     "create": {
       "address": "Address"
     }
+  },
+  "admin": {
+    "overview": "Overview",
+    "users": "Users",
+    "caseworkers": "Caseworkers"
   }
 }

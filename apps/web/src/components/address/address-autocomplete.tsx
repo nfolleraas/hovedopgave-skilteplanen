@@ -1,5 +1,6 @@
 import { Autocomplete, TextField } from '@mui/material';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   type AddressOption,
   type AddressSuggestion,
@@ -7,6 +8,9 @@ import {
 } from '../../api/addresses.api.js';
 
 interface AddressAutocompleteProps {
+  disabled?: boolean;
+  errorMessage?: string;
+  initialAddressText?: string;
   onChange: (address: AddressSuggestion | null) => void;
 }
 
@@ -15,15 +19,21 @@ interface AddressAutocompleteProps {
  * selected suggestion to the parent.
  */
 export default function AddressAutocomplete({
+  disabled,
+  errorMessage,
+  initialAddressText = '',
   onChange,
 }: AddressAutocompleteProps) {
-  const [inputValue, setInputValue] = useState('');
+  const { t } = useTranslation();
+  const [lookupFailed, setLookupFailed] = useState(false);
+  const [inputValue, setInputValue] = useState(initialAddressText);
+  const [hasEdited, setHasEdited] = useState(false);
   const [options, setOptions] = useState<AddressOption[]>([]);
   const [selectedAddress, setSelectedAddress] =
     useState<AddressSuggestion | null>(null);
 
   useEffect(() => {
-    if (inputValue.trim().length < 3 || selectedAddress) {
+    if (!hasEdited || inputValue.trim().length < 3 || selectedAddress) {
       return;
     }
 
@@ -32,10 +42,12 @@ export default function AddressAutocomplete({
     const timeout = setTimeout(async () => {
       try {
         const addresses = await searchAddresses(inputValue, controller.signal);
-        setOptions(addresses);
-      } catch (error) {
         if (!controller.signal.aborted) {
-          console.error('Address lookup failed:', error);
+          setOptions(addresses);
+        }
+      } catch {
+        if (!controller.signal.aborted) {
+          setLookupFailed(true);
           setOptions([]);
         }
       }
@@ -45,14 +57,19 @@ export default function AddressAutocomplete({
       clearTimeout(timeout);
       controller.abort();
     };
-  }, [inputValue, selectedAddress]);
+  }, [hasEdited, inputValue, selectedAddress]);
 
   return (
     <Autocomplete
+      clearOnBlur={!initialAddressText}
+      disabled={disabled}
       filterOptions={(options) => options}
+      getOptionKey={(option) => option.id}
       getOptionLabel={(option) => option.titel}
       inputValue={inputValue}
-      noOptionsText="Ingen forslag. Prøv vejnavn, husnummer og postnummer."
+      noOptionsText={
+        lookupFailed ? t('address.lookupError') : t('address.noOptions')
+      }
       onChange={(_, value) => {
         setSelectedAddress(value);
         setInputValue(value?.titel ?? '');
@@ -60,6 +77,9 @@ export default function AddressAutocomplete({
       }}
       onInputChange={(_, value, reason) => {
         if (reason === 'input' || reason === 'clear') {
+          setHasEdited(true);
+          setLookupFailed(false);
+          setOptions([]);
           setInputValue(value);
           setSelectedAddress(null);
           onChange(null);
@@ -69,9 +89,10 @@ export default function AddressAutocomplete({
       renderInput={(params) => (
         <TextField
           {...params}
-          helperText="Vælg en adresse eller et vejforslag."
-          label="Adresse"
-          placeholder="Søg efter adresse..."
+          error={Boolean(errorMessage)}
+          helperText={errorMessage ?? t('address.help')}
+          label={t('address.label')}
+          placeholder={t('address.placeholder')}
           required
         />
       )}

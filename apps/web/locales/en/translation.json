@@ -2,6 +2,29 @@
   "notFound": {
     "title": "Page not found"
   },
+  "address": {
+    "lookupError": "Could not load addresses. Try searching again.",
+    "noOptions": "No suggestions. Try a street, house number and postal code.",
+    "help": "Select an address or a street suggestion.",
+    "label": "Address",
+    "placeholder": "Search for an address…"
+  },
+  "admin": {
+    "openMenu": "Open administration menu",
+    "title": "Administration"
+  },
+  "navigation": {
+    "skipToContent": "Skip to main content",
+    "home": "Home",
+    "application": "Application",
+    "messages": "Messages",
+    "logoHome": "Applicantplatform – go to the home page",
+    "main": "Main navigation",
+    "openUserMenu": "Open user menu",
+    "settings": "Settings",
+    "logOut": "Log out",
+    "language": "Language"
+  },
   "footer": {
     "shortcuts": "Shortcuts",
     "aboutUs": "About us",
@@ -21,30 +44,32 @@
   "common": {
     "brandName": "Skilteplanen"
   },
-  "navigation": {
-    "home": "Home",
-    "application": "Application",
-    "messages": "Messages",
-    "logoHome": "Applicantplatform – go to the home page",
-    "main": "Main navigation",
-    "openUserMenu": "Open user menu",
-    "settings": "Settings",
-    "logOut": "Log out",
-    "language": "Language"
-  },
   "municipality": {
+    "update": {
+      "title": "Update municipality details",
+      "loadError": "Could not load the municipality. Check the URL or try again.",
+      "loading": "Loading municipality details…",
+      "success": "Municipality details have been saved.",
+      "saveError": "Could not save the changes. Try again.",
+      "saving": "Saving…",
+      "save": "Save changes"
+    },
     "create": {
+      "phoneNumber": "Phone number",
+      "email": "Email",
+      "addressError": "Select a valid address with a house number.",
+      "cancel": "Cancel",
       "title": "Create municipality",
       "success": "Municipality created successfully",
       "error": "Could not create municipality",
       "name": "Municipality name",
       "region": "Region",
-      "phoneNumber": "Phone number",
-      "email": "Email",
-      "addressError": "Vælg en gyldig adresse med husnummer.",
-      "cancel": "Cancel",
       "save": "Save municipality"
     }
+  },
+  "caseworker": {
+    "title": "Caseworker area",
+    "openMenu": "Open caseworker menu"
   },
   "home": {
     "title": "Applicantplatform",

@@ -8,7 +8,6 @@ export function mapMunicipalityToForm(
   municipality: Municipality,
 ): UpdateMunicipality {
   return {
-    name: municipality.name,
     email: municipality.email,
     phoneNumber: municipality.phoneNumber,
     address: {

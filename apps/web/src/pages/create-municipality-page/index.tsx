@@ -12,9 +12,9 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { createMunicipality } from '../../api/municipalities.api.js';
 import AddressAutocomplete from '../../components/address/address-autocomplete.js';
+import { parseAddress } from '../../components/address/address-parser.js';
 import AdminLayout from '../../components/layout/app-shell/admin-layout.js';
 import type { CreateMunicipality } from '../../types/municipality.types.js';
-import { parseAddress } from '../create-applicant-page/address-parser.js';
 
 const initialValues: CreateMunicipality = {
   name: '',
@@ -85,6 +85,7 @@ export default function CreateMunicipalityPage() {
 
   return (
     <AdminLayout>
+      <title>{t('municipality.create.title')}</title>
       <Box sx={{ width: '100%', maxWidth: 850 }}>
         <Typography component="h1" sx={{ mb: 4, fontWeight: 600 }} variant="h4">
           {t('municipality.create.title')}
@@ -102,7 +103,6 @@ export default function CreateMunicipalityPage() {
               <Alert severity="error">{t('municipality.create.error')}</Alert>
             )}
 
-            {/* Two columns on desktop, one column on mobile */}
             <Box
               sx={{
                 display: 'grid',
@@ -144,6 +144,7 @@ export default function CreateMunicipalityPage() {
               </TextField>
 
               <TextField
+                autoComplete="tel-national"
                 fullWidth
                 label={t('municipality.create.phoneNumber')}
                 onChange={(event) =>
@@ -157,10 +158,12 @@ export default function CreateMunicipalityPage() {
                     pattern: '[0-9]{8}',
                   },
                 }}
+                type="tel"
                 value={form.phoneNumber}
               />
 
               <TextField
+                autoComplete="email"
                 fullWidth
                 label={t('municipality.create.email')}
                 onChange={(event) => updateField('email', event.target.value)}
@@ -170,9 +173,13 @@ export default function CreateMunicipalityPage() {
               />
             </Box>
 
-            {/* Address lookup from Create Applicant */}
             <Box>
               <AddressAutocomplete
+                errorMessage={
+                  addressError
+                    ? t('municipality.create.addressError')
+                    : undefined
+                }
                 key={addressKey}
                 onChange={(address) => {
                   setAddressError(false);
@@ -201,17 +208,8 @@ export default function CreateMunicipalityPage() {
                   }
                 }}
               />
-
-              {addressError && (
-                <Alert severity="error" sx={{ mt: 1 }}>
-                  {t('municipality.create.addressError', {
-                    defaultValue: 'Vælg en gyldig adresse med husnummer.',
-                  })}
-                </Alert>
-              )}
             </Box>
 
-            {/* Form actions */}
             <Stack
               direction={{ xs: 'column', sm: 'row' }}
               spacing={2}

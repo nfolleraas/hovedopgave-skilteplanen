@@ -1,3 +1,4 @@
+import { BadRequestException } from '@nestjs/common';
 import { describe, expect, it } from 'vitest';
 import {
   validateCreateMunicipality,
@@ -20,7 +21,15 @@ const validMunicipality = {
 
 describe('validateCreateMunicipality', () => {
   it('accepterer gyldige oplysninger', () => {
-    expect(() => validateCreateMunicipality(validMunicipality)).not.toThrow();
+    expect(() => validateCreateMunicipality(validMunicipality)).not.toThrow(
+      BadRequestException,
+    );
+  });
+
+  it('afviser felter med en forkert type', () => {
+    expect(() =>
+      validateCreateMunicipality({ ...validMunicipality, region: 123 }),
+    ).toThrow(BadRequestException);
   });
 
   it('afviser ugyldig email', () => {
@@ -29,7 +38,7 @@ describe('validateCreateMunicipality', () => {
         ...validMunicipality,
         email: 'ugyldig-email',
       }),
-    ).toThrow();
+    ).toThrow(BadRequestException);
   });
 
   it('afviser telefonnummer med 7 cifre', () => {
@@ -38,22 +47,26 @@ describe('validateCreateMunicipality', () => {
         ...validMunicipality,
         phoneNumber: '1234567',
       }),
-    ).toThrow();
+    ).toThrow(BadRequestException);
   });
 
   it('afviser manglende adresse', () => {
     expect(() =>
       validateCreateMunicipality({
         ...validMunicipality,
-        address: undefined!,
+        address: undefined,
       }),
-    ).toThrow();
+    ).toThrow(BadRequestException);
   });
 });
 
 describe('validateUpdateMunicipality', () => {
-  it('accepterer gyldige oplysninger', () => {
-    expect(() => validateUpdateMunicipality(validMunicipality)).not.toThrow();
+  it('accepterer adresse og kontaktoplysninger uden navn', () => {
+    const { email, phoneNumber, address } = validMunicipality;
+
+    expect(() =>
+      validateUpdateMunicipality({ email, phoneNumber, address }),
+    ).not.toThrow();
   });
 
   it('afviser ugyldig email', () => {
@@ -62,7 +75,7 @@ describe('validateUpdateMunicipality', () => {
         ...validMunicipality,
         email: 'ugyldig-email',
       }),
-    ).toThrow();
+    ).toThrow(BadRequestException);
   });
 
   it('afviser telefonnummer med 7 cifre', () => {
@@ -71,15 +84,15 @@ describe('validateUpdateMunicipality', () => {
         ...validMunicipality,
         phoneNumber: '1234567',
       }),
-    ).toThrow();
+    ).toThrow(BadRequestException);
   });
 
   it('afviser manglende adresse', () => {
     expect(() =>
       validateUpdateMunicipality({
         ...validMunicipality,
-        address: undefined!,
+        address: undefined,
       }),
-    ).toThrow();
+    ).toThrow(BadRequestException);
   });
 });

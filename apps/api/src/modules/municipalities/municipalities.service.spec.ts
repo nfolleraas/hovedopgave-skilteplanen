@@ -1,7 +1,4 @@
-import {
-  BadRequestException,
-  NotFoundException, 
-} from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { describe, expect, it, vi } from 'vitest';
 import { MunicipalitiesRepository } from './municipalities.repository.js';
 import { MunicipalitiesService } from './municipalities.service.js';

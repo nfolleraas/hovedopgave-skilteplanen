@@ -25,7 +25,6 @@ export interface CreateMunicipality {
 }
 
 export interface UpdateMunicipality {
-  name: string;
   email: string;
   phoneNumber: string;
   address: Omit<MunicipalityAddress, 'uuid'>;
