@@ -19,12 +19,14 @@ export type VerifiedOidcIdentity = {
   issuer: string;
   subject: string;
   mitidUuid?: string;
+  organisationCvr?: string;
+  employeeUuid?: string;
 };
 
 export type CompletedMitidAuthentication = {
   loginType: MitidLoginType;
   returnPath: string | null;
   identity: VerifiedOidcIdentity;
-  status: 'authenticated' | 'provider-authenticated' | 'registration-required';
+  status: 'authenticated' | 'registration-required';
   session?: RefreshSessionTokens;
 };

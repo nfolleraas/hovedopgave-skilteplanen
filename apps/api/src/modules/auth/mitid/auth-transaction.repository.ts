@@ -14,8 +14,17 @@ type CreateAuthTransactionInput = {
 
 @Injectable()
 export class AuthTransactionRepository {
+  /**
+   * Creates the OIDC transaction repository backed by the application Prisma client.
+   * @param prisma - The database client used by this repository only.
+   */
   constructor(private readonly prisma: PrismaService) {}
 
+  /**
+   * Persists one Signicat authorization transaction before redirecting the browser.
+   * @param input - The hashed correlation values, PKCE verifier, context, and expiry.
+   * @returns The stored authorization transaction.
+   */
   create(input: CreateAuthTransactionInput): Promise<AuthTransaction> {
     return this.prisma.authTransaction.create({
       data: {
@@ -30,6 +39,12 @@ export class AuthTransactionRepository {
     });
   }
 
+  /**
+   * Atomically marks one unexpired Signicat transaction as consumed.
+   * @param stateHash - The SHA-256 hash of the state returned by Signicat.
+   * @param consumedAt - The callback processing time used for expiry and consumption.
+   * @returns The consumed transaction, or null when it is unknown, expired, or reused.
+   */
   consume(
     stateHash: string,
     consumedAt: Date,

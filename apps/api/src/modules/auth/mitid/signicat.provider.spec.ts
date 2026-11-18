@@ -110,6 +110,8 @@ describe('SignicatProvider', () => {
         return jsonResponse({
           sub: 'provider-subject',
           mitid_uuid: 'f5276262-9145-4616-8faf-23e8e683d665',
+          mitid_organisation_cvr: '95338926',
+          mitid_employee_uuid: 'eea6df96-c347-4cd3-ab08-7df0af052e83',
         });
       }
 
@@ -128,6 +130,8 @@ describe('SignicatProvider', () => {
       issuer: ISSUER,
       subject: 'provider-subject',
       mitidUuid: 'f5276262-9145-4616-8faf-23e8e683d665',
+      organisationCvr: '95338926',
+      employeeUuid: 'eea6df96-c347-4cd3-ab08-7df0af052e83',
     });
 
     const tokenRequest = fetchMock.mock.calls.find(
@@ -261,6 +265,48 @@ describe('SignicatProvider', () => {
         sha256Hex(nonce),
       ),
     ).rejects.toThrow('Signicat mitid_uuid claim is invalid.');
+  });
+
+  it('rejects an invalid organization CVR claim', async () => {
+    const nonce = 'expected-nonce';
+    const idToken = await signedIdToken(nonce);
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = requestUrl(input);
+
+        if (url === DISCOVERY_URL) {
+          return jsonResponse(discoveryDocument());
+        }
+        if (url === TOKEN_URL) {
+          return jsonResponse({
+            access_token: 'provider-access-token',
+            id_token: idToken,
+          });
+        }
+        if (url === JWKS_URL) {
+          return jsonResponse({ keys: [publicJwk] });
+        }
+        if (url === USERINFO_URL) {
+          return jsonResponse({
+            sub: 'provider-subject',
+            mitid_organisation_cvr: 'invalid-cvr',
+            mitid_employee_uuid: 'eea6df96-c347-4cd3-ab08-7df0af052e83',
+          });
+        }
+
+        throw new Error(`Unexpected request: ${url}`);
+      }),
+    );
+    const provider = new SignicatProvider(config);
+
+    await expect(
+      provider.completeAuthorization(
+        'authorization-code',
+        'pkce-verifier',
+        sha256Hex(nonce),
+      ),
+    ).rejects.toThrow('Signicat mitid_organisation_cvr claim is invalid.');
   });
 
   function discoveryFetch(): ReturnType<typeof vi.fn> {

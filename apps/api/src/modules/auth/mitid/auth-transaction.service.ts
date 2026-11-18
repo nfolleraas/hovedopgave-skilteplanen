@@ -15,8 +15,18 @@ export type CreatedAuthTransaction = {
 
 @Injectable()
 export class AuthTransactionService {
+  /**
+   * Creates the service that generates and consumes OIDC correlation values.
+   * @param repository - The persistence boundary for one-time transactions.
+   */
   constructor(private readonly repository: AuthTransactionRepository) {}
 
+  /**
+   * Creates a short-lived Signicat transaction with random state, nonce, and PKCE.
+   * @param loginType - The server-selected private or business login context.
+   * @param returnPath - The validated local path to retain across authentication.
+   * @returns The raw redirect values while persisting only state and nonce hashes.
+   */
   async create(
     loginType: MitidLoginType,
     returnPath: string | null,
@@ -45,6 +55,12 @@ export class AuthTransactionService {
     };
   }
 
+  /**
+   * Consumes exactly one transaction matching an untrusted callback state value.
+   * @param state - The state query value returned to the callback.
+   * @returns The valid transaction containing its original login context and PKCE verifier.
+   * @throws UnauthorizedException when state is missing, unknown, expired, or reused.
+   */
   async consume(state: unknown): Promise<AuthTransaction> {
     if (typeof state !== 'string' || state.length === 0) {
       throw invalidOidcTransaction();
@@ -63,10 +79,19 @@ export class AuthTransactionService {
   }
 }
 
+/**
+ * Hashes one OIDC correlation value for persistence and lookup.
+ * @param value - The raw state or nonce value.
+ * @returns The SHA-256 digest as lowercase hexadecimal.
+ */
 function hashValue(value: string): string {
   return createHash('sha256').update(value).digest('hex');
 }
 
+/**
+ * Creates the generic error used for every invalid transaction condition.
+ * @returns An unauthorized exception that does not reveal transaction state.
+ */
 function invalidOidcTransaction(): UnauthorizedException {
   return new UnauthorizedException('Invalid or expired login transaction.');
 }

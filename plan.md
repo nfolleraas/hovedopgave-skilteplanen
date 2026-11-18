@@ -22,8 +22,11 @@ transactions, state and nonce hashing, S256 PKCE, authorization redirects,
 code exchange, and Signicat ID-token validation through discovery and JWKS.
 Phase 4 step 3 now retrieves Signicat UserInfo, validates its subject against
 the ID token, resolves private applicants through `mitIdKey`, denies inactive
-applicants, and issues sessions for active matches. Phase 4 step 4,
-business-applicant lookup through verified CVR, is next.
+applicants, and issues sessions for active matches. Phase 4 step 4 now requires
+verified MitID Business organization and employee claims, resolves business
+applicants through CVR, denies inactive applicants, and issues sessions for
+active matches. Phase 4 step 5, pending registration and UC-001 token exchange,
+is next.
 
 ## Goals
 

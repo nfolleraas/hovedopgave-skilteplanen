@@ -16,11 +16,21 @@ import { MitidService } from './mitid.service.js';
 
 @Controller('auth/mitid')
 export class MitidController {
+  /**
+   * Creates the MitID authentication controller.
+   * @param mitidService - The service that orchestrates Signicat authentication.
+   * @param config - The validated authentication and cookie configuration.
+   */
   constructor(
     private readonly mitidService: MitidService,
     @Inject(AUTH_CONFIG) private readonly config: AuthConfig,
   ) {}
 
+  /**
+   * Starts a private-person MitID flow and redirects to Signicat.
+   * @param returnPath - An optional untrusted local return path query value.
+   * @returns The server-created Signicat authorization URL.
+   */
   @Public()
   @Get('private/start')
   @Header('Cache-Control', 'no-store')
@@ -31,6 +41,11 @@ export class MitidController {
     return { url: await this.mitidService.startPrivate(returnPath) };
   }
 
+  /**
+   * Starts a MitID Business flow and redirects to Signicat.
+   * @param returnPath - An optional untrusted local return path query value.
+   * @returns The server-created Signicat authorization URL.
+   */
   @Public()
   @Get('business/start')
   @Header('Cache-Control', 'no-store')
@@ -41,6 +56,14 @@ export class MitidController {
     return { url: await this.mitidService.startBusiness(returnPath) };
   }
 
+  /**
+   * Completes a Signicat callback and writes session cookies for a resolved applicant.
+   * @param response - The response receiving access and refresh cookies when issued.
+   * @param state - The untrusted OIDC state query value.
+   * @param code - The untrusted authorization code query value.
+   * @param error - The optional provider error query value.
+   * @returns The authentication status and selected login context without provider claims.
+   */
   @Public()
   @Get('callback')
   @Header('Cache-Control', 'no-store')

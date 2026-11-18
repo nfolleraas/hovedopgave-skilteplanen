@@ -20,7 +20,10 @@ describe('MitidService', () => {
     createAuthorizationUrl: ReturnType<typeof vi.fn>;
     completeAuthorization: ReturnType<typeof vi.fn>;
   };
-  let applicants: { findPrivateByMitidKey: ReturnType<typeof vi.fn> };
+  let applicants: {
+    findPrivateByMitidKey: ReturnType<typeof vi.fn>;
+    findBusinessByCvr: ReturnType<typeof vi.fn>;
+  };
   let refreshTokens: { issue: ReturnType<typeof vi.fn> };
   let service: MitidService;
 
@@ -45,6 +48,7 @@ describe('MitidService', () => {
     };
     applicants = {
       findPrivateByMitidKey: vi.fn().mockResolvedValue(null),
+      findBusinessByCvr: vi.fn().mockResolvedValue(null),
     };
     refreshTokens = {
       issue: vi.fn().mockResolvedValue({
@@ -189,10 +193,16 @@ describe('MitidService', () => {
     expect(applicants.findPrivateByMitidKey).not.toHaveBeenCalled();
   });
 
-  it('leaves business applicant resolution to the next phase step', async () => {
+  it('returns registration-required for an unknown verified business', async () => {
     transactions.consume.mockResolvedValue(
       storedTransaction({ loginType: 'BUSINESS_APPLICANT' }),
     );
+    signicat.completeAuthorization.mockResolvedValue({
+      issuer: 'https://signicat.example',
+      subject: 'provider-subject',
+      organisationCvr: '95338926',
+      employeeUuid: 'eea6df96-c347-4cd3-ab08-7df0af052e83',
+    });
 
     await expect(
       service.callback({
@@ -202,10 +212,92 @@ describe('MitidService', () => {
       }),
     ).resolves.toMatchObject({
       loginType: 'BUSINESS_APPLICANT',
-      status: 'provider-authenticated',
+      status: 'registration-required',
     });
     expect(applicants.findPrivateByMitidKey).not.toHaveBeenCalled();
+    expect(applicants.findBusinessByCvr).toHaveBeenCalledWith('95338926');
     expect(refreshTokens.issue).not.toHaveBeenCalled();
+  });
+
+  it('issues an applicant session for an active business applicant', async () => {
+    transactions.consume.mockResolvedValue(
+      storedTransaction({ loginType: 'BUSINESS_APPLICANT' }),
+    );
+    signicat.completeAuthorization.mockResolvedValue({
+      issuer: 'https://signicat.example',
+      subject: 'provider-subject',
+      organisationCvr: '95338926',
+      employeeUuid: 'eea6df96-c347-4cd3-ab08-7df0af052e83',
+    });
+    applicants.findBusinessByCvr.mockResolvedValue({
+      uuid: 'business-applicant-123',
+      isActive: true,
+    });
+
+    await expect(
+      service.callback({
+        state: 'returned-state',
+        code: 'authorization-code',
+        error: undefined,
+      }),
+    ).resolves.toMatchObject({
+      loginType: 'BUSINESS_APPLICANT',
+      status: 'authenticated',
+      identity: {
+        organisationCvr: '95338926',
+        employeeUuid: 'eea6df96-c347-4cd3-ab08-7df0af052e83',
+      },
+      session: { accessToken: 'access-token' },
+    });
+    expect(refreshTokens.issue).toHaveBeenCalledWith({
+      subject: 'business-applicant-123',
+      actor: 'APPLICANT',
+    });
+  });
+
+  it('denies an inactive business applicant without issuing a session', async () => {
+    transactions.consume.mockResolvedValue(
+      storedTransaction({ loginType: 'BUSINESS_APPLICANT' }),
+    );
+    signicat.completeAuthorization.mockResolvedValue({
+      issuer: 'https://signicat.example',
+      subject: 'provider-subject',
+      organisationCvr: '95338926',
+      employeeUuid: 'eea6df96-c347-4cd3-ab08-7df0af052e83',
+    });
+    applicants.findBusinessByCvr.mockResolvedValue({
+      uuid: 'business-applicant-123',
+      isActive: false,
+    });
+
+    await expect(
+      service.callback({
+        state: 'returned-state',
+        code: 'authorization-code',
+        error: undefined,
+      }),
+    ).rejects.toBeInstanceOf(ForbiddenException);
+    expect(refreshTokens.issue).not.toHaveBeenCalled();
+  });
+
+  it('rejects business login without employee relationship evidence', async () => {
+    transactions.consume.mockResolvedValue(
+      storedTransaction({ loginType: 'BUSINESS_APPLICANT' }),
+    );
+    signicat.completeAuthorization.mockResolvedValue({
+      issuer: 'https://signicat.example',
+      subject: 'provider-subject',
+      organisationCvr: '95338926',
+    });
+
+    await expect(
+      service.callback({
+        state: 'returned-state',
+        code: 'authorization-code',
+        error: undefined,
+      }),
+    ).rejects.toBeInstanceOf(UnauthorizedException);
+    expect(applicants.findBusinessByCvr).not.toHaveBeenCalled();
   });
 
   it('consumes provider errors without attempting a token exchange', async () => {

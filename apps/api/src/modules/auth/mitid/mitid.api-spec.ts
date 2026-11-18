@@ -118,4 +118,37 @@ describe('MitID authentication API', () => {
 
     expect(response.headers['set-cookie']).toBeUndefined();
   });
+
+  it('sets the same applicant session cookies for a resolved business', async () => {
+    service.callback.mockResolvedValueOnce({
+      loginType: 'BUSINESS_APPLICANT',
+      returnPath: null,
+      identity: {
+        subject: 'provider-subject',
+        organisationCvr: '95338926',
+        employeeUuid: 'eea6df96-c347-4cd3-ab08-7df0af052e83',
+      },
+      status: 'authenticated',
+      session: {
+        accessToken: 'business-access-token',
+        refreshToken: 'business-refresh-token',
+        refreshTokenExpiresAt: new Date(Date.now() + 604_800_000),
+      },
+    });
+
+    const response = await request(app.getHttpServer())
+      .get('/api/auth/mitid/callback?state=state&code=code')
+      .expect(200)
+      .expect({
+        status: 'authenticated',
+        loginType: 'BUSINESS_APPLICANT',
+      });
+
+    expect(response.headers['set-cookie']).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('sk_access=business-access-token'),
+        expect.stringContaining('sk_refresh=business-refresh-token'),
+      ]),
+    );
+  });
 });

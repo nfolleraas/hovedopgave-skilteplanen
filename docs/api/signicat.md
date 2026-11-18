@@ -87,5 +87,20 @@ applicant whose `mitIdKey` has the same value.
 An active match receives the normal Skilteplanen access and refresh cookies.
 An inactive match is denied. An unknown identity currently receives a
 `registration-required` result without credentials; Phase 4 step 5 will create
-the pending registration and issue its restricted onboarding token. Business
-identity resolution through verified CVR remains Phase 4 step 4.
+the pending registration and issue its restricted onboarding token.
+
+## Business applicant resolution
+
+For business login, the provider adapter requires both
+`mitid_organisation_cvr` and `mitid_employee_uuid` from the `mitid-business`
+scope. The CVR must contain exactly eight digits, and the employee identity must
+be a UUID. Together with the matching UserInfo and ID-token subjects, these
+claims establish which employee authenticated for which organization.
+
+The authentication service resolves the shared business applicant through its
+`cvrNumber`. An active match receives the normal applicant session, while an
+inactive match is denied. An unknown CVR returns `registration-required`
+without credentials until Phase 4 step 5 creates the pending registration and
+onboarding token. The employee UUID is retained as authentication evidence and
+is not stored as the business applicant's `mitIdKey`; Phase 4 step 6 will record
+it in the audit event.
