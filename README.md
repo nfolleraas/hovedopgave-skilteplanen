@@ -124,18 +124,20 @@ i øjeblikket en enkelt `GET /api`-rute, der returnerer en hilsen.
 For at køre én app for sig:
 
 ```bash
-bun run --filter web dev
-bun run --filter api dev
+bun run --cwd apps/web dev
+bun run --cwd apps/api dev
 ```
 
 ### Per-app scripts
 
-Kør dem fra roden med et workspace-filter, eller med almindelig `bun run` inde
-i appens mappe:
+Kør altid kommandoerne fra repo-roden
+(`/workspaces/hovedopgave-skilteplanen`). Root-scripts køres med `bun run`.
+Scripts, der hører til en bestemt app, køres med `bun run --cwd`:
 
 ```bash
-bun run --filter web lint     # fra roden
-bun run lint                  # inde i apps/web
+bun run --cwd apps/web lint
+bun run --cwd apps/api test
+bun run --cwd apps/api test:api
 ```
 
 | Script       | `web`                              | `api`                     |
@@ -144,7 +146,7 @@ bun run lint                  # inde i apps/web
 | `build`      | `tsc -b && vite build`             | `nest build` til `dist/`  |
 | `lint`       | `biome lint .`                     | `biome lint .`            |
 | `test`       | –                                  | Vitest unit tests        |
-| `test:e2e`   | –                                  | Vitest e2e tests         |
+| `test:api`   | –                                  | Vitest API tests         |
 | `preview`    | serverer produktionsbuild          | –                         |
 | `start:prod` | –                                  | `node dist/main`          |
 
@@ -195,7 +197,7 @@ symlinks til det, som appen erklærer. Kør altid `bun install` fra roden.
   til containeren.
 - [VS Code Dev Containers-dokumentation](https://code.visualstudio.com/docs/devcontainers/containers).
 - [Bun workspaces](https://bun.com/docs/install/workspaces) for hvordan
-  `--filter` og den delte lockfile opfører sig.
+  workspaces og den delte lockfile opfører sig.
 
 ## Versioner
 

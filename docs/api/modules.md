@@ -10,9 +10,7 @@ copied without coupling the documentation to one domain feature.
 Start a new feature module with the NestJS resource generator:
 
 ```bash
-cd apps/api
-
-bunx nest g resource modules/module-name
+bunx --cwd apps/api nest g resource modules/module-name
 ```
 
 Choose the resource options that match the feature. The generated resource is
@@ -280,10 +278,9 @@ After changing a schema file, format and generate the client, then create a
 development migration:
 
 ```bash
-cd apps/api
-bun run db:format
-bun run db:generate
-bun run db:migrate
+bun run --cwd apps/api db:format
+bun run --cwd apps/api db:generate
+bun run --cwd apps/api db:migrate
 ```
 
 The migration command compares the Prisma schema with the development
@@ -378,24 +375,21 @@ paths are resolved more reliably from the API workspace.
 | `db:deploy` | Applies committed pending migrations without creating new ones. | Deployment and CI environments. Do not use it to develop a new schema change. |
 | `db:reset` | Drops or resets the development database, reapplies all migrations, and runs seeders. | Only when intentionally rebuilding a development database. This destroys local database data. |
 
-Examples from `apps/api`:
+Run these from the repository root:
 
 ```bash
-cd apps/api
-
-bun run db:format
-bun run db:generate
-bun run db:seed
-bun run db:migrate
-bun run db:deploy
-bun run db:reset
+bun run --cwd apps/api db:format
+bun run --cwd apps/api db:generate
+bun run --cwd apps/api db:seed
+bun run --cwd apps/api db:migrate
+bun run --cwd apps/api db:deploy
+bun run --cwd apps/api db:reset
 ```
 
 The API `build` script is also Prisma-aware:
 
 ```bash
-cd apps/api
-bun run build
+bun run --cwd apps/api build
 ```
 
 It runs `db:generate` first and then compiles NestJS. Building does not create

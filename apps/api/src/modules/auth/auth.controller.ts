@@ -13,12 +13,11 @@ import type { CookieOptions, Response } from 'express';
 import { AUTH_CONFIG, type AuthConfig } from '../../config/auth.config.js';
 import { AuthService } from './auth.service.js';
 import type { CurrentAuthSession } from './auth.types.js';
-import { readCookie } from './auth-cookie.utils.js';
+import { readCookie, setSessionCookies } from './auth-cookie.utils.js';
 import type { AuthenticatedRequest } from './auth-request.types.js';
 import { AllowAnyAuthenticated } from './decorators/allow-any-authenticated.decorator.js';
 import { Public } from './decorators/public.decorator.js';
 import type { JwtClaims } from './jwt/jwt.types.js';
-import type { RefreshSessionTokens } from './refresh-token/refresh-token.types.js';
 
 @Controller('auth')
 export class AuthController {
@@ -82,7 +81,7 @@ export class AuthController {
     );
     const tokens = await this.authService.refresh(refreshToken);
 
-    this.setAuthCookies(response, tokens);
+    setSessionCookies(response, this.config, tokens);
   }
 
   /**
@@ -96,25 +95,6 @@ export class AuthController {
     }
 
     return request.auth;
-  }
-
-  /**
-   * Writes replacement access and refresh cookies to a response.
-   * @param response - The Express response receiving the cookies.
-   * @param tokens - The replacement session tokens.
-   */
-  private setAuthCookies(
-    response: Response,
-    tokens: RefreshSessionTokens,
-  ): void {
-    response.cookie(this.config.cookies.accessName, tokens.accessToken, {
-      ...this.cookieOptions(this.config.cookies.accessPath),
-      maxAge: this.config.jwt.accessTokenTtlSeconds * 1_000,
-    });
-    response.cookie(this.config.cookies.refreshName, tokens.refreshToken, {
-      ...this.cookieOptions(this.config.cookies.refreshPath),
-      maxAge: Math.max(0, tokens.refreshTokenExpiresAt.getTime() - Date.now()),
-    });
   }
 
   /**

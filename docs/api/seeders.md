@@ -87,11 +87,11 @@ that the entry point controls cleanup.
 
 ## Run seeders
 
-Run the seed script from the API workspace:
+Run the seed script from the repository root with `apps/api` as its working
+directory:
 
 ```bash
-cd apps/api
-bun run db:seed
+bun run --cwd apps/api db:seed
 ```
 
 The `db:reset` command also runs seeders after rebuilding the development

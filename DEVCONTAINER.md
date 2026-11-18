@@ -271,7 +271,7 @@ docker compose config
   "private": true,
   "workspaces": ["apps/*"],
   "scripts": {
-    "dev": "bun run --filter '*' dev",
+    "dev": "bun run scripts/dev.mjs",
     "check": "biome check",
     "check:fix": "biome check --write",
     "lint": "biome lint",
@@ -284,13 +284,12 @@ docker compose config
 }
 ```
 
-`--filter '*'` kører `dev`-scriptet for hvert workspace-package parallelt, med
-output præfikset med pakkenavnet. Begge apps skal derfor have et script kaldet
-`dev`. Biome-scriptene filtreres ikke: Biome går gennem hele repoet fra roden og
-respekterer `.gitignore` via `vcs`-indstillingen, og de per-app `lint`-scripts
-kalder blot `biome lint .` for bekvemmelighed. `check` er den, der skal køre i CI,
-fordi den dækker lint, format og import-order i et enkelt gennemløb. Nest-appens
-`dev` blev tilføjet manuelt som et alias:
+Alle Bun-kommandoer køres fra repo-roden. Root-scripts køres med `bun run`;
+app-scripts køres med `bun run --cwd apps/web <script>` eller
+`bun run --cwd apps/api <script>`. Biome-scriptene på root går gennem hele
+repoet fra roden og respekterer `.gitignore` via `vcs`-indstillingen.
+`check` er den, der skal køre i CI, fordi den dækker lint, format og import-order
+i et enkelt gennemløb. Nest-appens `dev` blev tilføjet manuelt som et alias:
 
 ```json
 "dev": "nest start --watch"

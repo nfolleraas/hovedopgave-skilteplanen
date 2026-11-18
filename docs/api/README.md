@@ -26,11 +26,11 @@ development seeders live under [`apps/api/prisma/`](../../apps/api/prisma/).
 Run these from the repository root:
 
 ```bash
-bun run --filter api dev
-bun run --filter api build
-bun run --filter api test
-bun run --filter api test:e2e
-bun run --filter api lint
+bun run --cwd apps/api dev
+bun run --cwd apps/api build
+bun run --cwd apps/api test
+bun run --cwd apps/api test:api
+bun run --cwd apps/api lint
 ```
 
 The generated NestJS starter README is at
@@ -42,3 +42,7 @@ for shared development instructions.
 - [Modules](modules.md): feature structure, dependency injection,
   repositories, Prisma, and migrations.
 - [Seeders](seeders.md): repeatable development data and seeder registration.
+- [First administrator bootstrap](administrator-bootstrap.md): create the
+  initial local administrator without a committed default credential.
+- [Signicat sandbox](signicat.md): configure and validate the server-side OIDC
+  client used for MitID applicant authentication.

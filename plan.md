@@ -12,7 +12,13 @@ purposes, is also implemented with separate lifetimes and claims. Phase 2 step
 detection, and revocation. Phase 2 step 4 now applies a global default-deny
 access-token guard. Phase 2 step 5 adds explicit public and onboarding route
 metadata. Phase 2 step 6 limits Swagger to development, completing Phase 2.
-Phase 3 local authentication is planned next.
+Phase 3 now implements API-only Argon2id password handling, administrator
+login, administrator login rate limiting and auditing, and a first-account
+bootstrap procedure. Case workers continue to authenticate only through Entra
+ID. Phase 4 step 1 now supports explicitly enabled, validated server-side
+Signicat sandbox OIDC configuration, including its redirect URI and private
+and business scopes. Phase 4 step 2, OIDC authorization transactions and
+callbacks, is next.
 
 ## Goals
 
@@ -29,7 +35,10 @@ Phase 3 local authentication is planned next.
 
 ## Explicit scope limitations
 
-- Skilteplanen will not implement MFA for case-worker fallback login or administrator login.
+- Skilteplanen will not implement application-managed MFA for administrator login.
+- Case workers authenticate only through their municipality's corporate identity
+  provider. Skilteplanen does not provide local credentials or a manual fallback
+  when Microsoft Entra ID denies or cannot complete a login.
 - A municipality's external identity provider may enforce its own MFA or Conditional Access policy, but this is outside Skilteplanen's implementation.
 - The first implementation supports Signicat OIDC and Microsoft Entra ID OIDC, not arbitrary identity providers.
 - The first implementation uses redirect-based OIDC, not Signicat's headless Authentication REST API.
@@ -162,7 +171,6 @@ GET  /api/auth/mitid/callback
 GET  /api/auth/municipality/start
 GET  /api/auth/municipality/callback
 
-POST /api/auth/case-worker/fallback
 POST /api/auth/admin/login
 POST /api/auth/refresh
 
@@ -267,27 +275,15 @@ The applicant schema therefore needs to support `mitIdKey` for private applicant
 8. If the case worker exists, issue an access JWT.
 9. If the case worker is unknown or deleted, return `403` without issuing a JWT and instruct the user to contact the municipality's superuser.
 
+If Entra ID rejects, is unavailable, or cannot complete the login, the API
+must issue no access or refresh token and deny case-worker access. There is no
+local credential or manual fallback route.
+
 The domain should remain provider-neutral even though Entra ID is the first implementation. A municipality-provider configuration stores issuer, tenant, client configuration, and the related municipality.
 
-### Local fallback path
-
-The current use case includes local fallback when the corporate identity
-provider is unavailable. To keep the school-project scope manageable, this
-path uses employee number and password without MFA. It is an emergency path,
-not a second login choice available while corporate login is healthy.
-
-- Fallback is activated through trusted server-side outage or maintenance
-  state and should not be selected solely from an untrusted client flag.
-- Look up the existing case worker by employee number.
-- Verify the password using Argon2id.
-- Do not use fallback to bypass an unknown, rejected, or invalid corporate
-  identity.
-- Apply rate limiting and temporary lockout/backoff.
-- Return generic errors that do not disclose whether an employee number exists.
-- Audit successful and failed fallback logins.
-- Issue the same access JWT used by the corporate-login path.
-
-The existing `CaseWorker.passwordHash` supports this fallback. A municipality must be able to have multiple case workers, so `municipalityId` must not be unique.
+A municipality must be able to have multiple case workers, so `municipalityId`
+must not be unique. `CaseWorker.passwordHash` is not used for authentication
+and should be removed in a separately reviewed schema migration.
 
 ## Administrator login
 
@@ -301,6 +297,25 @@ Administrators use local e-mail/password login without MFA.
 6. Log successful and failed attempts.
 7. On success, issue an access JWT with `actor: ADMINISTRATOR`.
 8. On failure, return a generic response that does not reveal whether the account exists.
+
+### Known rate-limiter vulnerabilities
+
+The initial limiter is intentionally limited to the school-project deployment:
+
+- It uses the source IP observed by Express without configuring a trusted proxy
+  chain. Behind a reverse proxy, several or all clients may share one observed
+  address, so five failed attempts can temporarily block administrator login
+  for every client. A production deployment must configure its exact proxy
+  chain and should enforce the endpoint limit at the edge.
+- Its in-memory map removes an expired counter only when the same key is queried
+  again. Counters for one-off e-mail addresses can therefore remain until the
+  API process restarts and sustained distributed abuse can grow memory usage.
+  Production hardening should use a bounded store with proactive expiry.
+- Counters apply per API process. A future multi-instance deployment must move
+  them to shared infrastructure or an edge rate limiter.
+
+These vulnerabilities are accepted for the single-process school project and
+must be revisited before a production deployment.
 
 The project needs a documented first-administrator bootstrap procedure. No default password or credential may be committed to the repository.
 
@@ -330,6 +345,9 @@ Every repository query for a protected resource must include or validate the rel
 
 ## Cookie and request security
 
+- Submit passwords only over HTTPS and hash or verify them only in the API.
+  Client-side password hashes are password-equivalent replay credentials and
+  must not replace TLS.
 - Store access and refresh credentials in `HttpOnly` cookies.
 - Set `Secure` outside local development.
 - Use `SameSite=Lax`.
@@ -363,7 +381,8 @@ Use separate Signicat sandbox and production configuration. Never commit provide
 ### CaseWorker
 
 - Keep `municipalityId` non-unique so one municipality can contain multiple case workers.
-- Keep `passwordHash` for the emergency fallback flow.
+- Do not use local case-worker passwords; remove `passwordHash` in a separately
+  reviewed schema migration.
 - Add provider-linking fields or a separate external-identity record for issuer, tenant ID, and provider subject.
 - Delete the case-worker account when access must be removed.
 
@@ -439,9 +458,8 @@ At the end of this phase, existing API routes must return `401` without a valid 
 
 1. Implement Argon2id password handling.
 2. Implement administrator login.
-3. Implement the scoped case-worker fallback login.
-4. Add rate limiting, generic error responses, and audit events.
-5. Document first-administrator bootstrap.
+3. Add rate limiting, generic error responses, and audit events for administrator login.
+4. Document first-administrator bootstrap.
 
 ### Phase 4: Signicat and applicant onboarding
 
@@ -512,9 +530,8 @@ At the end of this phase, existing API routes must return `401` without a valid 
 - Unknown tenant is rejected.
 - Unknown or deleted case worker is rejected.
 - Corporate-login callback rejects invalid state, nonce, issuer, audience, and PKCE.
-- Valid local fallback credentials issue an access JWT.
-- Fallback is unavailable while the corporate provider is healthy.
-- Invalid fallback credentials return a generic error and are rate-limited.
+- A rejected, cancelled, or unavailable Entra ID login issues no token and
+  refuses case-worker access.
 - No application-managed MFA is required.
 
 ### Administrator authentication
@@ -543,10 +560,9 @@ At the end of this phase, existing API routes must return `401` without a valid 
 ## Open decisions before implementation
 
 1. Confirm whether the Signicat product is MitID Business or MitID Private for Business.
-2. Define the trusted outage or maintenance control for local case-worker fallback and who may activate it.
-3. Define the first-administrator bootstrap procedure.
-4. Obtain the Signicat sandbox account, OIDC client, redirect URI, and test users.
-5. Obtain the Entra test tenant/application and define municipality onboarding for production tenants.
+2. Define the first-administrator bootstrap procedure.
+3. Obtain the Signicat sandbox account, OIDC client, redirect URI, and test users.
+4. Obtain the Entra test tenant/application and define municipality onboarding for production tenants.
 
 ## Related diagrams and research
 
