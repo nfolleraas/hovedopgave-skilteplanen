@@ -3,7 +3,10 @@ import type {
   UpdateMunicipality,
 } from '../../types/municipality.types.js';
 
-// Map municipality data to editable form values
+/**
+ * Extracts the editable contact and address fields from the API response. The
+ * result is used to populate, reset, and submit the edit form.
+ */
 export function mapMunicipalityToForm(
   municipality: Municipality,
 ): UpdateMunicipality {

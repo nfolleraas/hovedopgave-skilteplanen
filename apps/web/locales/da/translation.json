@@ -11,6 +11,9 @@
   },
   "admin": {
     "openMenu": "Åbn administrationsmenu",
+    "overview": "Oversigt",
+    "users": "Brugere",
+    "caseworkers": "Sagsbehandlere",
     "title": "Administration"
   },
   "navigation": {
@@ -45,26 +48,29 @@
     "brandName": "Skilteplanen"
   },
   "municipality": {
-    "update": {
-      "title": "Opdater kommuneoplysninger",
-      "loadError": "Kommunen kunne ikke hentes. Kontroller adressen eller prøv igen.",
-      "loading": "Henter kommuneoplysninger…",
-      "success": "Kommuneoplysningerne er gemt.",
-      "saveError": "Ændringerne kunne ikke gemmes. Prøv igen.",
-      "saving": "Gemmer…",
-      "save": "Gem ændringer"
-    },
     "create": {
-      "phoneNumber": "Telefonnummer",
-      "email": "E-mail",
-      "addressError": "Vælg en gyldig adresse med husnummer.",
-      "cancel": "Annuller",
       "title": "Opret kommune",
+      "phoneNumber": "Telefonnummer",
+      "addressError": "Vælg en gyldig adresse med husnummer.",
+      "email": "E-mail",
+      "cancel": "Annuller",
       "success": "Kommunen er oprettet",
       "error": "Kommunen kunne ikke oprettes",
       "name": "Kommunens navn",
       "region": "Region",
       "save": "Gem kommune"
+    },
+    "update": {
+      "title": "Opdater kommuneoplysninger",
+      "loadError": "Kommunen kunne ikke hentes. Kontroller adressen eller prøv igen.",
+      "loading": "Henter kommuneoplysninger…",
+      "invalidEmail": "Indtast en gyldig e-mailadresse.",
+      "invalidPhoneNumber": "Telefonnummeret skal bestå af 8 cifre.",
+      "invalidPostalCode": "Vælg en adresse med et postnummer på 4 cifre.",
+      "success": "Kommuneoplysningerne er gemt.",
+      "saveError": "Ændringerne kunne ikke gemmes. Prøv igen.",
+      "saving": "Gemmer…",
+      "save": "Gem ændringer"
     }
   },
   "caseworker": {

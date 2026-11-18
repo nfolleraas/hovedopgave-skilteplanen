@@ -8,7 +8,8 @@ export interface AddressOption {
 export type AddressSuggestion = AddressOption;
 
 /**
- * Searches for address suggestions through the API.
+ * Fetches address suggestions from the API using the supplied query text. An
+ * abort signal lets the caller cancel requests for outdated searches.
  */
 export async function searchAddresses(
   text: string,

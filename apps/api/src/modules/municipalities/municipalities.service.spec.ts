@@ -17,6 +17,10 @@ const municipality = {
   },
 };
 
+/**
+ * Creates a municipality service with a mock repository so tests can verify
+ * service calls without connecting to the database.
+ */
 function createTestService() {
   const repository = {
     findById: vi.fn(),

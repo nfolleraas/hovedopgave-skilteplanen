@@ -12,7 +12,8 @@ export interface AddressSuggestion {
 }
 
 /**
- * Checks whether a value is a non-null object record.
+ * Checks that a provider response value is an object before reading its
+ * fields.
  */
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
@@ -21,8 +22,13 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 @Injectable()
 export class AddressesService {
   /**
-   * Fetches address suggestions from adressevaelger.dk (Adressevælger) and
-   * returns a sanitized subset of the provider response.
+   * Validates the search text and fetches up to ten suggestions from
+   * Adressevælger. Filters out unsupported suggestion types and incomplete
+   * entries.
+   *
+   * @throws BadRequestException if the search text is invalid.
+   * @throws BadGatewayException if the provider request or configuration
+   * fails.
    */
   async searchAddresses(searchText: string): Promise<AddressSuggestion[]> {
     if (

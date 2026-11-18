@@ -1,7 +1,11 @@
+import type { ReactElement } from 'react';
 //import { Button } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 
-export default function HomePage() {
+/**
+ * Renders the translated page title and welcome message on the home page.
+ */
+export default function HomePage(): ReactElement {
   const { t } = useTranslation();
 
   return (

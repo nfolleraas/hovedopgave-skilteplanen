@@ -1,6 +1,6 @@
 import MenuIcon from '@mui/icons-material/Menu';
 import { Box, Button, Drawer, Paper } from '@mui/material';
-import type { ReactNode } from 'react';
+import type { ReactElement, ReactNode } from 'react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -10,11 +10,16 @@ interface SidebarLayoutProps {
   renderSidebar: (onNavigate?: () => void) => ReactNode;
 }
 
+/**
+ * Shows a persistent sidebar on larger screens and a drawer on mobile.
+ * Supplies a callback to close the drawer after navigation and a skip link to
+ * the main content.
+ */
 export default function SidebarLayout({
   children,
   menuLabel,
   renderSidebar,
-}: SidebarLayoutProps) {
+}: SidebarLayoutProps): ReactElement {
   const [menuOpen, setMenuOpen] = useState(false);
   const { t } = useTranslation();
 

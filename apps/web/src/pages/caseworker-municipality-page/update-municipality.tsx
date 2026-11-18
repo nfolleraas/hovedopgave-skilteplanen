@@ -6,26 +6,32 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import type { FormEvent } from 'react';
+import type { FormEvent, ReactElement } from 'react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { mapMunicipalityToForm } from '../../api/mappers/municipalities.mapper.js';
 import {
   getMunicipality,
+  MunicipalityValidationError,
   updateMunicipality,
 } from '../../api/municipalities.api.js';
 import AddressAutocomplete from '../../components/address/address-autocomplete.js';
 import { parseAddress } from '../../components/address/address-parser.js';
+import PhoneNumberField from '../../components/municipality/phone-number-field.js';
 import type {
   Municipality,
   UpdateMunicipality as MunicipalityUpdate,
 } from '../../types/municipality.types.js';
 
+/**
+ * Fetches the municipality for the given ID and shows a loading status, an
+ * error, or the edit form populated with saved values.
+ */
 export default function UpdateMunicipality({
   municipalityId,
 }: {
   municipalityId: number;
-}) {
+}): ReactElement {
   const { t } = useTranslation();
   const [municipality, setMunicipality] = useState<Municipality>();
   const [loadError, setLoadError] = useState(false);
@@ -33,7 +39,11 @@ export default function UpdateMunicipality({
   useEffect(() => {
     const controller = new AbortController();
 
-    async function loadMunicipality() {
+    /**
+     * Fetches municipality details and updates the component only while the
+     * request is still active.
+     */
+    async function loadMunicipality(): Promise<void> {
       try {
         const result = await getMunicipality(municipalityId, controller.signal);
         if (!controller.signal.aborted) {
@@ -63,11 +73,15 @@ export default function UpdateMunicipality({
   return <MunicipalityUpdateForm municipality={municipality} />;
 }
 
+/**
+ * Lets the caseworker edit the municipality’s email address, phone number, and
+ * address. Keeps a copy of the last saved values so the form can be reset.
+ */
 function MunicipalityUpdateForm({
   municipality,
 }: {
   municipality: Municipality;
-}) {
+}): ReactElement {
   const { t } = useTranslation();
   const [saved, setSaved] = useState(() => mapMunicipalityToForm(municipality));
   const [email, setEmail] = useState(saved.email);
@@ -80,8 +94,29 @@ function MunicipalityUpdateForm({
   const [status, setStatus] = useState<'idle' | 'saving' | 'success' | 'error'>(
     'idle',
   );
+  const [validationCode, setValidationCode] =
+    useState<MunicipalityValidationError['code']>();
   const saving = status === 'saving';
+  const hasChanges =
+    email !== saved.email ||
+    phoneNumber !== saved.phoneNumber ||
+    (address !== null &&
+      (address.street !== saved.address.street ||
+        address.houseNumber !== saved.address.houseNumber ||
+        address.postalCode !== saved.address.postalCode ||
+        address.city !== saved.address.city));
+  const canSave = !saving && address !== null && hasChanges;
+  const validationMessages = {
+    invalidEmail: t('municipality.update.invalidEmail'),
+    invalidPhoneNumber: t('municipality.update.invalidPhoneNumber'),
+    invalidAddress: t('municipality.create.addressError'),
+    invalidPostalCode: t('municipality.update.invalidPostalCode'),
+  };
 
+  /**
+   * Restores the supplied form values and remounts the address field with the
+   * saved address, clearing any active search.
+   */
   function resetForm(values: MunicipalityUpdate): void {
     setEmail(values.email);
     setPhoneNumber(values.phoneNumber);
@@ -90,14 +125,16 @@ function MunicipalityUpdateForm({
     setAddressKey((key) => key + 1);
   }
 
+  /**
+   * Checks the selected address and sends the three editable fields to the
+   * API. Shows the saved response on success and keeps the draft on failure.
+   */
   async function handleSubmit(
     event: FormEvent<HTMLFormElement>,
   ): Promise<void> {
     event.preventDefault();
-    setStatus('idle');
 
-    if (!address) {
-      setAddressError(true);
+    if (!canSave || !address) {
       return;
     }
 
@@ -113,7 +150,10 @@ function MunicipalityUpdateForm({
       setSaved(values);
       resetForm(values);
       setStatus('success');
-    } catch {
+    } catch (error) {
+      setValidationCode(
+        error instanceof MunicipalityValidationError ? error.code : undefined,
+      );
       setStatus('error');
     }
   }
@@ -130,7 +170,11 @@ function MunicipalityUpdateForm({
           </Alert>
         )}
         {status === 'error' && (
-          <Alert severity="error">{t('municipality.update.saveError')}</Alert>
+          <Alert severity="error">
+            {validationCode
+              ? validationMessages[validationCode]
+              : t('municipality.update.saveError')}
+          </Alert>
         )}
 
         <Box
@@ -141,21 +185,9 @@ function MunicipalityUpdateForm({
             rowGap: 3,
           }}
         >
-          <TextField
-            autoComplete="tel-national"
+          <PhoneNumberField
             disabled={saving}
-            fullWidth
-            label={t('municipality.create.phoneNumber')}
-            onChange={(event) => setPhoneNumber(event.target.value)}
-            required
-            slotProps={{
-              htmlInput: {
-                inputMode: 'numeric',
-                maxLength: 8,
-                pattern: '[0-9]{8}',
-              },
-            }}
-            type="tel"
+            onChange={setPhoneNumber}
             value={phoneNumber}
           />
           <TextField
@@ -208,7 +240,7 @@ function MunicipalityUpdateForm({
           >
             {t('municipality.create.cancel')}
           </Button>
-          <Button disabled={saving} type="submit" variant="contained">
+          <Button disabled={!canSave} type="submit" variant="contained">
             {saving
               ? t('municipality.update.saving')
               : t('municipality.update.save')}

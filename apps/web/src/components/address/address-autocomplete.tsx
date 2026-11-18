@@ -1,4 +1,5 @@
 import { Autocomplete, TextField } from '@mui/material';
+import type { ReactElement } from 'react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -15,15 +16,16 @@ interface AddressAutocompleteProps {
 }
 
 /**
- * Autocomplete field that searches addresses via the API and returns the
- * selected suggestion to the parent.
+ * Fetches address suggestions after the user pauses typing for 300 ms. Cancels
+ * outdated requests and passes the chosen suggestion or null to the form. An
+ * existing address can be displayed without starting a search.
  */
 export default function AddressAutocomplete({
   disabled,
   errorMessage,
   initialAddressText = '',
   onChange,
-}: AddressAutocompleteProps) {
+}: AddressAutocompleteProps): ReactElement {
   const { t } = useTranslation();
   const [lookupFailed, setLookupFailed] = useState(false);
   const [inputValue, setInputValue] = useState(initialAddressText);

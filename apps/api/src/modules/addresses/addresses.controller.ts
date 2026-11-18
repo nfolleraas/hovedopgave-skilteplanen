@@ -6,10 +6,14 @@ import {
 
 @Controller('addresses')
 export class AddressesController {
+  /**
+   * Connects the HTTP controller to the service that performs address lookups.
+   */
   constructor(private readonly addressesService: AddressesService) {}
 
   /**
-   * Searches for address suggestions by free text.
+   * Passes the query text to the address service and returns street and
+   * address suggestions for the form.
    */
   @Get('search')
   searchAddresses(@Query('text') text: string): Promise<AddressSuggestion[]> {

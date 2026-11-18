@@ -34,3 +34,7 @@ dist-ssr
 
 
 .vscode/settings.json
+
+# Playwright test artifacts
+/apps/web/playwright-report/
+/apps/web/test-results/

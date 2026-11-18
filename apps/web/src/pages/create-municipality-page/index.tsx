@@ -7,13 +7,14 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import type { FormEvent } from 'react';
+import type { FormEvent, ReactElement } from 'react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { createMunicipality } from '../../api/municipalities.api.js';
 import AddressAutocomplete from '../../components/address/address-autocomplete.js';
 import { parseAddress } from '../../components/address/address-parser.js';
 import AdminLayout from '../../components/layout/app-shell/admin-layout.js';
+import PhoneNumberField from '../../components/municipality/phone-number-field.js';
 import type { CreateMunicipality } from '../../types/municipality.types.js';
 
 const initialValues: CreateMunicipality = {
@@ -29,7 +30,11 @@ const initialValues: CreateMunicipality = {
   },
 };
 
-export default function CreateMunicipalityPage() {
+/**
+ * Renders the administrator form with region, contact details, and address
+ * lookup and shows the outcome after submission.
+ */
+export default function CreateMunicipalityPage(): ReactElement {
   const { t } = useTranslation();
 
   const [form, setForm] = useState<CreateMunicipality>(initialValues);
@@ -39,6 +44,9 @@ export default function CreateMunicipalityPage() {
   const [addressError, setAddressError] = useState(false);
   const [addressKey, setAddressKey] = useState(0);
 
+  /**
+   * Updates one top-level form field while preserving the other values.
+   */
   const updateField = (
     field: 'name' | 'region' | 'phoneNumber' | 'email',
     value: string,
@@ -49,13 +57,23 @@ export default function CreateMunicipalityPage() {
     }));
   };
 
+  /**
+   * Restores the empty initial form values and clears the address search text.
+   */
   const resetForm = () => {
     setForm(initialValues);
     setAddressError(false);
     setAddressKey((previous) => previous + 1);
   };
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  /**
+   * Checks that a complete address is selected before creating the
+   * municipality. Resets the form on success and preserves the entered values
+   * if the request fails.
+   */
+  const handleSubmit = async (
+    event: FormEvent<HTMLFormElement>,
+  ): Promise<void> => {
     event.preventDefault();
     setSuccess(false);
     setError(false);
@@ -143,22 +161,8 @@ export default function CreateMunicipalityPage() {
                 ))}
               </TextField>
 
-              <TextField
-                autoComplete="tel-national"
-                fullWidth
-                label={t('municipality.create.phoneNumber')}
-                onChange={(event) =>
-                  updateField('phoneNumber', event.target.value)
-                }
-                required
-                slotProps={{
-                  htmlInput: {
-                    inputMode: 'numeric',
-                    maxLength: 8,
-                    pattern: '[0-9]{8}',
-                  },
-                }}
-                type="tel"
+              <PhoneNumberField
+                onChange={(value) => updateField('phoneNumber', value)}
                 value={form.phoneNumber}
               />
 

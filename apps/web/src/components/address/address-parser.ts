@@ -8,7 +8,11 @@ interface ParsedAddress {
 }
 
 /**
- * Parses an address suggestion title into structured fields.
+ * Extracts the street, house number, postal code, and city from an address
+ * suggestion.
+ *
+ * @throws Error if the suggestion lacks a house number or has an unsupported
+ * format.
  */
 export function parseAddress(address: AddressSuggestion): ParsedAddress {
   if (address.type !== 'adresse' && address.type !== 'husnummer') {

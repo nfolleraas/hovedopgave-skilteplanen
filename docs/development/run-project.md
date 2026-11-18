@@ -72,6 +72,11 @@ bun run db:migrate
 bun run db:seed
 ```
 
+The seed command prints the caseworker page URL for the demo municipality.
+With `bun run dev` running, open that URL and select **Opdater kommuneoplysninger**.
+If Vite reports a different port, use that port in the URL. Running the seed
+again preserves edits made to the demo municipality.
+
 Use `db:deploy` for applying already-committed migrations in deployment or CI
 environments. Use `db:reset` only when intentionally rebuilding the local
 development database, because it destroys local database data.

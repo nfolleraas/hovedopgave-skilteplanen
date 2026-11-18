@@ -3,10 +3,5 @@
     "create": {
       "address": "Adresse"
     }
-  },
-  "admin": {
-    "overview": "Oversigt",
-    "users": "Brugere",
-    "caseworkers": "Sagsbehandlere"
   }
 }

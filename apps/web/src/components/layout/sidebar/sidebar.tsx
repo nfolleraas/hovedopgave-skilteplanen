@@ -1,4 +1,5 @@
 import { List, ListItemButton, ListItemText, Typography } from '@mui/material';
+import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useLocation } from 'react-router';
 
@@ -6,17 +7,22 @@ interface AdminSidebarProps {
   onNavigate?: () => void;
 }
 
-const menuItems = [
-  { label: 'admin.overview', path: '/admin' },
-  { label: 'municipality.create.title', path: '/admin/kommuner/opret' },
-  { label: 'admin.users', path: '/admin/brugere' },
-  { label: 'admin.caseworkers', path: '/admin/sagsbehandlere' },
-  { label: 'navigation.settings', path: '/admin/indstillinger' },
-];
-
-export default function AdminSidebar({ onNavigate }: AdminSidebarProps) {
+/**
+ * Renders translated administration links and marks the current page. Calls
+ * onNavigate when a link is selected so the mobile drawer can close.
+ */
+export default function AdminSidebar({
+  onNavigate,
+}: AdminSidebarProps): ReactElement {
   const { t } = useTranslation();
   const { pathname } = useLocation();
+  const menuItems = [
+    { label: t('admin.overview'), path: '/admin' },
+    { label: t('municipality.create.title'), path: '/admin/kommuner/opret' },
+    { label: t('admin.users'), path: '/admin/brugere' },
+    { label: t('admin.caseworkers'), path: '/admin/sagsbehandlere' },
+    { label: t('navigation.settings'), path: '/admin/indstillinger' },
+  ];
 
   return (
     <>
@@ -34,7 +40,7 @@ export default function AdminSidebar({ onNavigate }: AdminSidebarProps) {
             selected={pathname === item.path}
             to={item.path}
           >
-            <ListItemText primary={t(item.label)} />
+            <ListItemText primary={item.label} />
           </ListItemButton>
         ))}
       </List>
