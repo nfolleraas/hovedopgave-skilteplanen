@@ -69,10 +69,11 @@ authentication flows:
 - Private applicants require a unique `mitIdKey` and do not use a CVR.
 - Business applicants require a unique `cvrNumber` and do not use a private
   MitID key as their permanent identity.
-- Case workers use their password only for the emergency fallback path.
-  Deleting a case worker removes the account rather than toggling an active
-  state. The municipality relation remains non-unique, so one municipality can
-  have multiple case workers.
+- Case workers authenticate through their linked corporate identity only; local
+  case-worker passwords are not an authentication path. Deleting a case worker
+  removes the account rather than toggling an active state. The municipality
+  relation remains non-unique, so one municipality can have multiple case
+  workers.
 - Administrators have a normalized, unique e-mail address. Deleting an
   administrator removes the account rather than toggling an active state.
 
