@@ -31,6 +31,3 @@ dist-ssr
 /apps/api/.claude/
 /apps/api/.windsurf/
 /apps/api/skills-lock.json
-
-
-.vscode/settings.json

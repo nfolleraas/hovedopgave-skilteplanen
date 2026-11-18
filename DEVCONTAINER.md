@@ -147,7 +147,9 @@ kun symlinks til det, den faktisk erklærer. Kør altid `bun install` fra roden.
   `chat.agentHost.claudeAgent.enabled`, `chat.agentHost.codexAgent.enabled` og
   `chat.editor.codex.preferAgentHost`. Codex bruger den persistente
   `/home/node/.codex`-mappe, mens den neddownloadede Agent SDK bevares i
-  `codex-sdk-cache`.
+  `codex-sdk-cache`. Indstillingerne ligger i `.vscode/settings.json`, så de
+  følger workspace-rooten uden at Dev Containers omskriver containerens
+  maskinindstillinger ved hver oprettelse.
 - **`customizations.vscode.settings`** er editor-indstillinger, der kun anvendes
   inde i containeren. `workbench.iconTheme` vælger Material Icon Theme for alle,
   fordi at installere selve extensionen alene ikke aktiverer den. Resten gør
