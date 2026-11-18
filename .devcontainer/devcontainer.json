@@ -11,7 +11,6 @@
     }
   },
 
-
   "forwardPorts": [5173, 3000, 5432, 8081],
   "portsAttributes": {
     "5173": { "label": "web (vite)" },
@@ -21,7 +20,9 @@
   },
 
   "mounts": [
-    "source=codex-home,target=/home/node/.codex,type=volume"
+    "source=codex-home,target=/home/node/.codex,type=volume",
+    "source=codex-sdk-cache,target=/home/node/.vscode-server/data/agent-host/sdk-cache,type=volume",
+    "source=claude-home,target=/home/node/.claude,type=volume"
   ],
 
   "postCreateCommand": "bash .devcontainer/post-create-command.sh",
@@ -53,7 +54,11 @@
           "source.fixAll.biome": "explicit",
           "source.organizeImports.biome": "explicit",
           "source.action.useSortedAttributes.biome": "explicit"
-        }
+        },
+        "chat.agentHost.claudeAgent.enabled": false,
+        "chat.agentHost.codexAgent.enabled": true,
+        "chat.editor.codex.preferAgentHost": true,
+        "chat.agentHost.codexAgent.codexHome": "/home/node/.codex"
       }
     }
   },
