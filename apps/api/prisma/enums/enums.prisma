@@ -154,6 +154,7 @@ enum TrafficChange {
   TrafficLight
   NoStoppingAndParking
   UnconditionalObligationInIntersection
+  SpeedLimitWorkZoneAndTrafficSafety
 }
 
 enum Usage {
