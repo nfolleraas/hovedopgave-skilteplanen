@@ -42,3 +42,5 @@ for shared development instructions.
 - [Modules](modules.md): feature structure, dependency injection,
   repositories, Prisma, and migrations.
 - [Seeders](seeders.md): repeatable development data and seeder registration.
+- [First administrator bootstrap](administrator-bootstrap.md): create the
+  initial local administrator without a committed default credential.

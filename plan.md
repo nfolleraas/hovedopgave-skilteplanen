@@ -12,7 +12,10 @@ purposes, is also implemented with separate lifetimes and claims. Phase 2 step
 detection, and revocation. Phase 2 step 4 now applies a global default-deny
 access-token guard. Phase 2 step 5 adds explicit public and onboarding route
 metadata. Phase 2 step 6 limits Swagger to development, completing Phase 2.
-Phase 3 local authentication is planned next.
+Phase 3 now implements API-only Argon2id password handling, administrator
+login, administrator login rate limiting and auditing, and a first-account
+bootstrap procedure. Case workers continue to authenticate only through Entra
+ID.
 
 ## Goals
 
@@ -292,6 +295,25 @@ Administrators use local e-mail/password login without MFA.
 7. On success, issue an access JWT with `actor: ADMINISTRATOR`.
 8. On failure, return a generic response that does not reveal whether the account exists.
 
+### Known rate-limiter vulnerabilities
+
+The initial limiter is intentionally limited to the school-project deployment:
+
+- It uses the source IP observed by Express without configuring a trusted proxy
+  chain. Behind a reverse proxy, several or all clients may share one observed
+  address, so five failed attempts can temporarily block administrator login
+  for every client. A production deployment must configure its exact proxy
+  chain and should enforce the endpoint limit at the edge.
+- Its in-memory map removes an expired counter only when the same key is queried
+  again. Counters for one-off e-mail addresses can therefore remain until the
+  API process restarts and sustained distributed abuse can grow memory usage.
+  Production hardening should use a bounded store with proactive expiry.
+- Counters apply per API process. A future multi-instance deployment must move
+  them to shared infrastructure or an edge rate limiter.
+
+These vulnerabilities are accepted for the single-process school project and
+must be revisited before a production deployment.
+
 The project needs a documented first-administrator bootstrap procedure. No default password or credential may be committed to the repository.
 
 ## Authorization rules
@@ -320,6 +342,9 @@ Every repository query for a protected resource must include or validate the rel
 
 ## Cookie and request security
 
+- Submit passwords only over HTTPS and hash or verify them only in the API.
+  Client-side password hashes are password-equivalent replay credentials and
+  must not replace TLS.
 - Store access and refresh credentials in `HttpOnly` cookies.
 - Set `Secure` outside local development.
 - Use `SameSite=Lax`.
