@@ -26,11 +26,11 @@ development seeders live under [`apps/api/prisma/`](../../apps/api/prisma/).
 Run these from the repository root:
 
 ```bash
-bun run --filter api dev
-bun run --filter api build
-bun run --filter api test
-bun run --filter api test:e2e
-bun run --filter api lint
+bun run --cwd apps/api dev
+bun run --cwd apps/api build
+bun run --cwd apps/api test
+bun run --cwd apps/api test:e2e
+bun run --cwd apps/api lint
 ```
 
 The generated NestJS starter README is at

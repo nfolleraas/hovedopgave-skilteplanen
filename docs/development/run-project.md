@@ -35,8 +35,8 @@ Run these commands from the repository root when only one application is
 needed:
 
 ```bash
-bun run --filter web dev
-bun run --filter api dev
+bun run --cwd apps/web dev
+bun run --cwd apps/api dev
 ```
 
 The API-only command starts NestJS watch mode. The web-only command starts the
@@ -44,13 +44,14 @@ Vite development server.
 
 ## Build and validate
 
-Run workspace commands from the repository root with a filter:
+Run all commands from the repository root. Use `bun run` for root scripts and
+`bun run --cwd` for scripts belonging to one application:
 
 ```bash
-bun run --filter web build
-bun run --filter api build
-bun run --filter api test
-bun run --filter api test:e2e
+bun run --cwd apps/web build
+bun run --cwd apps/api build
+bun run --cwd apps/api test
+bun run --cwd apps/api test:e2e
 bun run check
 ```
 
@@ -59,17 +60,15 @@ create or apply database migrations.
 
 ## Prisma commands
 
-Run Prisma scripts from the API workspace, not through the root workspace
-filter. Prisma configuration paths such as `prisma`, `prisma/migrations`, and
-`prisma/seed.ts` are resolved relative to `apps/api`:
+Run Prisma scripts from the repository root with the API as the working
+directory. Prisma configuration paths such as `prisma`, `prisma/migrations`,
+and `prisma/seed.ts` are then resolved relative to `apps/api`:
 
 ```bash
-cd apps/api
-
-bun run db:format
-bun run db:generate
-bun run db:migrate
-bun run db:seed
+bun run --cwd apps/api db:format
+bun run --cwd apps/api db:generate
+bun run --cwd apps/api db:migrate
+bun run --cwd apps/api db:seed
 ```
 
 Use `db:deploy` for applying already-committed migrations in deployment or CI

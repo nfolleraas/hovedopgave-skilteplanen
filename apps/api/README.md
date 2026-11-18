@@ -27,8 +27,10 @@
 
 ## Project setup
 
+Run this from the repository root:
+
 ```bash
-$ bun install
+bun install
 ```
 
 ## Database
@@ -40,36 +42,36 @@ Define models in `prisma/schema.prisma`, then create and apply a development
 migration with:
 
 ```bash
-bun run db:migrate
+bun run --cwd apps/api db:migrate
 ```
 
 The API build generates Prisma Client automatically. To apply committed
-migrations in another environment, run `bun run db:deploy`.
+migrations in another environment, run `bun run --cwd apps/api db:deploy`.
 
 ## Compile and run the project
 
 ```bash
 # development
-$ bun run start
+$ bun run --cwd apps/api start
 
 # watch mode
-$ bun run start:dev
+$ bun run --cwd apps/api start:dev
 
 # production mode
-$ bun run start:prod
+$ bun run --cwd apps/api start:prod
 ```
 
 ## Run tests
 
 ```bash
 # unit tests
-$ bun run test
+$ bun run --cwd apps/api test
 
 # e2e tests
-$ bun run test:e2e
+$ bun run --cwd apps/api test:e2e
 
 # test coverage
-$ bun run test:cov
+$ bun run --cwd apps/api test:cov
 ```
 
 ## Deployment
