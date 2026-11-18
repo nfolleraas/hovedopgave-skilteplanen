@@ -1,4 +1,11 @@
-import { Controller, Get } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Header,
+  HttpStatus,
+  Query,
+  Redirect,
+} from '@nestjs/common';
 import { Public } from '../decorators/public.decorator.js';
 import { MitidService } from './mitid.service.js';
 
@@ -8,19 +15,34 @@ export class MitidController {
 
   @Public()
   @Get('private/start')
-  startPrivate(): void {
-    this.mitidService.startPrivate();
+  @Header('Cache-Control', 'no-store')
+  @Redirect(undefined, HttpStatus.FOUND)
+  async startPrivate(
+    @Query('returnPath') returnPath?: unknown,
+  ): Promise<{ url: string }> {
+    return { url: await this.mitidService.startPrivate(returnPath) };
   }
 
   @Public()
   @Get('business/start')
-  startBusiness(): void {
-    this.mitidService.startBusiness();
+  @Header('Cache-Control', 'no-store')
+  @Redirect(undefined, HttpStatus.FOUND)
+  async startBusiness(
+    @Query('returnPath') returnPath?: unknown,
+  ): Promise<{ url: string }> {
+    return { url: await this.mitidService.startBusiness(returnPath) };
   }
 
   @Public()
   @Get('callback')
-  callback(): void {
-    this.mitidService.callback();
+  @Header('Cache-Control', 'no-store')
+  async callback(
+    @Query('state') state?: unknown,
+    @Query('code') code?: unknown,
+    @Query('error') error?: unknown,
+  ): Promise<{ status: 'authenticated'; loginType: string }> {
+    const result = await this.mitidService.callback({ state, code, error });
+
+    return { status: 'authenticated', loginType: result.loginType };
   }
 }

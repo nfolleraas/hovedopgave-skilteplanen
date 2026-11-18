@@ -1,9 +1,8 @@
 # Signicat sandbox configuration
 
 The API uses one server-side Signicat OpenID Connect client for MitID applicant
-authentication. This configuration step validates the client settings at API
-startup; authorization redirects and callbacks are implemented in the next
-authentication phase.
+authentication. It validates the client settings at startup and implements the
+Authorization Code flow with state, nonce, and S256 PKCE.
 
 ## Dashboard setup
 
@@ -58,6 +57,26 @@ It derives the discovery document URL from the issuer and keeps the MitID
 selection value `idp:mitid` server-side. Never commit a real client ID or
 secret.
 
-The project still needs to decide whether its final business product is MitID
-Business or MitID Private for Business. Both use the `mitid-business` OIDC
-scope, so that decision does not change this initial client configuration.
+Business applicants authenticate with MitID Business using the
+`mitid-business` OIDC scope. MitID Private for Business is outside the planned
+login flow.
+
+## Authorization transaction and callback
+
+The private and business start routes create a ten-minute `AuthTransaction`
+and redirect the browser to the authorization endpoint from Signicat's OIDC
+discovery document. The database stores SHA-256 hashes of state and nonce, plus
+the PKCE verifier. An optional return path must be local to the application.
+
+The callback consumes the transaction atomically before exchanging the code.
+A transaction can therefore be used only once, including when Signicat returns
+an error or the subsequent token exchange fails. The API validates the ID-token
+RS256 signature using Signicat's discovered JWKS and checks its issuer,
+audience, expiry, subject, and nonce. Provider access tokens, ID tokens,
+authorization codes, state, nonce, and PKCE verifiers are never returned to the
+frontend or written to logs.
+
+At the end of Phase 4 step 2, a successful callback returns only the verified
+login context. Resolving the private applicant through `mitIdKey`, resolving a
+business through CVR, and issuing onboarding or access sessions are the next
+Phase 4 steps.

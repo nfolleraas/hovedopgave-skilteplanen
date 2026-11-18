@@ -15,10 +15,12 @@ metadata. Phase 2 step 6 limits Swagger to development, completing Phase 2.
 Phase 3 now implements API-only Argon2id password handling, administrator
 login, administrator login rate limiting and auditing, and a first-account
 bootstrap procedure. Case workers continue to authenticate only through Entra
-ID. Phase 4 step 1 now supports explicitly enabled, validated server-side
-Signicat sandbox OIDC configuration, including its redirect URI and private
-and business scopes. Phase 4 step 2, OIDC authorization transactions and
-callbacks, is next.
+ID. Phase 4 step 1 supports explicitly enabled, validated server-side Signicat
+sandbox OIDC configuration, including its redirect URI and private and
+business scopes. Phase 4 step 2 now implements persisted one-time OIDC
+transactions, state and nonce hashing, S256 PKCE, authorization redirects,
+code exchange, and Signicat ID-token validation through discovery and JWKS.
+Phase 4 step 3, private-applicant identity lookup through `mitIdKey`, is next.
 
 ## Goals
 
@@ -557,12 +559,10 @@ At the end of this phase, existing API routes must return `401` without a valid 
 - Non-superusers cannot perform municipal-superuser operations.
 - Non-administrators cannot access administrator operations.
 
-## Open decisions before implementation
+## Remaining external setup
 
-1. Confirm whether the Signicat product is MitID Business or MitID Private for Business.
-2. Define the first-administrator bootstrap procedure.
-3. Obtain the Signicat sandbox account, OIDC client, redirect URI, and test users.
-4. Obtain the Entra test tenant/application and define municipality onboarding for production tenants.
+1. Obtain the Signicat sandbox account, OIDC client, redirect URI, and test users.
+2. Obtain the Entra test tenant/application and define municipality onboarding for production tenants.
 
 ## Related diagrams and research
 
