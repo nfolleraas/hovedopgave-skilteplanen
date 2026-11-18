@@ -9,6 +9,7 @@ import type { RefreshTokenService } from '../refresh-token/refresh-token.service
 import type { AuthTransactionService } from './auth-transaction.service.js';
 import { MitidService } from './mitid.service.js';
 import type { MitidApplicantRepository } from './mitid-applicant.repository.js';
+import type { MitidAuditRepository } from './mitid-audit.repository.js';
 import type { SignicatProvider } from './signicat.provider.js';
 
 describe('MitidService', () => {
@@ -24,6 +25,7 @@ describe('MitidService', () => {
     findPrivateByMitidKey: ReturnType<typeof vi.fn>;
     findBusinessByCvr: ReturnType<typeof vi.fn>;
   };
+  let audit: { recordBusinessLoginSuccess: ReturnType<typeof vi.fn> };
   let refreshTokens: { issue: ReturnType<typeof vi.fn> };
   let service: MitidService;
 
@@ -50,6 +52,9 @@ describe('MitidService', () => {
       findPrivateByMitidKey: vi.fn().mockResolvedValue(null),
       findBusinessByCvr: vi.fn().mockResolvedValue(null),
     };
+    audit = {
+      recordBusinessLoginSuccess: vi.fn().mockResolvedValue(undefined),
+    };
     refreshTokens = {
       issue: vi.fn().mockResolvedValue({
         accessToken: 'access-token',
@@ -61,6 +66,7 @@ describe('MitidService', () => {
       transactions as unknown as AuthTransactionService,
       signicat as unknown as SignicatProvider,
       applicants as unknown as MitidApplicantRepository,
+      audit as unknown as MitidAuditRepository,
       refreshTokens as unknown as RefreshTokenService,
     );
   });
@@ -157,6 +163,7 @@ describe('MitidService', () => {
       subject: 'applicant-123',
       actor: 'APPLICANT',
     });
+    expect(audit.recordBusinessLoginSuccess).not.toHaveBeenCalled();
   });
 
   it('denies an inactive private applicant without issuing a session', async () => {
@@ -217,6 +224,7 @@ describe('MitidService', () => {
     expect(applicants.findPrivateByMitidKey).not.toHaveBeenCalled();
     expect(applicants.findBusinessByCvr).toHaveBeenCalledWith('95338926');
     expect(refreshTokens.issue).not.toHaveBeenCalled();
+    expect(audit.recordBusinessLoginSuccess).not.toHaveBeenCalled();
   });
 
   it('issues an applicant session for an active business applicant', async () => {
@@ -253,6 +261,14 @@ describe('MitidService', () => {
       subject: 'business-applicant-123',
       actor: 'APPLICANT',
     });
+    expect(audit.recordBusinessLoginSuccess).toHaveBeenCalledWith(
+      'business-applicant-123',
+      {
+        organisationCvr: '95338926',
+        employeeUuid: 'eea6df96-c347-4cd3-ab08-7df0af052e83',
+        providerSubject: 'provider-subject',
+      },
+    );
   });
 
   it('denies an inactive business applicant without issuing a session', async () => {
@@ -278,6 +294,7 @@ describe('MitidService', () => {
       }),
     ).rejects.toBeInstanceOf(ForbiddenException);
     expect(refreshTokens.issue).not.toHaveBeenCalled();
+    expect(audit.recordBusinessLoginSuccess).not.toHaveBeenCalled();
   });
 
   it('rejects business login without employee relationship evidence', async () => {

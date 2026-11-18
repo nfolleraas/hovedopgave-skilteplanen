@@ -25,8 +25,10 @@ the ID token, resolves private applicants through `mitIdKey`, denies inactive
 applicants, and issues sessions for active matches. Phase 4 step 4 now requires
 verified MitID Business organization and employee claims, resolves business
 applicants through CVR, denies inactive applicants, and issues sessions for
-active matches. Phase 4 step 5, pending registration and UC-001 token exchange,
-is next.
+active matches. Phase 4 step 6 now records the verified employee UUID and
+provider subject for successful business logins. Phase 4 step 5, pending
+registration and UC-001 token exchange, remains assigned to the applicant
+module outside the authentication feature branch.
 
 ## Goals
 

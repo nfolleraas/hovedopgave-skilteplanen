@@ -13,6 +13,7 @@ import type {
   OidcCallbackInput,
 } from './mitid.types.js';
 import { MitidApplicantRepository } from './mitid-applicant.repository.js';
+import { MitidAuditRepository } from './mitid-audit.repository.js';
 import { SignicatProvider } from './signicat.provider.js';
 
 @Injectable()
@@ -22,12 +23,14 @@ export class MitidService {
    * @param transactions - The service for one-time OIDC transaction handling.
    * @param signicat - The adapter for Signicat discovery, tokens, and identity claims.
    * @param applicants - The repository for private and business applicant lookup.
+   * @param audit - The repository that records verified business employee logins.
    * @param refreshTokens - The service that creates authenticated applicant sessions.
    */
   constructor(
     private readonly transactions: AuthTransactionService,
     private readonly signicat: SignicatProvider,
     private readonly applicants: MitidApplicantRepository,
+    private readonly audit: MitidAuditRepository,
     private readonly refreshTokens: RefreshTokenService,
   ) {}
 
@@ -124,6 +127,11 @@ export class MitidService {
     const session = await this.refreshTokens.issue({
       subject: applicant.uuid,
       actor: 'APPLICANT',
+    });
+    await this.audit.recordBusinessLoginSuccess(applicant.uuid, {
+      organisationCvr: identity.organisationCvr,
+      employeeUuid: identity.employeeUuid,
+      providerSubject: identity.subject,
     });
 
     return {

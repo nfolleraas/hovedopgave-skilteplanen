@@ -102,5 +102,10 @@ The authentication service resolves the shared business applicant through its
 inactive match is denied. An unknown CVR returns `registration-required`
 without credentials until Phase 4 step 5 creates the pending registration and
 onboarding token. The employee UUID is retained as authentication evidence and
-is not stored as the business applicant's `mitIdKey`; Phase 4 step 6 will record
-it in the audit event.
+is not stored as the business applicant's `mitIdKey`.
+
+For a successful login to an existing business applicant, the API records a
+`LOGIN_SUCCESS` audit event tied to the shared applicant. Its metadata contains
+the login type, verified CVR, employee UUID, and Signicat subject so the human
+actor can be traced. Provider tokens, authorization codes, nonce, PKCE values,
+and unrelated UserInfo claims are not written to the audit event.
