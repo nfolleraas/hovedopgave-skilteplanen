@@ -1,6 +1,7 @@
 import { createHash, timingSafeEqual } from 'node:crypto';
 import { Inject, Injectable } from '@nestjs/common';
 import { createRemoteJWKSet, type JWTVerifyGetKey, jwtVerify } from 'jose';
+import { validate as validateUuid } from 'uuid';
 import {
   SIGNICAT_CONFIG,
   type SignicatConfig,
@@ -15,6 +16,7 @@ type OidcDiscovery = {
   authorizationEndpoint: string;
   tokenEndpoint: string;
   jwksUri: string;
+  userInfoEndpoint: string;
 };
 
 @Injectable()
@@ -74,8 +76,13 @@ export class SignicatProvider {
     });
     const tokenResponse = await readJsonObject(response);
     const idToken = tokenResponse.id_token;
+    const accessToken = tokenResponse.access_token;
 
-    if (!response.ok || typeof idToken !== 'string') {
+    if (
+      !response.ok ||
+      typeof idToken !== 'string' ||
+      typeof accessToken !== 'string'
+    ) {
       throw new Error('Signicat token exchange failed.');
     }
 
@@ -95,11 +102,42 @@ export class SignicatProvider {
       throw new Error('Signicat ID token claims are invalid.');
     }
 
+    const userInfo = await this.fetchUserInfo(
+      discovery.userInfoEndpoint,
+      accessToken,
+      payload.sub,
+    );
+    const mitidUuid = optionalUuidClaim(
+      userInfo.mitid_uuid ?? payload.mitid_uuid,
+      'mitid_uuid',
+    );
+
     return {
       issuer: payload.iss,
       subject: payload.sub,
-      claims: payload,
+      ...(mitidUuid === undefined ? {} : { mitidUuid }),
     };
+  }
+
+  private async fetchUserInfo(
+    endpoint: string,
+    accessToken: string,
+    expectedSubject: string,
+  ): Promise<Record<string, unknown>> {
+    const response = await fetch(endpoint, {
+      headers: {
+        accept: 'application/json',
+        authorization: `Bearer ${accessToken}`,
+      },
+      signal: AbortSignal.timeout(5_000),
+    });
+    const userInfo = await readJsonObject(response);
+
+    if (!response.ok || userInfo.sub !== expectedSubject) {
+      throw new Error('Signicat UserInfo response is invalid.');
+    }
+
+    return userInfo;
   }
 
   private enabledConfig(): Extract<SignicatConfig, { enabled: true }> {
@@ -149,6 +187,10 @@ export class SignicatProvider {
       ),
       tokenEndpoint: requireHttpsUrl(document.token_endpoint, 'token endpoint'),
       jwksUri: requireHttpsUrl(document.jwks_uri, 'JWKS endpoint'),
+      userInfoEndpoint: requireHttpsUrl(
+        document.userinfo_endpoint,
+        'UserInfo endpoint',
+      ),
     };
   }
 
@@ -210,4 +252,19 @@ function hashesMatch(actual: string, expected: string): boolean {
     actualBuffer.length === expectedBuffer.length &&
     timingSafeEqual(actualBuffer, expectedBuffer)
   );
+}
+
+function optionalUuidClaim(
+  value: unknown,
+  claimName: string,
+): string | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (typeof value !== 'string' || !validateUuid(value)) {
+    throw new Error(`Signicat ${claimName} claim is invalid.`);
+  }
+
+  return value;
 }

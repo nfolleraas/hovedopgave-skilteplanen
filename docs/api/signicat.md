@@ -72,11 +72,20 @@ The callback consumes the transaction atomically before exchanging the code.
 A transaction can therefore be used only once, including when Signicat returns
 an error or the subsequent token exchange fails. The API validates the ID-token
 RS256 signature using Signicat's discovered JWKS and checks its issuer,
-audience, expiry, subject, and nonce. Provider access tokens, ID tokens,
-authorization codes, state, nonce, and PKCE verifiers are never returned to the
-frontend or written to logs.
+audience, expiry, subject, and nonce. It then retrieves UserInfo and requires
+its `sub` to match the verified ID-token subject. Provider access tokens, ID
+tokens, authorization codes, state, nonce, and PKCE verifiers are never
+returned to the frontend or written to logs.
 
-At the end of Phase 4 step 2, a successful callback returns only the verified
-login context. Resolving the private applicant through `mitIdKey`, resolving a
-business through CVR, and issuing onboarding or access sessions are the next
-Phase 4 steps.
+## Private applicant resolution
+
+For private login, the provider adapter normalizes the `mitid_uuid` claim from
+the `mitid-extra` scope. Signicat defines this as the identity provider's stable
+UUID for the person. The authentication service uses it only to find a private
+applicant whose `mitIdKey` has the same value.
+
+An active match receives the normal Skilteplanen access and refresh cookies.
+An inactive match is denied. An unknown identity currently receives a
+`registration-required` result without credentials; Phase 4 step 5 will create
+the pending registration and issue its restricted onboarding token. Business
+identity resolution through verified CVR remains Phase 4 step 4.

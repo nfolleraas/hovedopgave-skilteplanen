@@ -1,4 +1,4 @@
-import type { JWTPayload } from 'jose';
+import type { RefreshSessionTokens } from '../refresh-token/refresh-token.types.js';
 
 export type MitidLoginType = 'PRIVATE_APPLICANT' | 'BUSINESS_APPLICANT';
 
@@ -18,11 +18,13 @@ export type OidcCallbackInput = {
 export type VerifiedOidcIdentity = {
   issuer: string;
   subject: string;
-  claims: JWTPayload;
+  mitidUuid?: string;
 };
 
 export type CompletedMitidAuthentication = {
   loginType: MitidLoginType;
   returnPath: string | null;
   identity: VerifiedOidcIdentity;
+  status: 'authenticated' | 'provider-authenticated' | 'registration-required';
+  session?: RefreshSessionTokens;
 };

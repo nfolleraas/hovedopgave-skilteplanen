@@ -20,7 +20,10 @@ sandbox OIDC configuration, including its redirect URI and private and
 business scopes. Phase 4 step 2 now implements persisted one-time OIDC
 transactions, state and nonce hashing, S256 PKCE, authorization redirects,
 code exchange, and Signicat ID-token validation through discovery and JWKS.
-Phase 4 step 3, private-applicant identity lookup through `mitIdKey`, is next.
+Phase 4 step 3 now retrieves Signicat UserInfo, validates its subject against
+the ID token, resolves private applicants through `mitIdKey`, denies inactive
+applicants, and issues sessions for active matches. Phase 4 step 4,
+business-applicant lookup through verified CVR, is next.
 
 ## Goals
 

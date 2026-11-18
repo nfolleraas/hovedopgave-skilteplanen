@@ -14,6 +14,7 @@ const DISCOVERY_URL = `${ISSUER}/.well-known/openid-configuration`;
 const AUTHORIZATION_URL = `${ISSUER}/connect/authorize`;
 const TOKEN_URL = `${ISSUER}/connect/token`;
 const JWKS_URL = `${ISSUER}/.well-known/jwks.json`;
+const USERINFO_URL = `${ISSUER}/connect/userinfo`;
 
 const config: SignicatConfig = {
   enabled: true,
@@ -105,6 +106,12 @@ describe('SignicatProvider', () => {
       if (url === JWKS_URL) {
         return jsonResponse({ keys: [publicJwk] });
       }
+      if (url === USERINFO_URL) {
+        return jsonResponse({
+          sub: 'provider-subject',
+          mitid_uuid: 'f5276262-9145-4616-8faf-23e8e683d665',
+        });
+      }
 
       throw new Error(`Unexpected request: ${url}`);
     });
@@ -120,7 +127,7 @@ describe('SignicatProvider', () => {
     ).resolves.toMatchObject({
       issuer: ISSUER,
       subject: 'provider-subject',
-      claims: { nonce },
+      mitidUuid: 'f5276262-9145-4616-8faf-23e8e683d665',
     });
 
     const tokenRequest = fetchMock.mock.calls.find(
@@ -151,7 +158,10 @@ describe('SignicatProvider', () => {
           return jsonResponse(discoveryDocument());
         }
         if (url === TOKEN_URL) {
-          return jsonResponse({ id_token: idToken });
+          return jsonResponse({
+            access_token: 'provider-access-token',
+            id_token: idToken,
+          });
         }
         if (url === JWKS_URL) {
           return jsonResponse({ keys: [publicJwk] });
@@ -171,6 +181,88 @@ describe('SignicatProvider', () => {
     ).rejects.toThrow('Signicat ID token claims are invalid.');
   });
 
+  it('rejects UserInfo data for a different subject', async () => {
+    const nonce = 'expected-nonce';
+    const idToken = await signedIdToken(nonce);
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = requestUrl(input);
+
+        if (url === DISCOVERY_URL) {
+          return jsonResponse(discoveryDocument());
+        }
+        if (url === TOKEN_URL) {
+          return jsonResponse({
+            access_token: 'provider-access-token',
+            id_token: idToken,
+          });
+        }
+        if (url === JWKS_URL) {
+          return jsonResponse({ keys: [publicJwk] });
+        }
+        if (url === USERINFO_URL) {
+          return jsonResponse({
+            sub: 'different-subject',
+            mitid_uuid: 'f5276262-9145-4616-8faf-23e8e683d665',
+          });
+        }
+
+        throw new Error(`Unexpected request: ${url}`);
+      }),
+    );
+    const provider = new SignicatProvider(config);
+
+    await expect(
+      provider.completeAuthorization(
+        'authorization-code',
+        'pkce-verifier',
+        sha256Hex(nonce),
+      ),
+    ).rejects.toThrow('Signicat UserInfo response is invalid.');
+  });
+
+  it('rejects an invalid MitID UUID claim', async () => {
+    const nonce = 'expected-nonce';
+    const idToken = await signedIdToken(nonce);
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = requestUrl(input);
+
+        if (url === DISCOVERY_URL) {
+          return jsonResponse(discoveryDocument());
+        }
+        if (url === TOKEN_URL) {
+          return jsonResponse({
+            access_token: 'provider-access-token',
+            id_token: idToken,
+          });
+        }
+        if (url === JWKS_URL) {
+          return jsonResponse({ keys: [publicJwk] });
+        }
+        if (url === USERINFO_URL) {
+          return jsonResponse({
+            sub: 'provider-subject',
+            mitid_uuid: 'not-a-uuid',
+          });
+        }
+
+        throw new Error(`Unexpected request: ${url}`);
+      }),
+    );
+    const provider = new SignicatProvider(config);
+
+    await expect(
+      provider.completeAuthorization(
+        'authorization-code',
+        'pkce-verifier',
+        sha256Hex(nonce),
+      ),
+    ).rejects.toThrow('Signicat mitid_uuid claim is invalid.');
+  });
+
   function discoveryFetch(): ReturnType<typeof vi.fn> {
     return vi.fn(async () => jsonResponse(discoveryDocument()));
   }
@@ -181,6 +273,7 @@ describe('SignicatProvider', () => {
       authorization_endpoint: AUTHORIZATION_URL,
       token_endpoint: TOKEN_URL,
       jwks_uri: JWKS_URL,
+      userinfo_endpoint: USERINFO_URL,
     };
   }
 

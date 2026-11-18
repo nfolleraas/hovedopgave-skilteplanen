@@ -1,11 +1,14 @@
 import {
   BadRequestException,
+  ForbiddenException,
   ServiceUnavailableException,
   UnauthorizedException,
 } from '@nestjs/common';
 import type { AuthTransaction } from '../../../generated/prisma/client.js';
+import type { RefreshTokenService } from '../refresh-token/refresh-token.service.js';
 import type { AuthTransactionService } from './auth-transaction.service.js';
 import { MitidService } from './mitid.service.js';
+import type { MitidApplicantRepository } from './mitid-applicant.repository.js';
 import type { SignicatProvider } from './signicat.provider.js';
 
 describe('MitidService', () => {
@@ -17,6 +20,8 @@ describe('MitidService', () => {
     createAuthorizationUrl: ReturnType<typeof vi.fn>;
     completeAuthorization: ReturnType<typeof vi.fn>;
   };
+  let applicants: { findPrivateByMitidKey: ReturnType<typeof vi.fn> };
+  let refreshTokens: { issue: ReturnType<typeof vi.fn> };
   let service: MitidService;
 
   beforeEach(() => {
@@ -35,12 +40,24 @@ describe('MitidService', () => {
       completeAuthorization: vi.fn().mockResolvedValue({
         issuer: 'https://signicat.example',
         subject: 'provider-subject',
-        claims: {},
+        mitidUuid: 'f5276262-9145-4616-8faf-23e8e683d665',
+      }),
+    };
+    applicants = {
+      findPrivateByMitidKey: vi.fn().mockResolvedValue(null),
+    };
+    refreshTokens = {
+      issue: vi.fn().mockResolvedValue({
+        accessToken: 'access-token',
+        refreshToken: 'refresh-token',
+        refreshTokenExpiresAt: new Date('2026-11-25T12:00:00.000Z'),
       }),
     };
     service = new MitidService(
       transactions as unknown as AuthTransactionService,
       signicat as unknown as SignicatProvider,
+      applicants as unknown as MitidApplicantRepository,
+      refreshTokens as unknown as RefreshTokenService,
     );
   });
 
@@ -99,6 +116,7 @@ describe('MitidService', () => {
       loginType: 'PRIVATE_APPLICANT',
       returnPath: '/applications',
       identity: { subject: 'provider-subject' },
+      status: 'registration-required',
     });
     expect(transactions.consume).toHaveBeenCalledWith('returned-state');
     expect(signicat.completeAuthorization).toHaveBeenCalledWith(
@@ -106,6 +124,88 @@ describe('MitidService', () => {
       'pkce-verifier',
       'stored-nonce-hash',
     );
+    expect(applicants.findPrivateByMitidKey).toHaveBeenCalledWith(
+      'f5276262-9145-4616-8faf-23e8e683d665',
+    );
+  });
+
+  it('issues an applicant session for an active private applicant', async () => {
+    transactions.consume.mockResolvedValue(storedTransaction());
+    applicants.findPrivateByMitidKey.mockResolvedValue({
+      uuid: 'applicant-123',
+      isActive: true,
+    });
+
+    await expect(
+      service.callback({
+        state: 'returned-state',
+        code: 'authorization-code',
+        error: undefined,
+      }),
+    ).resolves.toMatchObject({
+      status: 'authenticated',
+      session: {
+        accessToken: 'access-token',
+        refreshToken: 'refresh-token',
+      },
+    });
+    expect(refreshTokens.issue).toHaveBeenCalledWith({
+      subject: 'applicant-123',
+      actor: 'APPLICANT',
+    });
+  });
+
+  it('denies an inactive private applicant without issuing a session', async () => {
+    transactions.consume.mockResolvedValue(storedTransaction());
+    applicants.findPrivateByMitidKey.mockResolvedValue({
+      uuid: 'applicant-123',
+      isActive: false,
+    });
+
+    await expect(
+      service.callback({
+        state: 'returned-state',
+        code: 'authorization-code',
+        error: undefined,
+      }),
+    ).rejects.toBeInstanceOf(ForbiddenException);
+    expect(refreshTokens.issue).not.toHaveBeenCalled();
+  });
+
+  it('rejects private login without the stable MitID UUID claim', async () => {
+    transactions.consume.mockResolvedValue(storedTransaction());
+    signicat.completeAuthorization.mockResolvedValue({
+      issuer: 'https://signicat.example',
+      subject: 'provider-subject',
+    });
+
+    await expect(
+      service.callback({
+        state: 'returned-state',
+        code: 'authorization-code',
+        error: undefined,
+      }),
+    ).rejects.toBeInstanceOf(UnauthorizedException);
+    expect(applicants.findPrivateByMitidKey).not.toHaveBeenCalled();
+  });
+
+  it('leaves business applicant resolution to the next phase step', async () => {
+    transactions.consume.mockResolvedValue(
+      storedTransaction({ loginType: 'BUSINESS_APPLICANT' }),
+    );
+
+    await expect(
+      service.callback({
+        state: 'returned-state',
+        code: 'authorization-code',
+        error: undefined,
+      }),
+    ).resolves.toMatchObject({
+      loginType: 'BUSINESS_APPLICANT',
+      status: 'provider-authenticated',
+    });
+    expect(applicants.findPrivateByMitidKey).not.toHaveBeenCalled();
+    expect(refreshTokens.issue).not.toHaveBeenCalled();
   });
 
   it('consumes provider errors without attempting a token exchange', async () => {
