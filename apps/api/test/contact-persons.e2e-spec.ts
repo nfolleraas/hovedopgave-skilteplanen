@@ -214,11 +214,16 @@ describe('/api/contact-persons (e2e)', () => {
     const { caseNumber, actor } = await createApplication('multi');
     const secondActor = await createActor(caseNumber, `Aktør 2 ${run}`);
 
-    for (const actorId of [actor.uuid, actor.uuid, secondActor.uuid]) {
+    for (const [actorId, name] of [
+      [actor.uuid, 'Jens Jensen'],
+      [actor.uuid, 'Hanne Hansen'],
+      [secondActor.uuid, 'Jens Jensen'],
+    ]) {
       await post({
         applicationId: caseNumber,
         actorId,
         ...validContact,
+        name,
       }).expect(201);
     }
 
@@ -231,6 +236,33 @@ describe('/api/contact-persons (e2e)', () => {
     );
     expect(actorIds.filter((id: string) => id === actor.uuid)).toHaveLength(2);
     expect(actorIds).toContain(secondActor.uuid);
+  });
+
+  it('rejects a contact person identical to an existing one', async () => {
+    const { caseNumber, actor } = await createApplication('dupe');
+    const body = { applicationId: caseNumber, actorId: actor.uuid };
+
+    await post({ ...body, ...validContact }).expect(201);
+    const response = await post({
+      ...body,
+      ...validContact,
+      email: ' jens@example.com ',
+    }).expect(409);
+
+    expect(response.body.code).toBe('CONTACT_PERSON_DUPLICATE');
+  });
+
+  it('rejects an email with a comma', async () => {
+    const { caseNumber, actor } = await createApplication('comma');
+
+    const response = await post({
+      applicationId: caseNumber,
+      actorId: actor.uuid,
+      ...validContact,
+      email: 'jens,jensen@example.com',
+    }).expect(400);
+
+    expect(response.body.invalidFields).toEqual(['email']);
   });
 
   it('removes spaces around the name and email', async () => {

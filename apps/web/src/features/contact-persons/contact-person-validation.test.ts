@@ -80,6 +80,35 @@ describe('validateContactPerson', () => {
       }),
     ).toEqual({ email: 'required' });
   });
+
+  test.each([
+    'jens,jensen@firma.dk',
+    'jens@firma,dk',
+    'jens!@firma.dk',
+    'søren@firma.dk',
+    'jens..jensen@firma.dk',
+    'jens@-firma.dk',
+  ])('rejects the email %s', (email) => {
+    expect(
+      validateContactPerson(ApplicationType.ExcavationPermit, {
+        ...completeValues,
+        email,
+      }),
+    ).toEqual({ email: 'email' });
+  });
+
+  test.each([
+    'jens.jensen@firma.co.uk',
+    'jens+test@sub.firma.dk',
+    'jens_jensen-1@mit-firma.dk',
+  ])('accepts the email %s', (email) => {
+    expect(
+      validateContactPerson(ApplicationType.ExcavationPermit, {
+        ...completeValues,
+        email,
+      }),
+    ).toEqual({});
+  });
 });
 
 describe('toContactPersonInput', () => {

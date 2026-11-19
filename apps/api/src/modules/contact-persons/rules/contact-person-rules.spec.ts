@@ -127,6 +127,20 @@ describe('findInvalidContactPersonFields', () => {
       'jens@firma..dk',
       'jens@firma.dk.',
       'jens@.dk',
+      'jens,jensen@firma.dk',
+      'jens@firma,dk',
+      'jens;@firma.dk',
+      'jens!@firma.dk',
+      'jens"@firma.dk',
+      'søren@firma.dk',
+      'jens@firmæ.dk',
+      '.jens@firma.dk',
+      'jens.@firma.dk',
+      'jens..jensen@firma.dk',
+      'jens@-firma.dk',
+      'jens@firma-.dk',
+      'jens@firma.d',
+      'jens@firma.d1',
     ]) {
       expect(
         findInvalidContactPersonFields(ApplicationType.ExcavationPermit, {
@@ -150,6 +164,8 @@ describe('email format', () => {
       'jens@firma.dk',
       'jens.jensen@firma.co.uk',
       'jens+test@sub.firma.dk',
+      'jens_jensen-1@mit-firma.dk',
+      'JENS@FIRMA.DK',
     ]) {
       expect(
         findInvalidContactPersonFields(ApplicationType.ExcavationPermit, {

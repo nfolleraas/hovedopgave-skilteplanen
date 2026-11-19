@@ -55,6 +55,10 @@ Reglerne ligger i
 - Navn skal udfyldes, telefonnummeret skal være 8 cifre, og e-mailen skal
   have et gyldigt format (UC-031 F1–F4, UC-033 F1–F4). Ellers returneres
   `CONTACT_PERSON_INVALID` med `invalidFields`.
+- E-mailen må kun indeholde engelske bogstaver, tal og `.`, `_`, `+` og `-`
+  før @, og bogstaver, tal, `-` og `.` efter @. Domænet skal slutte på mindst
+  to bogstaver (fx `.dk`). Komma, mellemrum, `æøå` og andre specialtegn
+  afvises. Webappen og API'et bruger samme mønster.
 - Gravetilladelser skal have en tilgængelighed. Ved råden over vej sætter
   serveren den til `Day`, og en valgt tilgængelighed afvises
   (`CONTACT_PERSON_FIELDS_NOT_ALLOWED`).

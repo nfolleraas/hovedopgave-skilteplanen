@@ -60,11 +60,17 @@ function hasText(value: string | null | undefined): boolean {
 }
 
 /**
- * Text, an @ and a domain with at least one dot, e.g. `navn@firma.dk`. The
- * domain cannot have empty parts, so `navn@firma..dk` and `navn@firma.dk.`
- * are rejected. The web app uses the same pattern.
+ * An address like `navn@firma.dk`, using only English letters, digits and
+ * the characters an email needs:
+ * - Before the @: letters, digits, `.`, `_`, `+` and `-`. Dots cannot be
+ *   first, last or next to each other.
+ * - After the @: parts of letters, digits and `-` separated by dots. A part
+ *   cannot start or end with `-`, and the last part is at least two letters.
+ * So commas, spaces, `æøå` and other special characters are rejected. The
+ * web app uses the same pattern.
  */
-const emailPattern = /^[^\s@]+@[^\s@.]+(\.[^\s@.]+)+$/;
+const emailPattern =
+  /^[A-Za-z0-9_+-]+(\.[A-Za-z0-9_+-]+)*@([A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?\.)+[A-Za-z]{2,}$/;
 
 /**
  * Removes spaces around the name and email, so `" Jens "` is saved as
