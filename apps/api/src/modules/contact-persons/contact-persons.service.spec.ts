@@ -66,6 +66,7 @@ describe('ContactPersonsService', () => {
     update: ReturnType<typeof vi.fn>;
     delete: ReturnType<typeof vi.fn>;
     countByApplication: ReturnType<typeof vi.fn>;
+    findDuplicate: ReturnType<typeof vi.fn>;
     getApplication: ReturnType<typeof vi.fn>;
     getActorsByApplication: ReturnType<typeof vi.fn>;
     getActorOnApplication: ReturnType<typeof vi.fn>;
@@ -79,6 +80,7 @@ describe('ContactPersonsService', () => {
       update: vi.fn(),
       delete: vi.fn(),
       countByApplication: vi.fn(),
+      findDuplicate: vi.fn().mockResolvedValue(null),
       getApplication: vi.fn(),
       getActorsByApplication: vi.fn().mockResolvedValue([actor]),
       getActorOnApplication: vi.fn().mockResolvedValue(actor),
@@ -250,6 +252,49 @@ describe('ContactPersonsService', () => {
         ConflictException,
       );
       expect(repository.add).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('duplicates', () => {
+    it('rejects a contact person identical to an existing one', async () => {
+      repository.getApplication.mockResolvedValue(buildApplication());
+      repository.findDuplicate.mockResolvedValue(buildContactPerson());
+
+      await expect(
+        service.create({ ...createDto, name: ' Jens Jensen ' }),
+      ).rejects.toMatchObject({
+        response: { code: 'CONTACT_PERSON_DUPLICATE' },
+      });
+      expect(repository.findDuplicate).toHaveBeenCalledWith(
+        {
+          applicationId: 'APP-1',
+          actorId: 'actor-1',
+          name: 'Jens Jensen',
+          availability: Availability.Evening,
+          phoneNumber: '12345678',
+          email: 'jens@example.com',
+        },
+        undefined,
+      );
+      expect(repository.add).not.toHaveBeenCalled();
+    });
+
+    it('rejects an update that makes a contact person identical to another', async () => {
+      repository.getById.mockResolvedValue(buildContactPerson());
+      repository.findDuplicate.mockResolvedValue(
+        buildContactPerson({ uuid: 'contact-2', name: 'Ny Kontakt' }),
+      );
+
+      await expect(
+        service.update('contact-1', { name: 'Ny Kontakt' }),
+      ).rejects.toMatchObject({
+        response: { code: 'CONTACT_PERSON_DUPLICATE' },
+      });
+      expect(repository.findDuplicate).toHaveBeenCalledWith(
+        expect.objectContaining({ name: 'Ny Kontakt' }),
+        'contact-1',
+      );
+      expect(repository.update).not.toHaveBeenCalled();
     });
   });
 

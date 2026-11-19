@@ -346,6 +346,10 @@ describe('ContactsStep', () => {
       'Aktøren findes ikke længere på ansøgningen. Genindlæs siden.',
     ],
     [
+      'CONTACT_PERSON_DUPLICATE',
+      'Aktøren har allerede en kontaktperson med præcis de samme oplysninger.',
+    ],
+    [
       'CONTACT_PERSON_INVALID',
       'Oplysningerne blev afvist. Kontrollér felterne, og prøv igen.',
     ],

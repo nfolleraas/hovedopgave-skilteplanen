@@ -75,6 +75,14 @@ export class ContactPersonsService {
     const fields = trimContactPersonText(dto);
     const input = this.withResolvedAvailability(application.type, fields);
     this.assertValid(application.type, input);
+    await this.assertNotDuplicate({
+      applicationId: application.caseNumber,
+      actorId: dto.actorId,
+      name: fields.name,
+      availability: input.availability as Availability,
+      phoneNumber: fields.phoneNumber,
+      email: fields.email,
+    });
 
     const created = await this.contactPersons.add({
       application: { connect: { caseNumber: application.caseNumber } },
@@ -107,6 +115,17 @@ export class ContactPersonsService {
       ...changes,
     });
     this.assertValid(application.type, merged);
+    await this.assertNotDuplicate(
+      {
+        applicationId: existing.applicationId,
+        actorId: existing.actorId,
+        name: merged.name as string,
+        availability: merged.availability as Availability,
+        phoneNumber: merged.phoneNumber as string,
+        email: merged.email as string,
+      },
+      id,
+    );
 
     const updated = await this.contactPersons.update(id, {
       name: changes.name,
@@ -138,6 +157,28 @@ export class ContactPersonsService {
     // now the error reaches the client, which shows UC-032's error message.
     await this.contactPersons.delete(id);
     // TODO(UC-032 postcondition): log the deletion once a log service exists.
+  }
+
+  /**
+   * An actor cannot have two contact persons with exactly the same details
+   * on the same application.
+   */
+  private async assertNotDuplicate(
+    fields: Parameters<ContactPersonsRepository['findDuplicate']>[0],
+    excludeUuid?: string,
+  ): Promise<void> {
+    const duplicate = await this.contactPersons.findDuplicate(
+      fields,
+      excludeUuid,
+    );
+    if (duplicate) {
+      throw new ConflictException({
+        code: 'CONTACT_PERSON_DUPLICATE',
+        message:
+          'The actor already has a contact person with the same details on ' +
+          'this application.',
+      });
+    }
   }
 
   /** UC-031 starts from an actor on the application (UC-040 step 7). */

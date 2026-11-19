@@ -329,6 +329,7 @@
     "saveError": "The contact person could not be saved. Try again later or contact support.",
     "notEditable": "Contact persons can only be changed while the application is a draft or requires changes.",
     "actorNotFound": "The actor is no longer on the application. Reload the page.",
+    "duplicate": "The actor already has a contact person with exactly the same details.",
     "notFound": "The contact person no longer exists. It may have been deleted in another tab. Reload the page.",
     "rejectedByServer": "The details were rejected. Check the fields and try again.",
     "updated": "The changes to {{name}} have been saved.",

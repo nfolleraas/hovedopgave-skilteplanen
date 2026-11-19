@@ -329,6 +329,7 @@
     "saveError": "Kontaktpersonen kunne ikke gemmes. Prøv igen senere eller kontakt supporten.",
     "notEditable": "Kontaktpersoner kan kun ændres, mens ansøgningen er en kladde eller kræver rettelser.",
     "actorNotFound": "Aktøren findes ikke længere på ansøgningen. Genindlæs siden.",
+    "duplicate": "Aktøren har allerede en kontaktperson med præcis de samme oplysninger.",
     "notFound": "Kontaktpersonen findes ikke længere. Den kan være slettet i en anden fane. Genindlæs siden.",
     "rejectedByServer": "Oplysningerne blev afvist. Kontrollér felterne, og prøv igen.",
     "updated": "Ændringerne til {{name}} er gemt.",

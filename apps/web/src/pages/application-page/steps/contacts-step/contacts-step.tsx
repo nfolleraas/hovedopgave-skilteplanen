@@ -136,6 +136,8 @@ export function ContactsStep({
         return t('contacts.notEditable');
       case 'ACTOR_NOT_FOUND':
         return t('contacts.actorNotFound');
+      case 'CONTACT_PERSON_DUPLICATE':
+        return t('contacts.duplicate');
       // Deleted in another tab while this one had it open.
       case 'CONTACT_PERSON_NOT_FOUND':
         return t('contacts.notFound');
