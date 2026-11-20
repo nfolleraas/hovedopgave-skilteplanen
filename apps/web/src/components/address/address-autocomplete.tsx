@@ -19,6 +19,7 @@ export default function AddressAutocomplete({
 }: AddressAutocompleteProps) {
   const [inputValue, setInputValue] = useState('');
   const [options, setOptions] = useState<AddressOption[]>([]);
+  const [lookupComplete, setLookupComplete] = useState(false);
   const [selectedAddress, setSelectedAddress] =
     useState<AddressSuggestion | null>(null);
 
@@ -32,11 +33,15 @@ export default function AddressAutocomplete({
     const timeout = setTimeout(async () => {
       try {
         const addresses = await searchAddresses(inputValue, controller.signal);
-        setOptions(addresses);
+        if (!controller.signal.aborted) {
+          setOptions(addresses);
+          setLookupComplete(true);
+        }
       } catch (error) {
         if (!controller.signal.aborted) {
           console.error('Address lookup failed:', error);
           setOptions([]);
+          setLookupComplete(true);
         }
       }
     }, 300);
@@ -52,7 +57,15 @@ export default function AddressAutocomplete({
       filterOptions={(options) => options}
       getOptionLabel={(option) => option.titel}
       inputValue={inputValue}
-      noOptionsText="Ingen forslag. Prøv vejnavn, husnummer og postnummer."
+      loading={
+        inputValue.trim().length >= 3 && !selectedAddress && !lookupComplete
+      }
+      loadingText="Søger efter adresser…"
+      noOptionsText={
+        lookupComplete
+          ? 'Ugyldig adresse. Prøv igen senere eller kontakt support.'
+          : 'Skriv mindst 3 tegn for at søge efter en adresse.'
+      }
       onChange={(_, value) => {
         setSelectedAddress(value);
         setInputValue(value?.titel ?? '');
@@ -61,6 +74,8 @@ export default function AddressAutocomplete({
       onInputChange={(_, value, reason) => {
         if (reason === 'input' || reason === 'clear') {
           setInputValue(value);
+          setOptions([]);
+          setLookupComplete(false);
           setSelectedAddress(null);
           onChange(null);
         }

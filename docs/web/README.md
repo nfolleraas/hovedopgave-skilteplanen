@@ -51,6 +51,9 @@ Run the suite from the repository root:
 bun run --filter web test:e2e
 ```
 
+If the test ports are occupied, set `PLAYWRIGHT_API_PORT` and
+`PLAYWRIGHT_WEB_PORT` to free local ports.
+
 The suite uses ports `5190` and `3190`. It requires a PostgreSQL connection
 through `DATABASE_URL` with permission to create databases. It applies the
 project migrations to a temporary database, starts the real API, and drops the

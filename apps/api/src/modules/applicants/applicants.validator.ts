@@ -1,15 +1,42 @@
 import { BadRequestException } from '@nestjs/common';
+import type { Applicant } from '../../generated/prisma/client.js';
 import type { CreateApplicantDto } from './dto/create-applicant.dto.js';
 
 const phoneOrCvrPattern = /^[0-9]{8}$/;
-const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const emailPattern =
+  /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
+const personalNamePattern = /^(?:\p{L}\p{M}*)+(?: +(?:\p{L}\p{M}*)+)*$/u;
+const businessNamePattern =
+  /^(?:\p{L}\p{M}*|[0-9])+(?: +(?:\p{L}\p{M}*|[0-9])+)*$/u;
 
-type ProfileField = 'name' | 'email' | 'phoneNumber' | 'cvrNumber';
+function isValidName(name: string, isBusiness: boolean): boolean {
+  return (isBusiness ? businessNamePattern : personalNamePattern).test(name);
+}
 
-export function validateProfile(data: unknown, isBusiness: boolean) {
+type ProfileFields = Pick<
+  Applicant,
+  'name' | 'email' | 'phoneNumber' | 'cvrNumber'
+>;
+
+const houseNumberPattern = /^[0-9]+[a-z]?(?:[-/][0-9]+[a-z]?)?$/i;
+const postalCodePattern = /^[0-9]{4}$/;
+const addressNamePattern = /^[\p{L}\p{M}0-9 .,'’&()/-]+$/u;
+
+function isAddressName(value: unknown): boolean {
+  return (
+    typeof value === 'string' &&
+    addressNamePattern.test(value) &&
+    /\p{L}/u.test(value)
+  );
+}
+
+export function validateProfile(
+  data: unknown,
+  isBusiness: boolean,
+): ProfileFields {
   const input =
     typeof data === 'object' && data !== null
-      ? (data as Partial<Record<ProfileField, unknown>>)
+      ? (data as Partial<Record<keyof ProfileFields, unknown>>)
       : {};
   const name = typeof input.name === 'string' ? input.name.trim() : '';
   const email =
@@ -18,9 +45,9 @@ export function validateProfile(data: unknown, isBusiness: boolean) {
     typeof input.phoneNumber === 'string' ? input.phoneNumber.trim() : '';
   const cvrNumber =
     typeof input.cvrNumber === 'string' ? input.cvrNumber.trim() : '';
-  const fields: ProfileField[] = [];
+  const fields: (keyof ProfileFields)[] = [];
 
-  if (!name) fields.push('name');
+  if (!isValidName(name, isBusiness)) fields.push('name');
   if (!emailPattern.test(email)) fields.push('email');
   if (!phoneOrCvrPattern.test(phoneNumber)) fields.push('phoneNumber');
   if (isBusiness && !phoneOrCvrPattern.test(cvrNumber))
@@ -54,6 +81,11 @@ export function validateCreateApplicant(
   if (data.type !== 'private' && data.type !== 'business') {
     throw new BadRequestException('Invalid applicant type');
   }
+  if (!isValidName(data.name.trim(), data.type === 'business')) {
+    throw new BadRequestException(
+      'Name may contain letters and spaces. Business names may also contain digits.',
+    );
+  }
 
   if (
     typeof data.phoneNumber !== 'string' ||
@@ -75,19 +107,25 @@ export function validateCreateApplicant(
     throw new BadRequestException('CVR number must contain 8 digits');
   }
 
-  if (typeof data.street !== 'string' || !data.street.trim()) {
-    throw new BadRequestException('Street is required');
+  if (!isAddressName(data.street)) {
+    throw new BadRequestException('Indtast et gyldigt vejnavn');
   }
 
-  if (typeof data.houseNumber !== 'string' || !data.houseNumber.trim()) {
-    throw new BadRequestException('House number is required');
+  if (
+    typeof data.houseNumber !== 'string' ||
+    !houseNumberPattern.test(data.houseNumber)
+  ) {
+    throw new BadRequestException('Indtast et gyldigt husnummer');
   }
 
-  if (typeof data.postalCode !== 'string' || !data.postalCode.trim()) {
-    throw new BadRequestException('Postal code is required');
+  if (
+    typeof data.postalCode !== 'string' ||
+    !postalCodePattern.test(data.postalCode)
+  ) {
+    throw new BadRequestException('Postnummer skal bestå af 4 cifre');
   }
 
-  if (typeof data.city !== 'string' || !data.city.trim()) {
-    throw new BadRequestException('City is required');
+  if (!isAddressName(data.city)) {
+    throw new BadRequestException('Indtast et gyldigt bynavn');
   }
 }

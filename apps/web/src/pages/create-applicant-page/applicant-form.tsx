@@ -10,7 +10,10 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import type { AddressSuggestion } from '../../api/addresses.api.js';
 import AddressAutocomplete from '../../components/address/address-autocomplete.js';
-import { useApplicants } from '../../hooks/use-applicants.js';
+import {
+  applicantSaveError,
+  useApplicants,
+} from '../../hooks/use-applicants.js';
 import { parseAddress } from './address-parser.js';
 import {
   isValidCvrNumber,
@@ -81,7 +84,7 @@ export default function ApplicantForm({ applicantType }: ApplicantFormProps) {
       navigate('/');
     } catch (error) {
       setSubmitError(
-        error instanceof Error ? error.message : 'Kunne ikke gemme ansøger.',
+        error instanceof Error ? error.message : applicantSaveError,
       );
     } finally {
       setIsSaving(false);
@@ -119,6 +122,17 @@ export default function ApplicantForm({ applicantType }: ApplicantFormProps) {
             name="name"
             placeholder={isBusiness ? 'Virksomhedens navn' : 'Fulde navn'}
             required
+            slotProps={{
+              htmlInput: {
+                pattern: isBusiness
+                  ? /(?:\p{L}\p{M}*|[0-9])+(?: +(?:\p{L}\p{M}*|[0-9])+)*/u
+                      .source
+                  : /(?:\p{L}\p{M}*)+(?: +(?:\p{L}\p{M}*)+)*/u.source,
+                title: isBusiness
+                  ? 'Brug bogstaver, tal og mellemrum mellem ord.'
+                  : 'Brug bogstaver og mellemrum mellem ord.',
+              },
+            }}
           />
 
           <TextField
@@ -153,6 +167,7 @@ export default function ApplicantForm({ applicantType }: ApplicantFormProps) {
             name="email"
             placeholder="E-mailadresse"
             required
+            slotProps={{ htmlInput: { pattern: /[^@]+@[^@]+\.[^@]+/.source } }}
             type="email"
           />
 

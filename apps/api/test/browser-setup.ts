@@ -6,6 +6,7 @@ import pg from 'pg';
 export default async function setUpBrowserDatabase(): Promise<
   () => Promise<void>
 > {
+  const apiPort = process.env.PLAYWRIGHT_API_PORT ?? '3190';
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl)
     throw new Error('Set DATABASE_URL before running browser tests.');
@@ -21,7 +22,8 @@ export default async function setUpBrowserDatabase(): Promise<
     DATABASE_URL: url.href,
     DEV_PROFILE_APPLICANT_ID: applicantId,
     NODE_ENV: 'development',
-    PORT: '3190',
+    DATAFORSYNINGEN_TOKEN: 'playwright-test-token',
+    PORT: apiPort,
   };
 
   await admin.connect();
@@ -76,11 +78,15 @@ export default async function setUpBrowserDatabase(): Promise<
       await db.end();
     }
 
-    api = spawn(process.execPath, ['dist/main.js'], {
-      cwd,
-      env,
-      stdio: 'inherit',
-    });
+    api = spawn(
+      process.execPath,
+      ['--import', './test/address-provider.fixture.mjs', 'dist/main.js'],
+      {
+        cwd,
+        env,
+        stdio: 'inherit',
+      },
+    );
     const child = api;
     apiExited = new Promise((resolve) => child.once('close', resolve));
 
@@ -88,7 +94,7 @@ export default async function setUpBrowserDatabase(): Promise<
       if (child.exitCode !== null) break;
       try {
         const response = await fetch(
-          'http://localhost:3190/api/applicants/profile',
+          `http://localhost:${apiPort}/api/applicants/profile`,
           {
             signal: AbortSignal.timeout(1000),
           },
@@ -103,7 +109,7 @@ export default async function setUpBrowserDatabase(): Promise<
       await delay(250);
     }
 
-    throw new Error('Playwright API did not become ready on port 3190.');
+    throw new Error(`Playwright API did not become ready on port ${apiPort}.`);
   } catch (error) {
     await cleanup();
     throw error;

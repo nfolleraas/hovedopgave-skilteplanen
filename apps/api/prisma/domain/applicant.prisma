@@ -8,8 +8,10 @@ model Applicant {
   mitIdKey        String?
   skilteplanenKey String?
   isActive        Boolean        @default(true)
-  addressId       String         @unique
+  addressId       String
   address         Address        @relation(fields: [addressId], references: [uuid])
   notifications   Notification[]
   applications    Application[]
+
+  @@index([addressId])
 }

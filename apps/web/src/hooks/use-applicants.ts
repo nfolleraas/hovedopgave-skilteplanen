@@ -1,3 +1,6 @@
+export const applicantSaveError =
+  'Kunne ikke gemme ansøgeren. Prøv igen senere eller kontakt support.';
+
 export interface CreateApplicantInput {
   name: string;
   type: 'business' | 'private';
@@ -27,12 +30,29 @@ export function useApplicants(): ApplicantsActions {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
+    }).catch((error: unknown) => {
+      throw new Error(applicantSaveError, { cause: error });
     });
 
     const result: unknown = await response.json().catch(() => undefined);
 
+    if (response.status >= 500) {
+      if (
+        response.status === 502 &&
+        typeof result === 'object' &&
+        result !== null &&
+        'code' in result &&
+        result.code === 'addressLookupFailed' &&
+        'message' in result &&
+        typeof result.message === 'string'
+      ) {
+        throw new Error(result.message);
+      }
+      throw new Error(applicantSaveError);
+    }
+
     if (!response.ok) {
-      let message = 'Kunne ikke gemme ansøger.';
+      let message = applicantSaveError;
 
       if (
         typeof result === 'object' &&

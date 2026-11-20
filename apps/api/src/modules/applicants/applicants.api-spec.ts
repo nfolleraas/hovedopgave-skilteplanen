@@ -4,17 +4,26 @@ import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { App } from 'supertest/types.js';
 import { vi } from 'vitest';
-import { AppModule } from './../src/app.module.js';
-import { PrismaService } from './../src/modules/prisma/prisma.service.js';
+import { AppModule } from '../../app.module.js';
+import { AddressesService } from '../addresses/addresses.service.js';
+import { PrismaService } from '../prisma/prisma.service.js';
 
-describe('Applicants (e2e)', () => {
+describe('Applicants API', () => {
   let app: INestApplication<App>;
   let prisma: PrismaService;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      .overrideProvider(AddressesService)
+      .useValue({
+        searchAddresses: async (query: string) =>
+          /^Vestergade [12], 8000 Aarhus C$/.test(query)
+            ? [{ id: 'fixture', type: 'husnummer', titel: query }]
+            : [],
+      })
+      .compile();
 
     app = moduleFixture.createNestApplication();
     await app.init();
@@ -100,7 +109,7 @@ describe('Applicants (e2e)', () => {
       const response = await request(app.getHttpServer())
         .post('/applicants')
         .send({
-          name: 'E2E Test Applicant',
+          name: 'Test Applicant',
           type: 'private',
           phoneNumber: '12345678',
           email,
@@ -113,7 +122,7 @@ describe('Applicants (e2e)', () => {
 
       const applicantUuid = response.body.uuid as string;
       expect(response.body).toMatchObject({
-        name: 'E2E Test Applicant',
+        name: 'Test Applicant',
         type: 'Private',
         email,
         mitIdKey: null,
@@ -125,7 +134,7 @@ describe('Applicants (e2e)', () => {
       });
 
       expect(savedApplicant).toMatchObject({
-        name: 'E2E Test Applicant',
+        name: 'Test Applicant',
         email,
         address: {
           street: 'Vestergade',
@@ -142,10 +151,64 @@ describe('Applicants (e2e)', () => {
 
       if (savedApplicant) {
         await prisma.applicant.delete({ where: { uuid: savedApplicant.uuid } });
-        await prisma.address.delete({
-          where: { uuid: savedApplicant.addressId },
+        await prisma.address.deleteMany({
+          where: {
+            uuid: savedApplicant.addressId,
+            applicants: { none: {} },
+            municipality: null,
+          },
         });
       }
+    }
+  });
+
+  it('reuses a verified address and rejects an unverified one', async () => {
+    const email = `address-${randomUUID()}@example.com`;
+    const secondEmail = `second-${email}`;
+    const client = request(app.getHttpServer());
+    const input = {
+      name: 'Test Applicant',
+      type: 'private',
+      phoneNumber: '12345678',
+      email,
+      street: 'Vestergade',
+      houseNumber: '2',
+      postalCode: '8000',
+      city: 'Aarhus C',
+    };
+
+    try {
+      await client
+        .post('/applicants')
+        .send({ ...input, street: 'Opdigtetvej' })
+        .expect(422);
+      expect(
+        await prisma.applicant.findUnique({ where: { email } }),
+      ).toBeNull();
+
+      const [first, second] = await Promise.all([
+        client.post('/applicants').send(input).expect(201),
+        client
+          .post('/applicants')
+          .send({ ...input, email: secondEmail })
+          .expect(201),
+      ]);
+      expect(first.body.addressId).toEqual(expect.any(String));
+      expect(second.body.addressId).toBe(first.body.addressId);
+    } finally {
+      const where = { email: { in: [email, secondEmail] } };
+      const fixtures = await prisma.applicant.findMany({
+        where,
+        select: { addressId: true },
+      });
+      await prisma.applicant.deleteMany({ where });
+      await prisma.address.deleteMany({
+        where: {
+          uuid: { in: fixtures.map(({ addressId }) => addressId) },
+          applicants: { none: {} },
+          municipality: null,
+        },
+      });
     }
   });
 
@@ -157,7 +220,7 @@ describe('Applicants (e2e)', () => {
       await request(app.getHttpServer())
         .post('/applicants')
         .send({
-          name: 'E2E Test Applicant',
+          name: 'Test Applicant',
           type: 'private',
           phoneNumber: '12345678',
           email,
@@ -171,7 +234,7 @@ describe('Applicants (e2e)', () => {
       await request(app.getHttpServer())
         .post('/applicants')
         .send({
-          name: 'E2E Test Applicant 2',
+          name: 'Second Test Applicant',
           type: 'private',
           phoneNumber: '87654321',
           email: normalizedEmail,
@@ -189,8 +252,12 @@ describe('Applicants (e2e)', () => {
 
       if (savedApplicant) {
         await prisma.applicant.delete({ where: { uuid: savedApplicant.uuid } });
-        await prisma.address.delete({
-          where: { uuid: savedApplicant.addressId },
+        await prisma.address.deleteMany({
+          where: {
+            uuid: savedApplicant.addressId,
+            applicants: { none: {} },
+            municipality: null,
+          },
         });
       }
     }
@@ -204,7 +271,7 @@ describe('Applicants (e2e)', () => {
       await request(app.getHttpServer())
         .post('/applicants')
         .send({
-          name: 'E2E Test Business Applicant',
+          name: 'Test Business Applicant',
           type: 'business',
           phoneNumber: '12345678',
           email,
@@ -219,7 +286,7 @@ describe('Applicants (e2e)', () => {
       await request(app.getHttpServer())
         .post('/applicants')
         .send({
-          name: 'E2E Test Business Applicant 2',
+          name: 'Test Business Applicant 2',
           type: 'business',
           phoneNumber: '87654321',
           email: `other-${email}`,
@@ -238,8 +305,12 @@ describe('Applicants (e2e)', () => {
 
       if (savedApplicant) {
         await prisma.applicant.delete({ where: { uuid: savedApplicant.uuid } });
-        await prisma.address.delete({
-          where: { uuid: savedApplicant.addressId },
+        await prisma.address.deleteMany({
+          where: {
+            uuid: savedApplicant.addressId,
+            applicants: { none: {} },
+            municipality: null,
+          },
         });
       }
     }

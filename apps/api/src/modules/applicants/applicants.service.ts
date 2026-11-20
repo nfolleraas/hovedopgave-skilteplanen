@@ -1,6 +1,19 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadGatewayException,
+  Injectable,
+  Logger,
+  NotFoundException,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import { type Applicant, Prisma } from '../../generated/prisma/client.js';
-import { ApplicantsRepository } from './applicants.repository.js';
+import {
+  AddressesService,
+  type AddressSuggestion,
+} from '../addresses/addresses.service.js';
+import {
+  type ApplicantProfile,
+  ApplicantsRepository,
+} from './applicants.repository.js';
 import {
   validateCreateApplicant,
   validateProfile,
@@ -10,7 +23,12 @@ import { mapApplicantCreateError } from './mappers/applicant-error.mapper.js';
 
 @Injectable()
 export class ApplicantsService {
-  constructor(private readonly applicantsRepository: ApplicantsRepository) {}
+  private readonly logger = new Logger(ApplicantsService.name);
+
+  constructor(
+    private readonly applicantsRepository: ApplicantsRepository,
+    private readonly addressesService: AddressesService,
+  ) {}
 
   private getProfileApplicantId() {
     const uuid = process.env.DEV_PROFILE_APPLICANT_ID?.trim();
@@ -26,17 +44,18 @@ export class ApplicantsService {
     return profile;
   }
 
-  getProfile() {
+  getProfile(): Promise<ApplicantProfile> {
     return this.findProfile(this.getProfileApplicantId());
   }
 
-  async updateProfile(input: unknown) {
+  async updateProfile(input: unknown): Promise<ApplicantProfile> {
     const uuid = this.getProfileApplicantId();
     const profile = await this.findProfile(uuid);
     const data = validateProfile(input, profile.type === 'Business');
 
+    let updatedProfile: ApplicantProfile;
     try {
-      return await this.applicantsRepository.updateActiveProfile(
+      updatedProfile = await this.applicantsRepository.updateActiveProfile(
         uuid,
         profile.type,
         data,
@@ -50,6 +69,55 @@ export class ApplicantsService {
       }
       mapApplicantCreateError(error, { includeField: true });
     }
+
+    this.logger.log({
+      actorApplicantId: uuid,
+      actorSource: 'developmentProfile',
+      applicantName: updatedProfile.name,
+      timestamp: new Date().toISOString(),
+      type: updatedProfile.type,
+      change: 'updated',
+    });
+
+    return updatedProfile;
+  }
+
+  private async verifyAddress(data: CreateApplicantDto): Promise<void> {
+    const streetAndNumber = `${data.street} ${data.houseNumber}`;
+    const postalCity = `${data.postalCode} ${data.city}`;
+    const query = `${streetAndNumber}, ${postalCity}`.slice(0, 73);
+    const message = 'Ugyldig adresse. Prøv igen senere eller kontakt support.';
+    const normalize = (text: string): string =>
+      text.trim().normalize('NFC').replace(/\s+/g, ' ').toLowerCase();
+
+    let suggestions: AddressSuggestion[];
+    try {
+      suggestions = await this.addressesService.searchAddresses(query);
+    } catch (error: unknown) {
+      if (error instanceof BadGatewayException) {
+        throw new BadGatewayException(
+          { code: 'addressLookupFailed', message },
+          { cause: error },
+        );
+      }
+      throw error;
+    }
+
+    const verified = suggestions.some((suggestion) => {
+      if (suggestion.type !== 'adresse' && suggestion.type !== 'husnummer') {
+        return false;
+      }
+      const parts = suggestion.titel.split(',');
+      return (
+        parts.length >= 2 &&
+        normalize(parts[0]) === normalize(streetAndNumber) &&
+        normalize(parts[parts.length - 1]) === normalize(postalCity)
+      );
+    });
+
+    if (!verified) {
+      throw new UnprocessableEntityException(message);
+    }
   }
 
   /**
@@ -62,12 +130,28 @@ export class ApplicantsService {
       ...data,
       email: data.email.trim().toLowerCase(),
       cvrNumber: data.type === 'business' ? data.cvrNumber?.trim() : undefined,
+      street: data.street.trim().normalize('NFC').replace(/ +/g, ' '),
+      city: data.city.trim().normalize('NFC').replace(/ +/g, ' '),
+      houseNumber: data.houseNumber.toUpperCase(),
     };
 
+    await this.verifyAddress(normalizedData);
+
+    let applicant: Applicant;
     try {
-      return await this.applicantsRepository.createApplicant(normalizedData);
+      applicant =
+        await this.applicantsRepository.createApplicant(normalizedData);
     } catch (error: unknown) {
       mapApplicantCreateError(error);
     }
+
+    this.logger.log({
+      applicantName: applicant.name,
+      timestamp: new Date().toISOString(),
+      type: applicant.type,
+      change: 'created',
+    });
+
+    return applicant;
   }
 }

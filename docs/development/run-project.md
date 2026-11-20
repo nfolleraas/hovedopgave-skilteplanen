@@ -50,7 +50,7 @@ Run workspace commands from the repository root with a filter:
 bun run --filter web build
 bun run --filter api build
 bun run --filter api test
-bun run --filter api test:e2e
+bun run --filter api test:api
 bun run check
 ```
 

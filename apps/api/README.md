@@ -65,8 +65,8 @@ $ bun run start:prod
 # unit tests
 $ bun run test
 
-# e2e tests
-$ bun run test:e2e
+# API tests
+$ bun run test:api
 
 # test coverage
 $ bun run test:cov

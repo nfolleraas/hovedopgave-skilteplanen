@@ -6,7 +6,18 @@ import type { CreateApplicantDto } from './dto/create-applicant.dto.js';
 describe('ApplicantsRepository', () => {
   const createdApplicant = { uuid: 'applicant-1' };
   const create = vi.fn(async (_args: unknown) => createdApplicant);
-  const prisma = { applicant: { create } };
+  const findFirst = vi.fn();
+  const transaction = {
+    applicant: { create },
+    address: { findFirst },
+    $queryRaw: vi.fn(),
+  };
+  const prisma = {
+    $transaction: vi.fn(
+      (callback: (tx: typeof transaction) => Promise<unknown>) =>
+        callback(transaction),
+    ),
+  };
   const repository = new ApplicantsRepository(
     prisma as unknown as PrismaService,
   );
@@ -25,6 +36,7 @@ describe('ApplicantsRepository', () => {
 
   beforeEach(() => {
     create.mockClear();
+    findFirst.mockReset().mockResolvedValue(null);
   });
 
   it('creates an applicant with a nested address', async () => {
@@ -49,6 +61,15 @@ describe('ApplicantsRepository', () => {
           },
         },
       },
+    });
+  });
+  it('connects to the existing address', async () => {
+    findFirst.mockResolvedValue({ uuid: 'existing-address' });
+    await repository.createApplicant(applicantData);
+    expect(create).toHaveBeenCalledExactlyOnceWith({
+      data: expect.objectContaining({
+        address: { connect: { uuid: 'existing-address' } },
+      }),
     });
   });
 });

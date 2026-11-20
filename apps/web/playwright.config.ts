@@ -1,17 +1,21 @@
 import { defineConfig } from '@playwright/test';
 
+const apiPort = Number(process.env.PLAYWRIGHT_API_PORT ?? '3190');
+const webPort = Number(process.env.PLAYWRIGHT_WEB_PORT ?? '5190');
+const webURL = `http://localhost:${webPort}`;
+
 export default defineConfig({
-  testDir: './tests',
+  testDir: './src/tests',
   outputDir: './node_modules/.cache/playwright-results',
   globalSetup: '../api/test/browser-setup.ts',
   use: {
-    baseURL: 'http://localhost:5190',
+    baseURL: webURL,
     browserName: 'chromium',
     locale: 'da-DK',
   },
   webServer: {
-    command: 'bun run --bun vite --host localhost --port 5190 --strictPort',
-    env: { WEB_API_PROXY_TARGET: 'http://localhost:3190' },
-    url: 'http://localhost:5190',
+    command: `bun run --bun vite --host localhost --port ${webPort} --strictPort`,
+    env: { WEB_API_PROXY_TARGET: `http://localhost:${apiPort}` },
+    url: webURL,
   },
 });

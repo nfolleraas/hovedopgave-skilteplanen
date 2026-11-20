@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "bun run locale:extract && vite",
     "build": "tsc -b && vite build",
-    "test": "bun test src",
+    "test": "bun test src --path-ignore-patterns='src/tests/**'",
     "lint": "biome lint .",
     "preview": "vite preview",
     "locale:extract": "i18next 'src/**/*.{ts,tsx}' --config locales/i18next-parser.config.mjs",

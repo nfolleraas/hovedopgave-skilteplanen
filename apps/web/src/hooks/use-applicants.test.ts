@@ -70,23 +70,33 @@ describe('useApplicants', () => {
     ).rejects.toThrow('A, B');
   });
 
-  it('throws a generic message when the API error payload is not JSON', async () => {
-    globalThis.fetch = (async (_input, _init) => {
-      return new Response('nope', { status: 500 });
-    }) as typeof fetch;
+  it.each([
+    () => Promise.resolve(new Response('nope', { status: 500 })),
+    () =>
+      Promise.resolve(
+        Response.json({ message: 'Internal server error' }, { status: 500 }),
+      ),
+    () => Promise.reject(new TypeError('Failed to fetch')),
+  ])(
+    'shows the support message when saving fails unexpectedly',
+    async (response) => {
+      globalThis.fetch = response as typeof fetch;
 
-    const { createApplicant } = useApplicants();
-    await expect(
-      createApplicant({
-        name: 'Test',
-        type: 'private',
-        phoneNumber: '12345678',
-        email: 'test@example.com',
-        street: 'Vestergade',
-        houseNumber: '1',
-        postalCode: '8000',
-        city: 'Aarhus C',
-      }),
-    ).rejects.toThrow('Kunne ikke gemme ansøger.');
-  });
+      const { createApplicant } = useApplicants();
+      await expect(
+        createApplicant({
+          name: 'Test',
+          type: 'private',
+          phoneNumber: '12345678',
+          email: 'test@example.com',
+          street: 'Vestergade',
+          houseNumber: '1',
+          postalCode: '8000',
+          city: 'Aarhus C',
+        }),
+      ).rejects.toThrow(
+        'Kunne ikke gemme ansøgeren. Prøv igen senere eller kontakt support.',
+      );
+    },
+  );
 });
