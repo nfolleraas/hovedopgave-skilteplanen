@@ -44,7 +44,18 @@ test('creates a municipality from the administrator form', async ({ page }) => {
   await page
     .getByRole('textbox', { name: 'Telefonnummer' })
     .fill(municipality.phoneNumber);
-  await page.getByRole('textbox', { name: 'E-mail' }).fill(municipality.email);
+  const email = page.getByRole('textbox', { name: 'E-mail' });
+  for (const invalidEmail of ['kontakt😊@example.dk', 'kontakt@example']) {
+    await email.fill(invalidEmail);
+    expect(
+      await email.evaluate((input: HTMLInputElement) => input.validity.valid),
+    ).toBe(false);
+  }
+  await email.fill('kontakt+test@post.example.dk');
+  expect(
+    await email.evaluate((input: HTMLInputElement) => input.validity.valid),
+  ).toBe(true);
+  await email.fill(municipality.email);
   await address.fill('Vestergade 2');
   await page
     .getByRole('option', { name: 'Vestergade 2, 5000 Odense C' })

@@ -59,6 +59,29 @@ describe('validateCreateMunicipality', () => {
     ).toThrow(BadRequestException);
   });
 
+  it('accepterer en e-mail med plus og et underdomæne', () => {
+    expect(() =>
+      validateCreateMunicipality({
+        ...validMunicipality,
+        email: 'kontakt+test@post.example.dk',
+      }),
+    ).not.toThrow();
+  });
+
+  it.each([
+    'kontakt😊@example.dk',
+    'kontakt@example',
+    'kontakt@-example.dk',
+    'kontakt@example..dk',
+  ])('afviser e-mailadressen %s', (email) => {
+    expect(() =>
+      validateCreateMunicipality({ ...validMunicipality, email }),
+    ).toThrow(BadRequestException);
+    expect(() =>
+      validateUpdateMunicipality({ ...validMunicipality, email }),
+    ).toThrow(BadRequestException);
+  });
+
   it('afviser telefonnummer med 7 cifre', () => {
     expect(() =>
       validateCreateMunicipality({

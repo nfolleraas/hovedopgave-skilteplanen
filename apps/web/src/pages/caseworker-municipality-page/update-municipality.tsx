@@ -241,6 +241,7 @@ function MunicipalityUpdateForm({
             label={t('municipality.create.email')}
             onChange={(event) => setEmail(event.target.value)}
             required
+            slotProps={{ htmlInput: { pattern: /[^@]+@[^@]+\.[^@]+/.source } }}
             type="email"
             value={email}
           />

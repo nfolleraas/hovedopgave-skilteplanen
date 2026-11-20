@@ -9,6 +9,10 @@ type MunicipalityValidationCode =
   | 'invalidAddress'
   | 'invalidPostalCode';
 
+// Match the browser email field and require a multi-label domain.
+const emailPattern =
+  /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
+
 /** Includes a stable code so clients can translate validation messages. */
 function validationError(
   code: MunicipalityValidationCode,
@@ -58,10 +62,7 @@ function validateName(data: unknown): asserts data is Record<string, unknown> {
  * @throws BadRequestException if either contact field is invalid.
  */
 function validateContact(data: Record<string, unknown>): void {
-  if (
-    typeof data.email !== 'string' ||
-    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)
-  ) {
+  if (typeof data.email !== 'string' || !emailPattern.test(data.email)) {
     throw validationError('invalidEmail', 'Ugyldig e-mailadresse');
   }
 

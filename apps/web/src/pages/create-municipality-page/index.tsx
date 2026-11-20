@@ -178,6 +178,9 @@ export default function CreateMunicipalityPage(): ReactElement {
                 label={t('municipality.create.email')}
                 onChange={(event) => updateField('email', event.target.value)}
                 required
+                slotProps={{
+                  htmlInput: { pattern: /[^@]+@[^@]+\.[^@]+/.source },
+                }}
                 type="email"
                 value={form.email}
               />
