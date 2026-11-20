@@ -9,6 +9,7 @@ import {
 import type { FormEvent, ReactElement } from 'react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router';
 import { mapMunicipalityToForm } from '../../api/mappers/municipalities.mapper.js';
 import {
   getMunicipality,
@@ -28,8 +29,10 @@ import type {
  * error, or the edit form populated with saved values.
  */
 export default function UpdateMunicipality({
+  editing,
   municipalityId,
 }: {
+  editing: boolean;
   municipalityId: number;
 }): ReactElement {
   const { t } = useTranslation();
@@ -70,7 +73,29 @@ export default function UpdateMunicipality({
     );
   }
 
-  return <MunicipalityUpdateForm municipality={municipality} />;
+  if (editing) {
+    return <MunicipalityUpdateForm municipality={municipality} />;
+  }
+
+  const { address, email, name, phoneNumber } = municipality;
+  return (
+    <Stack spacing={2}>
+      <Typography component="h2" variant="h6">
+        {name}
+      </Typography>
+      <Box component="dl">
+        <dt>{t('municipality.create.email')}</dt>
+        <dd>{email}</dd>
+        <dt>{t('municipality.create.phoneNumber')}</dt>
+        <dd>{phoneNumber}</dd>
+        <dt>{t('address.label')}</dt>
+        <dd>
+          {address.street} {address.houseNumber}, {address.postalCode}{' '}
+          {address.city}
+        </dd>
+      </Box>
+    </Stack>
+  );
 }
 
 /**
@@ -83,6 +108,7 @@ function MunicipalityUpdateForm({
   municipality: Municipality;
 }): ReactElement {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [saved, setSaved] = useState(() => mapMunicipalityToForm(municipality));
   const [email, setEmail] = useState(saved.email);
   const [phoneNumber, setPhoneNumber] = useState(saved.phoneNumber);
@@ -108,10 +134,26 @@ function MunicipalityUpdateForm({
   const canSave = !saving && address !== null && hasChanges;
   const validationMessages = {
     invalidEmail: t('municipality.update.invalidEmail'),
+    emailInUse: t('municipality.update.emailInUse'),
+    phoneNumberInUse: t('municipality.update.phoneNumberInUse'),
     invalidPhoneNumber: t('municipality.update.invalidPhoneNumber'),
     invalidAddress: t('municipality.create.addressError'),
     invalidPostalCode: t('municipality.update.invalidPostalCode'),
   };
+
+  const emailInvalid =
+    status === 'error' &&
+    (validationCode === 'invalidEmail' || validationCode === 'emailInUse');
+  const phoneInvalid =
+    status === 'error' &&
+    (validationCode === 'invalidPhoneNumber' ||
+      validationCode === 'phoneNumberInUse');
+  const addressValidationMessage =
+    status === 'error' &&
+    (validationCode === 'invalidAddress' ||
+      validationCode === 'invalidPostalCode')
+      ? validationMessages[validationCode]
+      : undefined;
 
   /**
    * Restores the supplied form values and remounts the address field with the
@@ -187,12 +229,14 @@ function MunicipalityUpdateForm({
         >
           <PhoneNumberField
             disabled={saving}
+            error={phoneInvalid}
             onChange={setPhoneNumber}
             value={phoneNumber}
           />
           <TextField
             autoComplete="email"
             disabled={saving}
+            error={emailInvalid}
             fullWidth
             label={t('municipality.create.email')}
             onChange={(event) => setEmail(event.target.value)}
@@ -205,7 +249,9 @@ function MunicipalityUpdateForm({
         <AddressAutocomplete
           disabled={saving}
           errorMessage={
-            addressError ? t('municipality.create.addressError') : undefined
+            addressError
+              ? t('municipality.create.addressError')
+              : addressValidationMessage
           }
           initialAddressText={`${saved.address.street} ${saved.address.houseNumber}, ${saved.address.postalCode} ${saved.address.city}`}
           key={addressKey}
@@ -225,6 +271,12 @@ function MunicipalityUpdateForm({
           }}
         />
 
+        {status === 'idle' && !hasChanges && address !== null && (
+          <Typography color="text.secondary" variant="body2">
+            {t('municipality.update.noChanges')}
+          </Typography>
+        )}
+
         <Stack
           direction={{ xs: 'column', sm: 'row' }}
           spacing={2}
@@ -233,8 +285,7 @@ function MunicipalityUpdateForm({
           <Button
             disabled={saving}
             onClick={() => {
-              resetForm(saved);
-              setStatus('idle');
+              void navigate(`/sagsbehandler/kommuner/${municipality.id}`);
             }}
             variant="outlined"
           >

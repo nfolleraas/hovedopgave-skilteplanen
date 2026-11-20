@@ -137,6 +137,12 @@ export default function CreateMunicipalityPage(): ReactElement {
                 label={t('municipality.create.name')}
                 onChange={(event) => updateField('name', event.target.value)}
                 required
+                slotProps={{
+                  htmlInput: {
+                    pattern: /(?:\p{L}\p{M}*)+(?: +(?:\p{L}\p{M}*)+)*/u.source,
+                    title: t('municipality.create.nameFormat'),
+                  },
+                }}
                 value={form.name}
               />
 

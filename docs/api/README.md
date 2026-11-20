@@ -25,7 +25,7 @@ Run these from the repository root:
 bun run --filter api dev
 bun run --filter api build
 bun run --filter api test
-bun run --filter api test:e2e
+bun run --filter api test:api
 bun run --filter api lint
 ```
 

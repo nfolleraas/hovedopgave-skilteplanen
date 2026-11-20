@@ -10,6 +10,8 @@ const validationCodes = [
   'invalidPhoneNumber',
   'invalidAddress',
   'invalidPostalCode',
+  'emailInUse',
+  'phoneNumberInUse',
 ] as const;
 
 /** Identifies a municipality validation error the form can translate. */
@@ -80,7 +82,7 @@ export async function updateMunicipality(
   });
 
   if (!response.ok) {
-    if (response.status === 400) {
+    if (response.status === 400 || response.status === 409) {
       const body: unknown = await response.json().catch(() => null);
 
       if (typeof body === 'object' && body !== null && 'code' in body) {

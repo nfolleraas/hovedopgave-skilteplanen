@@ -3,6 +3,7 @@ import { CreateMunicipalityDto } from './dto/create-municipality.dto.js';
 import { UpdateMunicipalityDto } from './dto/update-municipality.dto.js';
 
 type MunicipalityValidationCode =
+  | 'invalidName'
   | 'invalidEmail'
   | 'invalidPhoneNumber'
   | 'invalidAddress'
@@ -36,12 +37,18 @@ function hasText(value: unknown): value is string {
 }
 
 /**
- * Checks that the input is an object with a municipality name. Successful
- * validation lets callers read fields from the input as an object.
+ * Requires a municipality name made of letters separated by spaces.
  */
 function validateName(data: unknown): asserts data is Record<string, unknown> {
   if (!isRecord(data) || !hasText(data.name)) {
-    throw new BadRequestException('Kommunens navn skal udfyldes');
+    throw validationError('invalidName', 'Kommunens navn skal udfyldes');
+  }
+
+  if (!/^(?:\p{L}\p{M}*)+(?: +(?:\p{L}\p{M}*)+)*$/u.test(data.name)) {
+    throw validationError(
+      'invalidName',
+      'Kommunens navn må kun indeholde bogstaver og mellemrum mellem ord',
+    );
   }
 }
 

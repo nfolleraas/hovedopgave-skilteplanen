@@ -80,8 +80,8 @@ export default function CaseworkerMunicipalityPage(): ReactElement {
         {!validId && (
           <Alert severity="error">{t('municipality.update.loadError')}</Alert>
         )}
-        {validId && editing && (
-          <UpdateMunicipality key={id} municipalityId={id} />
+        {validId && (
+          <UpdateMunicipality editing={editing} key={id} municipalityId={id} />
         )}
       </Box>
     </SidebarLayout>

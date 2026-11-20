@@ -144,9 +144,14 @@ bun run lint                  # inde i apps/web
 | `build`      | `tsc -b && vite build`             | `nest build` til `dist/`  |
 | `lint`       | `biome lint .`                     | `biome lint .`            |
 | `test`       | –                                  | Vitest unit tests        |
-| `test:e2e`   | –                                  | Vitest e2e tests         |
+| `test:api`   | –                                  | Vitest API-tests          |
+| `test:e2e`   | Playwright E2E-tests               | –                         |
 | `preview`    | serverer produktionsbuild          | –                         |
 | `start:prod` | –                                  | `node dist/main`          |
+
+Backendens unit-tests (`*.spec.ts`) og API-tests (`*.api-spec.ts`) ligger ved
+siden af modulets kode under `apps/api/src/modules/`. Frontendens E2E-tests
+ligger under `apps/web/src/tests/<domæne>/` med én `*.spec.ts` pr. use case.
 
 ### Database
 

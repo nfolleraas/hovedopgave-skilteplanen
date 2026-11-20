@@ -74,14 +74,14 @@ apps/api/
 │   ├── app.module.ts          Root NestJS module
 │   ├── app.service.ts         Root API service
 │   └── main.ts                API bootstrap and HTTP configuration
-├── test/                      API end-to-end tests
 ├── openapi.json               OpenAPI document
 ├── package.json               API scripts and dependencies
-└── vitest.config*.ts          Unit and end-to-end test configuration
+└── vitest.config*.ts          Unit and API test configuration
 ```
 
 API modules are organized by business capability. A module's controller,
-service, repository, DTOs, and mappers stay together under its module folder.
+service, repository, DTOs, and mappers stay together under its module folder,
+along with unit tests (`*.spec.ts`) and HTTP API tests (`*.api-spec.ts`).
 
 ### Web: `apps/web/`
 
@@ -97,7 +97,8 @@ apps/web/
 │   ├── context/               React context providers
 │   ├── hooks/                 Reusable React hooks
 │   ├── lib/                   Shared library integrations
-│   ├── pages/                 Route-level page components and tests
+│   ├── pages/                 Route-level page components
+│   ├── tests/                 Playwright tests by domain and use case
 │   ├── types/                 Shared frontend and API types
 │   ├── utils/                 Small shared utilities
 │   ├── App.tsx                Legacy/root application component

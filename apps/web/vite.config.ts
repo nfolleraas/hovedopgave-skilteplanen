@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
     host: true,
     proxy: {
-      '/api': 'http://localhost:3000',
+      '/api': process.env.PLAYWRIGHT_API_URL ?? 'http://localhost:3000',
       '/swagger': 'http://localhost:3000',
     },
   },

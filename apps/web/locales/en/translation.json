@@ -56,6 +56,7 @@
       "cancel": "Cancel",
       "success": "Municipality created successfully",
       "error": "Could not create municipality",
+      "nameFormat": "Use only letters and spaces between words.",
       "name": "Municipality name",
       "region": "Region",
       "save": "Save municipality"
@@ -64,6 +65,9 @@
       "title": "Update municipality details",
       "loadError": "Could not load the municipality. Check the URL or try again.",
       "loading": "Loading municipality details…",
+      "emailInUse": "The email address is already used by another municipality.",
+      "phoneNumberInUse": "The phone number is already used by another municipality.",
+      "noChanges": "There are no changes to save.",
       "invalidEmail": "Enter a valid email address.",
       "invalidPhoneNumber": "The phone number must contain 8 digits.",
       "invalidPostalCode": "Select an address with a 4-digit postal code.",

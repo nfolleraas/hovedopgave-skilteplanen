@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { CreateMunicipalityDto } from './dto/create-municipality.dto.js';
 import { UpdateMunicipalityDto } from './dto/update-municipality.dto.js';
 import {
@@ -12,6 +12,8 @@ import {
 
 @Injectable()
 export class MunicipalitiesService {
+  private readonly logger = new Logger(MunicipalitiesService.name);
+
   /**
    * Receives the repository that performs database operations for
    * municipalities.
@@ -42,7 +44,17 @@ export class MunicipalitiesService {
   async create(data: CreateMunicipalityDto): Promise<MunicipalityWithAddress> {
     validateCreateMunicipality(data);
 
-    return this.municipalitiesRepository.create(data);
+    const municipality = await this.municipalitiesRepository.create(data);
+
+    this.logger.log({
+      municipalityName: municipality.name,
+      timestamp: new Date().toISOString(),
+      type: 'municipality',
+      change: 'created',
+      municipalityId: municipality.id,
+    });
+
+    return municipality;
   }
 
   /**
@@ -55,8 +67,26 @@ export class MunicipalitiesService {
   ): Promise<MunicipalityWithAddress> {
     validateUpdateMunicipality(data);
 
-    await this.findById(id);
+    const { municipality, changedFields } =
+      await this.municipalitiesRepository.update(id, data);
 
-    return this.municipalitiesRepository.update(id, data);
+    if (changedFields.length > 0) {
+      const employeeNumber =
+        process.env.NODE_ENV === 'production'
+          ? null
+          : process.env.MUNICIPALITY_DEMO_EMPLOYEE_NUMBER?.trim() || null;
+
+      this.logger.log({
+        municipalityId: municipality.id,
+        employeeNumber,
+        employeeNumberSource: employeeNumber ? 'mock' : 'unavailable',
+        timestamp: new Date().toISOString(),
+        type: 'municipality',
+        change: 'updated',
+        changedFields,
+      });
+    }
+
+    return municipality;
   }
 }

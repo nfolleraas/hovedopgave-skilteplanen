@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 interface PhoneNumberFieldProps {
   disabled?: boolean;
+  error?: boolean;
   onChange: (value: string) => void;
   value: string;
 }
@@ -13,6 +14,7 @@ interface PhoneNumberFieldProps {
  */
 export default function PhoneNumberField({
   disabled,
+  error,
   onChange,
   value,
 }: PhoneNumberFieldProps): ReactElement {
@@ -22,6 +24,7 @@ export default function PhoneNumberField({
     <TextField
       autoComplete="tel-national"
       disabled={disabled}
+      error={error}
       fullWidth
       label={t('municipality.create.phoneNumber')}
       onChange={(event) => onChange(event.target.value)}

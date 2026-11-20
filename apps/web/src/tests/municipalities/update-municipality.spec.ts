@@ -1,81 +1,5 @@
 import { expect, test } from '@playwright/test';
-
-const municipality = {
-  id: 7,
-  name: 'Testkommune',
-  region: 'Region Syddanmark',
-  email: 'kontakt@example.test',
-  phoneNumber: '12345678',
-  addressId: 'test-address',
-  address: {
-    uuid: 'test-address',
-    street: 'Vestergade',
-    houseNumber: '2',
-    postalCode: '5000',
-    city: 'Odense C',
-  },
-};
-
-test('creates a municipality from the administrator form', async ({ page }) => {
-  await page.route('**/api/addresses/search?**', (route) =>
-    route.fulfill({
-      json: [
-        {
-          id: municipality.addressId,
-          titel: 'Vestergade 2, 5000 Odense C',
-          type: 'husnummer',
-        },
-      ],
-    }),
-  );
-
-  await page.route('**/api/municipalities', (route) =>
-    route.fulfill({ status: 201, json: municipality }),
-  );
-
-  await page.goto('/admin/kommuner/opret');
-  await expect(
-    page.getByRole('heading', { name: 'Opret kommune' }),
-  ).toBeVisible();
-
-  const name = page.getByRole('textbox', { name: 'Kommunens navn' });
-  const region = page.getByRole('combobox', { name: 'Region' });
-  const address = page.getByRole('combobox', { name: 'Adresse' });
-  await name.fill(municipality.name);
-  await region.click();
-  await page.getByRole('option', { name: municipality.region }).click();
-  await page
-    .getByRole('textbox', { name: 'Telefonnummer' })
-    .fill(municipality.phoneNumber);
-  await page.getByRole('textbox', { name: 'E-mail' }).fill(municipality.email);
-  await address.fill('Vestergade 2');
-  await page
-    .getByRole('option', { name: 'Vestergade 2, 5000 Odense C' })
-    .click();
-
-  const requestPromise = page.waitForRequest(
-    (request) =>
-      request.method() === 'POST' &&
-      request.url().endsWith('/api/municipalities'),
-  );
-  await page.getByRole('button', { name: 'Gem kommune' }).click();
-
-  expect((await requestPromise).postDataJSON()).toEqual({
-    name: municipality.name,
-    region: municipality.region,
-    phoneNumber: municipality.phoneNumber,
-    email: municipality.email,
-    address: {
-      street: 'Vestergade',
-      houseNumber: '2',
-      postalCode: '5000',
-      city: 'Odense C',
-    },
-  });
-  await expect(page.getByRole('alert')).toHaveText('Kommunen er oprettet');
-  await expect(name).toHaveValue('');
-  await expect(address).toHaveValue('');
-});
+import { municipality } from './municipality.fixture';
 
 test('updates municipality details from the caseworker sidebar', async ({
   page,
@@ -110,9 +34,10 @@ test('updates municipality details from the caseworker sidebar', async ({
 
   await page.goto('/sagsbehandler/kommuner/7');
   const sidebar = page.getByRole('navigation', { name: 'Sagsbehandling' });
-  await sidebar
-    .getByRole('link', { name: 'Opdater kommuneoplysninger' })
-    .click();
+  const edit = sidebar.getByRole('link', {
+    name: 'Opdater kommuneoplysninger',
+  });
+  await edit.click();
   await expect(page).toHaveURL(/\/sagsbehandler\/kommuner\/7\/opdater$/);
   await expect(
     page.getByRole('heading', { name: 'Testkommune' }),
@@ -127,6 +52,9 @@ test('updates municipality details from the caseworker sidebar', async ({
   await expect(email).toHaveValue(municipality.email);
   await expect(address).toHaveValue('Vestergade 2, 5000 Odense C');
   await expect(save).toBeDisabled();
+  await expect(
+    page.getByText('Der er ingen ændringer at gemme.'),
+  ).toBeVisible();
 
   await phone.fill('87654321');
   await expect(save).toBeEnabled();
@@ -140,12 +68,17 @@ test('updates municipality details from the caseworker sidebar', async ({
     .click();
   await expect(save).toBeEnabled();
   await cancel.click();
+  await expect(page).toHaveURL(/\/sagsbehandler\/kommuner\/7$/);
+  await expect(page.getByText('Vestergade 2, 5000 Odense C')).toBeVisible();
+  await edit.click();
   await expect(address).toHaveValue('Vestergade 2, 5000 Odense C');
   await expect(save).toBeDisabled();
 
   await email.fill('kladde@example.test');
   await expect(save).toBeEnabled();
   await cancel.click();
+  await expect(page.getByText(municipality.email)).toBeVisible();
+  await edit.click();
   await expect(email).toHaveValue(municipality.email);
   await expect(save).toBeDisabled();
 

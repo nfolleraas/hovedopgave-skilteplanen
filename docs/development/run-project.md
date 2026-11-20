@@ -50,12 +50,36 @@ Run workspace commands from the repository root with a filter:
 bun run --filter web build
 bun run --filter api build
 bun run --filter api test
-bun run --filter api test:e2e
+bun run --filter api test:api
+bun run --filter web test:e2e
 bun run check
 ```
 
 The API build generates Prisma Client before compiling NestJS. It does not
 create or apply database migrations.
+
+### Manuel test af opdateringsloggen for UC-024
+
+Start API'et fra repoets rod med et mock-medarbejdernummer:
+
+```bash
+MUNICIPALITY_DEMO_EMPLOYEE_NUMBER=DEMO-001 bun run --filter api dev
+```
+
+Gem en ændring på sagsbehandlerens kommuneformular, og se opdateringshændelsen
+i API-terminalen. Hændelsen viser `employeeNumber: 'DEMO-001'` og
+`employeeNumberSource: 'mock'` sammen med tidspunktet og de ændrede felter.
+Ved `NODE_ENV=production` ignorerer API'et demoindstillingen.
+
+### Playwright med PostgreSQL
+
+Sæt `E2E_DATABASE_URL` til en separat PostgreSQL-testdatabase og kør
+`bun run --filter web test:e2e`. Playwright starter NestJS og anvender
+migrationer og de eksisterende demo-seeders. Kommuneflowet opretter sin egen
+kommune i browseren og fjerner kommunen og dens adresse bagefter.
+Adressesøgningen bruger et fast testsvar.
+
+Uden `E2E_DATABASE_URL` køres browser-testene med mockede API-svar.
 
 ## Prisma commands
 

@@ -26,6 +26,24 @@ describe('validateCreateMunicipality', () => {
     );
   });
 
+  it.each(['Ærø Kommune', 'Høje Taastrup', 'A\u030Arhus Kommune'])(
+    'accepterer kommunenavnet %s',
+    (name) => {
+      expect(() =>
+        validateCreateMunicipality({ ...validMunicipality, name }),
+      ).not.toThrow();
+    },
+  );
+
+  it.each(['Odense 2', 'Odense 😊', 'Odense-Kommune', 'Odense!'])(
+    'afviser kommunenavnet %s',
+    (name) => {
+      expect(() =>
+        validateCreateMunicipality({ ...validMunicipality, name }),
+      ).toThrow(BadRequestException);
+    },
+  );
+
   it('afviser felter med en forkert type', () => {
     expect(() =>
       validateCreateMunicipality({ ...validMunicipality, region: 123 }),
