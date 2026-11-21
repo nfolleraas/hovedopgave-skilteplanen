@@ -4,6 +4,8 @@ on:
   pull_request:
     branches: [Staging]
     types: [opened, reopened, synchronize, edited]
+  push:
+    branches: [Staging]
 
 permissions:
   contents: read
@@ -38,6 +40,8 @@ jobs:
         with:
           bun-version: '1.4.4'
       - run: bun install --frozen-lockfile
+      - name: Build frontend
+        run: bun run --filter web build
       - name: Run frontend unit tests
         working-directory: apps/web
         run: bun run test:unit
@@ -83,3 +87,47 @@ jobs:
       - name: Run API end-to-end tests
         working-directory: apps/api
         run: bun run test:e2e
+
+  deploy:
+    name: Deploy staging
+    if: github.event_name == 'push' && github.ref == 'refs/heads/Staging'
+    needs: [frontend, backend]
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: staging
+    concurrency:
+      group: staging-deployment
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Check that the tested commit is still current
+        id: commit
+        shell: bash
+        run: |
+          staging_ref="$(git ls-remote --exit-code origin refs/heads/Staging)"
+          if [[ "${staging_ref%%$'\t'*}" != "$GITHUB_SHA" ]]; then
+            echo "A newer commit has reached Staging. Skipping $GITHUB_SHA."
+            exit 0
+          fi
+          echo "current=true" >> "$GITHUB_OUTPUT"
+      - name: Connect to Coolify over Tailscale
+        if: steps.commit.outputs.current == 'true'
+        uses: tailscale/github-action@064b10558093f38325e838ddea35486bdc6b1d5c # v4.4.0
+        with:
+          oauth-client-id: ${{ vars.TS_OAUTH_CLIENT_ID }}
+          audience: ${{ vars.TS_AUDIENCE }}
+          tags: tag:staging-deploy
+      - name: Deploy and verify both applications
+        if: steps.commit.outputs.current == 'true'
+        env:
+          COOLIFY_URL: ${{ vars.COOLIFY_URL }}
+          COOLIFY_BACKEND_UUID: ${{ vars.COOLIFY_BACKEND_UUID }}
+          COOLIFY_FRONTEND_UUID: ${{ vars.COOLIFY_FRONTEND_UUID }}
+          STAGING_URL: ${{ vars.STAGING_URL }}
+          COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
+        run: bash .github/scripts/deploy-staging.sh
