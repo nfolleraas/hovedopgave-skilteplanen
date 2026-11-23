@@ -21,10 +21,6 @@
   "common": {
     "brandName": "Skilteplanen"
   },
-  "urlPreview": {
-    "openInNewTab": "Open in a new tab",
-    "close": "Close preview"
-  },
   "navigation": {
     "home": "Home",
     "application": "Application",
@@ -46,10 +42,14 @@
     "deleting": "Deleting...",
     "delete": "Delete"
   },
+  "urlPreview": {
+    "openInNewTab": "Open in a new tab",
+    "close": "Close preview"
+  },
   "documents": {
     "addSignplan": "Add signplan",
-    "addSignplanDescription": "Choose whether to upload an existing sign plan or create a new one.",
     "closeAddSignplan": "Close add signplan",
+    "addSignplanDescription": "Choose whether to upload an existing sign plan or create a new one.",
     "uploadExistingSignplanTitle": "Upload an existing sign plan",
     "uploadExistingSignplanDescription": "If you already have a sign plan, you can upload it here from your device.",
     "createSignplanTitle": "Create a new sign plan",
@@ -60,13 +60,16 @@
     "uploading": "Uploading...",
     "uploadSignPlan": "Upload sign plan",
     "upload": "Upload document",
+    "uploadFailure_one": "Failed to upload 1 file: {{reason}}",
+    "uploadFailure_other": "Failed to upload {{count}} files: {{reason}}",
+    "uploadSuccess_one": "Upload complete. 1 file was uploaded.",
+    "uploadSuccess_other": "Upload complete. {{count}} files were uploaded.",
     "supportedFileTypes": "Supported formats: PDF, JPG, and PNG",
     "documentTypes": {
       "other": "Other",
       "signPlan": "Sign plan"
     },
     "openPreview": "Preview {{name}}",
-    "previewTitle": "Preview of {{name}}",
     "table": {
       "documentType": "Document type",
       "createdAt": "Created",
@@ -75,12 +78,7 @@
     },
     "delete": "Delete {{name}}",
     "deleteAction": "Delete",
-    "uploadSuccess_one": "Upload complete. 1 file was uploaded.",
-    "uploadSuccess_other": "Upload complete. {{count}} files were uploaded.",
-    "uploadFailure_one": "Failed to upload 1 file: {{reason}}",
-    "uploadFailure_other": "Failed to upload {{count}} files: {{reason}}",
-    "unsupportedFileTypeReason": "Unsupported file type. Only PDF, JPG, and PNG files are allowed.",
-    "unexpectedUploadErrorReason": "An unexpected error occurred.",
+    "previewTitle": "Preview of {{name}}",
     "loadSuccess_one": "The document list loaded with 1 document.",
     "loadSuccess_other": "The document list loaded with {{count}} documents.",
     "loadError": "The documents could not be loaded.",
