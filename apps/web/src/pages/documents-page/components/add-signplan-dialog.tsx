@@ -1,5 +1,4 @@
 import CloseIcon from '@mui/icons-material/Close';
-import DirectionsOutlinedIcon from '@mui/icons-material/DirectionsOutlined';
 import {
   Box,
   Button,
@@ -105,7 +104,6 @@ export default function AddSignplanDialog({
 
               <Button
                 component={Link}
-                startIcon={<DirectionsOutlinedIcon />}
                 sx={{
                   alignSelf: { xs: 'stretch', sm: 'flex-start' },
                   width: { xs: '100%', sm: 'auto' },

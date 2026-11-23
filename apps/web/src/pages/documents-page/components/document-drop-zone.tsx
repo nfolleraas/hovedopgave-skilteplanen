@@ -145,9 +145,7 @@ export default function DocumentDropZone({
         startIcon={
           isUploading ? (
             <CircularProgress aria-hidden="true" size={20} />
-          ) : (
-            <CloudUploadOutlinedIcon />
-          )
+          ) : undefined
         }
         sx={{ display: { xs: 'inline-flex', md: 'none' } }}
         type="button"
