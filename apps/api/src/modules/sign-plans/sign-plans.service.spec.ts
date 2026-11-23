@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { R2Service } from '../s3/r2.service.js';
+import { R2Service } from '../r2/r2.service.js';
 import { SignPlansRepository } from './sign-plans.repository.js';
 import { SignPlansService } from './sign-plans.service.js';
 

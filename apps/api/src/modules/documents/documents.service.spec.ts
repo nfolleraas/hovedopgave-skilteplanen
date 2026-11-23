@@ -1,7 +1,7 @@
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { DocumentType } from '../../generated/prisma/enums.js';
-import { R2Service } from '../s3/r2.service.js';
+import { R2Service } from '../r2/r2.service.js';
 import { DocumentsRepository } from './documents.repository.js';
 import { DocumentsService } from './documents.service.js';
 import { CreateDocumentDto } from './dto/create-document.dto.js';

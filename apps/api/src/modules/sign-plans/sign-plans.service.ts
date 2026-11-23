@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { DocumentType } from '../../generated/prisma/client.js';
 import { getAllowedDocumentFileExtension } from '../../utils/allowed-document-file-extensions.js';
-import { R2Service } from '../s3/r2.service.js';
+import { R2Service } from '../r2/r2.service.js';
 import { CreateSignPlanDto } from './dto/create-sign-plan.dto.js';
 import { mapCreateSignPlan } from './mappers/sign-plan.mapper.js';
 import { SignPlansRepository } from './sign-plans.repository.js';
@@ -84,7 +84,7 @@ export class SignPlansService {
    * @returns The matching sign plan
    */
   async findOne(uuid: string) {
-    const signPlan = await this.signPlanRepository.getById(uuid);
+    const signPlan = await this.signPlanRepository.get(uuid);
 
     if (!signPlan) {
       throw new NotFoundException(`Sign plan ${uuid} not found.`);

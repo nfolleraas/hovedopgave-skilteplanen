@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { DocumentType } from '../../generated/prisma/enums.js';
 import { getAllowedDocumentFileExtension } from '../../utils/allowed-document-file-extensions.js';
-import { R2Service } from '../s3/r2.service.js';
+import { R2Service } from '../r2/r2.service.js';
 import { DocumentsRepository } from './documents.repository.js';
 import { CreateDocumentDto } from './dto/create-document.dto.js';
 import { mapCreateDocument } from './mappers/document.mapper.js';

@@ -1,5 +1,5 @@
 import { createInterface } from 'node:readline/promises';
-import { R2Service } from '../modules/s3/r2.service.js';
+import { R2Service } from '../modules/r2/r2.service.js';
 
 const prompt = createInterface({
   input: process.stdin,

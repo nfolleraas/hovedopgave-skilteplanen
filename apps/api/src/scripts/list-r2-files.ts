@@ -1,4 +1,4 @@
-import { R2Service } from '../modules/s3/r2.service.js';
+import { R2Service } from '../modules/r2/r2.service.js';
 
 const prefix = process.argv[2];
 const r2Service = new R2Service();

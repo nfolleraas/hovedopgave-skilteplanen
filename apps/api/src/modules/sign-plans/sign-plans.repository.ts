@@ -20,7 +20,7 @@ export class SignPlansRepository {
    * @param uuid - The related document identifier
    * @returns The matching sign plan
    */
-  async getById(uuid: string): Promise<SignPlan> {
+  async get(uuid: string): Promise<SignPlan> {
     return await this.prisma.signPlan.findUniqueOrThrow({
       where: { documentId: uuid },
       include: { document: true },
