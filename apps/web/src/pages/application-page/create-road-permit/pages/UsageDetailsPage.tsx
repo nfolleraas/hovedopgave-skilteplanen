@@ -228,7 +228,6 @@ export function UsageDetailsPage({
           gap: 3,
         }}
       >
-        
         <TextField
           error={Boolean(errors?.postalCode)}
           fullWidth

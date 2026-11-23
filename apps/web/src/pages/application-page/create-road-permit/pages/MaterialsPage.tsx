@@ -14,7 +14,7 @@ import {
   type MaterialEntry,
 } from '../formTypes';
 import { PermitTable } from '../PermitTable';
-import { getMaterialTypes, normalizeMaterialType } from '../permitOptions';
+import { getMaterialTypes } from '../permitOptions';
 import { hasMaterialDraft } from '../validation';
 
 type MaterialsPageProps = {
@@ -25,6 +25,7 @@ type MaterialsPageProps = {
   onDraftChange: (draft: MaterialDraft) => void;
   onRetryMaterialTypes: () => void;
   showErrors: boolean;
+  unavailableMaterial?: { type: string; message: string };
 };
 
 /** Lets the user add, edit, and remove materials while retaining an unfinished draft. */
@@ -36,6 +37,7 @@ export function MaterialsPage({
   onDraftChange,
   onRetryMaterialTypes,
   showErrors,
+  unavailableMaterial,
 }: MaterialsPageProps) {
   const { t } = useTranslation();
   const [submitted, setSubmitted] = useState(false);
@@ -48,16 +50,13 @@ export function MaterialsPage({
   const listHeadingRef = useRef<HTMLHeadingElement>(null);
   const materialLabels = getMaterialTypes(t);
   const canSelectType = Boolean(materialTypes?.length);
-  const selectedType = normalizeMaterialType(draft.type);
   const pendingDraft = hasMaterialDraft(draft);
   const showFieldErrors = submitted || (showErrors && pendingDraft);
   const quantity = Number(draft.quantity);
-  const validType = materialTypes?.includes(selectedType) ?? false;
+  const validType = materialTypes?.includes(draft.type) ?? false;
   const validQuantity = Number.isSafeInteger(quantity) && quantity >= 1;
   const announcedMaterial =
-    announcement &&
-    (materialLabels[normalizeMaterialType(announcement.type)] ??
-      announcement.type);
+    announcement && (materialLabels[announcement.type] ?? announcement.type);
 
   /** Clears the material editor and its submitted validation state. */
   function resetDraft() {
@@ -80,7 +79,7 @@ export function MaterialsPage({
 
     const entry: MaterialEntry = {
       id: draft.editingId ?? crypto.randomUUID(),
-      type: selectedType,
+      type: draft.type,
       quantity,
       notes: draft.notes.trim(),
     };
@@ -94,7 +93,7 @@ export function MaterialsPage({
     );
     setAnnouncement({
       action: draft.editingId ? 'updated' : 'added',
-      type: selectedType,
+      type: draft.type,
     });
     resetDraft();
   }
@@ -170,7 +169,7 @@ export function MaterialsPage({
                 },
               },
             }}
-            value={validType ? selectedType : ''}
+            value={validType ? draft.type : ''}
           >
             <MenuItem disabled sx={{ display: 'none' }} value="">
               {t('permit.materials.choose')}
@@ -291,13 +290,20 @@ export function MaterialsPage({
             label={t('permit.materials.list')}
             outlined
             rows={materials.map((material, index) => {
-              const label =
-                materialLabels[normalizeMaterialType(material.type)] ??
-                material.type;
+              const label = materialLabels[material.type] ?? material.type;
               return {
                 id: material.id,
                 cells: [
-                  label,
+                  unavailableMaterial?.type === material.type ? (
+                    <Box key="type">
+                      {label}
+                      <Typography color="error.dark" variant="body2">
+                        {unavailableMaterial.message}
+                      </Typography>
+                    </Box>
+                  ) : (
+                    label
+                  ),
                   material.quantity,
                   <Box key="notes" sx={{ whiteSpace: 'pre-wrap' }}>
                     {material.notes || '—'}

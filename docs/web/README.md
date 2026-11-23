@@ -58,6 +58,7 @@ this setup, then run the following from the repository root inside the container
 ```bash
 bun run --filter api db:generate
 bun run --filter api db:deploy
+bun run --filter api db:seed
 bun run --filter web test:e2e
 ```
 

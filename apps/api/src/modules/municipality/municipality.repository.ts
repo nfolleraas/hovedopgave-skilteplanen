@@ -5,16 +5,14 @@ import { PrismaService } from '../../prisma.service.js';
 export class MunicipalityRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  /** Reads the IDs and names from the municipality lookup table. */
+  /** Reads the IDs and names of configured municipalities. */
   findAll() {
-    return this.prisma.municipalityLookup.findMany({
+    return this.prisma.municipality.findMany({
       select: { id: true, name: true },
     });
   }
 
   async exists(name: string) {
-    return (
-      (await this.prisma.municipalityLookup.count({ where: { name } })) > 0
-    );
+    return (await this.prisma.municipality.count({ where: { name } })) > 0;
   }
 }

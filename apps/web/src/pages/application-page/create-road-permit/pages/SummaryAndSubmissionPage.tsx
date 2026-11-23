@@ -37,9 +37,8 @@ import type {
 import { PermitTable } from '../PermitTable';
 import {
   getMaterialTypes,
-  getTrafficChangeOptions,
+  getTrafficChangeLabels,
   getUsageTypes,
-  normalizeMaterialType,
 } from '../permitOptions';
 import { getTrafficMeasureLabels } from '../trafficMeasures';
 import type {
@@ -64,8 +63,10 @@ type SummaryAndSubmissionPageProps = {
     usage: ReturnType<typeof validateUsageDetails>;
     contact: ReturnType<typeof validateContactInformation>;
     materials: string[];
+    trafficChange?: string;
     trafficMeasure?: string;
   };
+  submissionError?: string;
   submissionStatus: SubmissionStatus;
   onConfirmedChange: (confirmed: boolean) => void;
   onSubmissionComplete: () => void;
@@ -221,6 +222,7 @@ export function SummaryAndSubmissionPage({
   documentToUpload,
   confirmationError,
   validationErrors,
+  submissionError,
   submissionStatus,
   onConfirmedChange,
   onSubmissionComplete,
@@ -250,12 +252,13 @@ export function SummaryAndSubmissionPage({
     : t('permit.summary.submissionPending');
   const materialTypes = getMaterialTypes(t);
   const usageTypes = getUsageTypes(t);
-  const trafficChanges = getTrafficChangeOptions(t);
+  const trafficChanges = getTrafficChangeLabels(t);
   const trafficMeasures = getTrafficMeasureLabels(t);
   const materialError = validationErrors?.materials.join(' ');
   const hasValidationErrors =
     validationErrors &&
     (Boolean(materialError) ||
+      Boolean(validationErrors.trafficChange) ||
       Boolean(validationErrors.trafficMeasure) ||
       Object.values(validationErrors.municipality).some(Boolean) ||
       Object.values(validationErrors.usage).some(Boolean) ||
@@ -327,8 +330,7 @@ export function SummaryAndSubmissionPage({
             rows={materials.map((material) => ({
               id: material.id,
               cells: [
-                materialTypes[normalizeMaterialType(material.type)] ??
-                  material.type,
+                materialTypes[material.type] ?? material.type,
                 material.quantity,
                 material.notes || '—',
               ],
@@ -408,6 +410,7 @@ export function SummaryAndSubmissionPage({
               roadMarking.trafficChanges
                 .map((option) => trafficChanges[option] ?? option)
                 .join('\n'),
+              validationErrors?.trafficChange,
             ],
             [t('permit.roadMarking.accessWays'), roadMarking.accessWays],
           ]}
@@ -517,46 +520,40 @@ export function SummaryAndSubmissionPage({
             {confirmationError}
           </FormHelperText>
         )}
-        {hasValidationErrors && (
+        {(hasValidationErrors || submissionError) && (
           <Alert
             action={
-              <Button
-                onClick={() => {
-                  const firstError =
-                    summaryRef.current?.querySelector<HTMLElement>(
-                      '[data-summary-error]',
-                    );
-                  firstError?.focus({ preventScroll: true });
-                  firstError?.scrollIntoView({
-                    behavior: reduceMotion ? 'instant' : 'smooth',
-                    block: 'center',
-                  });
-                }}
-                size="small"
-                sx={{ color: 'primary.main', minHeight: 36 }}
-                variant="text"
-              >
-                {t('permit.summary.seeMissingFields')}
-              </Button>
+              hasValidationErrors && (
+                <Button
+                  onClick={() => {
+                    const firstError =
+                      summaryRef.current?.querySelector<HTMLElement>(
+                        '[data-summary-error]',
+                      );
+                    firstError?.focus({ preventScroll: true });
+                    firstError?.scrollIntoView({
+                      behavior: reduceMotion ? 'instant' : 'smooth',
+                      block: 'center',
+                    });
+                  }}
+                  size="small"
+                  sx={{ color: 'primary.main', minHeight: 36 }}
+                  variant="text"
+                >
+                  {t('permit.summary.seeMissingFields')}
+                </Button>
+              )
             }
+            ref={submissionResultRef}
             severity="error"
             sx={{
               alignItems: 'center',
               flexWrap: 'wrap',
               '& .MuiAlert-action': { py: 0 },
             }}
+            tabIndex={submissionError ? -1 : undefined}
           >
-            {t('permit.summary.validationError')}
-          </Alert>
-        )}
-        {submissionStatus === 'error' && (
-          <Alert
-            ref={submissionResultRef}
-            role="alert"
-            severity="error"
-            tabIndex={-1}
-          >
-            {t('permit.summary.submissionError')}
+            {submissionError ?? t('permit.summary.validationError')}
           </Alert>
         )}
       </SummarySection>

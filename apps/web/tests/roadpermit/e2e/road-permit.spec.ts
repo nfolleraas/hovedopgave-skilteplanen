@@ -32,6 +32,22 @@ async function chooseMunicipality(page: Page) {
   await expect(odense).toBeChecked();
 }
 
+test('shows an overview link when a saved draft cannot be found', async ({
+  page,
+}) => {
+  await page.goto(
+    `${overviewPath}/opret-vejtilladelse?draft=${randomUUID()}&lng=en`,
+  );
+  await expect(page.getByRole('alert')).toHaveText(
+    'The draft was not found. Go to the application overview to open another draft.',
+  );
+  await expect(
+    page.getByRole('button', { name: 'Retry loading draft' }),
+  ).toHaveCount(0);
+  await page.getByRole('link', { name: 'Back to applications' }).click();
+  await expect(page).toHaveURL(/\/ansoegning$/);
+});
+
 test('saves and reopens a draft after retrying failed requests on mobile', async ({
   page,
 }) => {
@@ -92,7 +108,7 @@ test('saves and reopens a draft after retrying failed requests on mobile', async
   });
   await saveAndLeave.click();
   await expect(leaveDialog.getByRole('alert')).toHaveText(
-    'The draft could not be saved. Try again.',
+    'The service is temporarily unavailable. Stay on this page and try again shortly.',
   );
   await expect(page).toHaveURL(draftURL);
   await saveAndLeave.click();
@@ -205,7 +221,7 @@ test('validates, reviews and submits a road permit against its existing draft', 
   );
   await submit.click();
   await expect(page.getByRole('alert')).toHaveText(
-    'Your application could not be sent. Try again.',
+    'The service is temporarily unavailable. Stay on this page and try again shortly.',
   );
   expect((await request.get(draftEndpoint)).ok()).toBe(true);
 

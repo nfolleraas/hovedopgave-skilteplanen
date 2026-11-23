@@ -11,14 +11,18 @@ export const usageTypes: Readonly<Record<string, Usage>> = {
   Andet: Usage.Other,
 };
 
-export const materialTypes: Readonly<Record<string, MaterialType>> = {
-  ...MaterialType,
-  // Accept localized values stored by older clients.
-  Stillads: MaterialType.Scaffolding,
-  Andet: MaterialType.Other,
-};
+export const materialTypes: Readonly<Record<string, MaterialType>> =
+  MaterialType;
 
+export const roadPermitTrafficChanges = Object.values(TrafficChange).filter(
+  (change) => change !== TrafficChange.TrafficLight,
+);
+
+// Accept values sent by older clients and stored in existing drafts.
 export const trafficChanges: Readonly<Record<string, TrafficChange>> = {
+  ...Object.fromEntries(
+    roadPermitTrafficChanges.map((change) => [change, change]),
+  ),
   'Hastighedsbegrænsning - hensyn til vejarbejder':
     TrafficChange.SpeedLimitWorkZone,
   'Hastighedsbegrænsning - hensyn til trafikanter':

@@ -56,6 +56,7 @@ describe('RoadPermitService', () => {
         title: 'Road work',
         type: ApplicationType.RoadUsePermit,
         trafficChanges: [],
+        accessWays: null,
         areas: {
           create: {
             roadName: 'Adamsgade',
@@ -107,7 +108,8 @@ describe('RoadPermitService', () => {
         'Standsning og Parkering',
       ],
       [
-        TrafficChange.SpeedLimitWorkZoneAndTrafficSafety,
+        TrafficChange.SpeedLimitWorkZone,
+        TrafficChange.SpeedLimitTrafficSafety,
         TrafficChange.NoStoppingAndParking,
       ],
     ],
@@ -122,18 +124,39 @@ describe('RoadPermitService', () => {
     );
   });
 
-  it('rejects unsupported traffic changes before writing', async () => {
-    await expect(
-      service.submit('permit-1', {
-        ...application,
+  it.each([
+    {
+      changes: {
+        materials: [
+          ...application.materials,
+          { ...application.materials[0], type: 'Unknown' },
+        ],
+      },
+      code: 'MATERIAL_UNAVAILABLE',
+      message: 'materials[1].type must be a supported material.',
+    },
+    {
+      changes: {
         roadMarking: {
           ...application.roadMarking,
-          trafficChanges: ['Unknown'],
+          trafficChanges: [TrafficChange.OnewayTraffic, 'Unknown'],
         },
-      }),
-    ).rejects.toThrow('roadMarking.trafficChanges[0]');
-    expect(repository.submit).not.toHaveBeenCalled();
-  });
+      },
+      code: 'TRAFFIC_CHANGE_UNAVAILABLE',
+      message:
+        'roadMarking.trafficChanges[1] must be a supported traffic change.',
+    },
+  ])(
+    'identifies a rejected choice with $code and its index',
+    async ({ changes, code, message }) => {
+      await expect(
+        service.submit('permit-1', { ...application, ...changes }),
+      ).rejects.toMatchObject({
+        response: { statusCode: 400, code, index: 1, message },
+      });
+      expect(repository.submit).not.toHaveBeenCalled();
+    },
+  );
 
   it('maps an event permit and omits a blank applicant address', async () => {
     const eventApplication = {
@@ -177,26 +200,6 @@ describe('RoadPermitService', () => {
       );
     },
   );
-
-  it.each([
-    ['Stillads', MaterialType.Scaffolding],
-    ['Andet', MaterialType.Other],
-  ])('accepts the legacy material type %s', async (legacyType, type) => {
-    await service.submit('permit-1', {
-      ...application,
-      materials: [{ ...application.materials[0], type: legacyType }],
-    });
-    expect(repository.submit).toHaveBeenCalledWith(
-      'permit-1',
-      expect.objectContaining({
-        roadUsePermit: {
-          create: expect.objectContaining({
-            materials: { create: [expect.objectContaining({ type })] },
-          }),
-        },
-      }),
-    );
-  });
 
   it('propagates a repository failure when submitting a permit', async () => {
     const error = new Error('Write failed');
@@ -266,8 +269,14 @@ describe('RoadPermitService', () => {
 
   it('rejects a municipality outside the supported list before writing', async () => {
     municipalities.exists.mockResolvedValue(false);
-    await expect(service.submit('permit-1', application)).rejects.toThrow(
-      'municipalityName must be a supported municipality',
+    await expect(service.submit('permit-1', application)).rejects.toMatchObject(
+      {
+        response: {
+          statusCode: 400,
+          code: 'MUNICIPALITY_UNAVAILABLE',
+          message: 'municipalityName must be a supported municipality.',
+        },
+      },
     );
     expect(municipalities.exists).toHaveBeenCalledExactlyOnceWith('Odense');
     expect(repository.submit).not.toHaveBeenCalled();

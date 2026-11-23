@@ -46,6 +46,7 @@ jobs:
         run: |
           bun run db:generate
           bun run db:deploy
+          bun run db:seed
       - name: Test permit transactions against PostgreSQL
         working-directory: apps/api
         run: ROAD_PERMIT_TEST_DATABASE_URL="$DATABASE_URL" bun run test:e2e test/road-permit.database.e2e-spec.ts

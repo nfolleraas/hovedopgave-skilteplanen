@@ -24,13 +24,6 @@ export function getMaterialTypes(t: TFunction) {
   } as Record<string, string>;
 }
 
-/** Resolves material types saved before the form used Prisma enum values. */
-export function normalizeMaterialType(type: string) {
-  if (type === 'Stillads') return 'Scaffolding';
-  if (type === 'Andet') return 'Other';
-  return type;
-}
-
 /** Maps stored usage values to translated labels. */
 export function getUsageTypes(t: TFunction) {
   return {
@@ -41,19 +34,13 @@ export function getUsageTypes(t: TFunction) {
 }
 
 /** Maps stored traffic change values to translated labels. */
-export function getTrafficChangeOptions(t: TFunction) {
+export function getTrafficChangeLabels(t: TFunction) {
   return {
-    'Hastighedsbegrænsning - hensyn til vejarbejder': t(
-      'permit.roadMarking.speedWorkers',
-    ),
-    'Hastighedsbegrænsning - hensyn til trafikanter': t(
-      'permit.roadMarking.speedRoadUsers',
-    ),
-    'Hastighedsbegrænsning - hensyn til trafikanter og vejarbejdere': t(
-      'permit.roadMarking.speedBoth',
-    ),
-    'Ubetinget vigepligt i vejkryds': t('permit.roadMarking.giveWay'),
-    'Standsning og Parkering': t('permit.roadMarking.parking'),
-    'Påbud om ensrettet færdsel': t('permit.roadMarking.oneWay'),
+    SpeedLimitWorkZone: t('permit.roadMarking.speedWorkers'),
+    SpeedLimitTrafficSafety: t('permit.roadMarking.speedRoadUsers'),
+    SpeedLimitWorkZoneAndTrafficSafety: t('permit.roadMarking.speedBoth'),
+    UnconditionalObligationInIntersection: t('permit.roadMarking.giveWay'),
+    NoStoppingAndParking: t('permit.roadMarking.parking'),
+    OnewayTraffic: t('permit.roadMarking.oneWay'),
   } as Record<string, string>;
 }

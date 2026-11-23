@@ -13,6 +13,7 @@ import { MaterialType } from '../../generated/prisma/enums.js';
 import { CreateRoadPermitDto } from './dto/create-road-permit.dto.js';
 import { UpdateRoadPermitDto } from './dto/update-road-permit.dto.js';
 import { RoadPermitService } from './road-permit.service.js';
+import { roadPermitTrafficChanges } from './road-permit-options.js';
 
 @Controller('road-permit')
 export class RoadPermitController {
@@ -50,6 +51,12 @@ export class RoadPermitController {
   @Get('material-types')
   getMaterialTypes() {
     return Object.values(MaterialType);
+  }
+
+  /** Lists the traffic changes available in the road-permit form. */
+  @Get('traffic-changes')
+  getTrafficChanges() {
+    return roadPermitTrafficChanges;
   }
 
   /** Loads a road-permit draft by its case number. */

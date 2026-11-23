@@ -12,6 +12,7 @@ model Application {
   documents              Document[]
   areas                  Area[]
   trafficChanges         TrafficChange[]          @default([])
+  accessWays             String?
   applicantId            String?
   applicant              Applicant?              @relation(fields: [applicantId], references: [uuid], onDelete: Restrict)
   caseWorkerId           String?

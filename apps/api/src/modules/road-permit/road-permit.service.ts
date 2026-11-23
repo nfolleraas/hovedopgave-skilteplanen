@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  HttpStatus,
   Injectable,
   UnprocessableEntityException,
 } from '@nestjs/common';
@@ -28,9 +29,12 @@ export class RoadPermitService {
     const dto = parseRoadPermitSubmission(input);
     const data = mapCreateRoadPermit(dto);
     if (!(await this.municipalities.exists(dto.municipalityName))) {
-      throw new BadRequestException(
-        'municipalityName must be a supported municipality.',
-      );
+      throw new BadRequestException({
+        statusCode: HttpStatus.BAD_REQUEST,
+        error: 'Bad Request',
+        message: 'municipalityName must be a supported municipality.',
+        code: 'MUNICIPALITY_UNAVAILABLE',
+      });
     }
     return this.roadPermitRepository.submit(id, data);
   }

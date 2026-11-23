@@ -71,23 +71,30 @@ describe.skipIf(!databaseUrl)('Road permit transactions (PostgreSQL)', () => {
       .expect(200);
   });
 
-  it('rejects a duplicate submission and stores the traffic choices once', async () => {
+  it('stores the road markings on submission and rejects a duplicate', async () => {
     const { caseNumber } = await permits.create();
-    const path = `/api/road-permit/${caseNumber}/submit`;
+    const path = `/api/road-permit/${caseNumber}`;
+    const accessWays = 'Access from the south via the service road.';
     const dto = {
       ...roadPermitSubmission,
       roadMarking: {
         ...roadPermitSubmission.roadMarking,
+        accessWays,
         trafficChanges: [
-          'Hastighedsbegrænsning - hensyn til trafikanter og vejarbejdere',
-          'Standsning og Parkering',
+          TrafficChange.SpeedLimitWorkZoneAndTrafficSafety,
+          TrafficChange.SpeedLimitWorkZone,
+          TrafficChange.NoStoppingAndParking,
         ],
       },
     };
+    await request(app.getHttpServer())
+      .patch(path)
+      .send({ roadMarking: dto.roadMarking })
+      .expect(200);
 
     const submissions = await Promise.all([
-      request(app.getHttpServer()).post(path).send(dto),
-      request(app.getHttpServer()).post(path).send(dto),
+      request(app.getHttpServer()).post(`${path}/submit`).send(dto),
+      request(app.getHttpServer()).post(`${path}/submit`).send(dto),
     ]);
     expect(submissions.map(({ status }) => status).sort()).toEqual([201, 409]);
     expect(
@@ -98,12 +105,20 @@ describe.skipIf(!databaseUrl)('Road permit transactions (PostgreSQL)', () => {
     await expect(
       prisma.application.findUniqueOrThrow({
         where: { caseNumber },
-        select: { status: true, trafficChanges: true },
+        select: {
+          status: true,
+          trafficChanges: true,
+          accessWays: true,
+          roadPermitDraft: true,
+        },
       }),
     ).resolves.toEqual({
       status: Status.InProgress,
+      accessWays,
+      roadPermitDraft: null,
       trafficChanges: [
-        TrafficChange.SpeedLimitWorkZoneAndTrafficSafety,
+        TrafficChange.SpeedLimitWorkZone,
+        TrafficChange.SpeedLimitTrafficSafety,
         TrafficChange.NoStoppingAndParking,
       ],
     });

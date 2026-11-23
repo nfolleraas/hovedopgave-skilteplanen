@@ -22,6 +22,10 @@ export function getRoadPermitMaterialTypes() {
   return apiClient.get<string[]>('/road-permit/material-types');
 }
 
+export function getRoadPermitTrafficChanges() {
+  return apiClient.get<string[]>('/road-permit/traffic-changes');
+}
+
 /** Creates an empty application with Draft status. */
 export function createRoadPermitDraft() {
   return apiClient.post<{ caseNumber: string }>('/road-permit', {});
@@ -35,8 +39,15 @@ export async function getRoadPermitDraft(caseNumber: string) {
     }>(`/road-permit/${encodeURIComponent(caseNumber)}`);
     return { status: 'loaded', draft: response.roadPermitDraft } as const;
   } catch (error) {
-    if (isAxiosError(error) && error.response?.status === 422) {
-      return { status: 'invalid' } as const;
+    if (isAxiosError(error)) {
+      switch (error.response?.status) {
+        case 404:
+          return { status: 'notFound' } as const;
+        case 422:
+          return { status: 'invalid' } as const;
+        case 503:
+          return { status: 'serviceUnavailable' } as const;
+      }
     }
     throw error;
   }

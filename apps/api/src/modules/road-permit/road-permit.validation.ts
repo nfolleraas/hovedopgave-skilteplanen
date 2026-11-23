@@ -1,4 +1,4 @@
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, HttpStatus } from '@nestjs/common';
 import { TrafficCalmingMeasureType } from '../../generated/prisma/enums.js';
 import type { CreateRoadPermitDto } from './dto/create-road-permit.dto.js';
 import type { UpdateRoadPermitDto } from './dto/update-road-permit.dto.js';
@@ -15,8 +15,20 @@ function requireValue(
   valid: unknown,
   path: string,
   rule: string,
+  details?: { code: string; index: number },
 ): asserts valid {
-  if (!valid) throw new BadRequestException(`${path} ${rule}.`);
+  if (valid) return;
+  const message = `${path} ${rule}.`;
+  throw new BadRequestException(
+    details
+      ? {
+          statusCode: HttpStatus.BAD_REQUEST,
+          error: 'Bad Request',
+          message,
+          ...details,
+        }
+      : message,
+  );
 }
 
 const string: Check = (value, path) =>
@@ -138,7 +150,18 @@ const submissionShape = object({
 
 export function parseRoadPermitDraft(value: unknown): UpdateRoadPermitDto {
   draftShape(value, '');
-  return value as UpdateRoadPermitDto;
+  const draft = value as UpdateRoadPermitDto;
+  if (!draft.roadMarking?.trafficChanges) return draft;
+
+  return {
+    ...draft,
+    roadMarking: {
+      ...draft.roadMarking,
+      trafficChanges: draft.roadMarking.trafficChanges.map((change) =>
+        Object.hasOwn(trafficChanges, change) ? trafficChanges[change] : change,
+      ),
+    },
+  };
 }
 
 function isDate(value: string) {
@@ -261,6 +284,7 @@ export function parseRoadPermitSubmission(value: unknown) {
       Object.hasOwn(materialTypes, material.type),
       `${path}.type`,
       'must be a supported material',
+      { code: 'MATERIAL_UNAVAILABLE', index },
     );
     requireValue(
       Number.isSafeInteger(material.quantity) && material.quantity >= 1,
@@ -273,6 +297,7 @@ export function parseRoadPermitSubmission(value: unknown) {
       Object.hasOwn(trafficChanges, change),
       `roadMarking.trafficChanges[${index}]`,
       'must be a supported traffic change',
+      { code: 'TRAFFIC_CHANGE_UNAVAILABLE', index },
     );
   });
   requireValue(

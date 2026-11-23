@@ -2,7 +2,9 @@ import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import CloseIcon from '@mui/icons-material/Close';
 import {
+  Alert,
   Box,
+  Button,
   Checkbox,
   IconButton,
   List,
@@ -15,7 +17,7 @@ import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { RoadMarkingDetails } from '../formTypes';
 import { PermitTable } from '../PermitTable';
-import { getTrafficChangeOptions } from '../permitOptions';
+import { getTrafficChangeLabels } from '../permitOptions';
 import {
   getTrafficMeasureLabels,
   type TrafficMeasure,
@@ -25,13 +27,22 @@ import {
 export type RoadMarkingProps = {
   value: RoadMarkingDetails;
   onChange: (value: RoadMarkingDetails) => void;
+  onRetryTrafficChanges: () => void;
+  trafficChangeChoices: string[] | null | undefined;
+  trafficChangeError?: string;
 };
 
 /** Collects traffic changes, access details, and safety measures for the road work. */
-export function RoadMarkingPage({ value, onChange }: RoadMarkingProps) {
+export function RoadMarkingPage({
+  value,
+  onChange,
+  onRetryTrafficChanges,
+  trafficChangeChoices,
+  trafficChangeError,
+}: RoadMarkingProps) {
   const { t } = useTranslation();
   const trafficSelect = useRef<{ focus: () => void }>(null);
-  const options = getTrafficChangeOptions(t);
+  const trafficChangeLabels = getTrafficChangeLabels(t);
   const labels = getTrafficMeasureLabels(t);
   const { trafficChanges, accessWays, trafficPrecautions } = value;
 
@@ -57,8 +68,15 @@ export function RoadMarkingPage({ value, onChange }: RoadMarkingProps) {
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0 }}>
       <Box sx={{ position: 'relative' }}>
         <TextField
+          disabled={!trafficChangeChoices?.length}
+          error={Boolean(trafficChangeError)}
           fullWidth
-          helperText={t('permit.roadMarking.multiple')}
+          helperText={
+            trafficChangeError ??
+            (trafficChangeChoices === undefined
+              ? t('permit.roadMarking.loadingChanges')
+              : t('permit.roadMarking.multiple'))
+          }
           id="traffic-changes"
           inputRef={trafficSelect}
           label={t('permit.roadMarking.changes')}
@@ -83,7 +101,7 @@ export function RoadMarkingPage({ value, onChange }: RoadMarkingProps) {
           }}
           value={trafficChanges}
         >
-          {Object.entries(options).map(([option, label]) => (
+          {trafficChangeChoices?.map((option) => (
             <MenuItem
               key={option}
               sx={{
@@ -99,10 +117,23 @@ export function RoadMarkingPage({ value, onChange }: RoadMarkingProps) {
               ) : (
                 <CheckBoxOutlineBlankIcon />
               )}
-              {label}
+              {trafficChangeLabels[option] ?? option}
             </MenuItem>
           ))}
         </TextField>
+        {trafficChangeChoices === null && (
+          <Alert
+            action={
+              <Button onClick={onRetryTrafficChanges}>
+                {t('permit.roadMarking.retryChanges')}
+              </Button>
+            }
+            severity="error"
+            sx={{ mt: 1 }}
+          >
+            {t('permit.roadMarking.loadChangesError')}
+          </Alert>
+        )}
         {trafficChanges.length > 0 && (
           <List
             aria-label={t('permit.roadMarking.selectedChangesLabel')}
@@ -134,11 +165,11 @@ export function RoadMarkingPage({ value, onChange }: RoadMarkingProps) {
                   sx={{ flex: 1, minWidth: 0, overflowWrap: 'anywhere' }}
                   variant="body2"
                 >
-                  {options[option] ?? option}
+                  {trafficChangeLabels[option] ?? option}
                 </Typography>
                 <IconButton
                   aria-label={t('permit.roadMarking.removeChange', {
-                    change: options[option] ?? option,
+                    change: trafficChangeLabels[option] ?? option,
                   })}
                   onClick={() => {
                     onChange({

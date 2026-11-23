@@ -4,6 +4,7 @@ import {
   ApplicationType,
   Availability,
   TrafficCalmingMeasureType,
+  TrafficChange,
 } from '../../../generated/prisma/enums.js';
 import type { CreateRoadPermitDto } from '../dto/create-road-permit.dto.js';
 import {
@@ -35,6 +36,17 @@ export function mapCreateRoadPermit(
   const isEvent = usageDetails.usage === 'Arrangement';
   const applicantAddress = dto.applicant.address1?.trim();
   const addressParts = applicantAddress?.match(/^(.*?)\s+(\d+\S*)$/);
+  const selectedTrafficChanges = dto.roadMarking.trafficChanges.flatMap(
+    (selection) => {
+      const change = trafficChanges[selection];
+      return change === TrafficChange.SpeedLimitWorkZoneAndTrafficSafety
+        ? [
+            TrafficChange.SpeedLimitWorkZone,
+            TrafficChange.SpeedLimitTrafficSafety,
+          ]
+        : [change];
+    },
+  );
 
   return {
     title: dto.title,
@@ -42,9 +54,8 @@ export function mapCreateRoadPermit(
     type: isEvent
       ? ApplicationType.RoadUsePermitEvent
       : ApplicationType.RoadUsePermit,
-    trafficChanges: dto.roadMarking.trafficChanges.map(
-      (change) => trafficChanges[change],
-    ),
+    trafficChanges: [...new Set(selectedTrafficChanges)],
+    accessWays: dto.roadMarking.accessWays.trim() || null,
     applicant: {
       create: {
         name: dto.applicant.name,
@@ -110,6 +121,6 @@ export function mapCreateRoadPermit(
       },
     },
     // TODO: Map documents when an uploaded document's r2ObjectKey is available.
-    // Municipality, access ways, confirmation and extra company details have no matching columns.
+    // Municipality, confirmation and extra company details have no matching columns.
   };
 }

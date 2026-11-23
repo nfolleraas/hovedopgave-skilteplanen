@@ -16,6 +16,7 @@ import { getMunicipalities } from '../../../api/municipalities.api';
 import {
   getRoadPermitDraft,
   getRoadPermitMaterialTypes,
+  getRoadPermitTrafficChanges,
 } from '../../../api/roadPermit.api';
 import { routes } from '../../../app/router';
 import {
@@ -38,6 +39,7 @@ import { MaterialsPage } from './pages/MaterialsPage';
 import { RoadMarkingPage } from './pages/RoadMarkingPage';
 import { SummaryAndSubmissionPage } from './pages/SummaryAndSubmissionPage';
 import { UsageDetailsPage } from './pages/UsageDetailsPage';
+import { getTrafficChangeLabels } from './permitOptions';
 import type {
   RoadPermitDraft,
   RoadPermitDraftSnapshot,
@@ -98,11 +100,17 @@ function RoadPermitDraftPage({ caseNumber }: { caseNumber: string }) {
         {result ? (
           <>
             <Alert severity="error">
-              {result.status === 'invalid'
-                ? t('permit.draft.invalidSnapshot')
-                : t('permit.draft.loadError')}
+              {
+                {
+                  invalid: t('permit.draft.invalidSnapshot'),
+                  notFound: t('permit.draft.notFound'),
+                  serviceUnavailable: t('permit.errors.serviceUnavailable'),
+                  unavailable: t('permit.draft.loadError'),
+                }[result.status]
+              }
             </Alert>
-            {result.status === 'unavailable' && (
+            {(result.status === 'unavailable' ||
+              result.status === 'serviceUnavailable') && (
               <Button
                 onClick={() => setResult(undefined)}
                 sx={{ minHeight: 44 }}
@@ -168,6 +176,8 @@ function RoadPermitForm({
     usePermitChoices(getMunicipalities);
   const { choices: materialTypes, retry: retryMaterialTypes } =
     usePermitChoices(getRoadPermitMaterialTypes);
+  const { choices: trafficChangeChoices, retry: retryTrafficChanges } =
+    usePermitChoices(getRoadPermitTrafficChanges);
   const [materials, setMaterials] = useState<MaterialEntry[]>(
     draft.materials ?? [],
   );
@@ -216,7 +226,10 @@ function RoadPermitForm({
     handleSubmit,
     hasUnsavedChanges,
     isWriting,
+    rejectedSelection,
+    saveFailure,
     saveStatus,
+    submissionFailure,
     submissionStatus,
   } = useRoadPermitWrites(caseNumber, currentDraft);
   const { blocker, saveAndLeave } = useUnsavedDraftNavigation(
@@ -235,6 +248,47 @@ function RoadPermitForm({
     municipalities ?? [],
     t,
   );
+  const municipalityRejected = rejectedSelection?.field === 'municipality';
+  if (municipalityRejected) {
+    municipalityErrors.municipality = t(
+      'permit.errors.municipalityUnavailable',
+    );
+  }
+  const unavailableMaterial =
+    rejectedSelection?.field === 'material'
+      ? {
+          type: rejectedSelection.value,
+          message: t('permit.errors.materialUnavailable'),
+        }
+      : undefined;
+  let trafficChangeError: string | undefined;
+  if (rejectedSelection?.field === 'trafficChange') {
+    const labels = getTrafficChangeLabels(t);
+    const change = rejectedSelection.value;
+    trafficChangeError = t('permit.errors.trafficChangeUnavailable', {
+      change: Object.hasOwn(labels, change) ? labels[change] : change,
+    });
+  }
+  const conflictError = t('permit.draft.conflictError');
+  const serviceUnavailable = t('permit.errors.serviceUnavailable');
+  const saveError = saveFailure
+    ? {
+        conflict: conflictError,
+        network: t('permit.draft.saveNetworkError'),
+        serviceUnavailable,
+        unexpected: t('permit.draft.saveError'),
+      }[saveFailure]
+    : undefined;
+  const submissionError = submissionFailure
+    ? {
+        conflict: conflictError,
+        network: t('permit.summary.submissionNetworkError'),
+        serviceUnavailable,
+        unexpected: t('permit.summary.submissionError'),
+      }[submissionFailure]
+    : municipalityRejected
+      ? municipalityErrors.municipality
+      : (unavailableMaterial?.message ?? trafficChangeError);
   const usageErrors = validateUsageDetails(usageDetails, t);
   const contactErrors = validateContactInformation(contactInformation, t);
   const materialErrors = getValidationErrors({
@@ -244,6 +298,7 @@ function RoadPermitForm({
     materialDraft: hasMaterialDraft(materialDraft)
       ? t('permit.errors.materialDraft')
       : undefined,
+    unavailableMaterial: unavailableMaterial?.message,
   });
   const trafficMeasureError = roadMarking.trafficPrecautions.length
     ? undefined
@@ -261,7 +316,9 @@ function RoadPermitForm({
       validationErrors: getValidationErrors(municipalityErrors),
       content: (showErrors) => (
         <ChooseMunicipalityAndTitlePage
-          errors={showErrors ? municipalityErrors : undefined}
+          errors={
+            showErrors || municipalityRejected ? municipalityErrors : undefined
+          }
           municipalities={municipalities}
           municipalityName={municipalityName}
           onMunicipalityChange={setMunicipalityName}
@@ -271,7 +328,7 @@ function RoadPermitForm({
         />
       ),
     },
-    
+
     {
       id: 'usage-details',
       label: t('permit.steps.usage'),
@@ -297,6 +354,7 @@ function RoadPermitForm({
           onMaterialsChange={setMaterials}
           onRetryMaterialTypes={retryMaterialTypes}
           showErrors={showErrors}
+          unavailableMaterial={unavailableMaterial}
         />
       ),
     },
@@ -312,13 +370,22 @@ function RoadPermitForm({
         />
       ),
     },
-  
+
     {
       id: 'road-marking',
       label: t('permit.steps.roadMarking'),
-      validationErrors: trafficMeasureError ? [trafficMeasureError] : undefined,
+      validationErrors: getValidationErrors({
+        trafficChange: trafficChangeError,
+        trafficMeasure: trafficMeasureError,
+      }),
       content: (
-        <RoadMarkingPage onChange={setRoadMarking} value={roadMarking} />
+        <RoadMarkingPage
+          onChange={setRoadMarking}
+          onRetryTrafficChanges={retryTrafficChanges}
+          trafficChangeChoices={trafficChangeChoices}
+          trafficChangeError={trafficChangeError}
+          value={roadMarking}
+        />
       ),
     },
     {
@@ -345,6 +412,7 @@ function RoadPermitForm({
           onConfirmedChange={setConfirmed}
           onSubmissionComplete={finishSubmission}
           roadMarking={roadMarking}
+          submissionError={submissionError}
           submissionStatus={submissionStatus}
           title={title}
           usageDetails={usageDetails}
@@ -355,6 +423,7 @@ function RoadPermitForm({
                   usage: usageErrors,
                   contact: contactErrors,
                   materials: materialErrors,
+                  trafficChange: trafficChangeError,
                   trafficMeasure: trafficMeasureError,
                 }
               : undefined
@@ -403,14 +472,12 @@ function RoadPermitForm({
         }}
       >
         <Typography role="status" sx={{ textAlign: 'end' }}>
-          {
+          {saveError ??
             {
               idle: '',
               saving: t('permit.draft.saving'),
               saved: t('permit.draft.saved'),
-              error: t('permit.draft.saveError'),
-            }[saveStatus]
-          }
+            }[saveStatus]}
         </Typography>
         <Button
           disabled={isWriting || submissionStatus === 'success'}
@@ -446,9 +513,9 @@ function RoadPermitForm({
               {t('permit.draft.saving')}
             </Typography>
           )}
-          {saveStatus === 'error' && (
+          {saveError && (
             <Alert severity="error" sx={{ mt: 2 }}>
-              {t('permit.draft.saveError')}
+              {saveError}
             </Alert>
           )}
         </DialogContent>

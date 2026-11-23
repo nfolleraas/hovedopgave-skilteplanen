@@ -3,13 +3,14 @@ import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { App } from 'supertest/types.js';
 import { AppModule } from './../src/app.module.js';
+import { TrafficChange } from './../src/generated/prisma/enums.js';
 import { PrismaService } from './../src/prisma.service.js';
 
 describe('AppModule (e2e)', () => {
   let app: INestApplication<App>;
   const prisma = {
     $queryRaw: vi.fn(),
-    municipalityLookup: { findMany: vi.fn() },
+    municipality: { findMany: vi.fn() },
     application: {
       create: vi.fn(),
       updateMany: vi.fn(),
@@ -43,13 +44,15 @@ describe('AppModule (e2e)', () => {
 
   it('serves municipality choices through the shared Prisma provider', async () => {
     const municipalities = [{ id: 1, name: 'Odense' }];
-    prisma.municipalityLookup.findMany.mockResolvedValue(municipalities);
+    prisma.municipality.findMany.mockResolvedValue(municipalities);
 
     await request(app.getHttpServer())
       .get('/api/municipalities')
       .expect(200)
       .expect(municipalities);
-    expect(prisma.municipalityLookup.findMany).toHaveBeenCalledOnce();
+    expect(prisma.municipality.findMany).toHaveBeenCalledExactlyOnceWith({
+      select: { id: true, name: true },
+    });
   });
 
   it('keeps the frontend draft creation, saving, and loading endpoints available', async () => {
@@ -59,7 +62,10 @@ describe('AppModule (e2e)', () => {
     prisma.application.updateMany.mockResolvedValue({ count: 1 });
     prisma.application.findFirst.mockResolvedValue({
       ...draft,
-      roadPermitDraft: snapshot,
+      roadPermitDraft: {
+        ...snapshot,
+        roadMarking: { trafficChanges: ['Standsning og Parkering'] },
+      },
     });
 
     await request(app.getHttpServer())
@@ -75,10 +81,29 @@ describe('AppModule (e2e)', () => {
     await request(app.getHttpServer())
       .get('/api/road-permit/permit-1')
       .expect(200)
-      .expect({ ...draft, roadPermitDraft: snapshot });
+      .expect({
+        ...draft,
+        roadPermitDraft: {
+          ...snapshot,
+          roadMarking: { trafficChanges: [TrafficChange.NoStoppingAndParking] },
+        },
+      });
     expect(prisma.application.create).toHaveBeenCalledOnce();
     expect(prisma.application.updateMany).toHaveBeenCalledOnce();
     expect(prisma.application.findFirst).toHaveBeenCalledOnce();
+  });
+
+  it('exposes the road-permit choices as Prisma traffic change values', async () => {
+    await request(app.getHttpServer())
+      .get('/api/road-permit/traffic-changes')
+      .expect(200)
+      .expect(({ body }) => {
+        expect(body).toHaveLength(6);
+        expect(body).toContain(
+          TrafficChange.SpeedLimitWorkZoneAndTrafficSafety,
+        );
+        expect(body).not.toContain(TrafficChange.TrafficLight);
+      });
   });
 
   afterEach(async () => {

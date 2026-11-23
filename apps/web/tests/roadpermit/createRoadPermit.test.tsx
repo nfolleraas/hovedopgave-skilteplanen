@@ -6,6 +6,7 @@ import {
   within,
 } from '@testing-library/react';
 import userEvent, { type UserEvent } from '@testing-library/user-event';
+import { AxiosError } from 'axios';
 import { createMemoryRouter, Link, RouterProvider } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { getMunicipalities } from '../../src/api/municipalities.api';
@@ -13,6 +14,7 @@ import {
   createRoadPermitDraft,
   getRoadPermitDraft,
   getRoadPermitMaterialTypes,
+  getRoadPermitTrafficChanges,
   listApplicationDrafts,
   saveRoadPermitDraft,
   submitRoadPermitApplication,
@@ -26,6 +28,7 @@ vi.mock('../../src/api/roadPermit.api', () => ({
   createRoadPermitDraft: vi.fn(),
   getRoadPermitDraft: vi.fn(),
   getRoadPermitMaterialTypes: vi.fn(),
+  getRoadPermitTrafficChanges: vi.fn(),
   listApplicationDrafts: vi.fn(),
   saveRoadPermitDraft: vi.fn(),
   submitRoadPermitApplication: vi.fn(),
@@ -43,6 +46,7 @@ vi.mock('../../src/components/ui/map/DataforsyningenMap', () => ({
 const createDraft = vi.mocked(createRoadPermitDraft);
 const loadMunicipalities = vi.mocked(getMunicipalities);
 const loadMaterialTypes = vi.mocked(getRoadPermitMaterialTypes);
+const loadTrafficChanges = vi.mocked(getRoadPermitTrafficChanges);
 const loadDraft = vi.mocked(getRoadPermitDraft);
 const listDrafts = vi.mocked(listApplicationDrafts);
 const saveDraft = vi.mocked(saveRoadPermitDraft);
@@ -136,6 +140,11 @@ async function fillRequiredDetails(user: UserEvent) {
   await user.type(screen.getByLabelText(/phone number/i), '12345678');
   await user.type(screen.getByLabelText(/^email\b/i), 'test@example.com');
   await next(user);
+  await user.click(screen.getByRole('combobox', { name: 'Traffic changes' }));
+  await user.click(
+    screen.getByRole('option', { name: 'Stopping and parking' }),
+  );
+  await user.keyboard('{Escape}');
   await user.click(
     screen.getByRole('checkbox', { name: 'Type B', exact: true }),
   );
@@ -167,6 +176,7 @@ describe('Road permit application', () => {
         'Grandstand',
         'Other',
       ]);
+    loadTrafficChanges.mockReset().mockResolvedValue(['NoStoppingAndParking']);
     loadMunicipalities.mockReset().mockResolvedValue([
       { id: 1, name: 'Albertslund' },
       { id: 2, name: 'Billund' },
@@ -307,8 +317,11 @@ describe('Road permit application', () => {
   });
 
   it('retries loading a temporarily unavailable draft', async () => {
-    loadDraft.mockRejectedValueOnce(new Error('Connection failed'));
+    loadDraft.mockResolvedValueOnce({ status: 'serviceUnavailable' });
     await renderPermitFlow(undefined, false);
+    expect((await screen.findByRole('alert')).textContent).toContain(
+      'The service is temporarily unavailable. Stay on this page and try again shortly.',
+    );
     await userEvent
       .setup()
       .click(
@@ -416,7 +429,9 @@ describe('Road permit application', () => {
 
   it('keeps edited values and allows a retry when saving fails', async () => {
     const user = userEvent.setup();
-    saveDraft.mockRejectedValueOnce(new Error('Save failed'));
+    saveDraft.mockRejectedValueOnce(
+      new AxiosError('Network failed', AxiosError.ERR_NETWORK),
+    );
     await renderPermitFlow();
 
     const title = screen.getByRole<HTMLInputElement>('textbox', {
@@ -424,13 +439,29 @@ describe('Road permit application', () => {
     });
     await user.type(title, 'Keep these edits');
     await user.click(button('Save draft'));
-    await screen.findByText('The draft could not be saved. Try again.');
+    await screen.findByText(
+      'We could not confirm that the draft was saved. Check your connection and try saving again.',
+    );
     expect(title.value).toBe('Keep these edits');
     await user.click(button('Save draft'));
 
     await screen.findByText('Draft saved.');
     expect(saveDraft).toHaveBeenCalledTimes(2);
     expect(saveDraft.mock.calls[1]).toEqual(saveDraft.mock.calls[0]);
+  });
+
+  it('explains that a conflicting draft can no longer be edited', async () => {
+    const user = userEvent.setup();
+    saveDraft.mockRejectedValueOnce({
+      isAxiosError: true,
+      response: { status: 409 },
+    });
+    await renderPermitFlow();
+    await user.click(button('Save draft'));
+
+    await screen.findByText(
+      'This draft can no longer be edited. Go to the application overview to check its status.',
+    );
   });
 
   it('shows required-field errors and stays on the first step', async () => {
@@ -578,12 +609,12 @@ describe('Road permit application', () => {
     },
   );
 
-  it('retries material choices and preserves a legacy material draft', async () => {
+  it('retries loading material choices and keeps the saved material selected', async () => {
     const user = userEvent.setup();
     loadMaterialTypes.mockRejectedValueOnce(new Error('Unavailable'));
     loadDraft.mockResolvedValue({
       status: 'loaded',
-      draft: { materialDraft: { type: 'Stillads', quantity: '2' } },
+      draft: { materialDraft: { type: 'Scaffolding', quantity: '2' } },
     });
     await renderPermitFlow();
     await user.click(button('Materials'));
@@ -653,7 +684,9 @@ describe('Road permit application', () => {
       }),
     ).toBeTruthy();
     await next(user);
-    expect(screen.getByRole('heading', { name: 'Contact details' })).toBeTruthy();
+    expect(
+      screen.getByRole('heading', { name: 'Contact details' }),
+    ).toBeTruthy();
   });
 
   it('requires an explicit traffic measure before advancing', async () => {
@@ -869,6 +902,9 @@ describe('Road permit application', () => {
       expect.objectContaining({
         municipalityName: 'Odense',
         confirmed: true,
+        roadMarking: expect.objectContaining({
+          trafficChanges: ['NoStoppingAndParking'],
+        }),
         usageDetails: expect.objectContaining({
           road: 'Adamsgade',
           houseNumberFrom: '5',
@@ -895,7 +931,9 @@ describe('Road permit application', () => {
 
   it('shows a failed request and allows the same application to be retried', async () => {
     const user = userEvent.setup();
-    submitApplication.mockRejectedValueOnce(new Error('Network failed'));
+    submitApplication.mockRejectedValueOnce(
+      new AxiosError('Network failed', AxiosError.ERR_NETWORK),
+    );
     submitApplication.mockResolvedValueOnce(undefined);
     await renderPermitFlow();
     await fillRequiredDetails(user);
@@ -903,7 +941,9 @@ describe('Road permit application', () => {
     await user.click(screen.getByRole('checkbox', { name: /I declare/i }));
     const submit = button('Submit application');
     await user.click(submit);
-    await screen.findByText('Your application could not be sent. Try again.');
+    await screen.findByText(
+      'We could not confirm that your application was submitted. Check its status in the application overview before trying again.',
+    );
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
     expect(
       screen.queryByRole('heading', { name: 'Choose an application type' }),
@@ -920,4 +960,72 @@ describe('Road permit application', () => {
       submitApplication.mock.calls[1],
     );
   });
+
+  it('marks a municipality rejected by the API until the applicant changes it', async () => {
+    const user = userEvent.setup();
+    submitApplication.mockRejectedValueOnce({
+      isAxiosError: true,
+      response: { status: 400, data: { code: 'MUNICIPALITY_UNAVAILABLE' } },
+    });
+    await renderPermitFlow();
+    await fillRequiredDetails(user);
+    await user.click(screen.getByRole('checkbox', { name: /I declare/i }));
+    await user.click(button('Submit application'));
+
+    const message =
+      'The selected municipality is no longer available. Select another municipality.';
+    expect((await screen.findByRole('alert')).textContent).toContain(message);
+    expect(button('Submit application').disabled).toBe(true);
+
+    await user.click(button('Choose municipality & title'));
+    expect(
+      screen.getByRole('searchbox', {
+        description: /The selected municipality is no longer available/,
+      }),
+    ).toBeTruthy();
+    await user.click(screen.getByRole('radio', { name: 'Billund' }));
+    expect(screen.queryByText(message)).toBeNull();
+  });
+
+  it.each([
+    {
+      code: 'MATERIAL_UNAVAILABLE',
+      step: 'Materials',
+      message:
+        'The selected material is no longer available. Remove it from the list or select another.',
+      remove: 'Remove Container, material 1',
+    },
+    {
+      code: 'TRAFFIC_CHANGE_UNAVAILABLE',
+      step: 'Road markings',
+      message:
+        'The traffic change «Stopping and parking» is no longer available. Remove it from the list or select another.',
+      remove: 'Remove Stopping and parking',
+    },
+  ])(
+    'marks a rejected choice in $step until it is removed',
+    async ({ code, step, message, remove }) => {
+      const user = userEvent.setup();
+      submitApplication.mockRejectedValueOnce({
+        isAxiosError: true,
+        response: { status: 400, data: { code, index: 0 } },
+      });
+      await renderPermitFlow();
+      await fillRequiredDetails(user);
+      await user.click(screen.getByRole('checkbox', { name: /I declare/i }));
+      await user.click(button('Submit application'));
+
+      expect((await screen.findByRole('alert')).textContent).toContain(message);
+      expect(button('Submit application').disabled).toBe(true);
+
+      await user.click(button(step));
+      expect(
+        screen
+          .getAllByText(message)
+          .some((element) => !element.closest('[role="alert"]')),
+      ).toBe(true);
+      await user.click(button(remove));
+      expect(screen.queryByText(message)).toBeNull();
+    },
+  );
 });
