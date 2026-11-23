@@ -16,6 +16,13 @@ This repository is a Danish 5th-semester Datamatiker project for Skilteplanen. I
 - For commits, preserve the configured Git author and do not add Codex as an author or co-author, or add attribution trailers, unless explicitly requested.
 - Keep this file short and repository-wide. Put detailed, task-specific procedures in skills or documentation and link them here only when useful.
 
+## Secret & environment-file safety
+- Never access `.env` files or any secret-bearing environment file. No reading, printing, copying, moving, or inspecting them.
+- Searches, listings, and diagnostics must not risk exposing their contents.
+- Never echo or hardcode credentials, tokens, API keys, or connection strings anywhere (output, source code, commits, etc.).
+- `.env.example` files are the only permitted templates/references.
+- If a task genuinely needs a secret, you stop and ask me for a safe, redacted alternative rather than working around it.
+
 ## Project map
 
 - `apps/web/`: React frontend, Vite development server, and Biome configuration inherited from the root.
