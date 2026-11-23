@@ -1,9 +1,12 @@
 import type { ComponentType } from 'react';
-import ApplicationPage from '../pages/application-page';
-import CaseworkerMunicipalityPage, {
+import {
+  caseWorkerListPath,
   caseworkerMunicipalityPath,
   updateMunicipalityPath,
-} from '../pages/caseworker-municipality-page';
+} from '../components/layout/app-shell/case-worker-layout.js';
+import ApplicationPage from '../pages/application-page';
+import CaseWorkersPage from '../pages/case-workers-page';
+import CaseworkerMunicipalityPage from '../pages/caseworker-municipality-page';
 import ContactsPage from '../pages/contacts-page';
 import CreateMunicipalityPage from '../pages/create-municipality-page';
 import HomePage from '../pages/home-page';
@@ -26,6 +29,7 @@ export const pages: Record<string, ComponentType> = {
   [routes.messages]: MessagesPage,
   [routes.login]: LoginPage,
   [routes.createMunicipality]: CreateMunicipalityPage,
+  [caseWorkerListPath]: CaseWorkersPage,
   [caseworkerMunicipalityPath]: CaseworkerMunicipalityPage,
   [updateMunicipalityPath]: CaseworkerMunicipalityPage,
 } as const;

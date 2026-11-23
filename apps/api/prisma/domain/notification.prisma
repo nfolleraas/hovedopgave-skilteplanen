@@ -5,6 +5,6 @@ model Notification {
   isRead       Boolean     @default(false)
   applicantId  String?     @unique
   applicant    Applicant?  @relation(fields: [applicantId], references: [uuid])
-  caseWorkerId String?     @unique
+  caseWorkerId String?
   caseWorker   CaseWorker? @relation(fields: [caseWorkerId], references: [employeeNumber])
 }

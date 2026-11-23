@@ -5,6 +5,6 @@ model Feedback {
   message       String
   applicationId String      @unique
   application   Application @relation(fields: [applicationId], references: [caseNumber])
-  caseWorkerId  String      @unique
-  caseWorker    CaseWorker  @relation(fields: [caseWorkerId], references: [employeeNumber])
+  caseWorkerId  String?
+  caseWorker    CaseWorker? @relation(fields: [caseWorkerId], references: [employeeNumber])
 }

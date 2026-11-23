@@ -71,6 +71,25 @@ i API-terminalen. Hændelsen viser `employeeNumber: 'DEMO-001'` og
 `employeeNumberSource: 'mock'` sammen med tidspunktet og de ændrede felter.
 Ved `NODE_ENV=production` ignorerer API'et demoindstillingen.
 
+### Sagsbehandlernes HTTP-ruter i udvikling
+
+Start API'et med medarbejdernummeret på en eksisterende superbruger i
+udviklingsdatabasen. API'et henter superbrugerens kommune fra databasen.
+
+```bash
+NODE_ENV=development CASE_WORKER_DEMO_EMPLOYEE_NUMBER=DEMO001 bun run --filter api dev
+```
+
+Brug `GET /api/case-workers` til at hente kommunens sagsbehandlere og
+`GET /api/case-workers/:employeeNumber` til at hente én sagsbehandler.
+
+Brug `POST /api/case-workers` til oprettelse og
+`PATCH /api/case-workers/:employeeNumber` eller
+`DELETE /api/case-workers/:employeeNumber` til opdatering eller sletning.
+Udskift `DEMO001` med superbrugerens medarbejdernummer. Ruterne svarer
+med HTTP 503 uden den konfigurerede udviklingsidentitet. Demoidentiteten
+kan kun bruges ved `NODE_ENV=development` eller `NODE_ENV=test`.
+
 ### Playwright med PostgreSQL
 
 Sæt `E2E_DATABASE_URL` til en separat PostgreSQL-testdatabase og kør

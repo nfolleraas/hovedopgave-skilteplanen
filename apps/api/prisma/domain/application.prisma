@@ -13,7 +13,9 @@ model Application {
   trafficChange          TrafficChange
   applicantId            String                  @unique
   applicant              Applicant               @relation(fields: [applicantId], references: [uuid])
-  caseWorkerId           String?                 @unique
+  municipalityId         Int?
+  municipality           Municipality?           @relation(fields: [municipalityId], references: [id])
+  caseWorkerId           String?
   caseWorker             CaseWorker?             @relation(fields: [caseWorkerId], references: [employeeNumber])
   roadUsePermit          RoadUsePermit?
   excavationPermit       ExcavationPermit?

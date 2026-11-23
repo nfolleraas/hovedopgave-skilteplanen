@@ -5,7 +5,7 @@ model CaseWorker {
   passwordHash   String
   phoneNumber    String
   isSuperUser    Boolean        @default(false)
-  municipalityId Int            @unique
+  municipalityId Int
   municipality   Municipality   @relation(fields: [municipalityId], references: [id])
   notifications  Notification[]
   applications   Application[]
