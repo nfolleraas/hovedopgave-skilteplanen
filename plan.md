@@ -14,8 +14,11 @@ access-token guard. Phase 2 step 5 adds explicit public and onboarding route
 metadata. Phase 2 step 6 limits Swagger to development, completing Phase 2.
 Phase 3 now implements API-only Argon2id password handling, administrator
 login, administrator login rate limiting and auditing, and a first-account
-bootstrap procedure. Case workers continue to authenticate only through Entra
-ID. Phase 4 step 1 supports explicitly enabled, validated server-side Signicat
+bootstrap procedure. Case workers will authenticate through a local Keycloak
+municipal SSO simulation rather than Microsoft Entra ID. The existing
+Entra-oriented provider persistence is therefore legacy groundwork and must be
+adapted to Keycloak issuer-plus-subject identities during Phase 5. Phase 4 step
+1 supports explicitly enabled, validated server-side Signicat
 sandbox OIDC configuration, including its redirect URI and private and
 business scopes. Phase 4 step 2 now implements persisted one-time OIDC
 transactions, state and nonce hashing, S256 PKCE, authorization redirects,
@@ -28,7 +31,13 @@ applicants through CVR, denies inactive applicants, and issues sessions for
 active matches. Phase 4 step 6 now records the verified employee UUID and
 provider subject for successful business logins. Phase 4 step 5, pending
 registration and UC-001 token exchange, remains assigned to the applicant
-module outside the authentication feature branch.
+module outside the authentication feature branch. Phase 5 now has a
+backend-owned Keycloak implementation: reproducible local realm provisioning,
+validated server-side configuration, one-time OIDC transactions with S256
+PKCE, discovery and JWKS validation, issuer-plus-subject case-worker linking,
+role and municipality enforcement, auditing, and Skilteplanen session issuance.
+A live browser login remains to be verified after rebuilding the dev container
+and supplying the local Keycloak client secret and fictional-user passwords.
 
 ## Goals
 
@@ -36,7 +45,7 @@ module outside the authentication feature branch.
 - Support four login contexts:
   - Private applicant through Signicat and MitID Private.
   - Business applicant through Signicat and MitID Business.
-  - Municipal case worker through the municipality's corporate identity provider, initially Microsoft Entra ID.
+  - Municipal case worker through a fictional municipality's Keycloak corporate SSO simulation.
   - Administrator through local e-mail/password authentication.
 - Use JWT because it is familiar to the project group.
 - Support first-time applicant onboarding without granting normal API access before registration is complete.
@@ -46,11 +55,15 @@ module outside the authentication feature branch.
 ## Explicit scope limitations
 
 - Skilteplanen will not implement application-managed MFA for administrator login.
-- Case workers authenticate only through their municipality's corporate identity
-  provider. Skilteplanen does not provide local credentials or a manual fallback
-  when Microsoft Entra ID denies or cannot complete a login.
-- A municipality's external identity provider may enforce its own MFA or Conditional Access policy, but this is outside Skilteplanen's implementation.
-- The first implementation supports Signicat OIDC and Microsoft Entra ID OIDC, not arbitrary identity providers.
+- Case workers authenticate only through the Keycloak municipal SSO simulation.
+  Skilteplanen does not provide local credentials or a manual fallback when
+  Keycloak denies or cannot complete a login.
+- The first implementation supports Signicat OIDC for applicants and a local
+  Keycloak realm for fictional municipal employees, not arbitrary identity
+  providers.
+- Keycloak represents a fictional `Demo Kommune` and is not an implementation
+  of KOMBIT's Context Handler, the official municipal SAML federation, or real
+  municipality-issued permissions.
 - The first implementation uses redirect-based OIDC, not Signicat's headless Authentication REST API.
 - No mobile-app or third-party API authentication is planned.
 - No access-token denylist or immediate per-token revocation is planned. Short access-token lifetimes limit the remaining validity window.
@@ -58,11 +71,27 @@ module outside the authentication feature branch.
 
 ## Core architecture decision
 
-The API uses short-lived JWT access tokens. The JWT is stored in an `HttpOnly`, `Secure`, `SameSite=Lax` cookie rather than browser storage.
+The API uses short-lived Skilteplanen JWT access tokens stored in an `HttpOnly`,
+`Secure`, `SameSite=Lax` cookie rather than browser storage. This applies to
+applicants, case workers, and administrators.
 
-The JWT establishes the authenticated principal but does not contain all mutable authorization data. The API loads current data such as applicant activity, municipality assignment, and `isSuperUser` from PostgreSQL when authorizing a request. This avoids relying on stale role and organization claims.
+NestJS, not React, is the confidential Keycloak OIDC client. The API creates
+the authorization transaction, redirects the browser to Keycloak, handles the
+callback, exchanges the authorization code, validates provider tokens, resolves
+the case worker, and then issues the normal Skilteplanen access and refresh
+cookies. Keycloak tokens and client credentials are never exposed to React.
 
-Active users may receive an opaque refresh token. Refresh tokens are random values stored as hashes in PostgreSQL and rotated when used. This introduces limited server-side state but keeps access-token handling familiar to the group.
+The Skilteplanen JWT establishes the authenticated principal but does not
+contain all mutable authorization data.
+The API loads current data such as applicant activity, municipality assignment,
+and `isSuperUser` from PostgreSQL when authorizing a request. Keycloak roles and
+groups may be required as authentication evidence, but they do not replace the
+API's resource and municipality authorization checks.
+
+Active users may receive an opaque refresh token. Refresh tokens are random
+values stored as hashes in PostgreSQL and rotated when used. This introduces
+limited server-side state but keeps provider credentials and session handling
+out of the frontend.
 
 ### Token purposes
 
@@ -153,12 +182,14 @@ After applicant creation succeeds, the backend consumes the pending registration
   - `AUTH_ACCESS_COOKIE_PATH`
   - `AUTH_REFRESH_COOKIE_PATH`
   - `AUTH_COOKIE_SECURE`
-- Validate Signicat and Microsoft Entra settings when those providers are
-  enabled in their later implementation phases.
+- Validate Signicat and Keycloak server-side OIDC settings when those providers
+  are enabled.
 
 ## Default-deny API access
 
-Register a global NestJS guard through `APP_GUARD`. Every API route requires a valid access JWT unless it has explicit route metadata allowing another behavior.
+Register a global NestJS guard through `APP_GUARD`. Every API route requires a
+valid Skilteplanen access JWT unless it has explicit route metadata allowing
+another behavior.
 
 Recommended route metadata:
 
@@ -210,7 +241,8 @@ The UC-001 applicant-creation endpoint uses `@AllowOnboarding()` rather than `@P
 
 ## OIDC transaction handling
 
-Before redirecting to Signicat or a municipality identity provider, create a short-lived `AuthTransaction` containing:
+Before redirecting to Signicat or Keycloak, create a short-lived
+`AuthTransaction` containing:
 
 - Provider and login type.
 - OIDC state.
@@ -230,7 +262,10 @@ The callback must:
 6. Resolve the application principal.
 7. Issue the appropriate onboarding or access JWT.
 
-Client-provided issuer, tenant, scope, or redirect parameters must not be trusted. Login-start endpoints select server-controlled provider configuration.
+Client-provided issuer, realm, scope, audience, or redirect parameters must not
+be trusted. Login-start endpoints select server-controlled provider
+configuration. React knows only the API route and never receives provider
+configuration, tokens, or client credentials.
 
 ## Private applicant login
 
@@ -273,23 +308,41 @@ The applicant schema therefore needs to support `mitIdKey` for private applicant
 
 ## Municipal case-worker login
 
-### Corporate-login path
+### Keycloak simulation path
 
-1. The case worker selects municipal login.
-2. The API starts the municipality's configured OIDC flow, initially Microsoft Entra ID.
-3. Use authorization-code flow with PKCE and the organizational account audience.
-4. Validate issuer, audience, signature, nonce, and tenant ID.
-5. Require the tenant ID to exist in the municipality allowlist/mapping.
-6. Match the provider subject to a pre-provisioned case worker.
-7. Do not automatically create case workers after successful corporate authentication.
-8. If the case worker exists, issue an access JWT.
-9. If the case worker is unknown or deleted, return `403` without issuing a JWT and instruct the user to contact the municipality's superuser.
+1. Run a local Keycloak instance with the fictional `demo-municipality` realm.
+2. Configure a confidential Keycloak client owned by NestJS. Enable
+   Authorization Code flow with S256 PKCE and register the exact backend
+   callback URI `/api/auth/municipality/callback`. Store its client secret only
+   in the API environment.
+3. The case worker selects municipal login and React navigates to
+   `GET /api/auth/municipality/start`.
+4. NestJS creates a one-time `AuthTransaction` and redirects the browser to
+   Keycloak using server-controlled realm, client, scope, and redirect values.
+5. Keycloak authenticates the fictional employee and redirects to the backend
+   callback with state and an authorization code.
+6. NestJS consumes the transaction once, exchanges the code using its client
+   credentials and PKCE verifier, and validates signature, issuer, audience,
+   nonce, and expiry through Keycloak discovery and JWKS.
+7. Normalize the verified `iss` + `sub` identity and required
+   `municipality_id` and role claims. Match it to a pre-provisioned case worker
+   and require the claimed municipality to match the stored assignment.
+8. Do not automatically create case workers after successful Keycloak
+   authentication.
+9. For an eligible case worker, issue the normal Skilteplanen access and
+   refresh cookies with `actor: CASE_WORKER`; discard provider tokens after the
+   callback.
+10. Reject invalid provider responses with `401`; reject unknown, mismatched,
+    deleted, or insufficiently privileged employees with `403` without issuing
+    Skilteplanen credentials.
 
-If Entra ID rejects, is unavailable, or cannot complete the login, the API
-must issue no access or refresh token and deny case-worker access. There is no
-local credential or manual fallback route.
+If Keycloak rejects, is unavailable, or cannot complete login, the API denies
+case-worker access and issues no access or refresh token. There is no local
+credential or manual fallback route.
 
-The domain should remain provider-neutral even though Entra ID is the first implementation. A municipality-provider configuration stores issuer, tenant, client configuration, and the related municipality.
+The local realm models one fictional municipality. External identities use
+the verified issuer and subject rather than usernames or email addresses,
+which are not stable or globally unique.
 
 A municipality must be able to have multiple case workers, so `municipalityId`
 must not be unique. `CaseWorker.passwordHash` is not used for authentication
@@ -374,11 +427,14 @@ Validate required environment configuration at startup. Expected configuration i
 - Skilteplanen JWT issuer, audience, signing key/private key, and lifetimes.
 - Cookie names and production security settings.
 - Signicat sandbox domain, client ID, client secret, redirect URI, and scopes.
-- Microsoft Entra client ID, client secret/certificate, redirect URI, and allowed tenant IDs.
+- Keycloak realm issuer, confidential backend client ID and secret, callback
+  URI, scopes, expected audience, and fictional municipality identifier.
 - Password-hashing parameters.
 - Refresh-token lifetime.
 
-Use separate Signicat sandbox and production configuration. Never commit provider secrets or signing keys.
+Use separate Signicat sandbox and production configuration. Keep the Keycloak
+client secret in the API environment and never expose it through `VITE_*`
+variables. Never commit provider secrets or signing keys.
 
 ## Planned data-model changes
 
@@ -393,7 +449,9 @@ Use separate Signicat sandbox and production configuration. Never commit provide
 - Keep `municipalityId` non-unique so one municipality can contain multiple case workers.
 - Do not use local case-worker passwords; remove `passwordHash` in a separately
   reviewed schema migration.
-- Add provider-linking fields or a separate external-identity record for issuer, tenant ID, and provider subject.
+- Link pre-provisioned case workers to Keycloak through the verified issuer and
+  subject. Remove the Entra-specific tenant requirement from this identity
+  mapping when the schema is migrated.
 - Delete the case-worker account when access must be removed.
 
 ### Administrator
@@ -408,7 +466,8 @@ Use separate Signicat sandbox and production configuration. Never commit provide
 - `PendingRegistration` for authenticated applicants who have not completed UC-001.
 - `RefreshToken` for hashed, rotating, revocable refresh tokens.
 - `AuthAuditEvent` or equivalent audit storage for important authentication events.
-- Municipality/provider mapping for allowed Entra tenants and OIDC configuration.
+- Municipality/provider mapping for the allowed Keycloak issuer and
+  `municipality_id`, plus issuer-and-subject case-worker identities.
 
 Use Prisma migrations for all schema changes. Do not edit generated Prisma client files manually.
 
@@ -428,7 +487,7 @@ AuthModule
 ├── PasswordService
 ├── providers/
 │   ├── signicat.provider.ts
-│   └── entra.provider.ts
+│   └── keycloak.provider.ts
 ├── guards/
 │   ├── jwt-auth.guard.ts
 │   ├── onboarding.guard.ts
@@ -441,7 +500,9 @@ AuthModule
     └── allow-any-authenticated.decorator.ts
 ```
 
-Keep provider-specific claim mapping inside provider adapters. Domain services should receive a normalized authenticated identity.
+Keep provider-specific claim mapping inside provider adapters. Domain services
+should receive a normalized authenticated identity rather than raw Keycloak
+claims or tokens.
 
 ## Implementation phases
 
@@ -480,13 +541,29 @@ At the end of this phase, existing API routes must return `401` without a valid 
 5. Implement pending registration and UC-001 token exchange.
 6. Record business employee identity in audit events.
 
-### Phase 5: Municipality corporate login
+### Phase 5: Keycloak municipal SSO simulation
 
-1. Configure the Entra application and test tenant.
-2. Implement the Entra OIDC adapter.
-3. Add tenant-to-municipality allowlisting.
-4. Implement pre-provisioned case-worker identity linking.
-5. Deny unknown, mismatched, or deleted employees.
+Use `municipal-keycloak-sso-guide.md` only as a reference for provisioning the
+local Keycloak service, realm, fictional users, roles, and claims. Its React
+adapter and frontend token-handling steps do not apply to this repository; the
+backend-owned flow below is authoritative.
+
+1. Add the local Keycloak and PostgreSQL services and create the fictional
+   `demo-municipality` realm.
+2. Configure fictional employees, departments, realm roles, a confidential
+   backend OIDC client, S256 PKCE, `municipality_id`, the expected audience,
+   and the exact API callback URI.
+3. Add validated server-side Keycloak configuration without adding Keycloak
+   configuration or credentials to the web app.
+4. Implement the NestJS Keycloak provider adapter, persisted one-time OIDC
+   transactions, authorization redirects, code exchange, and validation of
+   signature, issuer, audience, nonce, and expiry through discovery and JWKS.
+5. Replace the Entra-specific provider schema assumptions and link verified
+   `iss` + `sub` identities to pre-provisioned case workers.
+6. Deny missing, invalid, unknown, mismatched, deleted, or insufficiently
+   privileged employees.
+7. Issue Skilteplanen case-worker sessions through the existing cookie and
+   refresh-token infrastructure and test Keycloak SSO session behavior.
 
 ### Phase 6: Authorization
 
@@ -500,17 +577,18 @@ At the end of this phase, existing API routes must return `401` without a valid 
 ### Phase 7: Frontend integration
 
 1. Add private, business, municipal, and administrator login choices.
-2. Redirect to backend login-start routes.
+2. Redirect all external-provider login choices through backend login-start
+   routes.
 3. Load authentication state through `GET /api/auth/me`.
 4. Handle onboarding-required responses.
 5. Handle cancelled login, unavailable provider, forbidden account, expired token, and logout states.
-6. Never expose provider tokens to React.
+6. Never expose Signicat or Keycloak provider tokens to React.
 
 ### Phase 8: Verification and documentation
 
 1. Add unit and integration tests.
 2. Run Signicat sandbox login tests.
-3. Run Entra test-tenant login tests.
+3. Run the Keycloak fictional-employee, audience, role, and SSO tests.
 4. Add environment and provider setup documentation.
 5. Document known school-project limitations and future hardening options.
 
@@ -518,7 +596,8 @@ At the end of this phase, existing API routes must return `401` without a valid 
 
 ### Global access control
 
-- Protected endpoints return `401` without a JWT.
+- Protected endpoints return `401` without the credential required by their
+  authentication context.
 - Only explicitly public routes can be called anonymously.
 - Onboarding JWTs cannot access normal protected endpoints.
 - Access JWTs cannot bypass role or ownership guards.
@@ -536,11 +615,20 @@ At the end of this phase, existing API routes must return `401` without a valid 
 
 ### Case-worker authentication
 
-- Allowed Entra tenant and linked case worker receive an access JWT.
-- Unknown tenant is rejected.
-- Unknown or deleted case worker is rejected.
-- Corporate-login callback rejects invalid state, nonce, issuer, audience, and PKCE.
-- A rejected, cancelled, or unavailable Entra ID login issues no token and
+- A correctly configured fictional employee can complete Keycloak
+  Authorization Code flow with S256 PKCE.
+- The backend callback rejects invalid or reused state, invalid nonce, failed
+  code exchange, expired or incorrectly signed tokens, and wrong issuer or
+  audience without issuing a session.
+- A verified `iss` + `sub` identity resolves only to its pre-provisioned case
+  worker and stored municipality.
+- Unknown, deleted, or municipality-mismatched case workers are rejected.
+- A user without the required Keycloak role receives `403` for case-worker
+  operations.
+- An eligible linked case worker receives Skilteplanen access and refresh
+  cookies, while Keycloak tokens remain server-side and are discarded after
+  authentication.
+- Keycloak rejection or unavailability yields no Skilteplanen credentials and
   refuses case-worker access.
 - No application-managed MFA is required.
 
@@ -570,17 +658,21 @@ At the end of this phase, existing API routes must return `401` without a valid 
 ## Remaining external setup
 
 1. Obtain the Signicat sandbox account, OIDC client, redirect URI, and test users.
-2. Obtain the Entra test tenant/application and define municipality onboarding for production tenants.
+2. Rebuild the dev container with local Keycloak secrets so the committed realm
+   import can provision the confidential backend client and fictional
+   employees, then run a live browser login. Do not follow the reference
+   guide's frontend-adapter integration steps.
 
 ## Related diagrams and research
 
 - [Private applicant login sequence](https://drive.google.com/file/d/1JTGEBK1dKJjYUZSUrMbBfNsWJnC2kW2x/view?usp=drivesdk)
 - [Business applicant login sequence](https://drive.google.com/file/d/1p00nlcPAOe8hsCKLkppoyrwTDh-YCsbk/view?usp=drivesdk)
 - [Municipal case-worker login sequence](https://drive.google.com/file/d/1a5PLixWz_hF46R0jlGe7JRN765svoSCR/view?usp=drivesdk)
+- [Municipal Keycloak SSO guide](./municipal-keycloak-sso-guide.md)
 - [Administrator login sequence](https://drive.google.com/file/d/1G0rzzBK1I3fX3Qg4WLfzUEfSqdAqFAR1/view?usp=drivesdk)
 - [JWT versus database sessions](https://docs.google.com/document/d/1p9TYwgUioTDOCfpphzP80Z9o6JiOe2S_TfTVjBS-y8M)
 - [Signicat MitID OIDC integration](https://developer.signicat.com/identity-methods/mitid/integration-guide/oidc-mitid/)
 - [Signicat MitID attributes](https://developer.signicat.com/identity-methods/mitid/attributes-reference/)
-- [Microsoft authorization-code flow](https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-auth-code-flow)
+- [Keycloak OIDC endpoints](https://www.keycloak.org/securing-apps/oidc-layers)
 - [OWASP Session Management Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html)
 - [OAuth 2.0 Security Best Current Practice (RFC 9700)](https://datatracker.ietf.org/doc/html/rfc9700)

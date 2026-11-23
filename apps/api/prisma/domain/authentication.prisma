@@ -42,14 +42,14 @@ model MunicipalityAuthProvider {
   municipalityId       Int
   provider             AuthProvider
   issuer               String
-  tenantId             String
+  municipalityClaim    String
   createdAt            DateTime                     @default(now())
   updatedAt            DateTime                     @updatedAt
   municipality         Municipality                 @relation(fields: [municipalityId], references: [id], onDelete: Cascade)
   caseWorkerIdentities CaseWorkerExternalIdentity[]
 
-  @@unique([provider, issuer, tenantId])
-  @@unique([municipalityId, provider, tenantId])
+  @@unique([provider, issuer, municipalityClaim], map: "MunicipalityAuthProvider_provider_issuer_claim_key")
+  @@unique([municipalityId, provider, municipalityClaim], map: "MunicipalityAuthProvider_municipality_provider_claim_key")
 }
 
 model CaseWorkerExternalIdentity {

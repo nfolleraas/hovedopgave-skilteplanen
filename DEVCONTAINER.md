@@ -7,7 +7,8 @@ trin den 9. oktober 2026.
 ## Hvad du får
 
 Et enkelt VS Code-devcontainer, der kører to apps fra samme repo samtidig,
-en PostgreSQL-database og pgweb som webbaseret databaseklient.
+en PostgreSQL-database, pgweb som webbaseret databaseklient samt en lokal
+Keycloak-installation med sin egen PostgreSQL-database.
 
 | Del                         | Hvor                  | Kører på                                      |
 | --------------------------- | --------------------- | --------------------------------------------- |
@@ -15,6 +16,14 @@ en PostgreSQL-database og pgweb som webbaseret databaseklient.
 | NestJS 12 + TypeScript      | `apps/api`            | container port 3000, ruter under `/api`      |
 | Postgres 17                 | `db` compose service  | hostname `db`, port 5432, kun på compose-netværket |
 | pgweb                       | `pgweb` compose service | `http://localhost:8081`, forbinder til `db` |
+| Keycloak 26                 | `keycloak` compose service | `http://localhost:8080`, kommunal SSO-simulation |
+| Keycloak Postgres 17        | `keycloak-db` compose service | hostname `keycloak-db`, kun på compose-netværket |
+
+Keycloak importerer `demo-municipality`-realmet fra
+`.devcontainer/keycloak/demo-municipality-realm.json` første gang databasen er
+tom. Importen opretter den fortrolige backend-klient, claims, roller og fiktive
+medarbejdere; adgangskoder og klienthemmeligheden indsættes fra den lokale
+`.devcontainer/.env`.
 
 Start alt fra repo-roden inde i containeren:
 
@@ -32,7 +41,7 @@ viderebehandles af Vite til Nest, så browseren kun kommunikerer med én oprinde
 ├── .devcontainer/
 │   ├── devcontainer.json       # hvad VS Code tilslutter sig og installerer
 │   ├── Dockerfile              # app-image og systempakker som ripgrep
-│   ├── compose.yaml            # containere: app + db + pgweb
+│   ├── compose.yaml            # containere: app + db + pgweb + Keycloak
 │   ├── devcontainer-lock.json  # låste feature-versioner, kom det med i repoet
 │   └── setup-zsh.sh            # Oh My Zsh plugins og tema
 ├── apps/

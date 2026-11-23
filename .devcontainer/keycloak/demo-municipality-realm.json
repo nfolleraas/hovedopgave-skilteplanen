@@ -1,0 +1,112 @@
+{
+  "realm": "demo-municipality",
+  "displayName": "Demo Kommune",
+  "enabled": true,
+  "registrationAllowed": false,
+  "resetPasswordAllowed": false,
+  "rememberMe": false,
+  "roles": {
+    "realm": [
+      {
+        "name": "municipal-employee",
+        "description": "Basic access for a fictional municipal employee"
+      },
+      {
+        "name": "caseworker",
+        "description": "May authenticate to Skilteplanen as a case worker"
+      },
+      {
+        "name": "department-manager"
+      },
+      {
+        "name": "municipal-admin"
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "municipal-api",
+      "name": "Skilteplanen municipal backend",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "clientAuthenticatorType": "client-secret",
+      "secret": "${KEYCLOAK_CLIENT_SECRET}",
+      "publicClient": false,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "implicitFlowEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": ["http://localhost:5173/api/auth/municipality/callback"],
+      "webOrigins": [],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      },
+      "protocolMappers": [
+        {
+          "name": "municipality-id",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-hardcoded-claim-mapper",
+          "consentRequired": false,
+          "config": {
+            "claim.name": "municipality_id",
+            "claim.value": "demo-kommune",
+            "jsonType.label": "String",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        },
+        {
+          "name": "realm-roles",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "consentRequired": false,
+          "config": {
+            "claim.name": "realm_access.roles",
+            "jsonType.label": "String",
+            "multivalued": "true",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "id": "11111111-1111-4111-8111-111111111111",
+      "username": "anna.jensen",
+      "firstName": "Anna",
+      "lastName": "Jensen",
+      "email": "anna@example.test",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": ["municipal-employee", "caseworker"],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "${KEYCLOAK_ANNA_PASSWORD}",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "22222222-2222-4222-8222-222222222222",
+      "username": "lars.nielsen",
+      "firstName": "Lars",
+      "lastName": "Nielsen",
+      "email": "lars@example.test",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": ["municipal-employee"],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "${KEYCLOAK_LARS_PASSWORD}",
+          "temporary": false
+        }
+      ]
+    }
+  ]
+}

@@ -26,7 +26,7 @@ export async function seedApplication(prisma: PrismaClient) {
           type: ApplicantType.Business,
           phoneNumber: '12345678',
           email: 'demo@example.com',
-          mitIdKey: 'demo-mitid-key',
+          cvrNumber: '12345678',
           address: {
             create: {
               street: 'Demo Street',

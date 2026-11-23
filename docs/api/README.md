@@ -46,3 +46,5 @@ for shared development instructions.
   initial local administrator without a committed default credential.
 - [Signicat sandbox](signicat.md): configure and validate the server-side OIDC
   client used for MitID applicant authentication.
+- [Keycloak municipal SSO](keycloak.md): configure the backend-owned OIDC flow
+  and link fictional municipal employees to pre-provisioned case workers.

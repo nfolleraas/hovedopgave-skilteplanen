@@ -221,6 +221,6 @@ enum AuthLoginType {
 
 enum AuthProvider {
   SIGNICAT
-  ENTRA_ID
+  KEYCLOAK
   LOCAL
 }
