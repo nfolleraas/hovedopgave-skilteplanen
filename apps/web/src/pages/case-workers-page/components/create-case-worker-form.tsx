@@ -40,7 +40,9 @@ export default function CreateCaseWorkerForm({
 }: Props): ReactElement {
   const { t } = useTranslation();
   const [invalid, setInvalid] = useState<Field[]>([]);
-  const [failure, setFailure] = useState<'duplicate' | 'save'>();
+  const [failure, setFailure] = useState<
+    'duplicateEmployeeNumber' | 'duplicateEmail' | 'save'
+  >();
   const [saving, setSaving] = useState(false);
   const nameInput = useRef<HTMLInputElement>(null);
 
@@ -61,7 +63,9 @@ export default function CreateCaseWorkerForm({
       name: String(data.get('name') ?? '')
         .trim()
         .normalize('NFC'),
-      employeeNumber: worker?.employeeNumber ?? String(data.get('employeeNumber') ?? '').trim(),
+      employeeNumber:
+        worker?.employeeNumber ??
+        String(data.get('employeeNumber') ?? '').trim(),
       email: String(data.get('email') ?? '').trim(),
       phoneNumber: String(data.get('phoneNumber') ?? ''),
       password: String(data.get('password') ?? ''),
@@ -103,7 +107,11 @@ export default function CreateCaseWorkerForm({
       } else {
         const result = await createCaseWorker(input);
         if ('duplicate' in result) {
-          setFailure('duplicate');
+          setFailure(
+            result.duplicate === 'email'
+              ? 'duplicateEmail'
+              : 'duplicateEmployeeNumber',
+          );
         } else {
           onSaved(result.caseWorker);
         }
@@ -134,9 +142,11 @@ export default function CreateCaseWorkerForm({
           <Stack spacing={2}>
             {failure && (
               <Alert severity="error">
-                {failure === 'duplicate'
-                  ? t('caseworker.management.duplicate')
-                  : t('caseworker.management.saveError')}
+                {failure === 'duplicateEmployeeNumber'
+                  ? t('caseworker.management.duplicateEmployeeNumber')
+                  : failure === 'duplicateEmail'
+                    ? t('caseworker.management.duplicateEmail')
+                    : t('caseworker.management.saveError')}
               </Alert>
             )}
             <TextField

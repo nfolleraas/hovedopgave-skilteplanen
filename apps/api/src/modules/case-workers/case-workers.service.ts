@@ -115,7 +115,7 @@ export class CaseWorkersService {
 
     const salt = randomBytes(16).toString('hex');
     const key = (await deriveKey(data.password, salt, 64)) as Buffer;
-    const result = await this.repository.create({
+    const result = await this.repository.create(actorEmployeeNumber, {
       employeeNumber,
       ...details,
       passwordHash: `scrypt:${salt}:${key.toString('hex')}`,

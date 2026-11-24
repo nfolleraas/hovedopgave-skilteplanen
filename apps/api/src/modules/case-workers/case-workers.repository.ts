@@ -102,6 +102,7 @@ export class CaseWorkersRepository {
 
   /** Stores a caseworker or reports which duplicate prevented creation. */
   async create(
+    actorEmployeeNumber: string,
     data: Prisma.CaseWorkerUncheckedCreateInput,
   ): Promise<CreateResult> {
     try {
@@ -125,6 +126,14 @@ export class CaseWorkersRepository {
           const caseWorker = await tx.caseWorker.create({
             data,
             select: publicFields,
+          });
+          await tx.auditLog.create({
+            data: {
+              action: 'caseWorker.created',
+              actorEmployeeNumber,
+              targetEmployeeNumber: caseWorker.employeeNumber,
+              details: { municipalityId: data.municipalityId },
+            },
           });
           return { caseWorker };
         },
@@ -209,6 +218,19 @@ export class CaseWorkersRepository {
           },
           select: publicFields,
         });
+        await tx.auditLog.create({
+          data: {
+            action: 'caseWorker.updated',
+            actorEmployeeNumber,
+            targetEmployeeNumber: employeeNumber,
+            details: {
+              name: data.name,
+              email: data.email,
+              phoneNumber: data.phoneNumber,
+              isSuperUser: data.isSuperUser,
+            },
+          },
+        });
         return { caseWorker, changed: true };
       },
     );
@@ -261,6 +283,14 @@ export class CaseWorkersRepository {
           data: { caseWorkerId: null, municipalityId },
         });
         await tx.caseWorker.delete({ where: { employeeNumber } });
+        await tx.auditLog.create({
+          data: {
+            action: 'caseWorker.deleted',
+            actorEmployeeNumber,
+            targetEmployeeNumber: employeeNumber,
+            details: { releasedCases: count, municipalityId },
+          },
+        });
         return { releasedCases: count };
       },
     );

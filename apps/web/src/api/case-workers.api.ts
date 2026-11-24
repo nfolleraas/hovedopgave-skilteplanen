@@ -18,14 +18,25 @@ export async function getCaseWorkers(
 /** Creates a caseworker and reports a duplicate separately from other errors. */
 export async function createCaseWorker(
   input: CaseWorkerInput,
-): Promise<{ caseWorker: CaseWorker } | { duplicate: true }> {
+): Promise<
+  { caseWorker: CaseWorker } | { duplicate: 'employeeNumber' | 'email' }
+> {
   const response = await fetch(apiUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(input),
   });
 
-  if (response.status === 409) return { duplicate: true };
+  if (response.status === 409) {
+    const body = (await response.json().catch(() => null)) as {
+      message?: string;
+    } | null;
+    return {
+      duplicate: body?.message?.toLowerCase().includes('email')
+        ? 'email'
+        : 'employeeNumber',
+    };
+  }
   if (!response.ok) throw new Error('Could not create caseworker');
   return { caseWorker: await response.json() };
 }
