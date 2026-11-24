@@ -35,6 +35,7 @@ test-results/
 /apps/api/.claude/
 /apps/api/.windsurf/
 /apps/api/skills-lock.json
+/apps/web/test-results/
 
 
 .vscode/settings.json

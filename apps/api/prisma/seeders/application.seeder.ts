@@ -24,7 +24,7 @@ export async function seedApplication(
       applicantReference: 'DEMO-APPLICANT-0001',
       type: ApplicationType.RoadUsePermit,
       status: Status.Draft,
-      trafficChange: TrafficChange.SpeedLimitWorkZone,
+      trafficChanges: [TrafficChange.SpeedLimitWorkZone],
       applicant: {
         create: {
           name: 'Demo Applicant',

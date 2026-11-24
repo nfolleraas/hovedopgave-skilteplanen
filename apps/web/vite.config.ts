@@ -2,16 +2,20 @@ import { fileURLToPath } from 'node:url';
 import react from '@vitejs/plugin-react';
 import { defineConfig, loadEnv } from 'vite';
 
+const apiTarget = process.env.API_PROXY_TARGET ?? 'http://localhost:3000';
+
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
+  const envDir = fileURLToPath(new URL('../../.devcontainer', import.meta.url));
   const token = loadEnv(
     mode,
-    fileURLToPath(new URL('../../.devcontainer', import.meta.url)),
+    envDir,
     'VITE_DATAFORSYNINGEN_',
   ).VITE_DATAFORSYNINGEN_TOKEN?.trim();
   return {
-    // Only the API URL is public; address credentials stay in the Vite process.
-    envPrefix: 'VITE_API_',
+    envDir,
+    // The map uses a public token; other development credentials stay private.
+    envPrefix: ['VITE_API_', 'VITE_DATAFORSYNINGEN_TOKEN'],
     plugins: [react()],
     server: {
       host: true,
@@ -35,8 +39,8 @@ export default defineConfig(({ mode }) => {
             });
           },
         },
-        '/api': 'http://localhost:3000',
-        '/swagger': 'http://localhost:3000',
+        '/api': apiTarget,
+        '/swagger': apiTarget,
       },
     },
   };

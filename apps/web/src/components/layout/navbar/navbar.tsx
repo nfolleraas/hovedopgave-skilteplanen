@@ -1,12 +1,35 @@
 import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import { AppBar, Box, Button, Tab, Tabs, Toolbar } from '@mui/material';
-import type { ReactElement } from 'react';
+import {
+  AppBar,
+  Box,
+  Divider,
+  IconButton,
+  ListSubheader,
+  Menu,
+  MenuItem,
+  Toolbar,
+  useMediaQuery,
+  useTheme,
+} from '@mui/material';
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, matchPath, useLocation } from 'react-router';
 import { routes } from '../../../app/router.js';
 
-export default function Navbar(): ReactElement {
+/** Renders translated navigation and marks the section that contains the active route. */
+export default function Navbar() {
+  const { t, i18n } = useTranslation();
   const { pathname } = useLocation();
+  const theme = useTheme();
+  const desktop = useMediaQuery(theme.breakpoints.up('md'));
+  const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
+  const menuOpen = Boolean(menuAnchor);
+  const currentLanguage = i18n.resolvedLanguage ?? i18n.language;
+  /** Changes the interface language and closes the user menu. */
+  const selectLanguage = (language: 'en' | 'da') => {
+    void i18n.changeLanguage(language);
+    setMenuAnchor(null);
+  };
   const navigationItems = [
     { label: 'Dashboard', path: routes.home },
     { label: 'Ansøgning', path: routes.application },
@@ -17,6 +40,67 @@ export default function Navbar(): ReactElement {
         { path: item.path, end: item.path === routes.home },
         pathname,
       ) !== null,
+  );
+
+  const userMenu = (
+    <>
+      <IconButton
+        aria-controls={menuOpen ? 'user-menu' : undefined}
+        aria-expanded={menuOpen ? 'true' : undefined}
+        aria-haspopup="menu"
+        aria-label={t('navigation.openUserMenu')}
+        color="inherit"
+        onClick={(event) => setMenuAnchor(event.currentTarget)}
+        sx={{ minWidth: 44, minHeight: 44 }}
+      >
+        <AccountCircleOutlinedIcon fontSize="large" />
+      </IconButton>
+      <Menu
+        anchorEl={menuAnchor}
+        id="user-menu"
+        onClose={() => setMenuAnchor(null)}
+        open={menuOpen}
+      >
+        <MenuItem onClick={() => setMenuAnchor(null)}>
+          {t('navigation.settings')}
+        </MenuItem>
+        <MenuItem onClick={() => setMenuAnchor(null)}>
+          {t('navigation.logOut')}
+        </MenuItem>
+        <Divider />
+        <ListSubheader>{t('navigation.language')}</ListSubheader>
+        <MenuItem
+          aria-checked={currentLanguage.startsWith('da')}
+          onClick={() => selectLanguage('da')}
+          role="menuitemradio"
+          selected={currentLanguage.startsWith('da')}
+        >
+          <Box
+            aria-hidden="true"
+            component="span"
+            sx={{ fontSize: '1.25rem', mr: 1.5 }}
+          >
+            🇩🇰
+          </Box>
+          {t('navigation.danish')}
+        </MenuItem>
+        <MenuItem
+          aria-checked={currentLanguage.startsWith('en')}
+          onClick={() => selectLanguage('en')}
+          role="menuitemradio"
+          selected={currentLanguage.startsWith('en')}
+        >
+          <Box
+            aria-hidden="true"
+            component="span"
+            sx={{ fontSize: '1.25rem', mr: 1.5 }}
+          >
+            🇬🇧
+          </Box>
+          {t('navigation.english')}
+        </MenuItem>
+      </Menu>
+    </>
   );
 
   return (
@@ -41,7 +125,10 @@ export default function Navbar(): ReactElement {
         <Box
           aria-label="Gå til dashboard"
           component={Link}
-          sx={{ display: 'block', flexShrink: 0 }}
+          sx={{
+            display: 'block',
+            flexShrink: 0,
+          }}
           to={routes.home}
         >
           <Box
@@ -57,65 +144,57 @@ export default function Navbar(): ReactElement {
           />
         </Box>
 
+        {!desktop && userMenu}
         <Box
+          aria-label={t('navigation.main')}
           component="nav"
           sx={{
-            flex: { xs: '1 1 100%', sm: '1 1 auto' },
+            display: 'flex',
+            flexWrap: 'wrap',
             minWidth: 0,
-            order: { xs: 3, sm: 0 },
+            flex: { xs: '0 0 100%', md: '1 1 auto' },
+            mr: { lg: 12 },
           }}
         >
-          <Tabs
-            aria-label="Hovednavigation"
-            scrollButtons="auto"
-            sx={{
-              '& .MuiTab-root': {
-                borderRadius: 1,
+          {navigationItems.map((item, index) => (
+            <Box
+              aria-current={
+                index === activeTab
+                  ? pathname === item.path
+                    ? 'page'
+                    : 'location'
+                  : undefined
+              }
+              component={Link}
+              key={item.path}
+              sx={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                minHeight: 48,
+                minWidth: 0,
+                px: 2,
                 color: 'common.white',
                 fontWeight: 600,
-                minWidth: 'auto',
-                px: { xs: 1.5, sm: 2 },
-                textTransform: 'none',
-              },
-              '& .MuiTab-root.Mui-selected': {
-                bgcolor: 'rgba(255, 255, 255, 0.16)',
-                color: 'common.white',
-              },
-              '& .MuiTabs-indicator': { display: 'none' },
-            }}
-            textColor="inherit"
-            value={activeTab === -1 ? false : activeTab}
-            variant="scrollable"
-          >
-            {navigationItems.map((item) => (
-              <Tab
-                component={Link}
-                key={item.path}
-                label={item.label}
-                to={item.path}
-              />
-            ))}
-          </Tabs>
+                overflowWrap: 'anywhere',
+                fontSize: '0.875rem',
+                borderBottom: '2px solid',
+                borderColor:
+                  index === activeTab ? 'common.white' : 'transparent',
+                boxSizing: 'border-box',
+                textDecoration: 'none',
+                '&:hover': {
+                  textDecoration: 'underline',
+                  textUnderlineOffset: '0.3em',
+                },
+              }}
+              to={item.path}
+            >
+              {item.label}
+            </Box>
+          ))}
         </Box>
 
-        <Button
-          aria-label="Profil"
-          color="inherit"
-          endIcon={<KeyboardArrowDownIcon />}
-          startIcon={<AccountCircleOutlinedIcon />}
-          sx={{
-            '& .MuiButton-startIcon': { mr: 0.75 },
-            color: 'common.white',
-            flexShrink: 0,
-            fontWeight: 600,
-            minWidth: 'auto',
-            px: { xs: 0.5, sm: 1 },
-          }}
-        >
-          <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
-            Profil
-          </Box>
-        </Button>
+        {desktop && userMenu}
       </Toolbar>
     </AppBar>
   );

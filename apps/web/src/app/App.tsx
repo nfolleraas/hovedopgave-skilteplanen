@@ -1,16 +1,13 @@
 import { Container, Typography } from '@mui/material';
-import type { ReactElement } from 'react';
+import { type ReactElement, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Route, Routes } from 'react-router';
+import { matchPath, Outlet, useLocation } from 'react-router';
 import Footer from '../components/layout/footer/footer.js';
 import Navbar from '../components/layout/navbar/navbar.js';
-import ActorsLayout from '../pages/actors-page/actors-layout.js';
-import ActorsPage from '../pages/actors-page/index.js';
-import CreateActorPage from '../pages/create-actor-page/index.js';
-import UpdateActorPage from '../pages/update-actor-page/index.js';
-import { pages, routes } from './router.js';
+import { routes } from './router.js';
 
-function NotFoundPage(): ReactElement {
+/** Renders the translated fallback for routes that do not match a page. */
+export function NotFoundPage(): ReactElement {
   const { t } = useTranslation();
 
   return (
@@ -24,26 +21,46 @@ function NotFoundPage(): ReactElement {
   );
 }
 
+/** Renders the shared layout and focuses content after supported route changes. */
 export default function App(): ReactElement {
+  const { t } = useTranslation();
+  const { pathname } = useLocation();
+  const previousPath = useRef(pathname);
+  const isActorRoute =
+    pathname !== routes.createRoadPermit &&
+    [
+      routes.selectedApplication,
+      `${routes.selectedApplication}/actors/create`,
+      `${routes.selectedApplication}/actors/:uuid/edit`,
+      `${routes.application}/actors/create`,
+      `${routes.application}/actors/:uuid/edit`,
+    ].some((path) => matchPath(path, pathname));
+  const hasSkipTarget =
+    pathname === routes.home ||
+    pathname === routes.application ||
+    pathname === routes.createRoadPermit ||
+    isActorRoute;
+
+  useEffect(() => {
+    // Actor layouts manage their own heading focus.
+    if (previousPath.current !== pathname && hasSkipTarget && !isActorRoute) {
+      const main = document.getElementById('main-content');
+      (
+        main?.querySelector<HTMLElement>('[data-route-heading]') ?? main
+      )?.focus();
+    }
+    previousPath.current = pathname;
+  }, [hasSkipTarget, isActorRoute, pathname]);
+
   return (
     <>
-      <a className="skip-link" href="#main-content">
-        Spring til hovedindhold
-      </a>
+      {hasSkipTarget && (
+        <a className="skip-link" href="#main-content">
+          {t('navigation.skipToMain')}
+        </a>
+      )}
       <Navbar />
-      <Routes>
-        {[routes.application, routes.selectedApplication].map((path) => (
-          <Route element={<ActorsLayout />} key={path} path={path}>
-            <Route element={<ActorsPage />} index />
-            <Route element={<CreateActorPage />} path="actors/create" />
-            <Route element={<UpdateActorPage />} path="actors/:uuid/edit" />
-          </Route>
-        ))}
-        {Object.entries(pages).map(([path, Page]) => (
-          <Route element={<Page />} key={path} path={path} />
-        ))}
-        <Route element={<NotFoundPage />} path="*" />
-      </Routes>
+      <Outlet />
       <Footer />
     </>
   );
