@@ -66,7 +66,7 @@ export function RoadMarkingPage({
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0 }}>
-      <Box sx={{ position: 'relative' }}>
+      <Box>
         <TextField
           disabled={!trafficChangeChoices?.length}
           error={Boolean(trafficChangeError)}
@@ -138,16 +138,7 @@ export function RoadMarkingPage({
           <List
             aria-label={t('permit.roadMarking.selectedChangesLabel')}
             disablePadding
-            sx={{
-              mt: 2,
-              '@media (min-width: 1920px)': {
-                position: 'absolute',
-                top: 0,
-                left: 'calc(100% + 48px)',
-                width: 320,
-                mt: 0,
-              },
-            }}
+            sx={{ mt: 2 }}
           >
             {trafficChanges.map((option) => (
               <ListItem
