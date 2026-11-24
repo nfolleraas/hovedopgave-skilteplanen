@@ -1,9 +1,10 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import type { Actor } from '../../generated/prisma/client.js';
+import type { Actor, Prisma } from '../../generated/prisma/client.js';
 import { ActorRole } from '../../generated/prisma/enums.js';
 import { AddressService } from '../address/address.service.js';
 import { ApplicationsRepository } from '../applications/applications.repository.js';
@@ -35,17 +36,31 @@ export class ActorsService {
       throw new NotFoundException('Application not found');
     }
 
-    const address = await this.addressService.findMatching(
-      createActorDto.address,
-    );
-    const actorData =
-      createActorDto.role === ActorRole.Private
-        ? { ...createActorDto, cvrNumber: null, department: null }
-        : createActorDto;
+    return this.actorsRepository.withTransaction(async (repository) => {
+      await this.rejectDuplicate(
+        repository,
+        {
+          cvrNumber:
+            createActorDto.role === ActorRole.Private
+              ? null
+              : (createActorDto.cvrNumber ?? null),
+          email: createActorDto.email,
+        },
+        { caseNumber: createActorDto.applicationCaseNumber },
+      );
 
-    return this.actorsRepository.create(
-      this.actorMapper.toCreateInput(actorData, address?.uuid),
-    );
+      const address = await this.addressService.findMatching(
+        createActorDto.address,
+      );
+      const actorData =
+        createActorDto.role === ActorRole.Private
+          ? { ...createActorDto, cvrNumber: null, department: null }
+          : createActorDto;
+
+      return repository.create(
+        this.actorMapper.toCreateInput(actorData, address?.uuid),
+      );
+    });
   }
 
   /** @summary List actors with their related details. */
@@ -77,17 +92,58 @@ export class ActorsService {
         'Actor role can only be set during creation',
       );
     }
-    const address = updateActorDto.address
-      ? await this.addressService.findMatching(updateActorDto.address)
-      : undefined;
-    const actor = await this.actorsRepository.update(
-      uuid,
-      this.actorMapper.toUpdateInput(updateActorDto, address?.uuid),
+    return this.actorsRepository.withTransaction(async (repository) => {
+      if (
+        updateActorDto.email !== undefined ||
+        updateActorDto.cvrNumber !== undefined
+      ) {
+        const existing = await repository.get(uuid);
+        if (!existing) throw new NotFoundException('Actor not found');
+        await this.rejectDuplicate(
+          repository,
+          {
+            cvrNumber: updateActorDto.cvrNumber ?? existing.cvrNumber,
+            email: updateActorDto.email ?? existing.email,
+          },
+          { actors: { some: { uuid } } },
+          uuid,
+        );
+      }
+      const address = updateActorDto.address
+        ? await this.addressService.findMatching(updateActorDto.address)
+        : undefined;
+      const actor = await repository.update(
+        uuid,
+        this.actorMapper.toUpdateInput(updateActorDto, address?.uuid),
+      );
+      if (!actor) {
+        throw new NotFoundException('Actor not found');
+      }
+      return actor;
+    });
+  }
+
+  private async rejectDuplicate(
+    repository: Pick<ActorsRepository, 'findDuplicate'>,
+    identity: { cvrNumber: string | null; email: string },
+    application: Prisma.ApplicationWhereInput,
+    excludeUuid?: string,
+  ): Promise<void> {
+    const duplicate = await repository.findDuplicate(
+      identity,
+      application,
+      excludeUuid,
     );
-    if (!actor) {
-      throw new NotFoundException('Actor not found');
+    if (duplicate) {
+      const field = identity.cvrNumber?.trim() ? 'cvrNumber' : 'email';
+      throw new ConflictException({
+        field,
+        message:
+          field === 'cvrNumber'
+            ? 'En aktør med dette CVR-nummer findes allerede på ansøgningen.'
+            : 'En aktør med denne e-mailadresse findes allerede på ansøgningen.',
+      });
     }
-    return actor;
   }
 
   /** @summary Delete an actor or throw a not-found exception. */

@@ -1,3 +1,4 @@
+import { lookupCompany } from '../../api/companies.api.js';
 import {
   ActorRole,
   type ActorSubmission,
@@ -38,9 +39,25 @@ export function validateCreateActor(
     }
   }
   if (values.email.trim() && !emailPattern.test(values.email.trim())) {
-    errors.email = 'Angiv en gyldig e-mailadresse.';
+    errors.email = 'Ugyldigt e-mailformat. Brug f.eks. navn@eksempel.dk.';
   }
   return errors;
+}
+
+export async function validateActorCvr(
+  values: Pick<CreateActorValues, 'role' | 'cvrNumber'>,
+): Promise<string | undefined> {
+  if (values.role === ActorRole.Private) return undefined;
+  const cvrNumber = values.cvrNumber.trim();
+  if (!eightDigitPattern.test(cvrNumber)) return 'Angiv præcis 8 cifre.';
+  try {
+    await lookupCompany(cvrNumber);
+    return undefined;
+  } catch (error: unknown) {
+    return error instanceof Error && error.name === 'Error'
+      ? `${error.message} CVR-nummeret skal bekræftes, før aktøren kan gemmes.`
+      : 'CVR-nummeret kunne ikke bekræftes. Prøv igen, før du gemmer aktøren.';
+  }
 }
 
 export function toActorSubmission(values: CreateActorValues): ActorSubmission {

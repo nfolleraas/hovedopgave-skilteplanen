@@ -29,9 +29,7 @@ export async function lookupCompany(
     throw new Error('Der blev ikke fundet en virksomhed med det CVR-nummer.');
   }
   if (!response.ok) {
-    throw new Error(
-      'Virksomhedens oplysninger kunne ikke hentes. Prøv igen eller udfyld felterne manuelt.',
-    );
+    throw new Error('Virksomhedens oplysninger kunne ikke hentes. Prøv igen.');
   }
   return parseCompanyLookup(await response.json(), cvrNumber);
 }

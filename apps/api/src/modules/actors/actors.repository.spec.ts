@@ -7,6 +7,7 @@ describe('ActorsRepository', () => {
   const update = vi.fn();
   const findUnique = vi.fn();
   const findMany = vi.fn();
+  const findFirst = vi.fn();
   const deleteActor = vi.fn();
   const deleteContactPersons = vi.fn();
   const transaction = vi.fn();
@@ -17,17 +18,25 @@ describe('ActorsRepository', () => {
     update.mockReset();
     findUnique.mockReset();
     findMany.mockReset();
+    findFirst.mockReset();
     deleteActor.mockReset();
     deleteContactPersons.mockReset();
     transaction.mockReset();
     transaction.mockImplementation((callback) =>
       callback({
-        actor: { delete: deleteActor },
+        actor: {
+          delete: deleteActor,
+          create,
+          update,
+          findUnique,
+          findMany,
+          findFirst,
+        },
         contactPerson: { deleteMany: deleteContactPersons },
       }),
     );
     repository = new ActorsRepository({
-      actor: { create, update, findUnique, findMany },
+      actor: { create, update, findUnique, findMany, findFirst },
       $transaction: transaction,
     } as unknown as PrismaService);
   });
@@ -41,6 +50,82 @@ describe('ActorsRepository', () => {
     expect(create).toHaveBeenCalledExactlyOnceWith({
       data,
       include: { address: true, contactPersons: true },
+    });
+  });
+
+  it('matches CVR within the application even if email differs', async () => {
+    await repository.findDuplicate(
+      { cvrNumber: ' 12345678 ', email: 'other@example.com' },
+      { caseNumber: 'CASE-123' },
+    );
+    expect(findFirst).toHaveBeenCalledExactlyOnceWith({
+      where: {
+        applications: { some: { caseNumber: 'CASE-123' } },
+        cvrNumber: '12345678',
+      },
+      select: { uuid: true },
+    });
+  });
+
+  it('retries serialization conflicts with a transaction-scoped repository', async () => {
+    transaction.mockRejectedValueOnce(
+      new Prisma.PrismaClientKnownRequestError('Serialization conflict', {
+        code: 'P2034',
+        clientVersion: '7',
+      }),
+    );
+    findFirst.mockResolvedValue(null);
+    await expect(
+      repository.withTransaction((scoped) =>
+        scoped.findDuplicate(
+          { cvrNumber: '12345678', email: 'test@example.com' },
+          { caseNumber: 'CASE-123' },
+        ),
+      ),
+    ).resolves.toBeNull();
+    expect(transaction).toHaveBeenCalledTimes(2);
+    expect(transaction).toHaveBeenLastCalledWith(expect.any(Function), {
+      isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+    });
+    expect(findFirst).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not retry non-serialization failures or retry forever', async () => {
+    const error = new Error('Database unavailable');
+    transaction.mockRejectedValueOnce(error);
+    await expect(repository.withTransaction(async () => null)).rejects.toBe(
+      error,
+    );
+    expect(transaction).toHaveBeenCalledTimes(1);
+    transaction.mockReset();
+    const conflict = new Prisma.PrismaClientKnownRequestError(
+      'Serialization conflict',
+      {
+        code: 'P2034',
+        clientVersion: '7',
+      },
+    );
+    transaction.mockRejectedValue(conflict);
+    await expect(repository.withTransaction(async () => null)).rejects.toBe(
+      conflict,
+    );
+    expect(transaction).toHaveBeenCalledTimes(3);
+  });
+
+  it('matches email without case or surrounding spaces only for actors without CVR', async () => {
+    await repository.findDuplicate(
+      { cvrNumber: null, email: ' Anna@Example.com ' },
+      { actors: { some: { uuid: 'actor-id' } } },
+      'actor-id',
+    );
+    expect(findFirst).toHaveBeenCalledExactlyOnceWith({
+      where: {
+        applications: { some: { actors: { some: { uuid: 'actor-id' } } } },
+        uuid: { not: 'actor-id' },
+        cvrNumber: null,
+        email: { equals: 'Anna@Example.com', mode: 'insensitive' },
+      },
+      select: { uuid: true },
     });
   });
 

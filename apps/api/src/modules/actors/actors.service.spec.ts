@@ -1,4 +1,8 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import { ActorRole, ApplicationType } from '../../generated/prisma/enums.js';
 import { AddressService } from '../address/address.service.js';
 import { ApplicationsRepository } from '../applications/applications.repository.js';
@@ -13,6 +17,7 @@ describe('ActorsService', () => {
   const deleteActor = vi.fn();
   const get = vi.fn();
   const getAll = vi.fn();
+  const findDuplicate = vi.fn();
   const findApplication = vi.fn();
   const findMatching = vi.fn();
   let service: ActorsService;
@@ -52,16 +57,22 @@ describe('ActorsService', () => {
       contactPersons: [{ applicationId: 'CASE-123' }],
     });
     getAll.mockReset();
+    findDuplicate.mockReset();
+    findDuplicate.mockResolvedValue(null);
     findApplication.mockReset();
     findApplication.mockResolvedValue({ type: ApplicationType.RoadUsePermit });
     service = new ActorsService(
       { get: findApplication } as unknown as ApplicationsRepository,
       {
+        withTransaction: (
+          operation: (repository: unknown) => Promise<unknown>,
+        ) => operation({ create, update, get, findDuplicate }),
         create,
         update,
         delete: deleteActor,
         get,
         getAll,
+        findDuplicate,
       } as unknown as ActorsRepository,
       new ActorMapper(),
       { findMatching } as unknown as AddressService,
@@ -95,6 +106,61 @@ describe('ActorsService', () => {
         },
       },
     });
+  });
+
+  it.each([
+    [ActorRole.Contractor, 'cvrNumber'],
+    [ActorRole.Private, 'email'],
+  ] as const)(
+    'rejects duplicate %s actors before writing',
+    async (role, field) => {
+      findDuplicate.mockResolvedValue({ uuid: 'duplicate-id' });
+      const result = service.create({ ...dto, role });
+      await expect(result).rejects.toBeInstanceOf(ConflictException);
+      await expect(result).rejects.toMatchObject({ response: { field } });
+      expect(findDuplicate).toHaveBeenCalledWith(
+        {
+          cvrNumber: role === ActorRole.Private ? null : dto.cvrNumber,
+          email: dto.email,
+        },
+        { caseNumber: 'CASE-123' },
+        undefined,
+      );
+      expect(create).not.toHaveBeenCalled();
+      expect(findMatching).not.toHaveBeenCalled();
+    },
+  );
+
+  it('rejects an update that duplicates another actor on a shared application', async () => {
+    get.mockResolvedValue({ ...dto, uuid: 'actor-id' });
+    findDuplicate.mockResolvedValue({ uuid: 'other-id' });
+    await expect(
+      service.update('actor-id', { cvrNumber: '87654321' }),
+    ).rejects.toBeInstanceOf(ConflictException);
+    expect(findDuplicate).toHaveBeenCalledWith(
+      { cvrNumber: '87654321', email: dto.email },
+      { actors: { some: { uuid: 'actor-id' } } },
+      'actor-id',
+    );
+    expect(update).not.toHaveBeenCalled();
+  });
+
+  it('uses the existing identity for partial updates and excludes the current actor', async () => {
+    get.mockResolvedValue({ ...dto, cvrNumber: null, uuid: 'actor-id' });
+    await service.update('actor-id', { email: 'new@example.com' });
+    expect(findDuplicate).toHaveBeenCalledWith(
+      { cvrNumber: null, email: 'new@example.com' },
+      { actors: { some: { uuid: 'actor-id' } } },
+      'actor-id',
+    );
+    expect(update).toHaveBeenCalledTimes(1);
+  });
+
+  it('fails without writing when duplicate lookup fails', async () => {
+    const error = new Error('Database unavailable');
+    findDuplicate.mockRejectedValue(error);
+    await expect(service.create(dto)).rejects.toBe(error);
+    expect(create).not.toHaveBeenCalled();
   });
 
   it('deletes an actor by uuid through the repository and returns the deleted actor', async () => {

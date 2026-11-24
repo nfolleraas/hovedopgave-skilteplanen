@@ -145,6 +145,7 @@ describe('ActorsService database write', () => {
 
     const second = await service.create({
       ...dto,
+      cvrNumber: '10000001',
       email: `second-${marker}@example.com`,
       address: { ...dto.address, street: `Second street ${marker}` },
       contactPerson: {
@@ -177,6 +178,7 @@ describe('ActorsService database write', () => {
     await expect(
       duplicateIdService.create({
         ...dto,
+        cvrNumber: '10000002',
         address: { ...dto.address, street: failedStreet },
       }),
     ).rejects.toThrow();
@@ -190,6 +192,7 @@ describe('ActorsService database write', () => {
   it('creates an actor through the HTTP endpoint and rejects invalid contact details', async () => {
     const validPayload = {
       ...dto,
+      cvrNumber: '10000003',
       email: `http-${marker}@example.com`,
       address: { ...dto.address, street: `HTTP street ${marker}` },
       contactPerson: {
@@ -228,6 +231,65 @@ describe('ActorsService database write', () => {
     ).toBe(0);
   });
 
+  it('rejects duplicate CVRs even during simultaneous creates and permits editing itself', async () => {
+    const payload = {
+      ...dto,
+      cvrNumber: '60000000',
+      email: `concurrent-${marker}@example.com`,
+    };
+    const results = await Promise.allSettled([
+      service.create(payload),
+      service.create({
+        ...payload,
+        email: `concurrent-other-${marker}@example.com`,
+      }),
+    ]);
+    const saved = results.flatMap((result) =>
+      result.status === 'fulfilled' ? [result.value] : [],
+    );
+    for (const actor of saved) {
+      actorIds.push(actor.uuid);
+      addressIds.push(actor.address.uuid);
+    }
+    expect(saved).toHaveLength(1);
+    expect(
+      results.filter((result) => result.status === 'rejected'),
+    ).toHaveLength(1);
+    const response = await request(app.getHttpServer())
+      .post('/api/actors')
+      .send(payload)
+      .expect(409);
+    expect(response.body.field).toBe('cvrNumber');
+    await request(app.getHttpServer())
+      .patch(`/api/actors/${saved[0].uuid}`)
+      .send({ email: payload.email })
+      .expect(200);
+  });
+
+  it('rejects duplicate emails without CVR regardless of case and rejects conflicting edits', async () => {
+    const email = `private-${marker}@example.com`;
+    const payload = { ...dto, role: ActorRole.Private, email };
+    const first = await service.create(payload);
+    const second = await service.create({
+      ...payload,
+      email: `other-${email}`,
+    });
+    for (const actor of [first, second]) {
+      actorIds.push(actor.uuid);
+      addressIds.push(actor.address.uuid);
+    }
+    const response = await request(app.getHttpServer())
+      .post('/api/actors')
+      .send({ ...payload, email: email.toUpperCase() })
+      .expect(409);
+    expect(response.body.field).toBe('email');
+    await request(app.getHttpServer())
+      .patch(`/api/actors/${second.uuid}`)
+      .send({ email: email.toUpperCase() })
+      .expect(409);
+    expect((await repository.get(second.uuid))?.email).toBe(`other-${email}`);
+  });
+
   it('reuses an existing address only when all four trimmed fields match', async () => {
     const address = {
       ...dto.address,
@@ -241,6 +303,7 @@ describe('ActorsService database write', () => {
         .post('/api/actors')
         .send({
           ...dto,
+          cvrNumber: String(20000000 + index),
           email: `shared-${index}-${marker}@example.com`,
           address: {
             street: ` ${address.street} `,
@@ -255,6 +318,7 @@ describe('ActorsService database write', () => {
     }
     const directActor = await service.create({
       ...dto,
+      cvrNumber: '30000000',
       address,
       email: `direct-shared-${marker}@example.com`,
     });
@@ -273,6 +337,10 @@ describe('ActorsService database write', () => {
         .post('/api/actors')
         .send({
           ...dto,
+          cvrNumber: String(
+            40000000 +
+              ['street', 'houseNumber', 'postalCode', 'city'].indexOf(field),
+          ),
           email: `different-${field}-${marker}@example.com`,
           address: { ...address, [field]: `${address[field]}2` },
         })
@@ -296,6 +364,7 @@ describe('ActorsService database write', () => {
         .post('/api/actors')
         .send({
           ...dto,
+          cvrNumber: String(50000000 + index),
           address,
           email: `update-${index}-${marker}@example.com`,
         })

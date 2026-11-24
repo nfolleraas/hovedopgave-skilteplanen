@@ -7,6 +7,7 @@ import {
   Stack,
   TextField,
 } from '@mui/material';
+import { isAxiosError } from 'axios';
 import type { ReactElement } from 'react';
 import { type FormEvent, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -24,6 +25,7 @@ import {
 } from './actor.types.js';
 import {
   toActorSubmission,
+  validateActorCvr,
   validateCreateActor,
 } from './create-actor-form.validation.js';
 
@@ -65,7 +67,7 @@ export function ActorForm({
   );
   const [errors, setErrors] = useState<CreateActorErrors>({});
   const [saving, setSaving] = useState(false);
-  const [saveFailed, setSaveFailed] = useState(false);
+  const [saveError, setSaveError] = useState<string>();
   const [lookingUpCompany, setLookingUpCompany] = useState(false);
   const [companyError, setCompanyError] = useState<string>();
   const [companyNotice, setCompanyNotice] = useState<string>();
@@ -135,7 +137,7 @@ export function ActorForm({
         setCompanyError(
           error instanceof Error && error.name === 'Error'
             ? error.message
-            : 'Virksomhedens oplysninger kunne ikke hentes. Prøv igen eller udfyld felterne manuelt.',
+            : 'Virksomhedens oplysninger kunne ikke hentes. Prøv igen.',
         );
       }
     } finally {
@@ -168,12 +170,40 @@ export function ActorForm({
       return;
     }
     setSaving(true);
-    setSaveFailed(false);
+    setSaveError(undefined);
     try {
+      const cvrError = await validateActorCvr(values);
+      if (cvrError) {
+        setErrors((current) => ({ ...current, cvrNumber: cvrError }));
+        return;
+      }
       await onSave(toActorSubmission(values));
     } catch (error: unknown) {
+      if (
+        initialActor &&
+        isAxiosError(error) &&
+        error.response?.status === 404
+      ) {
+        setSaveError('akør findes ikke længere opdater siden');
+        return;
+      }
+      if (
+        isAxiosError<{ field?: unknown; message?: unknown }>(error) &&
+        error.response?.status === 409
+      ) {
+        const { field, message } = error.response.data;
+        if (
+          (field === 'cvrNumber' || field === 'email') &&
+          typeof message === 'string'
+        ) {
+          setErrors((current) => ({ ...current, [field]: message }));
+          return;
+        }
+      }
       reportError('Saving actor failed', error);
-      setSaveFailed(true);
+      setSaveError(
+        'Aktøren kunne ikke gemmes. Dine oplysninger er bevaret. Prøv igen.',
+      );
     } finally {
       setSaving(false);
     }
@@ -204,6 +234,15 @@ export function ActorForm({
         helperText={errors[name]}
         label={label}
         name={name}
+        onBlur={
+          name === 'email'
+            ? () =>
+                setErrors((current) => ({
+                  ...current,
+                  email: validateCreateActor(values).email,
+                }))
+            : undefined
+        }
         onChange={(event) => change(name, event.target.value)}
         placeholder={placeholder}
         required
@@ -236,14 +275,14 @@ export function ActorForm({
       }}
     >
       <Box sx={{ p: { xs: 2, md: 3 } }}>
-        {saveFailed && (
+        {saveError && (
           <Alert
             closeText="Luk"
-            onClose={() => setSaveFailed(false)}
+            onClose={() => setSaveError(undefined)}
             severity="error"
             sx={{ mb: 3 }}
           >
-            Aktøren kunne ikke gemmes. Dine oplysninger er bevaret. Prøv igen.
+            {saveError}
           </Alert>
         )}
         <TextField
