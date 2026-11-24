@@ -7,7 +7,8 @@ trin den 9. oktober 2026.
 ## Hvad du får
 
 Et enkelt VS Code-devcontainer, der kører to apps fra samme repo samtidig,
-en PostgreSQL-database og pgweb som webbaseret databaseklient.
+en PostgreSQL-database, pgweb som webbaseret databaseklient samt en lokal
+Keycloak-installation med sin egen PostgreSQL-database.
 
 | Del                         | Hvor                  | Kører på                                      |
 | --------------------------- | --------------------- | --------------------------------------------- |
@@ -15,6 +16,14 @@ en PostgreSQL-database og pgweb som webbaseret databaseklient.
 | NestJS 12 + TypeScript      | `apps/api`            | container port 3000, ruter under `/api`      |
 | Postgres 17                 | `db` compose service  | hostname `db`, port 5432, kun på compose-netværket |
 | pgweb                       | `pgweb` compose service | `http://localhost:8081`, forbinder til `db` |
+| Keycloak 26                 | `keycloak` compose service | `http://localhost:8080`, kommunal SSO-simulation |
+| Keycloak Postgres 17        | `keycloak-db` compose service | hostname `keycloak-db`, kun på compose-netværket |
+
+Keycloak importerer `demo-municipality`-realmet fra
+`.devcontainer/keycloak/demo-municipality-realm.json` første gang databasen er
+tom. Importen opretter den fortrolige backend-klient, claims, roller og fiktive
+medarbejdere; adgangskoder og klienthemmeligheden indsættes fra den lokale
+`.devcontainer/.env`.
 
 Start alt fra repo-roden inde i containeren:
 
@@ -32,7 +41,7 @@ viderebehandles af Vite til Nest, så browseren kun kommunikerer med én oprinde
 ├── .devcontainer/
 │   ├── devcontainer.json       # hvad VS Code tilslutter sig og installerer
 │   ├── Dockerfile              # app-image og systempakker som ripgrep
-│   ├── compose.yaml            # containere: app + db + pgweb
+│   ├── compose.yaml            # containere: app + db + pgweb + Keycloak
 │   ├── devcontainer-lock.json  # låste feature-versioner, kom det med i repoet
 │   └── setup-zsh.sh            # Oh My Zsh plugins og tema
 ├── apps/
@@ -147,7 +156,9 @@ kun symlinks til det, den faktisk erklærer. Kør altid `bun install` fra roden.
   `chat.agentHost.claudeAgent.enabled`, `chat.agentHost.codexAgent.enabled` og
   `chat.editor.codex.preferAgentHost`. Codex bruger den persistente
   `/home/node/.codex`-mappe, mens den neddownloadede Agent SDK bevares i
-  `codex-sdk-cache`.
+  `codex-sdk-cache`. Indstillingerne ligger i `.vscode/settings.json`, så de
+  følger workspace-rooten uden at Dev Containers omskriver containerens
+  maskinindstillinger ved hver oprettelse.
 - **`customizations.vscode.settings`** er editor-indstillinger, der kun anvendes
   inde i containeren. `workbench.iconTheme` vælger Material Icon Theme for alle,
   fordi at installere selve extensionen alene ikke aktiverer den. Resten gør
@@ -269,7 +280,7 @@ docker compose config
   "private": true,
   "workspaces": ["apps/*"],
   "scripts": {
-    "dev": "bun run --filter '*' dev",
+    "dev": "bun run scripts/dev.mjs",
     "check": "biome check",
     "check:fix": "biome check --write",
     "lint": "biome lint",
@@ -282,13 +293,12 @@ docker compose config
 }
 ```
 
-`--filter '*'` kører `dev`-scriptet for hvert workspace-package parallelt, med
-output præfikset med pakkenavnet. Begge apps skal derfor have et script kaldet
-`dev`. Biome-scriptene filtreres ikke: Biome går gennem hele repoet fra roden og
-respekterer `.gitignore` via `vcs`-indstillingen, og de per-app `lint`-scripts
-kalder blot `biome lint .` for bekvemmelighed. `check` er den, der skal køre i CI,
-fordi den dækker lint, format og import-order i et enkelt gennemløb. Nest-appens
-`dev` blev tilføjet manuelt som et alias:
+Alle Bun-kommandoer køres fra repo-roden. Root-scripts køres med `bun run`;
+app-scripts køres med `bun run --cwd apps/web <script>` eller
+`bun run --cwd apps/api <script>`. Biome-scriptene på root går gennem hele
+repoet fra roden og respekterer `.gitignore` via `vcs`-indstillingen.
+`check` er den, der skal køre i CI, fordi den dækker lint, format og import-order
+i et enkelt gennemløb. Nest-appens `dev` blev tilføjet manuelt som et alias:
 
 ```json
 "dev": "nest start --watch"

@@ -1,6 +1,7 @@
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../src/generated/prisma/client.js';
 import { seedApplication } from './seeders/application.seeder.js';
+import { seedMunicipalityAuthentication } from './seeders/municipality-auth.seeder.js';
 
 const connectionString = process.env.DATABASE_URL;
 
@@ -13,6 +14,13 @@ const prisma = new PrismaClient({
 });
 
 export async function seed() {
+  const municipalityAuthentication =
+    await seedMunicipalityAuthentication(prisma);
+  console.log(
+    'Seeded municipality authentication:',
+    municipalityAuthentication.caseWorker.employeeNumber,
+  );
+
   // Application
   const application = await seedApplication(prisma);
   console.log('Seeded application:', application.caseNumber);

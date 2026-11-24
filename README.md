@@ -10,6 +10,8 @@ Projektet består af følgende:
 | `api` | NestJS 12 + TypeScript        | `apps/api`      | 3000, alle ruter ligger under `/api` |
 | `db`  | Postgres 17                   | compose service | 5432, tilgængelig som hostname `db` |
 | `pgweb` | Webbaseret PostgreSQL-klient | compose service | 8081, åbnes via `http://localhost:8081` |
+| `keycloak` | Keycloak 26 | compose service | 8080, lokal kommunal SSO-simulation |
+| `keycloak-db` | Postgres 17 | compose service | Keycloaks interne database |
 
 For en linje-for-linje forklaring af container-opstillingen, hvorfor hver
 indstilling findes, og hvordan den ændres, se [DEVCONTAINER.md](DEVCONTAINER.md).
@@ -20,7 +22,7 @@ indstilling findes, og hvordan den ændres, se [DEVCONTAINER.md](DEVCONTAINER.md
 - [VS Code](https://code.visualstudio.com/) med
   [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)-udvidelsen
 
-Intet andet er nødvendigt på værten. Node, bun og Postgres ligger alle i
+Intet andet er nødvendigt på værten. Node, bun, Postgres og Keycloak ligger i
 containerne.
 
 ## ENV
@@ -46,7 +48,7 @@ Alt, som containeren har brug for, er beskrevet i `.devcontainer/`:
 | Fil                      | Formål                                                                                                   |
 | ------------------------ | -------------------------------------------------------------------------------------------------------- |
 | `devcontainer.json`      | Hvad VS Code kobler til, hvilke porte der videresendes, hvilke udvidelser der installeres, og hvad der køres efter oprettelse |
-| `compose.yaml`           | Containere til `app` (Node 22 + bun, indeholder repoet), `db` (Postgres 17) og `pgweb` (database-GUI) |
+| `compose.yaml`           | Containere til appen, databasen, pgweb samt Keycloak og dens database |
 | `devcontainer-lock.json` | Låste versioner af de installerede features. Commit den, ligesom `bun.lock`                              |
 | `setup-zsh.sh`           | Henter Zsh-plugins og vælger standardtema for terminalen ved oprettelse af containeren                    |
 
@@ -56,7 +58,7 @@ Alt, som containeren har brug for, er beskrevet i `.devcontainer/`:
 2. Når du bliver bedt om det, vælg **Reopen in Container**. Hvis der ikke vises
    en prompt, skal du åbne kommandopaletten og køre **Dev Containers: Reopen in Container**.
 3. Vent på builden. Ved første kørsel henter VS Code billederne, installerer bun
-   og de fælles værktøjer, starter Postgres og pgweb og kører `bun install`
+   og de fælles værktøjer, starter Postgres, pgweb og Keycloak og kører `bun install`
    automatisk. Zsh konfigureres med Oh My Zsh, autosuggestions,
    syntax-highlighting og temaet `jnrowe`.
 
@@ -124,18 +126,20 @@ i øjeblikket en enkelt `GET /api`-rute, der returnerer en hilsen.
 For at køre én app for sig:
 
 ```bash
-bun run --filter web dev
-bun run --filter api dev
+bun run --cwd apps/web dev
+bun run --cwd apps/api dev
 ```
 
 ### Per-app scripts
 
-Kør dem fra roden med et workspace-filter, eller med almindelig `bun run` inde
-i appens mappe:
+Kør altid kommandoerne fra repo-roden
+(`/workspaces/hovedopgave-skilteplanen`). Root-scripts køres med `bun run`.
+Scripts, der hører til en bestemt app, køres med `bun run --cwd`:
 
 ```bash
-bun run --filter web lint     # fra roden
-bun run lint                  # inde i apps/web
+bun run --cwd apps/web lint
+bun run --cwd apps/api test
+bun run --cwd apps/api test:api
 ```
 
 | Script       | `web`                              | `api`                     |
@@ -144,7 +148,7 @@ bun run lint                  # inde i apps/web
 | `build`      | `tsc -b && vite build`             | `nest build` til `dist/`  |
 | `lint`       | `biome lint .`                     | `biome lint .`            |
 | `test`       | –                                  | Vitest unit tests        |
-| `test:e2e`   | –                                  | Vitest e2e tests         |
+| `test:api`   | –                                  | Vitest API tests         |
 | `preview`    | serverer produktionsbuild          | –                         |
 | `start:prod` | –                                  | `node dist/main`          |
 
@@ -195,7 +199,7 @@ symlinks til det, som appen erklærer. Kør altid `bun install` fra roden.
   til containeren.
 - [VS Code Dev Containers-dokumentation](https://code.visualstudio.com/docs/devcontainers/containers).
 - [Bun workspaces](https://bun.com/docs/install/workspaces) for hvordan
-  `--filter` og den delte lockfile opfører sig.
+  workspaces og den delte lockfile opfører sig.
 
 ## Versioner
 
