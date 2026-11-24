@@ -73,7 +73,7 @@ describe('roadSearchService', () => {
     env.dataforsyningenToken = undefined;
 
     await expect(roadSearchService.search('Strandvej')).rejects.toThrow(
-      'VITE_DATAFORSYNINGEN_TOKEN',
+      'VITE_DATAFORSYNINGEN_PUBLISHABLE_TOKEN',
     );
     expect(fetchMock).not.toHaveBeenCalled();
   });

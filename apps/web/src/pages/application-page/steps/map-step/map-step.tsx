@@ -1,20 +1,21 @@
 import { Alert, Box, Button, Typography } from '@mui/material';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { createAreas } from '../../../../api/areas.api.js';
 import { ApiError } from '../../../../api/client.js';
 import { canEditAreas } from '../../../../features/areas/area-validation.js';
+import { usePendingFocus } from '../../../../hooks/use-pending-focus.js';
 import type {
   Area,
   AreaApplication,
   SelectedRoad,
 } from '../../../../types/area.types.js';
 import type { RoadOwnership } from '../../../../types/prisma-enums.js';
-import { focusById } from '../../../../utils/focus-by-id.js';
 import { WizardFooter } from '../../components/wizard-footer.js';
 import { MapPlaceholder } from './map-placeholder.js';
 import { RoadSearch } from './road-search.js';
-import { roadOwnershipId, SelectedRoads } from './selected-roads.js';
+import { roadOwnershipId } from './selected-road-ids.js';
+import { SelectedRoads } from './selected-roads.js';
 
 interface MapStepProps {
   application: AreaApplication;
@@ -41,17 +42,7 @@ export function MapStep({
   const selectedIds = new Set(selected.map((road) => road.id));
   // Areas cannot be added once the application is submitted (UC-035 F2).
   const canEdit = canEditAreas(application.status);
-  // Counts blocked attempts to continue, so each one moves focus again.
-  const [ownershipCheck, setOwnershipCheck] = useState(0);
-
-  // Focus the first missing road status after its error text is rendered,
-  // so screen readers read the field together with the error.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: per attempt only.
-  useEffect(() => {
-    if (ownershipCheck === 0) return;
-    const missing = selected.find((road) => !road.roadOwnership);
-    if (missing) focusById(roadOwnershipId(missing.id));
-  }, [ownershipCheck]);
+  const setFocusId = usePendingFocus(false);
 
   async function handleNext() {
     // Going back and forth keeps existing areas without new roads.
@@ -63,8 +54,11 @@ export function MapStep({
     // Dataforsyningen has no ownership, so the user must choose it (F3).
     const roads = selected.filter(hasOwnership);
     if (roads.length < selected.length) {
+      // Focus after the error text is rendered, so screen readers read the
+      // first missing road status together with its error.
       setShowErrors(true);
-      setOwnershipCheck((count) => count + 1);
+      const missing = selected.find((road) => !road.roadOwnership);
+      if (missing) setFocusId(roadOwnershipId(missing.id));
       return;
     }
 

@@ -5,7 +5,7 @@ import {
   type DraftErrors,
   hasErrors,
 } from '../../../features/application-draft/draft-validation.js';
-import { fieldId } from './form-fields.js';
+import { fieldId } from './form-field-helpers.js';
 import { WizardFooter } from './wizard-footer.js';
 
 interface StepShellProps {

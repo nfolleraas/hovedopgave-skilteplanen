@@ -82,4 +82,19 @@ describe('apiClient', () => {
     expect(error.status).toBe(500);
     expect(error.code).toBeUndefined();
   });
+
+  test('an error page that is not JSON still throws an ApiError', async () => {
+    // A proxy answers like this when the API is down.
+    const page = '<html><body>502 Bad Gateway</body></html>';
+    fetchMock.mockImplementation(
+      async () => new Response(page, { status: 502 }),
+    );
+
+    const error = await apiClient.get('/areas').catch((e) => e);
+
+    expect(error).toBeInstanceOf(ApiError);
+    expect(error.status).toBe(502);
+    expect(error.body).toBe(page);
+    expect(error.code).toBeUndefined();
+  });
 });

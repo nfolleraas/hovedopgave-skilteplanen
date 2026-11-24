@@ -39,7 +39,7 @@ export const roadSearchService: RoadSearchService = {
     const token = env.dataforsyningenToken;
     if (!token) {
       throw new Error(
-        'VITE_DATAFORSYNINGEN_TOKEN must be set to search roads.',
+        'VITE_DATAFORSYNINGEN_PUBLISHABLE_TOKEN must be set to search roads.',
       );
     }
 

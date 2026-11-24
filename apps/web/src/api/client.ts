@@ -30,13 +30,26 @@ async function request<T>(
     body: body === undefined ? undefined : JSON.stringify(body),
   });
 
-  const text = await response.text();
-  const data: unknown = text ? JSON.parse(text) : undefined;
   if (!response.ok) {
-    throw new ApiError(response.status, data);
+    throw new ApiError(response.status, await readErrorBody(response));
   }
 
-  return data as T;
+  const text = await response.text();
+  return (text ? JSON.parse(text) : undefined) as T;
+}
+
+/**
+ * Reads the body of an error answer. The API sends JSON, but a proxy in
+ * front of it can answer with an HTML or text page, which is kept as text.
+ */
+async function readErrorBody(response: Response): Promise<unknown> {
+  const text = await response.text();
+  if (!text) return undefined;
+  try {
+    return JSON.parse(text);
+  } catch {
+    return text;
+  }
 }
 
 export const apiClient = {

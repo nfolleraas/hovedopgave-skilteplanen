@@ -89,8 +89,9 @@ Flow i wizarden (`/ansoegning?sag=<sagsnummer>`):
    - Vejsøgningen kalder Dataforsyningens GSearch (`navngivenvej`) direkte fra
      browseren i
      [`road-search.api.ts`](../../apps/web/src/api/road-search.api.ts).
-     Tokenet ligger i `VITE_DATAFORSYNINGEN_TOKEN`. Vite lægger det i
-     browserkoden, så det er synligt for brugerne af siden.
+     Tokenet ligger i `VITE_DATAFORSYNINGEN_PUBLISHABLE_TOKEN` (tidligere
+     `VITE_DATAFORSYNINGEN_TOKEN`; omdøb linjen i din egen `.devcontainer/.env`).
+     Vite lægger det i browserkoden, så det er synligt for brugerne af siden.
    - Søgeteksten er højst 100 tegn. Tegn som `&`, `|`, `:` og anførselstegn
      erstattes af mellemrum, før der søges, fordi GSearch ellers kan svare
      HTTP 400. Bogstaver (også æ, ø, å), tal og punktum bevares.

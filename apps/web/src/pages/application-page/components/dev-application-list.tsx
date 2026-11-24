@@ -26,9 +26,10 @@ import {
   supportedApplicationTypes,
 } from '../../../types/application.types.js';
 import { ApplicationType } from '../../../types/prisma-enums.js';
-import { labelAboveSlots } from './form-fields.js';
+import { labelAboveSlots } from './form-field-helpers.js';
 
-export function applicationUrl(caseNumber: string): string {
+/** Opens the wizard for a test application. */
+function applicationUrl(caseNumber: string): string {
   return `/ansoegning?${new URLSearchParams({ sag: caseNumber })}`;
 }
 

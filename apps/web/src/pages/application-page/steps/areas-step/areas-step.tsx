@@ -1,4 +1,4 @@
-import { Alert, Box, Button, Typography } from '@mui/material';
+import { Button } from '@mui/material';
 import {
   type Dispatch,
   type RefObject,
@@ -22,38 +22,26 @@ import {
   isRoadEditable,
   nextManualKey,
 } from '../../../../features/areas/area-edit-state.js';
-import { areaFieldLabelKeys } from '../../../../features/areas/area-labels.js';
 import {
-  type AreaFieldErrors,
   canDeleteArea,
   canEditAreas,
-  emptyAreaFormValues,
   getAreaFieldSet,
-  toAreaFormValues,
   toAreaInput,
   validateArea,
 } from '../../../../features/areas/area-validation.js';
-import type {
-  Area,
-  AreaApplication,
-  AreaFormField,
-} from '../../../../types/area.types.js';
-import { focusById } from '../../../../utils/focus-by-id.js';
+import { usePendingFocus } from '../../../../hooks/use-pending-focus.js';
+import type { Area, AreaApplication } from '../../../../types/area.types.js';
 import { WizardFooter } from '../../components/wizard-footer.js';
-import { AreaCard, areaCardIds } from './area-card.js';
+import { areaCardIds } from './area-card-ids.js';
+import { AreaList } from './area-list.js';
+import { areaTitleFor, getMissingFieldsItems } from './area-step-state.js';
+import { type AreasNotice, AreasStepHeader } from './areas-step-header.js';
 import { DeleteAreaDialog } from './delete-area-dialog.js';
-import {
-  type MissingFieldsItem,
-  MissingFieldsSummary,
-} from './missing-fields-summary.js';
+import { MissingFieldsSummary } from './missing-fields-summary.js';
 import { UnsavedChangesDialog } from './unsaved-changes-dialog.js';
+import { useLeaveGuard } from './use-leave-guard.js';
 
 const addButtonId = 'areas-add-manual';
-
-interface Notice {
-  severity: 'success' | 'error';
-  message: string;
-}
 
 /** Runs before the step is left. Resolves false to stay on the step. */
 export type LeaveGuard = () => Promise<boolean>;
@@ -82,44 +70,21 @@ export function AreasStep({
   const [deleteTarget, setDeleteTarget] = useState<Area | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<Notice | null>(null);
+  const [notice, setNotice] = useState<AreasNotice | null>(null);
   const [showSummary, setShowSummary] = useState(false);
   const summaryRef = useRef<HTMLDivElement>(null);
   // Element to focus after the next render, e.g. when a button disappears.
-  const [focusId, setFocusId] = useState<string | null>(null);
+  // It waits while a dialog holds focus.
+  const setFocusId = usePendingFocus(
+    state.pendingKey !== null || deleteTarget !== null,
+  );
 
   const { type } = application;
   const fieldSet = getAreaFieldSet(type);
   const canEdit = canEditAreas(application.status);
   const active = getActiveEntry(state);
   const savedCount = state.entries.filter((entry) => entry.saved).length;
-
-  function errorsFor(entry: AreaEntry): AreaFieldErrors {
-    const values =
-      entry.key === state.activeKey && state.draft
-        ? state.draft
-        : entry.saved
-          ? toAreaFormValues(entry.saved)
-          : emptyAreaFormValues;
-    return validateArea(type, values, { includeRoad: isRoadEditable(entry) });
-  }
-
-  // Saved values decide whether a collapsed area is missing information.
-  function savedErrorsFor(entry: AreaEntry): AreaFieldErrors {
-    const values = entry.saved
-      ? toAreaFormValues(entry.saved)
-      : emptyAreaFormValues;
-    return validateArea(type, values, { includeRoad: isRoadEditable(entry) });
-  }
-
-  function titleFor(entry: AreaEntry): string {
-    const number = state.entries.indexOf(entry) + 1;
-    const road =
-      (entry.key === state.activeKey ? state.draft?.roadName : undefined) ||
-      entry.saved?.roadName ||
-      t('areas.newRoad');
-    return t('areas.cardTitle', { number, road });
-  }
+  const titleFor = (entry: AreaEntry) => areaTitleFor(t, state, entry);
 
   // Areas start collapsed. A form only opens through "Redigér" or
   // "Indtast vej manuelt", and it closes again after "Gem område",
@@ -128,12 +93,6 @@ export function AreasStep({
   useEffect(() => {
     if (showSummary) summaryRef.current?.focus();
   }, [showSummary]);
-
-  // Wait until the element exists and no dialog holds focus.
-  useEffect(() => {
-    if (!focusId || state.pendingKey !== null || deleteTarget) return;
-    if (focusById(focusId)) setFocusId(null);
-  });
 
   /** When an area disappears, focus the next area or the add button. */
   function focusAfterRemoving(key: string) {
@@ -205,16 +164,7 @@ export function AreasStep({
     return saved;
   }
 
-  useEffect(() => {
-    leaveGuard.current = saveIfDirty;
-  });
-  // biome-ignore lint/correctness/useExhaustiveDependencies: unmount only.
-  useEffect(
-    () => () => {
-      leaveGuard.current = null;
-    },
-    [],
-  );
+  useLeaveGuard(leaveGuard, saveIfDirty);
 
   async function handleBack() {
     if (await saveIfDirty()) onBack();
@@ -262,21 +212,7 @@ export function AreasStep({
     }
   }
 
-  const summaryItems: MissingFieldsItem[] = state.entries
-    .map((entry) => {
-      const errors = errorsFor(entry);
-      const isUnsaved =
-        !entry.saved || (entry.key === state.activeKey && isDirty(state));
-      return {
-        key: entry.key,
-        areaTitle: titleFor(entry),
-        fieldLabels: (Object.keys(errors) as AreaFormField[]).map((field) =>
-          t(areaFieldLabelKeys[field]),
-        ),
-        isUnsaved,
-      };
-    })
-    .filter((item) => item.fieldLabels.length > 0 || item.isUnsaved);
+  const summaryItems = getMissingFieldsItems(t, type, state);
 
   async function handleNext() {
     const savedKey = isDirty(state) ? state.activeKey : null;
@@ -309,82 +245,37 @@ export function AreasStep({
 
   return (
     <section aria-labelledby="step-title">
-      <Typography
-        component="h1"
-        id="step-title"
-        sx={{ mb: 2 }}
-        tabIndex={-1}
-        variant="h5"
-      >
-        {t('areas.title')}
-      </Typography>
-      {!canEdit && (
-        <Alert severity="info" sx={{ mb: 2 }}>
-          {t('areas.notEditable')}
-        </Alert>
-      )}
+      <AreasStepHeader
+        canEdit={canEdit}
+        notice={notice}
+        onCloseNotice={() => setNotice(null)}
+      />
 
-      <Box aria-live="polite" role="status">
-        {notice && (
-          <Alert
-            onClose={() => setNotice(null)}
-            severity={notice.severity}
-            sx={{ mb: 2 }}
-          >
-            {notice.message}
-          </Alert>
-        )}
-      </Box>
-
-      <Box sx={{ display: 'grid', gap: 2 }}>
-        {state.entries.map((entry, index) => {
-          const isExpanded = entry.key === state.activeKey;
-          return (
-            <AreaCard
-              areaKey={entry.key}
-              canEditApplication={canEdit}
-              details={entry.saved ?? null}
-              draft={isExpanded ? state.draft : null}
-              errors={isExpanded ? errorsFor(entry) : {}}
-              fieldSet={fieldSet}
-              isExpanded={isExpanded}
-              isMissingFields={Object.keys(savedErrorsFor(entry)).length > 0}
-              isSaving={isSaving}
-              key={entry.key}
-              number={index + 1}
-              onCancel={() => {
-                setSaveError(null);
-                // The area collapses, so focus returns to its Edit button. A
-                // new, unsaved area disappears.
-                if (entry.saved) setFocusId(areaCardIds.edit(entry.key));
-                else focusAfterRemoving(entry.key);
-                dispatch({ type: 'cancel' });
-              }}
-              onChange={(field, value) =>
-                dispatch({ type: 'change', field, value })
-              }
-              onDelete={() => handleDelete(entry)}
-              onEdit={() => {
-                setSaveError(null);
-                // The Edit button disappears once the card is expanded.
-                setFocusId(areaCardIds.title(entry.key));
-                dispatch({ type: 'open', key: entry.key });
-              }}
-              onSave={() => void save({ manageFocus: true })}
-              roadEditable={isRoadEditable(entry)}
-              roadName={
-                isExpanded && isRoadEditable(entry)
-                  ? (state.draft?.roadName ?? '')
-                  : (entry.saved?.roadName ?? '')
-              }
-              roadOwnership={entry.saved?.roadOwnership ?? ''}
-              saveError={isExpanded ? saveError : null}
-              showAllErrors={state.showErrors}
-              source={entry.source}
-            />
-          );
-        })}
-      </Box>
+      <AreaList
+        canEdit={canEdit}
+        dispatch={dispatch}
+        fieldSet={fieldSet}
+        isSaving={isSaving}
+        onCancel={(entry) => {
+          setSaveError(null);
+          // The area collapses, so focus returns to its Edit button. A new,
+          // unsaved area disappears.
+          if (entry.saved) setFocusId(areaCardIds.edit(entry.key));
+          else focusAfterRemoving(entry.key);
+          dispatch({ type: 'cancel' });
+        }}
+        onDelete={handleDelete}
+        onEdit={(entry) => {
+          setSaveError(null);
+          // The Edit button disappears once the card is expanded.
+          setFocusId(areaCardIds.title(entry.key));
+          dispatch({ type: 'open', key: entry.key });
+        }}
+        onSave={() => void save({ manageFocus: true })}
+        saveError={saveError}
+        state={state}
+        type={type}
+      />
 
       {canEdit && (
         <Button

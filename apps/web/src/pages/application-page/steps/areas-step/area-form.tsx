@@ -32,7 +32,7 @@ import {
   RoadSection,
   RoadSide,
 } from '../../../../types/prisma-enums.js';
-import { labelAboveSlots } from '../../components/form-fields.js';
+import { labelAboveSlots } from '../../components/form-field-helpers.js';
 
 /** The description box grows with its text up to this height. */
 const descriptionMaxHeight = '100px';

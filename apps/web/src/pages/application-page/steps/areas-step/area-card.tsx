@@ -15,15 +15,8 @@ import type {
   AreaFormValues,
 } from '../../../../types/area.types.js';
 import type { RoadOwnership } from '../../../../types/prisma-enums.js';
+import { areaCardIds } from './area-card-ids.js';
 import { AreaForm } from './area-form.js';
-
-/** Element ids, so the areas step can move focus to a card. */
-export const areaCardIds = {
-  title: (areaKey: string) => `area-${areaKey}-title`,
-  road: (areaKey: string) => `area-${areaKey}-road`,
-  edit: (areaKey: string) => `area-${areaKey}-edit`,
-  delete: (areaKey: string) => `area-${areaKey}-delete`,
-};
 
 export interface AreaDetails {
   houseNumberFrom: string | null;

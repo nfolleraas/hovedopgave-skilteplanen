@@ -6,11 +6,7 @@ import {
 } from '../../../../features/areas/area-labels.js';
 import type { SelectedRoad } from '../../../../types/area.types.js';
 import { RoadOwnership } from '../../../../types/prisma-enums.js';
-
-/** Id of a road's ownership field, so the map step can focus it. */
-export function roadOwnershipId(roadId: string): string {
-  return `road-ownership-${roadId}`;
-}
+import { roadOwnershipId } from './selected-road-ids.js';
 
 interface SelectedRoadsProps {
   roads: SelectedRoad[];
