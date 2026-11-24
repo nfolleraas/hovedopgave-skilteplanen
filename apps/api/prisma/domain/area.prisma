@@ -1,8 +1,9 @@
 model Area {
   uuid                   String        @id @default(uuid())
   roadName               String
-  roadOwnership          RoadOwnership
+  roadOwnership          RoadOwnership?
   postalCode             String
+  city                   String?
   houseNumberTo          String?
   houseNumberFrom        String?
   alternativeDescription String?

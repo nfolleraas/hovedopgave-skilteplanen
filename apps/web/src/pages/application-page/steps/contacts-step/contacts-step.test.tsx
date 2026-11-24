@@ -9,7 +9,7 @@ import {
 import { renderWithProviders } from '../../../../test/render.js';
 import type { ContactPersonApplication } from '../../../../types/contact-person.types.js';
 import { ActorRole } from '../../../../types/prisma-enums.js';
-import ApplicationPage from '../../index.js';
+import ApplicationPage from '../../contact-wizard.js';
 
 const contractor = buildActor('actor-1', {
   name: 'Graveselskabet A/S',

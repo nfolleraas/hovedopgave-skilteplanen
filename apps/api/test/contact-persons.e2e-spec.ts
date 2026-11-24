@@ -85,7 +85,7 @@ describe('/api/contact-persons (e2e)', () => {
         applicantReference: caseNumber,
         type,
         status,
-        trafficChange: TrafficChange.SpeedLimitWorkZone,
+        trafficChanges: [TrafficChange.SpeedLimitWorkZone],
         applicant: { connect: { uuid: applicant.uuid } },
       },
     });
@@ -127,8 +127,10 @@ describe('/api/contact-persons (e2e)', () => {
         },
       });
       for (const { applicant, actors } of applications) {
-        created.applicantIds.push(applicant.uuid);
-        created.addressIds.push(applicant.addressId);
+        if (applicant) {
+          created.applicantIds.push(applicant.uuid);
+          if (applicant.addressId) created.addressIds.push(applicant.addressId);
+        }
         for (const actor of actors) {
           created.actorIds.push(actor.uuid);
           created.addressIds.push(actor.addressId);

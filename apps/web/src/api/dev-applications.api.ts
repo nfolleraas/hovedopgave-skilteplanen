@@ -1,6 +1,6 @@
 import type { SupportedApplicationType } from '../types/application.types.js';
 import type { ApplicationType, Status } from '../types/prisma-enums.js';
-import { apiClient } from './client.js';
+import { apiClient } from './client.api.js';
 
 /** Test-only: application as listed by the dev endpoints. */
 export interface DevApplication {

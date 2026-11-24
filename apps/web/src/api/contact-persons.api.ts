@@ -3,7 +3,7 @@ import type {
   ContactPerson,
   ContactPersonInput,
 } from '../types/contact-person.types.js';
-import { apiClient } from './client.js';
+import { apiClient } from './client.api.js';
 
 export function getApplicationContactPersons(
   applicationId: string,

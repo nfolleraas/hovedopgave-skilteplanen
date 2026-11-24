@@ -1,4 +1,5 @@
 import { Alert, Box, Paper, Typography } from '@mui/material';
+import { isAxiosError } from 'axios';
 import {
   type Dispatch,
   type RefObject,
@@ -7,7 +8,6 @@ import {
   useState,
 } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ApiError } from '../../../../api/client.js';
 import {
   createContactPerson,
   deleteContactPerson,
@@ -57,6 +57,12 @@ interface ContactsStepProps {
   leaveGuard: RefObject<LeaveGuard | null>;
   onBack: () => void;
   onNext: () => void;
+}
+
+/** The status and error code (such as `LAST_CONTACT_PERSON`) the API sent. */
+function apiFailure(error: unknown): { status?: number; code?: string } {
+  if (!isAxiosError<{ code?: string }>(error)) return {};
+  return { status: error.response?.status, code: error.response?.data?.code };
 }
 
 /**
@@ -130,8 +136,9 @@ export function ContactsStep({
 
   /** A specific message for each error the API can send (UC-031 F5). */
   function saveErrorMessage(error: unknown): string {
-    if (!(error instanceof ApiError)) return t('contacts.saveError');
-    switch (error.code) {
+    if (!isAxiosError(error)) return t('contacts.saveError');
+    const { status, code } = apiFailure(error);
+    switch (code) {
       case 'APPLICATION_NOT_EDITABLE':
         return t('contacts.notEditable');
       case 'ACTOR_NOT_FOUND':
@@ -149,7 +156,7 @@ export function ContactsStep({
       case 'CONTACT_PERSON_FIELDS_NOT_ALLOWED':
         return t('contacts.rejectedByServer');
       default:
-        return error.status === 400
+        return status === 400
           ? t('contacts.rejectedByServer')
           : t('contacts.saveError');
     }
@@ -291,10 +298,8 @@ export function ContactsStep({
       setDeleteTarget(null);
     } catch (error) {
       // Deleted in another tab: the result is the same, so show it as done.
-      if (
-        error instanceof ApiError &&
-        error.code === 'CONTACT_PERSON_NOT_FOUND'
-      ) {
+      const { code } = apiFailure(error);
+      if (code === 'CONTACT_PERSON_NOT_FOUND') {
         focusAfterRemoving(deleteTarget.uuid);
         dispatch({ type: 'removed', key: deleteTarget.uuid });
         setNotice({
@@ -305,10 +310,9 @@ export function ContactsStep({
         return;
       }
       setDeleteError(
-        error instanceof ApiError && error.code === 'LAST_CONTACT_PERSON'
+        code === 'LAST_CONTACT_PERSON'
           ? t('contacts.lastContactError')
-          : error instanceof ApiError &&
-              error.code === 'APPLICATION_NOT_EDITABLE'
+          : code === 'APPLICATION_NOT_EDITABLE'
             ? t('contacts.notEditable')
             : // UC-032 F4: the contact person could not be deleted.
               t('contacts.deleteError'),

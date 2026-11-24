@@ -1,3 +1,9 @@
+import {
+  AxiosError,
+  type AxiosResponse,
+  type InternalAxiosRequestConfig,
+} from 'axios';
+import { axiosClient } from '../api/client.api.js';
 import type {
   ContactPerson,
   ContactPersonActor,
@@ -43,7 +49,7 @@ export function buildContactPerson(
 
 /**
  * An in-memory stand-in for the contact persons endpoints, installed as
- * `fetch`. It stores contact persons like the API does and records every
+ * the adapter of the shared Axios client. It stores contact persons like the API does and records every
  * request, so tests can check what the web app sent. It does not repeat the
  * API's validation; use `failNext` to answer with an API error.
  */
@@ -53,7 +59,7 @@ export class FakeContactPersonsApi {
   private actors: ContactPersonActor[] = [];
   private nextId = 1;
   private nextFailure: { status: number; body: unknown } | null = null;
-  private originalFetch: typeof fetch | null = null;
+  private originalAdapter: InternalAxiosRequestConfig['adapter'];
 
   constructor(
     private readonly application: ContactPersonApplication = {
@@ -64,14 +70,39 @@ export class FakeContactPersonsApi {
   ) {}
 
   install(): this {
-    this.originalFetch = globalThis.fetch;
-    globalThis.fetch = ((input: string | URL, init?: RequestInit) =>
-      this.handle(String(input), init ?? {})) as typeof fetch;
+    this.originalAdapter = axiosClient.defaults.adapter;
+    axiosClient.defaults.adapter = (config) => this.respond(config);
     return this;
   }
 
   restore(): void {
-    if (this.originalFetch) globalThis.fetch = this.originalFetch;
+    axiosClient.defaults.adapter = this.originalAdapter;
+  }
+
+  /** Answers an Axios request and rejects non-2xx answers, as Axios does. */
+  private async respond(
+    config: InternalAxiosRequestConfig,
+  ): Promise<AxiosResponse> {
+    const answer = await this.handle(`/api${config.url}`, {
+      method: config.method?.toUpperCase(),
+      body: config.data,
+    });
+    const text = await answer.text();
+    const response: AxiosResponse = {
+      data: text ? JSON.parse(text) : undefined,
+      status: answer.status,
+      statusText: answer.statusText,
+      headers: {},
+      config,
+    };
+    if (answer.ok) return response;
+    throw new AxiosError(
+      `Request failed with status code ${answer.status}`,
+      AxiosError.ERR_BAD_RESPONSE,
+      config,
+      null,
+      response,
+    );
   }
 
   /** Actors on the application when the test starts. */

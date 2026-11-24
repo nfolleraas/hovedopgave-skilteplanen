@@ -88,7 +88,7 @@ export class DevApplicationsService {
         applicantReference: caseNumber,
         type,
         status: Status.Draft,
-        trafficChange: TrafficChange.SpeedLimitWorkZone,
+        trafficChanges: [TrafficChange.SpeedLimitWorkZone],
         // Contact persons belong to an actor, and the actors step is not on
         // this branch, so two test actors are created with the application.
         actors: {
