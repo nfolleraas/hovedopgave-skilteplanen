@@ -93,7 +93,28 @@ Alle fejl har formen `{ code, message }`.
 | Tekstnøgler for enums og telefonformat | [`features/contact-persons/contact-person-labels.ts`](../../apps/web/src/features/contact-persons/contact-person-labels.ts) |
 | Trinnet Kontaktoplysninger | [`steps/contacts-step/`](../../apps/web/src/pages/application-page/steps/contacts-step/) |
 
-Flow i wizarden (`/ansoegning?sag=<sagsnummer>&trin=contactInfo`):
+### I ansøgningen om råden over vej
+
+Trinnet »Kontaktoplysninger« i formularen på
+`/ansoegning/opret-vejtilladelse?draft=<sagsnummer>` viser det samme trin
+([`ContactPersonsPage.tsx`](../../apps/web/src/pages/application-page/create-road-permit/pages/ContactPersonsPage.tsx)
+med `embedded`), så formularens trinliste står for overskrift, »Tilbage« og
+»Næste«. [`useContactPersons.ts`](../../apps/web/src/pages/application-page/create-road-permit/useContactPersons.ts)
+henter kontaktpersonerne, og reduceren ligger i formularen. Trinnet er kun
+gyldigt med mindst én gemt kontaktperson og ingen åben, ugemt formular.
+Kontaktpersonerne gemmes enkeltvis gennem `/api/contact-persons`, ikke med
+kladden, og `POST /api/road-permit/:id/submit` afviser en ansøgning uden
+kontaktpersoner med `400` og koden `CONTACT_PERSON_REQUIRED`.
+
+Nye kladder får demo-aktørerne som pladsholder (se
+[pladsholdere](placeholders.md)), så der kan oprettes kontaktpersoner.
+
+### Flow i wizarden
+
+Wizarden (`/ansoegning?sag=<sagsnummer>&trin=contactInfo`) har ikke længere en
+rute, men koden ligger i
+[`contact-wizard.tsx`](../../apps/web/src/pages/application-page/contact-wizard.tsx),
+så den kan flettes med `Feature-CreateArea`. Trinnets komponenttest bruger den.
 
 1. Siden henter ansøgningen, dens aktører og kontaktpersoner én gang fra
    `GET /api/contact-persons`. Reduceren ligger på siden, så kontaktpersonerne

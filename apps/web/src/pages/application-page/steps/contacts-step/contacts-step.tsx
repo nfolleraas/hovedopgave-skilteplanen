@@ -53,10 +53,15 @@ interface ContactsStepProps {
   actors: ContactPersonActor[];
   state: ContactPersonEditState;
   dispatch: Dispatch<ContactPersonEditAction>;
+  /**
+   * Shown inside another form, such as the road-permit form, which renders
+   * the heading and the step navigation and checks the step itself.
+   */
+  embedded?: boolean;
   /** Lets the page save the open form when another step is chosen. */
-  leaveGuard: RefObject<LeaveGuard | null>;
-  onBack: () => void;
-  onNext: () => void;
+  leaveGuard?: RefObject<LeaveGuard | null>;
+  onBack?: () => void;
+  onNext?: () => void;
 }
 
 /** The status and error code (such as `LAST_CONTACT_PERSON`) the API sent. */
@@ -74,6 +79,7 @@ export function ContactsStep({
   actors,
   state,
   dispatch,
+  embedded = false,
   leaveGuard,
   onBack,
   onNext,
@@ -220,18 +226,18 @@ export function ContactsStep({
   }
 
   useEffect(() => {
-    leaveGuard.current = saveIfDirty;
+    if (leaveGuard) leaveGuard.current = saveIfDirty;
   });
   // biome-ignore lint/correctness/useExhaustiveDependencies: unmount only.
   useEffect(
     () => () => {
-      leaveGuard.current = null;
+      if (leaveGuard) leaveGuard.current = null;
     },
     [],
   );
 
   async function handleBack() {
-    if (await saveIfDirty()) onBack();
+    if (await saveIfDirty()) onBack?.();
   }
 
   /** The application needs at least one contact person (UC-004 F7). */
@@ -243,7 +249,7 @@ export function ContactsStep({
       missingRef.current?.focus();
       return;
     }
-    onNext();
+    onNext?.();
   }
 
   function handleAdd() {
@@ -327,16 +333,21 @@ export function ContactsStep({
   );
 
   return (
-    <section aria-labelledby="step-title">
-      <Typography
-        component="h1"
-        id="step-title"
-        sx={{ mb: 1 }}
-        tabIndex={-1}
-        variant="h5"
-      >
-        {t('applicationWizard.steps.contactInfo')}
-      </Typography>
+    <Box
+      aria-labelledby={embedded ? undefined : 'step-title'}
+      component={embedded ? 'div' : 'section'}
+    >
+      {!embedded && (
+        <Typography
+          component="h1"
+          id="step-title"
+          sx={{ mb: 1 }}
+          tabIndex={-1}
+          variant="h5"
+        >
+          {t('applicationWizard.steps.contactInfo')}
+        </Typography>
+      )}
       <Typography color="text.secondary" sx={{ mb: 2 }}>
         {t('contacts.intro')}
       </Typography>
@@ -417,11 +428,13 @@ export function ContactsStep({
         </Alert>
       )}
 
-      <WizardFooter
-        busy={isSaving}
-        onBack={() => void handleBack()}
-        onNext={() => void handleNext()}
-      />
+      {!embedded && (
+        <WizardFooter
+          busy={isSaving}
+          onBack={() => void handleBack()}
+          onNext={() => void handleNext()}
+        />
+      )}
 
       <DeleteContactDialog
         actorName={deleteTarget ? actorName(deleteTarget.actorId) : ''}
@@ -458,6 +471,6 @@ export function ContactsStep({
         }}
         open={pendingEntry !== undefined}
       />
-    </section>
+    </Box>
   );
 }

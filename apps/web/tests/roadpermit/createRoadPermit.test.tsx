@@ -9,6 +9,7 @@ import userEvent, { type UserEvent } from '@testing-library/user-event';
 import { AxiosError } from 'axios';
 import { createMemoryRouter, Link, RouterProvider } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { getApplicationContactPersons } from '../../src/api/contact-persons.api';
 import { getMunicipalities } from '../../src/api/municipalities.api';
 import {
   createRoadPermitDraft,
@@ -38,6 +39,13 @@ vi.mock('../../src/api/municipalities.api', () => ({
   getMunicipalities: vi.fn(),
 }));
 
+vi.mock('../../src/api/contact-persons.api', () => ({
+  getApplicationContactPersons: vi.fn(),
+  createContactPerson: vi.fn(),
+  updateContactPerson: vi.fn(),
+  deleteContactPerson: vi.fn(),
+}));
+
 vi.mock('../../src/components/ui/map/DataforsyningenMap', () => ({
   /** Replaces the map so the workflow tests can enter the address manually. */
   DataforsyningenMap: () => null,
@@ -51,7 +59,35 @@ const loadDraft = vi.mocked(getRoadPermitDraft);
 const listDrafts = vi.mocked(listApplicationDrafts);
 const saveDraft = vi.mocked(saveRoadPermitDraft);
 const submitApplication = vi.mocked(submitRoadPermitApplication);
+const loadContacts = vi.mocked(getApplicationContactPersons);
 const draftId = 'draft-123';
+const contractor = {
+  uuid: 'actor-1',
+  name: 'Graveselskabet A/S',
+  role: 'Contractor',
+} as const;
+const siteContact = {
+  uuid: 'contact-1',
+  applicationId: draftId,
+  actorId: contractor.uuid,
+  name: 'Site Contact',
+  availability: 'AllDay',
+  phoneNumber: '12345678',
+  email: 'site@example.com',
+} as const;
+
+/** The contact persons API answer for the draft, with one saved contact. */
+function contactPersonsAnswer(contactPersons = [siteContact]) {
+  return {
+    application: {
+      caseNumber: draftId,
+      type: 'RoadUsePermit',
+      status: 'Draft',
+    },
+    actors: [contractor],
+    contactPersons,
+  } as unknown as Awaited<ReturnType<typeof getApplicationContactPersons>>;
+}
 
 /** Renders the permit form and its redirect destination in a memory router. */
 async function renderPermitFlow(
@@ -136,9 +172,8 @@ async function fillRequiredDetails(user: UserEvent) {
   await user.click(button('Add material'));
   await next(user);
 
-  await user.type(screen.getByLabelText(/^name\b/i), 'Test Contact');
-  await user.type(screen.getByLabelText(/phone number/i), '12345678');
-  await user.type(screen.getByLabelText(/^email\b/i), 'test@example.com');
+  // The draft already has a saved contact person.
+  await screen.findByText('Site Contact');
   await next(user);
   await user.click(screen.getByRole('combobox', { name: 'Traffic changes' }));
   await user.click(
@@ -187,6 +222,7 @@ describe('Road permit application', () => {
     listDrafts.mockReset().mockResolvedValue([]);
     saveDraft.mockReset().mockResolvedValue(undefined);
     submitApplication.mockReset();
+    loadContacts.mockReset().mockResolvedValue(contactPersonsAnswer());
     vi.stubGlobal(
       'fetch',
       vi.fn(async () => Response.json({ status: 'ok', fund: [] })),
@@ -284,7 +320,6 @@ describe('Road permit application', () => {
         title: 'Saved title',
         municipalityName: 'Odense',
         usageDetails: { road: 'Adamsgade' },
-        contactInformation: { name: 'Contact' },
       },
     });
     await renderPermitFlow();
@@ -689,6 +724,40 @@ describe('Road permit application', () => {
     ).toBeTruthy();
   });
 
+  it('requires a saved contact person before advancing from the contact step', async () => {
+    const user = userEvent.setup();
+    loadContacts.mockResolvedValue(contactPersonsAnswer([]));
+    await renderPermitFlow();
+    await user.click(button('Contact details'));
+
+    expect(
+      await screen.findByText('There are no contact persons yet.'),
+    ).toBeTruthy();
+    expect(button('+ Add contact person')).toBeTruthy();
+    await next(user);
+    expect(
+      within(screen.getByRole('alert')).getByText(
+        'Add at least one contact person.',
+      ),
+    ).toBeTruthy();
+    expect(loadContacts).toHaveBeenCalledExactlyOnceWith(draftId);
+  });
+
+  it('retries loading the contact persons after a failure', async () => {
+    const user = userEvent.setup();
+    loadContacts
+      .mockRejectedValueOnce(new AxiosError('Network Error'))
+      .mockResolvedValueOnce(contactPersonsAnswer());
+    await renderPermitFlow();
+    await user.click(button('Contact details'));
+
+    expect(
+      await screen.findByText('The contact persons could not be loaded.'),
+    ).toBeTruthy();
+    await user.click(button('Try again'));
+    expect(await screen.findByText('Site Contact')).toBeTruthy();
+  });
+
   it('requires an explicit traffic measure before advancing', async () => {
     const user = userEvent.setup();
     await renderPermitFlow();
@@ -817,6 +886,7 @@ describe('Road permit application', () => {
     const user = userEvent.setup();
     const scrollIntoView = vi.mocked(HTMLElement.prototype.scrollIntoView);
     scrollIntoView.mockClear();
+    loadContacts.mockResolvedValue(contactPersonsAnswer([]));
     await renderPermitFlow();
     await user.click(button('Review & submission'));
     const confirmation = screen.getByRole('checkbox', { name: /I declare/i });
@@ -830,7 +900,7 @@ describe('Road permit application', () => {
       'Select a municipality from the list.',
       'Add at least one material to the list.',
       'Select a start date.',
-      'Enter a valid email address.',
+      'Add at least one contact person.',
       'Select at least one traffic measure.',
     ]) {
       expect(screen.getByText(message)).toBeTruthy();

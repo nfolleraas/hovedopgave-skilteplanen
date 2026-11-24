@@ -3,7 +3,12 @@ import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import type { App } from 'supertest/types.js';
 import { AppModule } from '../src/app.module.js';
-import { Status, TrafficChange } from '../src/generated/prisma/enums.js';
+import {
+  ActorRole,
+  Availability,
+  Status,
+  TrafficChange,
+} from '../src/generated/prisma/enums.js';
 import { mapCreateRoadPermit } from '../src/modules/road-permit/mappers/road-permit.mapper.js';
 import { RoadPermitRepository } from '../src/modules/road-permit/road-permit.repository.js';
 import { PrismaService } from '../src/prisma.service.js';
@@ -35,10 +40,57 @@ describe.skipIf(!databaseUrl)('Road permit transactions (PostgreSQL)', () => {
     vi.unstubAllEnvs();
   });
 
+  /** Adds an actor with one contact person, which submission requires. */
+  async function addContactPerson(caseNumber: string) {
+    const actor = await prisma.actor.create({
+      data: {
+        name: 'Test contractor',
+        role: ActorRole.Contractor,
+        phoneNumber: '11111111',
+        email: 'contractor@example.com',
+        address: {
+          create: {
+            street: 'Testvej',
+            houseNumber: '1',
+            postalCode: '5000',
+            city: 'Odense C',
+          },
+        },
+        applications: { connect: { caseNumber } },
+      },
+    });
+    await prisma.contactPerson.create({
+      data: {
+        name: 'Site contact',
+        phoneNumber: '12345678',
+        email: 'site@example.com',
+        availability: Availability.AllDay,
+        applicationId: caseNumber,
+        actorId: actor.uuid,
+      },
+    });
+  }
+
+  it('rejects a submission without a contact person and keeps the draft', async () => {
+    const { caseNumber } = await permits.create();
+    await request(app.getHttpServer())
+      .post(`/api/road-permit/${caseNumber}/submit`)
+      .send(roadPermitSubmission)
+      .expect(400)
+      .expect(({ body }) => expect(body.code).toBe('CONTACT_PERSON_REQUIRED'));
+    await expect(
+      prisma.application.findUniqueOrThrow({
+        where: { caseNumber },
+        select: { status: true },
+      }),
+    ).resolves.toEqual({ status: Status.Draft });
+  });
+
   it('rolls back the application update when the linked permit write fails', async () => {
     const { caseNumber } = await permits.create();
     const original = { title: 'Draft before submission' };
     await permits.update(caseNumber, original);
+    await addContactPerson(caseNumber);
     const data = mapCreateRoadPermit(roadPermitSubmission);
     data.roadUsePermit.create.endDate = new Date(Number.NaN);
 
@@ -75,6 +127,7 @@ describe.skipIf(!databaseUrl)('Road permit transactions (PostgreSQL)', () => {
   it('stores the road markings on submission and rejects a duplicate', async () => {
     const { caseNumber } = await permits.create();
     const path = `/api/road-permit/${caseNumber}`;
+    await addContactPerson(caseNumber);
     const accessWays = 'Access from the south via the service road.';
     const dto = {
       ...roadPermitSubmission,

@@ -25,6 +25,7 @@ dele der kun er pladsholdere, og hvordan du udskifter dem.
 | Trinnet Øvrige aktører (viser kun aktørerne) | [`actors-step.tsx`](../../apps/web/src/pages/application-page/steps/actors-step/actors-step.tsx) | Aktør-trinnet fra `AktørUseCase` (UC-040–042) | Let |
 | Trinene Kort og Områder | [`placeholder-step.tsx`](../../apps/web/src/pages/application-page/steps/placeholder-step/placeholder-step.tsx) | `map-step` og `areas-step` fra `Feature-CreateArea` | Se [sammenfletning](#sammenfletning) |
 | Kommuner | `dummyMunicipalities` i [`application-draft.ts`](../../apps/web/src/features/application-draft/application-draft.ts) | Kommune-endpoint | Let |
+| Demo-aktører på nye vejtilladelser | [`placeholder-actors.ts`](../../apps/api/src/modules/road-permit/placeholder-actors.ts) (bruges i `RoadPermitRepository.create`) | Et aktør-trin i formularen (UC-040–042) | Let: slet filen og `connect` |
 
 Det, der **ikke** er en pladsholder, og som skal blive:
 

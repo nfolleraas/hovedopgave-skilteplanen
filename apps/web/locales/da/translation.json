@@ -59,6 +59,8 @@
       "municipalityUnavailable": "Den valgte kommune er ikke længere tilgængelig. Vælg en anden kommune.",
       "materialUnavailable": "Det valgte materiale er ikke længere tilgængeligt. Fjern det fra listen, eller vælg et andet.",
       "trafficChangeUnavailable": "Det trafikale valg «{{change}}» er ikke længere tilgængeligt. Fjern det fra listen, eller vælg et andet.",
+      "contactRequired": "Tilføj mindst én kontaktperson.",
+      "contactUnsaved": "Gem eller annullér den åbne kontaktperson.",
       "materialsRequired": "Tilføj mindst ét materiale til listen.",
       "materialDraft": "Tilføj materialet, gem ændringerne eller annuller kladden.",
       "trafficMeasureRequired": "Vælg mindst én trafikforanstaltning.",
@@ -71,9 +73,6 @@
       "dateOrder": "Slutdatoen må ikke ligge før startdatoen.",
       "usage": "Vælg en anvendelse.",
       "startDate": "Vælg en startdato.",
-      "contactName": "Indtast et navn.",
-      "contactPhone": "Indtast 8 cifre eller et internationalt nummer med landekode.",
-      "contactEmail": "Indtast en gyldig e-mailadresse.",
       "houseNumberFrom": "Angiv et gyldigt husnummer i feltet Fra, f.eks. 12 eller 12A.",
       "houseNumberMissing": "Angiv det første husnummer i intervallet.",
       "houseNumberTo": "Angiv et gyldigt husnummer i feltet Til, f.eks. 12 eller 12A.",
@@ -224,8 +223,11 @@
       "label": "Kommune"
     },
     "contact": {
-      "heading": "Opret kontaktperson",
+      "loading": "Henter kontaktpersoner…",
+      "retry": "Prøv igen",
+      "loadError": "Kontaktpersonerne kunne ikke hentes.",
       "name": "Navn",
+      "actor": "Aktør",
       "phone": "Telefonnummer",
       "email": "E-mail"
     },
@@ -310,20 +312,6 @@
       "measure": "Type {{type}}",
       "noProtection": "Ingen beskyttelsesgrad"
     }
-  },
-  "application": {
-    "drafts": {
-      "heading": "Kladder",
-      "loading": "Indlæser kladder…",
-      "empty": "Der er ingen kladder endnu.",
-      "loadError": "Kladderne kunne ikke indlæses. Genindlæs siden for at prøve igen.",
-      "untitled": "Kladde uden titel",
-      "caseNumber": "Sagsnummer {{caseNumber}}"
-    },
-    "title": "Vælg ansøgningstype",
-    "creatingDraft": "Opretter kladde…",
-    "unavailable": "Kommer senere",
-    "createDraftError": "Ansøgningskladden kunne ikke oprettes. Prøv igen."
   },
   "devApplications": {
     "loadError": "Ansøgningerne kunne ikke hentes. Kører API'et?",
@@ -596,6 +584,27 @@
     "caseNotFound": "Ansøgningen blev ikke fundet.",
     "loadError": "Ansøgningen kunne ikke hentes, prøv igen senere eller kontakt supporten."
   },
+  "application": {
+    "drafts": {
+      "heading": "Kladder",
+      "loading": "Indlæser kladder…",
+      "empty": "Der er ingen kladder endnu.",
+      "loadError": "Kladderne kunne ikke indlæses. Genindlæs siden for at prøve igen.",
+      "untitled": "Kladde uden titel",
+      "caseNumber": "Sagsnummer {{caseNumber}}"
+    },
+    "title": "Vælg ansøgningstype",
+    "creatingDraft": "Opretter kladde…",
+    "unavailable": "Kommer senere",
+    "createDraftError": "Ansøgningskladden kunne ikke oprettes. Prøv igen."
+  },
+  "home": {
+    "createRoadPermit": "Opret tilladelse til råden over vej",
+    "createRoadPermitEvent": "Opret tilladelse til råden over vej til begivenhed",
+    "createDiggingPermit": "Opret gravetilladelse",
+    "title": "Ansøgningsplatformen",
+    "intro": "Velkommen til Ansøgningsplatformen"
+  },
   "contacts": {
     "availabilityFixed": "Ved råden over vej er tilgængeligheden altid Dag.",
     "actorGroup": "{{role}} · {{name}}",
@@ -667,13 +676,6 @@
       "phoneNumber": "Telefonnummer",
       "email": "E-mail"
     }
-  },
-  "home": {
-    "createRoadPermit": "Opret tilladelse til råden over vej",
-    "createRoadPermitEvent": "Opret tilladelse til råden over vej til begivenhed",
-    "createDiggingPermit": "Opret gravetilladelse",
-    "title": "Ansøgningsplatformen",
-    "intro": "Velkommen til Ansøgningsplatformen"
   },
   "login": {
     "title": "Log ind",

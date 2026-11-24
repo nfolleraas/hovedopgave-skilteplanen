@@ -5,7 +5,6 @@ export class UpdateRoadPermitDto {
   municipalityName?: string | null;
   materials?: CreateRoadPermitDto['materials'];
   usageDetails?: Partial<CreateRoadPermitDto['usageDetails']>;
-  contactInformation?: Partial<CreateRoadPermitDto['contactInformation']>;
   roadMarking?: Partial<CreateRoadPermitDto['roadMarking']>;
   materialDraft?: Partial<{
     editingId: string | null;

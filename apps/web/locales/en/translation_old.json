@@ -2,6 +2,14 @@
   "permit": {
     "documents": {
       "empty": "No attachments added."
+    },
+    "errors": {
+      "contactName": "Enter a name.",
+      "contactPhone": "Enter 8 digits or an international number with a country code.",
+      "contactEmail": "Enter a valid email address."
+    },
+    "contact": {
+      "heading": "Add a contact person"
     }
   }
 }

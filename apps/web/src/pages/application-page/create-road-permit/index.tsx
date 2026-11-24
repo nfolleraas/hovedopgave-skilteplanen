@@ -24,8 +24,8 @@ import {
   MasterDetailGrid,
 } from '../../../components/layout/masterDetail/masterDetail';
 import { visuallyHidden } from '../../../components/ui/visuallyHidden';
+import { isDirty } from '../../../features/contact-persons/contact-person-edit-state.js';
 import {
-  type ContactInformation,
   emptyMaterialDraft,
   type MaterialDraft,
   type MaterialEntry,
@@ -33,7 +33,7 @@ import {
   type UsageDetails,
 } from './formTypes';
 import { ChooseMunicipalityAndTitlePage } from './pages/ChooseMunicipalityAndTitlePage';
-import { ContactInformationPage } from './pages/ContactInformationPage';
+import { ContactPersonsPage } from './pages/ContactPersonsPage';
 import { DocumentsAndDrawingsPage } from './pages/DocumentsAndDrawingsPage';
 import { MaterialsPage } from './pages/MaterialsPage';
 import { RoadMarkingPage } from './pages/RoadMarkingPage';
@@ -44,6 +44,7 @@ import type {
   RoadPermitDraft,
   RoadPermitDraftSnapshot,
 } from './RoadPermitApplication.types';
+import { useContactPersons } from './useContactPersons';
 import {
   exampleApplicant,
   exampleDocument,
@@ -52,7 +53,6 @@ import {
 import { useUnsavedDraftNavigation } from './useUnsavedDraftNavigation';
 import {
   hasMaterialDraft,
-  validateContactInformation,
   validateMunicipalityAndTitle,
   validateUsageDetails,
 } from './validation';
@@ -197,13 +197,8 @@ function RoadPermitForm({
     city: '',
     ...draft.usageDetails,
   });
-  const [contactInformation, setContactInformation] =
-    useState<ContactInformation>({
-      name: '',
-      phone: '',
-      email: '',
-      ...draft.contactInformation,
-    });
+  // Contact persons are saved one by one through their own API.
+  const contacts = useContactPersons(caseNumber);
   const [roadMarking, setRoadMarking] = useState<RoadMarkingDetails>({
     trafficChanges: [],
     accessWays: '',
@@ -218,7 +213,6 @@ function RoadPermitForm({
     materials,
     materialDraft,
     usageDetails,
-    contactInformation,
     roadMarking,
   };
   const {
@@ -290,7 +284,31 @@ function RoadPermitForm({
       ? municipalityErrors.municipality
       : (unavailableMaterial?.message ?? trafficChangeError);
   const usageErrors = validateUsageDetails(usageDetails, t);
-  const contactErrors = validateContactInformation(contactInformation, t);
+  const contactActors =
+    contacts.load.status === 'ready' ? contacts.load.actors : [];
+  const contactPersons = contacts.state.entries.flatMap(({ saved }) =>
+    saved
+      ? [
+          {
+            id: saved.uuid,
+            name: saved.name,
+            actorName:
+              contactActors.find(({ uuid }) => uuid === saved.actorId)?.name ??
+              '',
+            phoneNumber: saved.phoneNumber,
+            email: saved.email,
+          },
+        ]
+      : [],
+  );
+  const contactErrors = getValidationErrors({
+    required: contactPersons.length
+      ? undefined
+      : t('permit.errors.contactRequired'),
+    unsaved: isDirty(contacts.state)
+      ? t('permit.errors.contactUnsaved')
+      : undefined,
+  });
   const materialErrors = getValidationErrors({
     materials: materials.length
       ? undefined
@@ -361,14 +379,8 @@ function RoadPermitForm({
     {
       id: 'contact-information',
       label: t('permit.steps.contact'),
-      validationErrors: getValidationErrors(contactErrors),
-      content: (showErrors) => (
-        <ContactInformationPage
-          errors={showErrors ? contactErrors : undefined}
-          onChange={setContactInformation}
-          value={contactInformation}
-        />
-      ),
+      validationErrors: contactErrors,
+      content: <ContactPersonsPage contacts={contacts} />,
     },
 
     {
@@ -405,7 +417,7 @@ function RoadPermitForm({
           }}
           confirmationError={showErrors ? confirmationError : undefined}
           confirmed={confirmed}
-          contactInformation={contactInformation}
+          contactPersons={contactPersons}
           documentToUpload={exampleDocument}
           materials={materials}
           municipalityName={municipalityName}

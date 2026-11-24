@@ -59,6 +59,8 @@
       "municipalityUnavailable": "The selected municipality is no longer available. Select another municipality.",
       "materialUnavailable": "The selected material is no longer available. Remove it from the list or select another.",
       "trafficChangeUnavailable": "The traffic change «{{change}}» is no longer available. Remove it from the list or select another.",
+      "contactRequired": "Add at least one contact person.",
+      "contactUnsaved": "Save or cancel the open contact person.",
       "materialsRequired": "Add at least one material to the list.",
       "materialDraft": "Add the material, save your changes, or cancel the draft.",
       "trafficMeasureRequired": "Select at least one traffic measure.",
@@ -71,9 +73,6 @@
       "dateOrder": "The end date cannot be before the start date.",
       "usage": "Select a type of use.",
       "startDate": "Select a start date.",
-      "contactName": "Enter a name.",
-      "contactPhone": "Enter 8 digits or an international number with a country code.",
-      "contactEmail": "Enter a valid email address.",
       "houseNumberFrom": "Enter a valid house number in the From field, for example 12 or 12A.",
       "houseNumberMissing": "Enter the first house number in the range.",
       "houseNumberTo": "Enter a valid house number in the To field, for example 12 or 12A.",
@@ -224,8 +223,11 @@
       "label": "Municipality"
     },
     "contact": {
-      "heading": "Add a contact person",
+      "loading": "Loading contact persons…",
+      "retry": "Try again",
+      "loadError": "The contact persons could not be loaded.",
       "name": "Name",
+      "actor": "Company",
       "phone": "Phone number",
       "email": "Email"
     },
@@ -310,20 +312,6 @@
       "measure": "Type {{type}}",
       "noProtection": "No protection level"
     }
-  },
-  "application": {
-    "drafts": {
-      "heading": "Drafts",
-      "loading": "Loading drafts…",
-      "empty": "There are no drafts yet.",
-      "loadError": "Drafts could not be loaded. Reload the page to try again.",
-      "untitled": "Untitled draft",
-      "caseNumber": "Case number {{caseNumber}}"
-    },
-    "title": "Choose an application type",
-    "creatingDraft": "Creating draft…",
-    "unavailable": "Coming later",
-    "createDraftError": "The application draft could not be created. Try again."
   },
   "devApplications": {
     "loadError": "The applications could not be loaded. Is the API running?",
@@ -596,6 +584,27 @@
     "caseNotFound": "The application was not found.",
     "loadError": "The application could not be loaded. Try again later or contact support."
   },
+  "application": {
+    "drafts": {
+      "heading": "Drafts",
+      "loading": "Loading drafts…",
+      "empty": "There are no drafts yet.",
+      "loadError": "Drafts could not be loaded. Reload the page to try again.",
+      "untitled": "Untitled draft",
+      "caseNumber": "Case number {{caseNumber}}"
+    },
+    "title": "Choose an application type",
+    "creatingDraft": "Creating draft…",
+    "unavailable": "Coming later",
+    "createDraftError": "The application draft could not be created. Try again."
+  },
+  "home": {
+    "createRoadPermit": "Apply for a road occupancy permit",
+    "createRoadPermitEvent": "Apply for a road occupancy permit for event",
+    "createDiggingPermit": "Apply for a digging permit",
+    "title": "Applicantplatform",
+    "intro": "Welcome to Applicantplatform."
+  },
   "contacts": {
     "availabilityFixed": "For road use applications, availability is always Day.",
     "actorGroup": "{{role}} · {{name}}",
@@ -667,13 +676,6 @@
       "phoneNumber": "Phone number",
       "email": "Email"
     }
-  },
-  "home": {
-    "createRoadPermit": "Apply for a road occupancy permit",
-    "createRoadPermitEvent": "Apply for a road occupancy permit for event",
-    "createDiggingPermit": "Apply for a digging permit",
-    "title": "Applicantplatform",
-    "intro": "Welcome to Applicantplatform."
   },
   "login": {
     "title": "Log in",

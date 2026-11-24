@@ -11,6 +11,7 @@ describe('AppModule (e2e)', () => {
   const prisma = {
     $queryRaw: vi.fn(),
     municipality: { findMany: vi.fn() },
+    actor: { findMany: vi.fn() },
     application: {
       create: vi.fn(),
       updateMany: vi.fn(),
@@ -58,6 +59,7 @@ describe('AppModule (e2e)', () => {
   it('keeps the frontend draft creation, saving, and loading endpoints available', async () => {
     const draft = { caseNumber: 'permit-1', status: 'Draft' };
     const snapshot = { title: 'Road work', municipalityName: 'Odense' };
+    prisma.actor.findMany.mockResolvedValue([]);
     prisma.application.create.mockResolvedValue(draft);
     prisma.application.updateMany.mockResolvedValue({ count: 1 });
     prisma.application.findFirst.mockResolvedValue({
@@ -134,13 +136,13 @@ describe('AppModule (e2e)', () => {
     prisma.application.findFirst.mockResolvedValue({
       caseNumber: 'permit-1',
       status: 'Draft',
-      roadPermitDraft: { contactInformation: { email: false } },
+      roadPermitDraft: { usageDetails: { road: false } },
     });
     await request(app.getHttpServer())
       .get('/api/road-permit/permit-1')
       .expect(422)
       .expect(({ body }) =>
-        expect(body.message).toContain('contactInformation.email'),
+        expect(body.message).toContain('usageDetails.road'),
       );
   });
 });
