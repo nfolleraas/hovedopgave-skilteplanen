@@ -1,26 +1,30 @@
 import {
   Alert,
   Button,
-  Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
   FormControlLabel,
   Stack,
+  Switch,
   TextField,
 } from '@mui/material';
 import type { FormEvent, ReactElement } from 'react';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { createCaseWorker } from '../../../api/case-workers.api.js';
+import {
+  createCaseWorker,
+  updateCaseWorker,
+} from '../../../api/case-workers.api.js';
 import type { CaseWorker } from '../../../types/case-worker.types.js';
 
 type Field = 'name' | 'employeeNumber' | 'email' | 'phoneNumber' | 'password';
 
 interface Props {
   onCancel: () => void;
-  onCreated: (worker: CaseWorker) => void;
+  onSaved: (worker: CaseWorker) => void;
+  worker?: CaseWorker;
 }
 
 const employeeNumberPattern = /^[a-zA-Z0-9]{1,10}$/;
@@ -31,7 +35,8 @@ const emailPattern =
 /** Collects and validates the details of a new caseworker. */
 export default function CreateCaseWorkerForm({
   onCancel,
-  onCreated,
+  onSaved,
+  worker,
 }: Props): ReactElement {
   const { t } = useTranslation();
   const [invalid, setInvalid] = useState<Field[]>([]);
@@ -56,7 +61,7 @@ export default function CreateCaseWorkerForm({
       name: String(data.get('name') ?? '')
         .trim()
         .normalize('NFC'),
-      employeeNumber: String(data.get('employeeNumber') ?? '').trim(),
+      employeeNumber: worker?.employeeNumber ?? String(data.get('employeeNumber') ?? '').trim(),
       email: String(data.get('email') ?? '').trim(),
       phoneNumber: String(data.get('phoneNumber') ?? ''),
       password: String(data.get('password') ?? ''),
@@ -66,13 +71,14 @@ export default function CreateCaseWorkerForm({
     const errors: Field[] = [];
     if (!namePattern.test(input.name) || !/\p{L}/u.test(input.name))
       errors.push('name');
-    if (!employeeNumberPattern.test(input.employeeNumber))
+    if (!worker && !employeeNumberPattern.test(input.employeeNumber))
       errors.push('employeeNumber');
     if (!emailPattern.test(input.email)) errors.push('email');
     if (!/^\d{8}$/.test(input.phoneNumber)) errors.push('phoneNumber');
     if (
-      !input.password.trim() ||
-      new TextEncoder().encode(input.password).length > 1024
+      !worker &&
+      (!input.password.trim() ||
+        new TextEncoder().encode(input.password).length > 1024)
     )
       errors.push('password');
 
@@ -86,11 +92,21 @@ export default function CreateCaseWorkerForm({
 
     setSaving(true);
     try {
-      const result = await createCaseWorker(input);
-      if ('duplicate' in result) {
-        setFailure('duplicate');
+      if (worker) {
+        const updated = await updateCaseWorker(worker.employeeNumber, {
+          name: input.name,
+          email: input.email,
+          phoneNumber: input.phoneNumber,
+          isSuperUser: input.isSuperUser,
+        });
+        onSaved(updated);
       } else {
-        onCreated(result.caseWorker);
+        const result = await createCaseWorker(input);
+        if ('duplicate' in result) {
+          setFailure('duplicate');
+        } else {
+          onSaved(result.caseWorker);
+        }
       }
     } catch {
       setFailure('save');
@@ -109,7 +125,9 @@ export default function CreateCaseWorkerForm({
       slotProps={{ transition: { onEntered: focusFirstField } }}
     >
       <DialogTitle id="create-caseworker-title">
-        {t('caseworker.management.create')}
+        {worker
+          ? t('caseworker.management.update')
+          : t('caseworker.management.create')}
       </DialogTitle>
       <form noValidate onSubmit={handleSubmit}>
         <DialogContent dividers>
@@ -123,6 +141,7 @@ export default function CreateCaseWorkerForm({
             )}
             <TextField
               autoComplete="name"
+              defaultValue={worker?.name}
               error={invalid.includes('name')}
               helperText={
                 invalid.includes('name') &&
@@ -134,6 +153,8 @@ export default function CreateCaseWorkerForm({
               required
             />
             <TextField
+              defaultValue={worker?.employeeNumber}
+              disabled={Boolean(worker)}
               error={invalid.includes('employeeNumber')}
               helperText={t('caseworker.management.employeeNumberHelp')}
               label={t('caseworker.management.employeeNumber')}
@@ -142,6 +163,7 @@ export default function CreateCaseWorkerForm({
             />
             <TextField
               autoComplete="email"
+              defaultValue={worker?.email}
               error={invalid.includes('email')}
               helperText={
                 invalid.includes('email') &&
@@ -154,6 +176,7 @@ export default function CreateCaseWorkerForm({
             />
             <TextField
               autoComplete="tel-national"
+              defaultValue={worker?.phoneNumber}
               error={invalid.includes('phoneNumber')}
               helperText={
                 invalid.includes('phoneNumber') &&
@@ -164,20 +187,27 @@ export default function CreateCaseWorkerForm({
               required
               type="tel"
             />
-            <TextField
-              autoComplete="new-password"
-              error={invalid.includes('password')}
-              helperText={
-                invalid.includes('password') &&
-                t('caseworker.management.invalidPassword')
-              }
-              label={t('caseworker.management.password')}
-              name="password"
-              required
-              type="password"
-            />
+            {!worker && (
+              <TextField
+                autoComplete="new-password"
+                error={invalid.includes('password')}
+                helperText={
+                  invalid.includes('password') &&
+                  t('caseworker.management.invalidPassword')
+                }
+                label={t('caseworker.management.password')}
+                name="password"
+                required
+                type="password"
+              />
+            )}
             <FormControlLabel
-              control={<Checkbox name="isSuperUser" />}
+              control={
+                <Switch
+                  defaultChecked={worker?.isSuperUser}
+                  name="isSuperUser"
+                />
+              }
               label={t('caseworker.management.grantSuperUser')}
             />
           </Stack>
@@ -189,7 +219,9 @@ export default function CreateCaseWorkerForm({
           <Button disabled={saving} type="submit" variant="contained">
             {saving
               ? t('caseworker.management.saving')
-              : t('caseworker.management.submit')}
+              : worker
+                ? t('caseworker.management.save')
+                : t('caseworker.management.submit')}
           </Button>
         </DialogActions>
       </form>

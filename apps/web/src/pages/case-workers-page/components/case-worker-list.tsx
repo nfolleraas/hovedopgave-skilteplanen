@@ -28,7 +28,9 @@ export default function CaseWorkerList({
   const [loadError, setLoadError] = useState(false);
   const [loadAttempt, setLoadAttempt] = useState(0);
   const [creating, setCreating] = useState(false);
+  const [editing, setEditing] = useState<CaseWorker>();
   const [createdName, setCreatedName] = useState<string>();
+  const [updatedName, setUpdatedName] = useState<string>();
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: Retry requests a fresh list without changing the municipality.
   useEffect(
@@ -70,11 +72,13 @@ export default function CaseWorkerList({
   function openForm(): void {
     setCreating(true);
     setCreatedName(undefined);
+    setUpdatedName(undefined);
   }
 
   /** Closes the creation form. */
   function closeForm(): void {
     setCreating(false);
+    setEditing(undefined);
   }
 
   /** Displays the newly saved caseworker in the list. */
@@ -123,6 +127,11 @@ export default function CaseWorkerList({
           {t('caseworker.management.created', { name: createdName })}
         </Alert>
       )}
+      {updatedName && (
+        <Alert role="status" severity="success">
+          {t('caseworker.management.updated', { name: updatedName })}
+        </Alert>
+      )}
       {sortedWorkers.length === 0 ? (
         <Typography>{t('caseworker.management.empty')}</Typography>
       ) : (
@@ -146,11 +155,14 @@ export default function CaseWorkerList({
                 <TableCell scope="col">
                   {t('caseworker.management.name')}
                 </TableCell>
-                <TableCell scope="col" sx={{ width: '34%' }}>
+                <TableCell scope="col" sx={{ width: '30%' }}>
                   {t('caseworker.management.email')}
                 </TableCell>
                 <TableCell scope="col" sx={{ overflowWrap: 'anywhere' }}>
                   {t('caseworker.management.superUser')}
+                </TableCell>
+                <TableCell scope="col" sx={{ width: '14%' }}>
+                  {t('caseworker.management.actions')}
                 </TableCell>
               </TableRow>
             </TableHead>
@@ -168,6 +180,24 @@ export default function CaseWorkerList({
                         ? t('caseworker.management.yes')
                         : t('caseworker.management.no')}
                     </TableCell>
+                    <TableCell>
+                      <Button
+                        onClick={() => {
+                          setEditing(
+                            sortedWorkers.find(
+                              (worker) =>
+                                worker.employeeNumber === employeeNumber,
+                            ),
+                          );
+                          setUpdatedName(undefined);
+                        }}
+                        size="small"
+                        sx={{ whiteSpace: 'nowrap' }}
+                        variant="contained"
+                      >
+                        {t('caseworker.management.update')}
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ),
               )}
@@ -175,8 +205,23 @@ export default function CaseWorkerList({
           </Table>
         </TableContainer>
       )}
+      {editing && (
+        <CreateCaseWorkerForm
+          onCancel={closeForm}
+          onSaved={(worker) => {
+            setWorkers((current) =>
+              current?.map((item) =>
+                item.employeeNumber === worker.employeeNumber ? worker : item,
+              ),
+            );
+            setUpdatedName(worker.name);
+            closeForm();
+          }}
+          worker={editing}
+        />
+      )}
       {creating && (
-        <CreateCaseWorkerForm onCancel={closeForm} onCreated={showCreated} />
+        <CreateCaseWorkerForm onCancel={closeForm} onSaved={showCreated} />
       )}
     </Stack>
   );

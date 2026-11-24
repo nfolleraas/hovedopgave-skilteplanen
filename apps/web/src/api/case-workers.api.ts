@@ -1,6 +1,7 @@
 import type {
   CaseWorker,
   CaseWorkerInput,
+  CaseWorkerUpdateInput,
 } from '../types/case-worker.types.js';
 
 const apiUrl = '/api/case-workers';
@@ -27,4 +28,19 @@ export async function createCaseWorker(
   if (response.status === 409) return { duplicate: true };
   if (!response.ok) throw new Error('Could not create caseworker');
   return { caseWorker: await response.json() };
+}
+
+/** Updates a caseworker and returns the saved details. */
+export async function updateCaseWorker(
+  employeeNumber: string,
+  input: CaseWorkerUpdateInput,
+): Promise<CaseWorker> {
+  const response = await fetch(`${apiUrl}/${employeeNumber}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+
+  if (!response.ok) throw new Error('Could not update caseworker');
+  return response.json();
 }
