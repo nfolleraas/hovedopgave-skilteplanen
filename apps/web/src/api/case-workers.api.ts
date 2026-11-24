@@ -44,3 +44,16 @@ export async function updateCaseWorker(
   if (!response.ok) throw new Error('Could not update caseworker');
   return response.json();
 }
+
+/** Deletes a caseworker and releases their assigned applications. */
+export async function deleteCaseWorker(employeeNumber: string): Promise<void> {
+  const response = await fetch(`${apiUrl}/${employeeNumber}`, {
+    method: 'DELETE',
+  });
+
+  if (!response.ok) {
+    const error = new Error('Could not delete caseworker');
+    error.name = `HttpError${response.status}`;
+    throw error;
+  }
+}

@@ -1,6 +1,10 @@
 import {
   Alert,
   Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Paper,
   Stack,
   Table,
@@ -13,7 +17,10 @@ import {
 } from '@mui/material';
 import { type ReactElement, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { getCaseWorkers } from '../../../api/case-workers.api.js';
+import {
+  deleteCaseWorker,
+  getCaseWorkers,
+} from '../../../api/case-workers.api.js';
 import type { CaseWorker } from '../../../types/case-worker.types.js';
 import CreateCaseWorkerForm from './create-case-worker-form.js';
 
@@ -31,6 +38,10 @@ export default function CaseWorkerList({
   const [editing, setEditing] = useState<CaseWorker>();
   const [createdName, setCreatedName] = useState<string>();
   const [updatedName, setUpdatedName] = useState<string>();
+  const [deleting, setDeleting] = useState<CaseWorker>();
+  const [deleteError, setDeleteError] = useState<
+    'forbidden' | 'conflict' | 'save'
+  >();
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: Retry requests a fresh list without changing the municipality.
   useEffect(
@@ -79,6 +90,29 @@ export default function CaseWorkerList({
   function closeForm(): void {
     setCreating(false);
     setEditing(undefined);
+  }
+
+  /** Deletes the selected caseworker after confirmation. */
+  async function confirmDelete(): Promise<void> {
+    if (!deleting) return;
+
+    const employeeNumber = deleting.employeeNumber;
+    setDeleteError(undefined);
+    try {
+      await deleteCaseWorker(employeeNumber);
+      setWorkers((current) =>
+        current?.filter((worker) => worker.employeeNumber !== employeeNumber),
+      );
+      setDeleting(undefined);
+    } catch (error) {
+      if (error instanceof Error && error.name === 'HttpError403') {
+        setDeleteError('forbidden');
+      } else if (error instanceof Error && error.name === 'HttpError409') {
+        setDeleteError('conflict');
+      } else {
+        setDeleteError('save');
+      }
+    }
   }
 
   /** Displays the newly saved caseworker in the list. */
@@ -161,7 +195,7 @@ export default function CaseWorkerList({
                 <TableCell scope="col" sx={{ overflowWrap: 'anywhere' }}>
                   {t('caseworker.management.superUser')}
                 </TableCell>
-                <TableCell scope="col" sx={{ width: '14%' }}>
+                <TableCell scope="col" sx={{ width: { sm: '220px' } }}>
                   {t('caseworker.management.actions')}
                 </TableCell>
               </TableRow>
@@ -181,22 +215,44 @@ export default function CaseWorkerList({
                         : t('caseworker.management.no')}
                     </TableCell>
                     <TableCell>
-                      <Button
-                        onClick={() => {
-                          setEditing(
-                            sortedWorkers.find(
-                              (worker) =>
-                                worker.employeeNumber === employeeNumber,
-                            ),
-                          );
-                          setUpdatedName(undefined);
-                        }}
-                        size="small"
-                        sx={{ whiteSpace: 'nowrap' }}
-                        variant="contained"
+                      <Stack
+                        direction={{ xs: 'column', sm: 'row' }}
+                        spacing={1}
                       >
-                        {t('caseworker.management.update')}
-                      </Button>
+                        <Button
+                          color="error"
+                          onClick={() => {
+                            setDeleteError(undefined);
+                            setDeleting(
+                              sortedWorkers.find(
+                                (worker) =>
+                                  worker.employeeNumber === employeeNumber,
+                              ),
+                            );
+                          }}
+                          size="small"
+                          sx={{ minWidth: 64, whiteSpace: 'nowrap' }}
+                          variant="outlined"
+                        >
+                          {t('caseworker.management.delete')}
+                        </Button>
+                        <Button
+                          onClick={() => {
+                            setEditing(
+                              sortedWorkers.find(
+                                (worker) =>
+                                  worker.employeeNumber === employeeNumber,
+                              ),
+                            );
+                            setUpdatedName(undefined);
+                          }}
+                          size="small"
+                          sx={{ minWidth: 88, whiteSpace: 'nowrap' }}
+                          variant="contained"
+                        >
+                          {t('caseworker.management.updateAction')}
+                        </Button>
+                      </Stack>
                     </TableCell>
                   </TableRow>
                 ),
@@ -222,6 +278,46 @@ export default function CaseWorkerList({
       )}
       {creating && (
         <CreateCaseWorkerForm onCancel={closeForm} onSaved={showCreated} />
+      )}
+      {deleting && (
+        <Dialog
+          aria-labelledby="delete-caseworker-title"
+          fullWidth
+          maxWidth="xs"
+          onClose={deleteError ? undefined : () => setDeleting(undefined)}
+          open
+        >
+          <DialogTitle id="delete-caseworker-title">
+            {t('caseworker.management.deleteTitle')}
+          </DialogTitle>
+          <DialogContent>
+            {deleteError ? (
+              <Alert severity="error">
+                {t(
+                  `caseworker.management.delete${deleteError[0].toUpperCase()}${deleteError.slice(1)}`,
+                )}
+              </Alert>
+            ) : (
+              t('caseworker.management.deleteConfirmation', {
+                name: deleting.name,
+              })
+            )}
+          </DialogContent>
+          <DialogActions sx={{ p: 2 }}>
+            <Button onClick={() => setDeleting(undefined)} variant="outlined">
+              {t('caseworker.management.cancel')}
+            </Button>
+            {!deleteError && (
+              <Button
+                color="error"
+                onClick={() => void confirmDelete()}
+                variant="contained"
+              >
+                {t('caseworker.management.delete')}
+              </Button>
+            )}
+          </DialogActions>
+        </Dialog>
       )}
     </Stack>
   );
