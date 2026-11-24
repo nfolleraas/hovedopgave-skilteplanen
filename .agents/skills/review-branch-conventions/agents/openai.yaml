@@ -1,0 +1,3 @@
+interface:
+  display_name: "Review Branch Conventions"
+  short_description: "Review branch changes against coding conventions"
