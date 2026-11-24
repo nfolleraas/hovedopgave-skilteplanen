@@ -62,6 +62,8 @@ function hasText(value: string): boolean {
 const emailPattern =
   /^[A-Za-z0-9_+-]+(\.[A-Za-z0-9_+-]+)*@([A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?\.)+[A-Za-z]{2,}$/;
 
+/** A Danish phone number has 8 digits. */
+const phoneNumberLength = 8;
 const phonePattern = /^\d{8}$/;
 
 /** Finds missing or invalid fields (UC-031 F1 to F4, UC-033 F1 to F4). */
@@ -91,13 +93,14 @@ export function validateContactPerson(
 /**
  * Keeps only the digits of a typed or pasted phone number, so
  * `22 33 44 55` and `22-33-44-55` become `22334455`. A Danish country code
- * in front (`+45` or `0045`) is removed. Other input is left for the
- * validation to reject, so nothing is cut off silently.
+ * in front (`+45` or `0045`) is removed. The number is cut to 8 digits, the
+ * length of a Danish phone number, so the field cannot hold more.
  */
 export function normalizePhoneInput(raw: string): string {
   const digits = raw.replace(/\D/g, '');
   const hasCountryCode = /^\s*(\+|00)45/.test(raw);
-  return hasCountryCode ? digits.replace(/^(00)?45/, '') : digits;
+  const national = hasCountryCode ? digits.replace(/^(00)?45/, '') : digits;
+  return national.slice(0, phoneNumberLength);
 }
 
 /** Spaces are never valid in an email address, so they are removed. */

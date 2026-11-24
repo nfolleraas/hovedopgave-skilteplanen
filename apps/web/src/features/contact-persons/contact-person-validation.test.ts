@@ -173,8 +173,9 @@ describe('normalizePhoneInput', () => {
     expect(normalizePhoneInput(input)).toBe(expected);
   });
 
-  test('keeps a number that is too long, so the validation can reject it', () => {
-    expect(normalizePhoneInput('1234567890')).toBe('1234567890');
+  test('cuts a number that is too long to 8 digits', () => {
+    expect(normalizePhoneInput('1234567890')).toBe('12345678');
+    expect(normalizePhoneInput('+45 22 33 44 55 66')).toBe('22334455');
   });
 });
 

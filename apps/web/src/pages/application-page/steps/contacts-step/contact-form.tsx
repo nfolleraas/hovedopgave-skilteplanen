@@ -143,7 +143,7 @@ export function ContactForm({
           </TextField>
         )}
         {/* No maxLength: a pasted "+45 22 33 44 55" must reach the
-            normalizer whole instead of being cut off by the browser. */}
+            normalizer whole. The normalizer cuts it to 8 digits. */}
         <TextField
           {...fieldProps('phoneNumber', {
             autoComplete: 'tel-national',
