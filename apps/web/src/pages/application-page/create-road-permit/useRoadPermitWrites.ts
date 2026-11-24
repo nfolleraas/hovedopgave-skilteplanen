@@ -85,6 +85,7 @@ function getRejectedSelection(
 export function useRoadPermitWrites(
   caseNumber: string,
   currentDraft: RoadPermitDraft,
+  submissionContact = currentDraft.contactInformation,
 ) {
   const [submissionStatus, setSubmissionStatus] =
     useState<SubmissionStatus>('idle');
@@ -126,14 +127,8 @@ export function useRoadPermitWrites(
     if (!confirmed || writePending.current || submissionStatus === 'success')
       return;
 
-    const {
-      title,
-      municipalityName,
-      materials,
-      usageDetails,
-      contactInformation,
-      roadMarking,
-    } = currentDraft;
+    const { title, municipalityName, materials, usageDetails, roadMarking } =
+      currentDraft;
     const application: RoadPermitApplication = {
       title,
       municipalityName,
@@ -143,7 +138,7 @@ export function useRoadPermitWrites(
         postalCode: usageDetails.postalCode.trim(),
         city: usageDetails.city.trim(),
       },
-      contactInformation,
+      contactInformation: submissionContact,
       documentPlaceholder: exampleDocument,
       roadMarking,
       applicant: exampleApplicant,

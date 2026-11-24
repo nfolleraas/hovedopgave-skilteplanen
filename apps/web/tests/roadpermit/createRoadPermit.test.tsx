@@ -9,6 +9,7 @@ import userEvent, { type UserEvent } from '@testing-library/user-event';
 import { AxiosError } from 'axios';
 import { createMemoryRouter, Link, RouterProvider } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { getActors, updateActor } from '../../src/api/actors.api';
 import { getMunicipalities } from '../../src/api/municipalities.api';
 import {
   createRoadPermitDraft,
@@ -36,6 +37,13 @@ vi.mock('../../src/api/roadPermit.api', () => ({
 
 vi.mock('../../src/api/municipalities.api', () => ({
   getMunicipalities: vi.fn(),
+}));
+
+vi.mock('../../src/api/actors.api', () => ({
+  getActors: vi.fn(),
+  createActor: vi.fn(),
+  updateActor: vi.fn(),
+  deleteActor: vi.fn(),
 }));
 
 vi.mock('../../src/components/ui/map/DataforsyningenMap', () => ({
@@ -136,9 +144,7 @@ async function fillRequiredDetails(user: UserEvent) {
   await user.click(button('Add material'));
   await next(user);
 
-  await user.type(screen.getByLabelText(/^name\b/i), 'Test Contact');
-  await user.type(screen.getByLabelText(/phone number/i), '12345678');
-  await user.type(screen.getByLabelText(/^email\b/i), 'test@example.com');
+  expect(screen.getByRole('heading', { name: 'Actor' })).toBeTruthy();
   await next(user);
   await user.click(screen.getByRole('combobox', { name: 'Traffic changes' }));
   await user.click(
@@ -154,6 +160,27 @@ async function fillRequiredDetails(user: UserEvent) {
 
 describe('Road permit application', () => {
   beforeEach(() => {
+    vi.mocked(getActors)
+      .mockReset()
+      .mockResolvedValue([
+        {
+          uuid: 'actor-123',
+          role: 'Private',
+          name: 'Test Contact',
+          phoneNumber: '12345678',
+          email: 'test@example.com',
+          cvrNumber: null,
+          department: null,
+          address: {
+            uuid: 'address-123',
+            street: 'Testvej',
+            houseNumber: '1',
+            postalCode: '5000',
+            city: 'Odense',
+          },
+          contactPersons: [],
+        },
+      ]);
     loadMaterialTypes
       .mockReset()
       .mockResolvedValue([
@@ -191,6 +218,42 @@ describe('Road permit application', () => {
       'fetch',
       vi.fn(async () => Response.json({ status: 'ok', fund: [] })),
     );
+  });
+
+  it('opens actor creation inside step four using the current application', async () => {
+    const user = userEvent.setup();
+    await renderPermitFlow();
+    await user.click(button('Actor'));
+    expect(getActors).toHaveBeenCalledWith(expect.any(AbortSignal), draftId);
+    await user.click(button('Opret aktør'));
+    expect(screen.getByRole('dialog', { name: 'Opret aktør' })).toBeTruthy();
+    expect(screen.getByRole('combobox', { name: 'Role' })).toBeTruthy();
+    await user.click(button('Annuller'));
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    expect(screen.getByRole('heading', { name: 'Actor' })).toBeTruthy();
+  });
+
+  it('edits an actor without leaving the application and updates the summary', async () => {
+    const user = userEvent.setup();
+    await renderPermitFlow();
+    const [actor] = await vi.mocked(getActors).mock.results[0].value;
+    vi.mocked(updateActor).mockResolvedValueOnce({
+      ...actor,
+      phoneNumber: '87654321',
+    });
+    await user.click(button('Actor'));
+    await user.click(button('Opdater Test Contact'));
+    const phone = screen.getByRole('textbox', { name: 'Telefonnummer' });
+    await user.clear(phone);
+    await user.type(phone, '87654321');
+    await user.click(button('Opdater aktør'));
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    expect(updateActor).toHaveBeenCalledWith(
+      'actor-123',
+      expect.objectContaining({ phoneNumber: '87654321' }),
+    );
+    await user.click(button('Review & submission'));
+    expect(screen.getByText('87654321')).toBeTruthy();
   });
 
   it('creates the draft from the application overview before opening the form', async () => {
@@ -493,10 +556,10 @@ describe('Road permit application', () => {
     });
     expect(firstStep.hasAttribute('aria-describedby')).toBe(false);
 
-    await user.click(steps.getByRole('button', { name: 'Contact details' }));
+    await user.click(steps.getByRole('button', { name: 'Actor' }));
 
     expect(document.activeElement).toBe(
-      screen.getByRole('heading', { name: 'Contact details' }),
+      screen.getByRole('heading', { name: 'Actor' }),
     );
     expect(
       steps.getByRole('button', {
@@ -684,9 +747,7 @@ describe('Road permit application', () => {
       }),
     ).toBeTruthy();
     await next(user);
-    expect(
-      screen.getByRole('heading', { name: 'Contact details' }),
-    ).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Actor' })).toBeTruthy();
   });
 
   it('requires an explicit traffic measure before advancing', async () => {
@@ -814,6 +875,7 @@ describe('Road permit application', () => {
   });
 
   it('highlights incomplete summary fields and only scrolls when requested', async () => {
+    vi.mocked(getActors).mockResolvedValueOnce([]);
     const user = userEvent.setup();
     const scrollIntoView = vi.mocked(HTMLElement.prototype.scrollIntoView);
     scrollIntoView.mockClear();
@@ -830,7 +892,6 @@ describe('Road permit application', () => {
       'Select a municipality from the list.',
       'Add at least one material to the list.',
       'Select a start date.',
-      'Enter a valid email address.',
       'Select at least one traffic measure.',
     ]) {
       expect(screen.getByText(message)).toBeTruthy();
@@ -868,7 +929,8 @@ describe('Road permit application', () => {
     expect(screen.queryByText('Fix the highlighted fields.')).toBeNull();
   });
 
-  it('requires confirmation and redirects after showing submission success', async () => {
+  it('allows submission without actors and redirects after confirmation and success', async () => {
+    vi.mocked(getActors).mockResolvedValueOnce([]);
     const user = userEvent.setup();
     /** Keeps the request pending until the test has checked the spinner and disabled submit button. */
     let finishRequest: () => void = () => {
@@ -902,6 +964,7 @@ describe('Road permit application', () => {
       expect.objectContaining({
         municipalityName: 'Odense',
         confirmed: true,
+        contactInformation: { name: '', phone: '', email: '' },
         roadMarking: expect.objectContaining({
           trafficChanges: ['NoStoppingAndParking'],
         }),

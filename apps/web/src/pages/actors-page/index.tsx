@@ -1,6 +1,3 @@
-import AddIcon from '@mui/icons-material/Add';
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutlineOutlined';
-import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {
   Alert,
@@ -8,7 +5,6 @@ import {
   Button,
   CircularProgress,
   Divider,
-  IconButton,
   Paper,
   Stack,
   Typography,
@@ -21,11 +17,22 @@ import { deleteActor as deleteActorRequest } from '../../api/actors.api.js';
 import { DeleteConfirmationDialog } from '../../components/ui/dialogs/delete-confirmation-dialog.js';
 import { reportError } from '../../lib/report-error.js';
 import type { SavedActor } from './actor.types.js';
+import type { ActorsPageContext } from './actors-page.context.js';
 import { useActorsPage } from './actors-page.context.js';
 
-export default function ActorsPage(): ReactElement {
+export default function ActorsPage({
+  context,
+  onCreate,
+  onEdit,
+}: {
+  context?: ActorsPageContext;
+  onCreate?: () => void;
+  onEdit?: (actor: SavedActor) => void;
+} = {}): ReactElement {
   const { t } = useTranslation();
-  const { actors, setActors, isLoading, loadFailed, retry } = useActorsPage();
+  const routeContext = useActorsPage();
+  const { actors, setActors, isLoading, loadFailed, retry } =
+    context ?? routeContext;
   const navigate = useNavigate();
   const [expandedActors, setExpandedActors] = useState<Set<string>>(new Set());
   const [actorToDelete, setActorToDelete] = useState<SavedActor | null>(null);
@@ -136,10 +143,10 @@ export default function ActorsPage(): ReactElement {
             {actors.map((actor) => (
               <Box key={actor.uuid}>
                 <Stack
-                  direction="row"
+                  direction={{ xs: 'column', sm: 'row' }}
                   spacing={2}
                   sx={{
-                    alignItems: 'center',
+                    alignItems: { xs: 'stretch', sm: 'center' },
                     minHeight: 64,
                     px: 2.5,
                     py: 1,
@@ -171,32 +178,37 @@ export default function ActorsPage(): ReactElement {
                   >
                     {actor.name}
                   </Button>
-                  <IconButton
-                    aria-label={`Rediger ${actor.name}`}
+                  <Button
+                    aria-label={`Opdater ${actor.name}`}
                     onClick={() =>
-                      navigate(`actors/${encodeURIComponent(actor.uuid)}/edit`)
+                      onEdit
+                        ? onEdit(actor)
+                        : navigate(
+                            `actors/${encodeURIComponent(actor.uuid)}/edit`,
+                          )
                     }
                     sx={{
-                      color: '#1562AD',
                       flexShrink: 0,
                       minWidth: 44,
                       minHeight: 44,
                     }}
+                    variant="outlined"
                   >
-                    <EditOutlinedIcon />
-                  </IconButton>
-                  <IconButton
+                    Opdater
+                  </Button>
+                  <Button
                     aria-label={`Slet ${actor.name}`}
+                    color="error"
                     onClick={() => openDeleteDialog(actor)}
                     sx={{
-                      color: '#424242',
                       flexShrink: 0,
                       minWidth: 44,
                       minHeight: 44,
                     }}
+                    variant="outlined"
                   >
-                    <DeleteOutlineIcon />
-                  </IconButton>
+                    Slet
+                  </Button>
                 </Stack>
                 <Box
                   hidden={!expandedActors.has(actor.uuid)}
@@ -243,6 +255,69 @@ export default function ActorsPage(): ReactElement {
                       ) : null,
                     )}
                   </Box>
+                  <Paper
+                    aria-labelledby={`actor-contacts-${actor.uuid}`}
+                    component="section"
+                    elevation={0}
+                    sx={{
+                      mt: 3,
+                      p: 2,
+                      border: '1px solid #D7E0E9',
+                      borderRadius: 2,
+                      boxShadow: '0 2px 8px rgba(33, 54, 76, 0.06)',
+                    }}
+                  >
+                    <Typography
+                      component="h3"
+                      id={`actor-contacts-${actor.uuid}`}
+                      sx={{ fontWeight: 600, mb: 2 }}
+                      variant="h6"
+                    >
+                      Kontaktpersoner
+                    </Typography>
+                    <Stack spacing={2}>
+                      {actor.contactPersons.length === 0 ? (
+                        <Typography color="text.secondary">
+                          Der er endnu ingen kontaktpersoner på aktøren.
+                        </Typography>
+                      ) : (
+                        actor.contactPersons.map((contact) => (
+                          <Box
+                            key={contact.uuid}
+                            sx={{
+                              bgcolor: '#F7F9FC',
+                              borderRadius: 1,
+                              p: 2,
+                              overflowWrap: 'anywhere',
+                            }}
+                          >
+                            <Typography component="h4" sx={{ fontWeight: 600 }}>
+                              {contact.name}
+                            </Typography>
+                            <Typography>
+                              Telefonnummer: {contact.phoneNumber}
+                            </Typography>
+                            <Typography>E-mail: {contact.email}</Typography>
+                          </Box>
+                        ))
+                      )}
+                      {/* PLACEHOLDER: Wire contact creation in the contact-person branch. */}
+                      <Button
+                        aria-disabled="true"
+                        aria-label={`Opret kontakt for ${actor.name}`}
+                        color="primary"
+                        sx={{
+                          alignSelf: { xs: 'stretch', sm: 'flex-end' },
+                          minHeight: 44,
+                        }}
+                        title="Kontaktoprettelse kommer senere."
+                        type="button"
+                        variant="contained"
+                      >
+                        Opret kontakt
+                      </Button>
+                    </Stack>
+                  </Paper>
                 </Box>
               </Box>
             ))}
@@ -262,9 +337,8 @@ export default function ActorsPage(): ReactElement {
         >
           <Button
             disabled={isLoading || loadFailed}
-            onClick={() => navigate('actors/create')}
+            onClick={onCreate ?? (() => navigate('actors/create'))}
             ref={createButton}
-            startIcon={<AddIcon />}
             sx={{ borderRadius: 1, px: 2.5 }}
             variant="contained"
           >

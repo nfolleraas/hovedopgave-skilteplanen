@@ -107,8 +107,11 @@ export class ActorsRepository {
   }
 
   /** @summary List all actors with their addresses and contact persons. */
-  getAll() {
+  getAll(caseNumber?: string) {
     return this.client.actor.findMany({
+      ...(caseNumber
+        ? { where: { applications: { some: { caseNumber } } } }
+        : {}),
       include: { address: true, contactPersons: true },
     });
   }

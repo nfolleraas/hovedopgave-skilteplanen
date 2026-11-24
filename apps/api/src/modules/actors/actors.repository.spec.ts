@@ -292,6 +292,17 @@ describe('ActorsRepository', () => {
     await expect(repository.get('missing-id')).resolves.toBeNull();
   });
 
+  it('limits the actor list to the selected application', async () => {
+    findMany.mockResolvedValue([]);
+
+    await repository.getAll('CASE-123');
+
+    expect(findMany).toHaveBeenCalledExactlyOnceWith({
+      where: { applications: { some: { caseNumber: 'CASE-123' } } },
+      include: { address: true, contactPersons: true },
+    });
+  });
+
   it('returns an empty list when there are no actors', async () => {
     findMany.mockResolvedValue([]);
 

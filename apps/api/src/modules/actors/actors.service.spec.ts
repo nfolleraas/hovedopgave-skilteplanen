@@ -3,7 +3,11 @@ import {
   ConflictException,
   NotFoundException,
 } from '@nestjs/common';
-import { ActorRole, ApplicationType } from '../../generated/prisma/enums.js';
+import {
+  ActorRole,
+  ApplicationType,
+  Availability,
+} from '../../generated/prisma/enums.js';
 import { AddressService } from '../address/address.service.js';
 import { ApplicationsRepository } from '../applications/applications.repository.js';
 import { ActorsRepository } from './actors.repository.js';
@@ -97,6 +101,15 @@ describe('ActorsService', () => {
       cvrNumber: '12345678',
       department: 'Byggeri',
       applications: { connect: { caseNumber: 'CASE-123' } },
+      contactPersons: {
+        create: {
+          name: 'PLACEHOLDER kontaktperson',
+          email: 'placeholder@example.com',
+          phoneNumber: '00000000',
+          availability: Availability.AllDay,
+          application: { connect: { caseNumber: 'CASE-123' } },
+        },
+      },
       address: {
         create: {
           street: 'Testvej',
@@ -295,10 +308,10 @@ describe('ActorsService', () => {
   });
 
   describe.each(Object.values(ApplicationType))(
-    '%s actors without contact persons',
+    '%s actors with temporary contact-person handling',
     (type) => {
       it.each(Object.values(ActorRole))(
-        'creates a %s actor before contact details are added separately',
+        'creates a %s actor with a placeholder only for non-private roles',
         async (role) => {
           findApplication.mockResolvedValue({ type });
           const saved = { uuid: 'actor-id', role, contactPersons: [] };
@@ -308,7 +321,21 @@ describe('ActorsService', () => {
             service.create({ ...dto, role, contactPerson: undefined }),
           ).resolves.toBe(saved);
           expect(create).toHaveBeenCalledTimes(1);
-          expect(create.mock.calls[0][0]).not.toHaveProperty('contactPersons');
+          if (role === ActorRole.Private) {
+            expect(create.mock.calls[0][0]).not.toHaveProperty(
+              'contactPersons',
+            );
+          } else {
+            expect(create.mock.calls[0][0].contactPersons).toEqual({
+              create: {
+                name: 'PLACEHOLDER kontaktperson',
+                email: 'placeholder@example.com',
+                phoneNumber: '00000000',
+                availability: Availability.AllDay,
+                application: { connect: { caseNumber: 'CASE-123' } },
+              },
+            });
+          }
         },
       );
     },

@@ -26,9 +26,9 @@ import { alpha } from '@mui/material/styles';
 import { type ReactNode, useEffect, useId, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { visuallyHidden } from '../../../../components/ui/visuallyHidden';
+import type { SavedActor } from '../../../actors-page/actor.types';
 import type {
   CompanyInformation,
-  ContactInformation,
   MaterialEntry,
   RoadMarkingDetails,
   SubmissionStatus,
@@ -42,7 +42,6 @@ import {
 } from '../permitOptions';
 import { getTrafficMeasureLabels } from '../trafficMeasures';
 import type {
-  validateContactInformation,
   validateMunicipalityAndTitle,
   validateUsageDetails,
 } from '../validation';
@@ -52,7 +51,7 @@ type SummaryAndSubmissionPageProps = {
   municipalityName: string | null;
   materials: MaterialEntry[];
   usageDetails: UsageDetails;
-  contactInformation: ContactInformation;
+  actors: SavedActor[];
   roadMarking: RoadMarkingDetails;
   applicant: CompanyInformation;
   documentToUpload: any;
@@ -61,7 +60,7 @@ type SummaryAndSubmissionPageProps = {
   validationErrors?: {
     municipality: ReturnType<typeof validateMunicipalityAndTitle>;
     usage: ReturnType<typeof validateUsageDetails>;
-    contact: ReturnType<typeof validateContactInformation>;
+    actors?: string;
     materials: string[];
     trafficChange?: string;
     trafficMeasure?: string;
@@ -215,7 +214,7 @@ export function SummaryAndSubmissionPage({
   municipalityName,
   materials,
   usageDetails,
-  contactInformation,
+  actors,
   roadMarking,
   applicant,
   confirmed,
@@ -262,7 +261,7 @@ export function SummaryAndSubmissionPage({
       Boolean(validationErrors.trafficMeasure) ||
       Object.values(validationErrors.municipality).some(Boolean) ||
       Object.values(validationErrors.usage).some(Boolean) ||
-      Object.values(validationErrors.contact).some(Boolean));
+      Boolean(validationErrors.actors));
   const dateFormat = new Intl.DateTimeFormat(i18n.resolvedLanguage, {
     dateStyle: 'medium',
     timeZone: 'UTC',
@@ -345,25 +344,26 @@ export function SummaryAndSubmissionPage({
       </SummarySection>
       <Divider />
       <SummarySection title={t('permit.steps.contact')}>
-        <SummaryFacts
-          entries={[
-            [
-              t('permit.contact.name'),
-              contactInformation.name,
-              validationErrors?.contact.name,
-            ],
-            [
-              t('permit.contact.phone'),
-              contactInformation.phone,
-              validationErrors?.contact.phone,
-            ],
-            [
-              t('permit.contact.email'),
-              contactInformation.email,
-              validationErrors?.contact.email,
-            ],
-          ]}
-        />
+        {actors.map((actor) => (
+          <SummaryFacts
+            entries={[
+              [t('actors.role'), t(`actors.roles.${actor.role}`)],
+              [t('permit.contact.name'), actor.name],
+              [t('permit.contact.phone'), actor.phoneNumber],
+              [t('permit.contact.email'), actor.email],
+              [
+                t('actors.address'),
+                `${actor.address.street} ${actor.address.houseNumber}, ${actor.address.postalCode} ${actor.address.city}`,
+              ],
+              [t('permit.summary.cvr'), actor.cvrNumber ?? '—'],
+              [t('permit.summary.department'), actor.department ?? '—'],
+            ]}
+            key={actor.uuid}
+          />
+        ))}
+        {validationErrors?.actors && (
+          <SummaryIssue message={validationErrors.actors} />
+        )}
       </SummarySection>
       <Divider />
       <SummarySection title={t('permit.usage.location')}>

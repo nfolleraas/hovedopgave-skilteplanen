@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import type { Actor, Prisma } from '../../generated/prisma/client.js';
-import { ActorRole } from '../../generated/prisma/enums.js';
+import { ActorRole, Availability } from '../../generated/prisma/enums.js';
 import { AddressService } from '../address/address.service.js';
 import { ApplicationsRepository } from '../applications/applications.repository.js';
 import { ActorsRepository } from './actors.repository.js';
@@ -57,15 +57,31 @@ export class ActorsService {
           ? { ...createActorDto, cvrNumber: null, department: null }
           : createActorDto;
 
-      return repository.create(
-        this.actorMapper.toCreateInput(actorData, address?.uuid),
-      );
+      const data = this.actorMapper.toCreateInput(actorData, address?.uuid);
+      // PLACEHOLDER: Remove when the contact-person branch adds real creation.
+      if (createActorDto.role !== ActorRole.Private) {
+        data.contactPersons = {
+          create: {
+            name: 'PLACEHOLDER kontaktperson',
+            email: 'placeholder@example.com',
+            phoneNumber: '00000000',
+            availability: Availability.AllDay,
+            application: {
+              connect: { caseNumber: createActorDto.applicationCaseNumber },
+            },
+          },
+        };
+      }
+
+      return repository.create(data);
     });
   }
 
   /** @summary List actors with their related details. */
-  findAll(): ReturnType<ActorsRepository['getAll']> {
-    return this.actorsRepository.getAll();
+  findAll(caseNumber?: string): ReturnType<ActorsRepository['getAll']> {
+    return caseNumber
+      ? this.actorsRepository.getAll(caseNumber)
+      : this.actorsRepository.getAll();
   }
 
   /** @summary Find an actor or throw a not-found exception. */

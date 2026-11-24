@@ -24,6 +24,7 @@ import {
   MasterDetailGrid,
 } from '../../../components/layout/masterDetail/masterDetail';
 import { visuallyHidden } from '../../../components/ui/visuallyHidden';
+import { useApplicationActors } from '../../actors-page/use-application-actors';
 import {
   type ContactInformation,
   emptyMaterialDraft,
@@ -32,8 +33,8 @@ import {
   type RoadMarkingDetails,
   type UsageDetails,
 } from './formTypes';
+import { ActorsSection } from './pages/ActorsSection';
 import { ChooseMunicipalityAndTitlePage } from './pages/ChooseMunicipalityAndTitlePage';
-import { ContactInformationPage } from './pages/ContactInformationPage';
 import { DocumentsAndDrawingsPage } from './pages/DocumentsAndDrawingsPage';
 import { MaterialsPage } from './pages/MaterialsPage';
 import { RoadMarkingPage } from './pages/RoadMarkingPage';
@@ -52,7 +53,6 @@ import {
 import { useUnsavedDraftNavigation } from './useUnsavedDraftNavigation';
 import {
   hasMaterialDraft,
-  validateContactInformation,
   validateMunicipalityAndTitle,
   validateUsageDetails,
 } from './validation';
@@ -197,13 +197,16 @@ function RoadPermitForm({
     city: '',
     ...draft.usageDetails,
   });
-  const [contactInformation, setContactInformation] =
-    useState<ContactInformation>({
-      name: '',
-      phone: '',
-      email: '',
-      ...draft.contactInformation,
-    });
+  const actorContext = useApplicationActors(caseNumber);
+  const firstActor = actorContext.actors[0];
+  // PLACEHOLDER: Keep the submission contract until the contact-person branch.
+  const contactInformation: ContactInformation = firstActor
+    ? {
+        name: firstActor.name,
+        phone: firstActor.phoneNumber,
+        email: firstActor.email,
+      }
+    : { name: '', phone: '', email: '' };
   const [roadMarking, setRoadMarking] = useState<RoadMarkingDetails>({
     trafficChanges: [],
     accessWays: '',
@@ -218,7 +221,12 @@ function RoadPermitForm({
     materials,
     materialDraft,
     usageDetails,
-    contactInformation,
+    contactInformation: {
+      name: '',
+      phone: '',
+      email: '',
+      ...draft.contactInformation,
+    },
     roadMarking,
   };
   const {
@@ -231,7 +239,7 @@ function RoadPermitForm({
     saveStatus,
     submissionFailure,
     submissionStatus,
-  } = useRoadPermitWrites(caseNumber, currentDraft);
+  } = useRoadPermitWrites(caseNumber, currentDraft, contactInformation);
   const { blocker, saveAndLeave } = useUnsavedDraftNavigation(
     hasUnsavedChanges,
     handleSave,
@@ -290,7 +298,11 @@ function RoadPermitForm({
       ? municipalityErrors.municipality
       : (unavailableMaterial?.message ?? trafficChangeError);
   const usageErrors = validateUsageDetails(usageDetails, t);
-  const contactErrors = validateContactInformation(contactInformation, t);
+  const actorError = actorContext.isLoading
+    ? t('permit.actors.loading')
+    : actorContext.loadFailed
+      ? t('permit.actors.loadError')
+      : undefined;
   const materialErrors = getValidationErrors({
     materials: materials.length
       ? undefined
@@ -359,16 +371,10 @@ function RoadPermitForm({
       ),
     },
     {
-      id: 'contact-information',
+      id: 'actors',
       label: t('permit.steps.contact'),
-      validationErrors: getValidationErrors(contactErrors),
-      content: (showErrors) => (
-        <ContactInformationPage
-          errors={showErrors ? contactErrors : undefined}
-          onChange={setContactInformation}
-          value={contactInformation}
-        />
-      ),
+      validationErrors: actorError ? [actorError] : [],
+      content: <ActorsSection caseNumber={caseNumber} context={actorContext} />,
     },
 
     {
@@ -399,13 +405,13 @@ function RoadPermitForm({
       validationErrors: getValidationErrors({ confirmed: confirmationError }),
       content: (showErrors) => (
         <SummaryAndSubmissionPage
+          actors={actorContext.actors}
           applicant={{
             ...exampleApplicant,
             department: t('permit.summary.exampleDepartment'),
           }}
           confirmationError={showErrors ? confirmationError : undefined}
           confirmed={confirmed}
-          contactInformation={contactInformation}
           documentToUpload={exampleDocument}
           materials={materials}
           municipalityName={municipalityName}
@@ -421,7 +427,7 @@ function RoadPermitForm({
               ? {
                   municipality: municipalityErrors,
                   usage: usageErrors,
-                  contact: contactErrors,
+                  actors: actorError,
                   materials: materialErrors,
                   trafficChange: trafficChangeError,
                   trafficMeasure: trafficMeasureError,

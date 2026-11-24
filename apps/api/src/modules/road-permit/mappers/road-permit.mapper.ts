@@ -2,7 +2,6 @@ import type { Prisma } from '../../../generated/prisma/client.js';
 import {
   ApplicantType,
   ApplicationType,
-  Availability,
   TrafficCalmingMeasureType,
 } from '../../../generated/prisma/enums.js';
 import type { CreateRoadPermitDto } from '../dto/create-road-permit.dto.js';
@@ -78,14 +77,8 @@ export function mapCreateRoadPermit(
           usageDetails.locationDescription?.trim() || null,
       },
     },
-    contactPersons: {
-      create: {
-        name: dto.contactInformation.name,
-        phoneNumber: dto.contactInformation.phone,
-        email: dto.contactInformation.email,
-        availability: Availability.AllDay, // TODO: Collect availability in the form.
-      },
-    },
+    // PLACEHOLDER: Contact persons are created with non-private actors until
+    // the contact-person branch handles submitted contact information.
     trafficCalmingMeasures: {
       create: dto.roadMarking.trafficPrecautions.map((measure) => ({
         type: measure.type as TrafficCalmingMeasureType,

@@ -4,16 +4,12 @@
   },
   "navigation": {
     "skipToMain": "Spring til hovedindhold",
-    "home": "Hjem",
-    "application": "Ansøgning",
-    "messages": "Beskeder",
     "openUserMenu": "Åbn brugermenu",
     "settings": "Indstillinger",
     "logOut": "Log af",
     "language": "Sprog",
     "danish": "Dansk",
     "english": "Engelsk",
-    "logoHome": "Ansøgningsplatformen – gå til forsiden",
     "main": "Hovednavigation"
   },
   "footer": {
@@ -48,7 +44,7 @@
       "municipalityHeading": "Kommune & titel",
       "usage": "Detaljer om anvendelse",
       "materials": "Materiale",
-      "contact": "Kontaktoplysninger",
+      "contact": "Aktør",
       "roadMarking": "Afmærkning",
       "documents": "Dokumenter og tegninger",
       "summary": "Opsummering & indsendelse"
@@ -191,8 +187,9 @@
       "notProvided": "Ikke angivet",
       "submissionSuccess": "Din ansøgning er indsendt.",
       "submissionPending": "Sender ansøgningen…",
-      "exampleApplicant": "Ansøger (eksempeloplysninger)",
+      "cvr": "CVR-nummer",
       "department": "Afdeling",
+      "exampleApplicant": "Ansøger (eksempeloplysninger)",
       "address1": "Adresse 1",
       "address2": "Adresse 2",
       "postalCode": "Postnummer",
@@ -201,11 +198,14 @@
       "directPhone": "Direkte telefon",
       "mobile": "Mobil",
       "companyPhone": "Firmatelefon",
-      "cvr": "CVR-nummer",
       "confirmTitle": "Bekræft oplysninger",
       "confirmLabel": "Jeg bekræfter, at oplysningerne er korrekte og afgivet på tro og love.",
       "seeMissingFields": "Se hvad der mangler",
       "validationError": "Ret de markerede felter."
+    },
+    "actors": {
+      "loading": "Henter aktører…",
+      "loadError": "Aktørerne kunne ikke hentes. Prøv igen i trin 4."
     },
     "title": "Opret vejtilladelse",
     "municipality": {
@@ -311,6 +311,39 @@
       "noProtection": "Ingen beskyttelsesgrad"
     }
   },
+  "actors": {
+    "errors": {
+      "addressLookup": "Adressen kunne ikke verificeres. Prøv igen.",
+      "name": "Navn må kun indeholde bogstaver.",
+      "delete": "Aktøren kunne ikke slettes. Prøv igen."
+    },
+    "addressSearching": "Søger efter adresser…",
+    "addressSearchHint": "Skriv mindst 3 tegn for at søge.",
+    "addressClear": "Ryd adresse",
+    "addressClose": "Luk adresseforslag",
+    "addressNoMatches": "Ingen adresser fundet. Prøv en mere præcis søgning.",
+    "addressOpen": "Vis adresseforslag",
+    "address": "Adresse",
+    "addressPlaceholder": "Vejnavn, nr., postnr. og by",
+    "roles": {
+      "Supplier": "Leverandør",
+      "Contractor": "Entreprenør",
+      "NetworkOperator": "Ledningsejer",
+      "ProjectCoordinator": "Projektkoordinator",
+      "Private": "Privat"
+    },
+    "role": "Rolle",
+    "deleteDescription": "Er du sikker på, at du vil slette {{name}}? Aktørens kontaktpersoner bliver også slettet."
+  },
+  "dialogs": {
+    "deleteConfirmation": {
+      "title": "Bekræft sletning",
+      "description": "Er du sikker på, at du vil slette {{name}}? Handlingen kan ikke fortrydes.",
+      "cancel": "Annuller",
+      "deleting": "Sletter…",
+      "confirm": "Slet"
+    }
+  },
   "application": {
     "drafts": {
       "heading": "Kladder",
@@ -323,50 +356,17 @@
     "title": "Vælg ansøgningstype",
     "creatingDraft": "Opretter kladde…",
     "unavailable": "Kommer senere",
-    "createDraftError": "Ansøgningskladden kunne ikke oprettes. Prøv igen.",
-    "actors": {
-      "errors": {
-        "addressLookup": "Adressen kunne ikke verificeres. Prøv igen.",
-        "name": "Navn må kun indeholde bogstaver.",
-        "delete": "Aktøren kunne ikke slettes. Prøv igen."
-      },
-      "addressSearching": "Søger efter adresser…",
-      "addressSearchHint": "Skriv mindst 3 tegn for at søge.",
-      "addressClear": "Ryd adresse",
-      "addressClose": "Luk adresseforslag",
-      "addressNoMatches": "Ingen adresser fundet. Prøv en mere præcis søgning.",
-      "addressOpen": "Vis adresseforslag",
-      "address": "Adresse",
-      "addressPlaceholder": "Vejnavn, nr., postnr. og by",
-      "roles": {
-        "Supplier": "Leverandør",
-        "Contractor": "Entreprenør",
-        "NetworkOperator": "Ledningsejer",
-        "ProjectCoordinator": "Projektkoordinator",
-        "Private": "Privat"
-      },
-      "role": "Rolle",
-      "deleteDescription": "Er du sikker på, at du vil slette {{name}}? Aktørens kontaktpersoner bliver også slettet."
-    },
-    "dialogs": {
-      "deleteConfirmation": {
-        "title": "Bekræft sletning",
-        "description": "Er du sikker på, at du vil slette {{name}}? Handlingen kan ikke fortrydes.",
-        "cancel": "Annuller",
-        "deleting": "Sletter…",
-        "confirm": "Slet"
-      }
-    },
-    "home": {
-      "createRoadPermit": "Opret tilladelse til råden over vej",
-      "createRoadPermitEvent": "Opret tilladelse til råden over vej til begivenhed",
-      "createDiggingPermit": "Opret gravetilladelse",
-      "title": "Ansøgningsplatformen",
-      "intro": "Velkommen til Ansøgningsplatformen"
-    },
-    "login": {
-      "title": "Log ind",
-      "formPlaceholder": "Her kommer loginformularen."
-    }
+    "createDraftError": "Ansøgningskladden kunne ikke oprettes. Prøv igen."
+  },
+  "home": {
+    "createRoadPermit": "Opret tilladelse til råden over vej",
+    "createRoadPermitEvent": "Opret tilladelse til råden over vej til begivenhed",
+    "createDiggingPermit": "Opret gravetilladelse",
+    "title": "Ansøgningsplatformen",
+    "intro": "Velkommen til Ansøgningsplatformen"
+  },
+  "login": {
+    "title": "",
+    "formPlaceholder": ""
   }
 }

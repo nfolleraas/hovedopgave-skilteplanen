@@ -4,16 +4,12 @@
   },
   "navigation": {
     "skipToMain": "Skip to main content",
-    "home": "Home",
-    "application": "Application",
-    "messages": "Messages",
     "openUserMenu": "Open user menu",
     "settings": "Settings",
     "logOut": "Log out",
     "language": "Language",
     "danish": "Danish",
     "english": "English",
-    "logoHome": "Applicantplatform – go to the home page",
     "main": "Main navigation"
   },
   "footer": {
@@ -48,7 +44,7 @@
       "municipalityHeading": "Municipality & title",
       "usage": "Usage details",
       "materials": "Materials",
-      "contact": "Contact details",
+      "contact": "Actor",
       "roadMarking": "Road markings",
       "documents": "Documents and drawings",
       "summary": "Review & submission"
@@ -191,8 +187,9 @@
       "notProvided": "Not provided",
       "submissionSuccess": "Your application has been submitted.",
       "submissionPending": "Sending your application…",
-      "exampleApplicant": "Applicant (example details)",
+      "cvr": "Danish company registration number (CVR)",
       "department": "Department",
+      "exampleApplicant": "Applicant (example details)",
       "address1": "Address line 1",
       "address2": "Address line 2",
       "postalCode": "Postal code",
@@ -201,11 +198,14 @@
       "directPhone": "Direct phone",
       "mobile": "Mobile phone",
       "companyPhone": "Company phone",
-      "cvr": "Danish company registration number (CVR)",
       "confirmTitle": "Confirm the information",
       "confirmLabel": "I declare that the information provided is correct.",
       "seeMissingFields": "See what’s missing",
       "validationError": "Fix the highlighted fields."
+    },
+    "actors": {
+      "loading": "Loading actors…",
+      "loadError": "Actors could not be loaded. Retry in step 4."
     },
     "title": "Apply for a road permit",
     "municipality": {
@@ -311,6 +311,39 @@
       "noProtection": "No protection level"
     }
   },
+  "actors": {
+    "errors": {
+      "addressLookup": "The address could not be verified. Try again.",
+      "name": "Name may only contain letters.",
+      "delete": "The actor could not be deleted. Try again."
+    },
+    "addressSearching": "Searching for addresses…",
+    "addressSearchHint": "Enter at least 3 characters to search.",
+    "addressClear": "Clear address",
+    "addressClose": "Close address suggestions",
+    "addressNoMatches": "No addresses found. Try a more specific search.",
+    "addressOpen": "Show address suggestions",
+    "address": "Address",
+    "addressPlaceholder": "Street, number, postal code and city",
+    "roles": {
+      "Supplier": "Supplier",
+      "Contractor": "Contractor",
+      "NetworkOperator": "Network operator",
+      "ProjectCoordinator": "Project coordinator",
+      "Private": "Private"
+    },
+    "role": "Role",
+    "deleteDescription": "Are you sure you want to delete {{name}}? The actor's contact persons will also be deleted."
+  },
+  "dialogs": {
+    "deleteConfirmation": {
+      "title": "Confirm deletion",
+      "description": "Are you sure you want to delete {{name}}?",
+      "cancel": "Cancel",
+      "deleting": "Deleting…",
+      "confirm": "Delete"
+    }
+  },
   "application": {
     "drafts": {
       "heading": "Drafts",
@@ -323,50 +356,17 @@
     "title": "Choose an application type",
     "creatingDraft": "Creating draft…",
     "unavailable": "Coming later",
-    "createDraftError": "The application draft could not be created. Try again.",
-    "actors": {
-      "errors": {
-        "addressLookup": "The address could not be verified. Try again.",
-        "name": "Name may only contain letters.",
-        "delete": "The actor could not be deleted. Try again."
-      },
-      "addressSearching": "Searching for addresses…",
-      "addressSearchHint": "Enter at least 3 characters to search.",
-      "addressClear": "Clear address",
-      "addressClose": "Close address suggestions",
-      "addressNoMatches": "No addresses found. Try a more specific search.",
-      "addressOpen": "Show address suggestions",
-      "address": "Address",
-      "addressPlaceholder": "Street, number, postal code and city",
-      "roles": {
-        "Supplier": "Supplier",
-        "Contractor": "Contractor",
-        "NetworkOperator": "Network operator",
-        "ProjectCoordinator": "Project coordinator",
-        "Private": "Private"
-      },
-      "role": "Role",
-      "deleteDescription": "Are you sure you want to delete {{name}}? The actor's contact persons will also be deleted."
-    },
-    "dialogs": {
-      "deleteConfirmation": {
-        "title": "Confirm deletion",
-        "description": "Are you sure you want to delete {{name}}?",
-        "cancel": "Cancel",
-        "deleting": "Deleting…",
-        "confirm": "Delete"
-      }
-    },
-    "home": {
-      "createRoadPermit": "Apply for a road occupancy permit",
-      "createRoadPermitEvent": "Apply for a road occupancy permit for event",
-      "createDiggingPermit": "Apply for a digging permit",
-      "title": "Applicantplatform",
-      "intro": "Welcome to Applicantplatform."
-    },
-    "login": {
-      "title": "Log in",
-      "formPlaceholder": "The login form will appear here."
-    }
+    "createDraftError": "The application draft could not be created. Try again."
+  },
+  "home": {
+    "createRoadPermit": "Apply for a road occupancy permit",
+    "createRoadPermitEvent": "Apply for a road occupancy permit for event",
+    "createDiggingPermit": "Apply for a digging permit",
+    "title": "Applicantplatform",
+    "intro": "Welcome to Applicantplatform."
+  },
+  "login": {
+    "title": "",
+    "formPlaceholder": ""
   }
 }

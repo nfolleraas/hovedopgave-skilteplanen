@@ -51,6 +51,12 @@ describe('ActorsController', () => {
     await expect(controller.getAll()).resolves.toEqual([]);
   });
 
+  it('passes the application filter to the service', async () => {
+    findAll.mockResolvedValue([]);
+    await controller.getAll('CASE-123');
+    expect(findAll).toHaveBeenCalledExactlyOnceWith('CASE-123');
+  });
+
   it('passes the uuid to the service and returns the actor', async () => {
     const actor = { uuid: 'actor-id' };
     findOne.mockResolvedValue(actor);

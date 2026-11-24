@@ -95,7 +95,7 @@ test('edit saves changed details and returns to the actor list', async ({
     await route.fulfill({ json: saved });
   });
   await page.goto('/ansoegning');
-  await page.getByRole('button', { name: `Rediger ${actor.name}` }).click();
+  await page.getByRole('button', { name: `Opdater ${actor.name}` }).click();
   await expect(page.getByRole('combobox', { name: 'Rolle' })).toBeDisabled();
   await page
     .getByRole('textbox', { name: 'Navn', exact: false })
@@ -117,7 +117,7 @@ test('updating a deleted actor asks the user to refresh and keeps their input', 
     route.fulfill({ status: 404, json: { message: 'Actor not found' } }),
   );
   await page.goto('/ansoegning');
-  await page.getByRole('button', { name: `Rediger ${actor.name}` }).click();
+  await page.getByRole('button', { name: `Opdater ${actor.name}` }).click();
   const name = page.getByRole('textbox', { name: 'Navn', exact: false });
   await name.fill('Anna Hansen');
   await page
@@ -161,7 +161,7 @@ test('business actor saves only after CVR API confirmation', async ({
     await route.fulfill({ json: businessActor });
   });
   await page.goto('/ansoegning');
-  await page.getByRole('button', { name: `Rediger ${actor.name}` }).click();
+  await page.getByRole('button', { name: `Opdater ${actor.name}` }).click();
   const save = page.getByRole('button', { name: 'Opdater aktør', exact: true });
   for (const status of [404, 502]) {
     lookupStatus = status;
@@ -203,7 +203,7 @@ for (const field of ['email', 'cvrNumber'] as const) {
       route.fulfill({ status: 409, json: { field, message } }),
     );
     await page.goto('/ansoegning');
-    await page.getByRole('button', { name: `Rediger ${actor.name}` }).click();
+    await page.getByRole('button', { name: `Opdater ${actor.name}` }).click();
     await page
       .getByRole('button', { name: 'Opdater aktør', exact: true })
       .click();

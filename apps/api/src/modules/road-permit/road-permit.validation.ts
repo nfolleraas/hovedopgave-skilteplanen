@@ -264,13 +264,15 @@ export function parseRoadPermitSubmission(value: unknown) {
     'must be on or after the start date',
   );
   validateLocation(usage);
-  validateContact(
-    contact.name,
-    contact.phone,
-    contact.email,
-    'contactInformation',
-    'phone',
-  );
+  if (contact.name.trim() || contact.phone.trim() || contact.email.trim()) {
+    validateContact(
+      contact.name,
+      contact.phone,
+      contact.email,
+      'contactInformation',
+      'phone',
+    );
+  }
   validateContact(
     applicant.name,
     applicant.companyPhone,

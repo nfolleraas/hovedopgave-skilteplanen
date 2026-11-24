@@ -56,8 +56,14 @@ function parseActor(data: unknown): SavedActor {
 }
 
 /** @summary Fetch and validate all actors, allowing the request to be cancelled. */
-export async function getActors(signal?: AbortSignal): Promise<SavedActor[]> {
-  const data = await apiClient.get<unknown>('/actors', signal);
+export async function getActors(
+  signal?: AbortSignal,
+  caseNumber?: string,
+): Promise<SavedActor[]> {
+  const path = caseNumber
+    ? `/actors?${new URLSearchParams({ caseNumber })}`
+    : '/actors';
+  const data = await apiClient.get<unknown>(path, signal);
   if (!Array.isArray(data)) {
     throw new Error('Serveren returnerede en ugyldig aktørliste.');
   }

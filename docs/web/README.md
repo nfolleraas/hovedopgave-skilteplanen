@@ -31,8 +31,15 @@ API errors must still be reported if the seed is missing.
 
 Contact persons are implemented in a separate branch. Actor forms must allow
 saving without contact details or availability, and the active submission
-mapper omits contact-person data. Keep the placeholder shapes until that
-feature is integrated.
+mapper omits contact-person data. The API temporarily creates a placeholder
+contact person for each non-private actor. Keep the placeholder shapes until
+that feature is integrated.
+
+Road-permit step 4, **Aktør**, embeds the actor list and create/edit dialogs.
+Actors are saved immediately against the draft's actual case number and loaded
+with the API's `caseNumber` filter. Actors are optional, and the summary displays
+any saved actors. The first actor supplies the legacy contact fields in the
+submission payload until that contract changes; an empty list sends blank fields.
 
 ## Common commands
 

@@ -7,6 +7,7 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import type { Actor } from '../../generated/prisma/client.js';
 import { ActorsService } from './actors.service.js';
@@ -27,8 +28,12 @@ export class ActorsController {
 
   /** @summary Return all actors with their related details. */
   @Get()
-  getAll(): ReturnType<ActorsService['findAll']> {
-    return this.actorsService.findAll();
+  getAll(
+    @Query('caseNumber') caseNumber?: string,
+  ): ReturnType<ActorsService['findAll']> {
+    return caseNumber
+      ? this.actorsService.findAll(caseNumber)
+      : this.actorsService.findAll();
   }
 
   /** @summary Return the actor identified by its UUID. */
