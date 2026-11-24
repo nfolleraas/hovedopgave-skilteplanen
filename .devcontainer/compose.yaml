@@ -74,8 +74,6 @@ services:
       - KC_DB_PASSWORD=${KEYCLOAK_POSTGRES_PASSWORD}
       - KC_HOSTNAME=http://localhost:8080
       - KEYCLOAK_CLIENT_SECRET=${KEYCLOAK_CLIENT_SECRET}
-      - KEYCLOAK_ANNA_PASSWORD=${KEYCLOAK_ANNA_PASSWORD}
-      - KEYCLOAK_LARS_PASSWORD=${KEYCLOAK_LARS_PASSWORD}
     volumes:
       - ./keycloak:/opt/keycloak/data/import:ro
     ports:
