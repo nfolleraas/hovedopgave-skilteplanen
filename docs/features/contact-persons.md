@@ -165,7 +165,7 @@ så den kan flettes med `Feature-CreateArea`. Trinnets komponenttest bruger den.
 | Slags | Hvor | Kør |
 | --- | --- | --- |
 | API unittest (regler og service) | `apps/api/src/modules/contact-persons/**/*.spec.ts` | `bun run --filter api test` |
-| API e2e (mod databasen i `DATABASE_URL`) | `apps/api/test/contact-persons.e2e-spec.ts` | `bun run --filter api test:e2e` |
+| API e2e (mod databasen i `TEST_DATABASE_URL`, springes over uden) | `apps/api/test/contact-persons.database.e2e-spec.ts` | `TEST_DATABASE_URL="$DATABASE_URL" bun run --filter api test:e2e .database.e2e-spec.ts` |
 | Web unittest (validering, reducer) | `apps/web/src/features/contact-persons/*.test.ts` | `bun run --filter web test` |
 | Web komponenttest (trinnet i wizarden) | `apps/web/src/pages/application-page/steps/contacts-step/contacts-step.test.tsx` | `bun run --filter web test` |
 

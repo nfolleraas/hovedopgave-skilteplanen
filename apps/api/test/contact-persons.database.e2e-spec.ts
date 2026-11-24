@@ -14,12 +14,15 @@ import {
 } from '../src/generated/prisma/enums.js';
 import { PrismaService } from '../src/modules/prisma/prisma.service.js';
 
+// This suite writes to PostgreSQL. Use a database with migrations applied.
+const databaseUrl = process.env.TEST_DATABASE_URL;
+
 /**
- * Runs the contact persons endpoints against the database in DATABASE_URL.
- * Every test application gets a unique case number, and afterAll removes the
- * records the tests created.
+ * Runs the contact persons endpoints against the database in
+ * TEST_DATABASE_URL, and is skipped without it. Every test application gets a
+ * unique case number, and afterAll removes the records the tests created.
  */
-describe('/api/contact-persons (e2e)', () => {
+describe.skipIf(!databaseUrl)('/api/contact-persons (e2e)', () => {
   let app: INestApplication<App>;
   let prisma: PrismaService;
   const run = randomUUID().slice(0, 8);
@@ -106,6 +109,7 @@ describe('/api/contact-persons (e2e)', () => {
   }
 
   beforeAll(async () => {
+    vi.stubEnv('DATABASE_URL', databaseUrl);
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
@@ -151,6 +155,7 @@ describe('/api/contact-persons (e2e)', () => {
       });
     }
     await app?.close();
+    vi.unstubAllEnvs();
   });
 
   it('creates, lists, updates and deletes a contact person (UC-031, UC-033, UC-032)', async () => {
