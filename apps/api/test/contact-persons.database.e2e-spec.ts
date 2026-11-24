@@ -351,7 +351,7 @@ describe.skipIf(!databaseUrl)('/api/contact-persons (e2e)', () => {
     expect(response.body.message).toEqual(['phoneNumber must be 8 digits']);
   });
 
-  it('rejects unknown fields through the global ValidationPipe', async () => {
+  it('rejects unknown fields through the controller ValidationPipe', async () => {
     const { caseNumber, actor } = await createApplication('unknown');
 
     await post({

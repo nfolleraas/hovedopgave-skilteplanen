@@ -1,4 +1,4 @@
-import { type INestApplication, ValidationPipe } from '@nestjs/common';
+import type { INestApplication } from '@nestjs/common';
 
 /**
  * Settings shared by the running API and the e2e tests, so the tests
@@ -6,12 +6,6 @@ import { type INestApplication, ValidationPipe } from '@nestjs/common';
  */
 export function configureApp(app: INestApplication): void {
   app.setGlobalPrefix('api');
-  // biome-ignore lint/correctness/useHookAtTopLevel: NestJS method, not a React hook.
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-    }),
-  );
+  // Request validation is set per controller with dtoValidationPipe(), since
+  // a global ValidationPipe rejects the road-permit module's plain DTOs.
 }

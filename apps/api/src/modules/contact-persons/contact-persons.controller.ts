@@ -9,13 +9,16 @@ import {
   Patch,
   Post,
   Query,
+  UsePipes,
 } from '@nestjs/common';
+import { dtoValidationPipe } from '../../common/dto-validation.pipe.js';
 import { ContactPersonsService } from './contact-persons.service.js';
 import { CreateContactPersonDto } from './dto/create-contact-person.dto.js';
 import { FindContactPersonsQueryDto } from './dto/find-contact-persons-query.dto.js';
 import { UpdateContactPersonDto } from './dto/update-contact-person.dto.js';
 
 @Controller('contact-persons')
+@UsePipes(dtoValidationPipe())
 export class ContactPersonsController {
   constructor(private readonly contactPersonsService: ContactPersonsService) {}
 

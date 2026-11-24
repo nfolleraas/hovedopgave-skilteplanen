@@ -3,6 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { App } from 'supertest/types.js';
 import { AppModule } from './../src/app.module.js';
+import { configureApp } from './../src/app.setup.js';
 import { TrafficChange } from './../src/generated/prisma/enums.js';
 import { PrismaService } from './../src/prisma.service.js';
 
@@ -29,7 +30,8 @@ describe('AppModule (e2e)', () => {
       .compile();
 
     app = moduleFixture.createNestApplication();
-    app.setGlobalPrefix('api');
+    // The same setup as main.ts, so global pipes are tested too.
+    configureApp(app);
     await app.init();
   });
 
