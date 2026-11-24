@@ -4,7 +4,6 @@ import {
   ApplicationType,
   Availability,
   TrafficCalmingMeasureType,
-  TrafficChange,
 } from '../../../generated/prisma/enums.js';
 import type { CreateRoadPermitDto } from '../dto/create-road-permit.dto.js';
 import {
@@ -37,15 +36,7 @@ export function mapCreateRoadPermit(
   const applicantAddress = dto.applicant.address1?.trim();
   const addressParts = applicantAddress?.match(/^(.*?)\s+(\d+\S*)$/);
   const selectedTrafficChanges = dto.roadMarking.trafficChanges.flatMap(
-    (selection) => {
-      const change = trafficChanges[selection];
-      return change === TrafficChange.SpeedLimitWorkZoneAndTrafficSafety
-        ? [
-            TrafficChange.SpeedLimitWorkZone,
-            TrafficChange.SpeedLimitTrafficSafety,
-          ]
-        : [change];
-    },
+    (selection) => trafficChanges[selection],
   );
 
   return {

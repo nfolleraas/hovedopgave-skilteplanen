@@ -157,9 +157,15 @@ export function parseRoadPermitDraft(value: unknown): UpdateRoadPermitDto {
     ...draft,
     roadMarking: {
       ...draft.roadMarking,
-      trafficChanges: draft.roadMarking.trafficChanges.map((change) =>
-        Object.hasOwn(trafficChanges, change) ? trafficChanges[change] : change,
-      ),
+      trafficChanges: [
+        ...new Set(
+          draft.roadMarking.trafficChanges.flatMap((change) =>
+            Object.hasOwn(trafficChanges, change)
+              ? trafficChanges[change]
+              : change,
+          ),
+        ),
+      ],
     },
   };
 }

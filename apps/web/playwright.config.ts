@@ -12,7 +12,8 @@ export default defineConfig({
   forbidOnly: Boolean(process.env.CI),
   fullyParallel: true,
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
-  testDir: './tests/roadpermit/e2e',
+  testDir: './tests',
+  testMatch: '**/*.spec.{ts,tsx}',
   use: {
     actionTimeout: 8_000,
     baseURL,

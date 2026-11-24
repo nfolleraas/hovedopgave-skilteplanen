@@ -19,7 +19,9 @@ export const roadPermitTrafficChanges = Object.values(TrafficChange).filter(
 );
 
 // Accept values sent by older clients and stored in existing drafts.
-export const trafficChanges: Readonly<Record<string, TrafficChange>> = {
+export const trafficChanges: Readonly<
+  Record<string, TrafficChange | TrafficChange[]>
+> = {
   ...Object.fromEntries(
     roadPermitTrafficChanges.map((change) => [change, change]),
   ),
@@ -27,8 +29,14 @@ export const trafficChanges: Readonly<Record<string, TrafficChange>> = {
     TrafficChange.SpeedLimitWorkZone,
   'Hastighedsbegrænsning - hensyn til trafikanter':
     TrafficChange.SpeedLimitTrafficSafety,
-  'Hastighedsbegrænsning - hensyn til trafikanter og vejarbejdere':
-    TrafficChange.SpeedLimitWorkZoneAndTrafficSafety,
+  SpeedLimitWorkZoneAndTrafficSafety: [
+    TrafficChange.SpeedLimitWorkZone,
+    TrafficChange.SpeedLimitTrafficSafety,
+  ],
+  'Hastighedsbegrænsning - hensyn til trafikanter og vejarbejdere': [
+    TrafficChange.SpeedLimitWorkZone,
+    TrafficChange.SpeedLimitTrafficSafety,
+  ],
   'Ubetinget vigepligt i vejkryds':
     TrafficChange.UnconditionalObligationInIntersection,
   'Standsning og Parkering': TrafficChange.NoStoppingAndParking,

@@ -38,6 +38,9 @@ jobs:
         with:
           bun-version: '1.4.4'
       - run: bun install --frozen-lockfile
+      - name: Build frontend
+        working-directory: apps/web
+        run: bun run build
       - name: Run frontend unit tests
         working-directory: apps/web
         run: bun run test:unit
@@ -47,15 +50,13 @@ jobs:
           bun run db:generate
           bun run db:deploy
           bun run db:seed
-      - name: Test permit transactions against PostgreSQL
-        working-directory: apps/api
-        run: ROAD_PERMIT_TEST_DATABASE_URL="$DATABASE_URL" bun run test:e2e test/road-permit.database.e2e-spec.ts
       - name: Install Chromium
         working-directory: apps/web
         run: bun run playwright install --with-deps chromium
-      - name: Run road-permit end-to-end tests
-        working-directory: apps/web
-        run: bun run test:e2e
+      - name: Run frontend and database end-to-end tests
+        run: |
+          TEST_DATABASE_URL="$DATABASE_URL" bun run --filter api test:e2e .database.e2e-spec.ts
+          bun run --filter web test:e2e
       - name: Run Biome checks
         run: bun run check
 
@@ -74,12 +75,12 @@ jobs:
         with:
           bun-version: '1.4.4'
       - run: bun install --frozen-lockfile
-      - name: Generate Prisma client
+      - name: Build API
         working-directory: apps/api
         env:
           # Prisma reads this during generation. The unit tests mock the database.
           DATABASE_URL: postgresql://ci:ci@127.0.0.1:5432/ci
-        run: bun run db:generate
+        run: bun run build
       - name: Run API unit tests
         working-directory: apps/api
         run: bun run test

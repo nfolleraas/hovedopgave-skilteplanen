@@ -98,10 +98,10 @@ describe('AppModule (e2e)', () => {
       .get('/api/road-permit/traffic-changes')
       .expect(200)
       .expect(({ body }) => {
-        expect(body).toHaveLength(6);
-        expect(body).toContain(
-          TrafficChange.SpeedLimitWorkZoneAndTrafficSafety,
-        );
+        expect(body).toHaveLength(5);
+        expect(body).toContain(TrafficChange.SpeedLimitWorkZone);
+        expect(body).toContain(TrafficChange.SpeedLimitTrafficSafety);
+        expect(body).not.toContain('SpeedLimitWorkZoneAndTrafficSafety');
         expect(body).not.toContain(TrafficChange.TrafficLight);
       });
   });

@@ -10,7 +10,8 @@ import { PrismaService } from '../src/prisma.service.js';
 import { roadPermitSubmission } from './fixtures/road-permit.js';
 
 // This suite writes to PostgreSQL. Use a disposable database with migrations applied.
-const databaseUrl = process.env.ROAD_PERMIT_TEST_DATABASE_URL;
+const databaseUrl =
+  process.env.TEST_DATABASE_URL ?? process.env.ROAD_PERMIT_TEST_DATABASE_URL;
 
 describe.skipIf(!databaseUrl)('Road permit transactions (PostgreSQL)', () => {
   let app: INestApplication<App>;
@@ -81,8 +82,8 @@ describe.skipIf(!databaseUrl)('Road permit transactions (PostgreSQL)', () => {
         ...roadPermitSubmission.roadMarking,
         accessWays,
         trafficChanges: [
-          TrafficChange.SpeedLimitWorkZoneAndTrafficSafety,
           TrafficChange.SpeedLimitWorkZone,
+          TrafficChange.SpeedLimitTrafficSafety,
           TrafficChange.NoStoppingAndParking,
         ],
       },

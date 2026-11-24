@@ -103,6 +103,14 @@ describe('RoadPermitService', () => {
   it.each([
     [['Påbud om ensrettet færdsel'], [TrafficChange.OnewayTraffic]],
     [
+      [TrafficChange.SpeedLimitWorkZone, TrafficChange.SpeedLimitTrafficSafety],
+      [TrafficChange.SpeedLimitWorkZone, TrafficChange.SpeedLimitTrafficSafety],
+    ],
+    [
+      ['SpeedLimitWorkZoneAndTrafficSafety', TrafficChange.SpeedLimitWorkZone],
+      [TrafficChange.SpeedLimitWorkZone, TrafficChange.SpeedLimitTrafficSafety],
+    ],
+    [
       [
         'Hastighedsbegrænsning - hensyn til trafikanter og vejarbejdere',
         'Standsning og Parkering',
@@ -222,6 +230,29 @@ describe('RoadPermitService', () => {
     expect(service.findAll()).toBe(permits);
     expect(repository.findAll).toHaveBeenCalledExactlyOnceWith();
   });
+
+  it.each([
+    'SpeedLimitWorkZoneAndTrafficSafety',
+    'Hastighedsbegrænsning - hensyn til trafikanter og vejarbejdere',
+  ])(
+    'expands the combined traffic change %s when saving a draft',
+    (combined) => {
+      service.update('permit-42', {
+        roadMarking: {
+          trafficChanges: [combined, TrafficChange.SpeedLimitWorkZone],
+        },
+      });
+
+      expect(repository.update).toHaveBeenCalledWith('permit-42', {
+        roadMarking: {
+          trafficChanges: [
+            TrafficChange.SpeedLimitWorkZone,
+            TrafficChange.SpeedLimitTrafficSafety,
+          ],
+        },
+      });
+    },
+  );
 
   it('loads an older draft without a saved snapshot as empty', async () => {
     repository.findOne.mockResolvedValue({

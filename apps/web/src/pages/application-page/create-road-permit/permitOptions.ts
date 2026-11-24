@@ -38,7 +38,6 @@ export function getTrafficChangeLabels(t: TFunction) {
   return {
     SpeedLimitWorkZone: t('permit.roadMarking.speedWorkers'),
     SpeedLimitTrafficSafety: t('permit.roadMarking.speedRoadUsers'),
-    SpeedLimitWorkZoneAndTrafficSafety: t('permit.roadMarking.speedBoth'),
     UnconditionalObligationInIntersection: t('permit.roadMarking.giveWay'),
     NoStoppingAndParking: t('permit.roadMarking.parking'),
     OnewayTraffic: t('permit.roadMarking.oneWay'),
