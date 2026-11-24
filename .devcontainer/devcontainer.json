@@ -11,12 +11,13 @@
     }
   },
 
-  "forwardPorts": [5173, 3000, 5432, 8081],
+  "forwardPorts": [5173, 3000, 5432, 8081, 9323],
   "portsAttributes": {
     "5173": { "label": "web (vite)" },
     "3000": { "label": "api (nest)" },
     "5432": { "label": "db (postgres)" },
-    "8081": { "label": "webui (postgres)" }
+    "8081": { "label": "webui (postgres)" },
+    "9323": { "label": "Playwright UI" }
   },
 
   "mounts": [
