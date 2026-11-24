@@ -15,13 +15,7 @@ import {
   formatPhoneNumber,
 } from '../../../../features/contact-persons/contact-person-labels.js';
 import type { ContactPersonActor } from '../../../../types/contact-person.types.js';
-
-/** Element ids, so the step can move focus into the list. */
-export const contactListIds = {
-  add: 'contacts-add-new',
-  edit: (key: string) => `contact-${key}-edit`,
-  delete: (key: string) => `contact-${key}-delete`,
-};
+import { contactListIds } from './contact-step-ids.js';
 
 interface ContactListProps {
   actors: ContactPersonActor[];

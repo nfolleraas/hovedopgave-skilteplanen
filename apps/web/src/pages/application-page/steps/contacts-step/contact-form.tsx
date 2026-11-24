@@ -16,16 +16,12 @@ import type {
   ContactPersonFormValues,
 } from '../../../../types/contact-person.types.js';
 import { Availability } from '../../../../types/prisma-enums.js';
-import { labelAboveSlots } from '../../components/form-fields.js';
+import { labelAboveSlots } from '../../components/form-field-helpers.js';
+import { contactFieldId } from './contact-step-ids.js';
 
 // Same limits as the API's create-contact-person.dto.ts.
 const maxNameLength = 200;
 const maxEmailLength = 254;
-
-/** Element id of a form field, so the step can move focus to it. */
-export function contactFieldId(field: ContactPersonFormField): string {
-  return `contact-form-${field}`;
-}
 
 /** Cleans up typed or pasted input before it is stored in the draft. */
 const normalizers: Partial<
@@ -107,39 +103,26 @@ export function ContactForm({
           maxLength: maxNameLength,
         })}
       />
-      {/* Availability and phone number share a row, as in the wireframe. */}
+      {/* Availability and phone number share a row, as in the wireframe.
+          Road use applications always use Day (UC-031 A1, UC-033 A1), so
+          they have no availability field and the phone number gets the row. */}
       <Box
         sx={{
           display: 'grid',
           gap: 2,
-          gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, minmax(0, 1fr))' },
+          gridTemplateColumns: {
+            xs: '1fr',
+            sm: fieldSet.availability ? 'repeat(2, minmax(0, 1fr))' : '1fr',
+          },
         }}
       >
-        {fieldSet.availability ? (
+        {fieldSet.availability && (
           <TextField {...fieldProps('availability')} select>
             {Object.values(Availability).map((value) => (
               <MenuItem key={value} value={value}>
                 {t(availabilityLabelKeys[value])}
               </MenuItem>
             ))}
-          </TextField>
-        ) : (
-          // Road use applications always use Day (UC-031 A1, UC-033 A1), so
-          // the field is shown disabled with the reason below it.
-          <TextField
-            disabled
-            fullWidth
-            helperText={t('contacts.availabilityFixed')}
-            id={contactFieldId('availability')}
-            label={t(contactPersonFieldLabelKeys.availability)}
-            required
-            select
-            slotProps={labelAboveSlots}
-            value={Availability.Day}
-          >
-            <MenuItem value={Availability.Day}>
-              {t(availabilityLabelKeys.Day)}
-            </MenuItem>
           </TextField>
         )}
         {/* No maxLength: a pasted "+45 22 33 44 55" must reach the

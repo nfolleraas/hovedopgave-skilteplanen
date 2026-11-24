@@ -12,22 +12,7 @@ import type {
   DraftError,
   DraftErrors,
 } from '../../../features/application-draft/draft-validation.js';
-
-/** Shows the label above the field, as in the wireframe, instead of inside. */
-export const labelAboveSlots = {
-  inputLabel: {
-    shrink: true,
-    sx: {
-      color: 'text.primary',
-      fontSize: 14,
-      fontWeight: 600,
-      mb: 0.75,
-      position: 'static',
-      transform: 'none',
-    },
-  },
-  input: { notched: false },
-};
+import { fieldId, labelAboveSlots } from './form-field-helpers.js';
 
 export interface Option {
   value: string;
@@ -44,11 +29,6 @@ export function useEnumOptions(
     value,
     label: t(`wizard.enums.${enumName}.${value}`),
   }));
-}
-
-/** Turns a field path such as `actors.<id>.email` into a valid element id. */
-export function fieldId(path: string): string {
-  return `field-${path.replace(/[^a-zA-Z0-9-]/g, '-')}`;
 }
 
 interface FieldProps {

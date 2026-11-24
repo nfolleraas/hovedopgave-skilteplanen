@@ -1,7 +1,8 @@
 import WMSCapabilities from 'ol/format/WMSCapabilities.js';
 import { roadReferenceLayerName } from './roadData';
 
-export const token = import.meta.env.VITE_DATAFORSYNINGEN_TOKEN ?? '';
+export const token =
+  import.meta.env.VITE_DATAFORSYNINGEN_PUBLISHABLE_TOKEN ?? '';
 export const wmsUrl = 'https://api.dataforsyningen.dk/wms/forvaltning2';
 export const wmsVersion = '1.1.1';
 export const mapProjection = 'EPSG:3857';

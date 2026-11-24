@@ -413,14 +413,11 @@ describe('ContactsStep', () => {
     );
 
     await user.click(button('+ Tilføj kontaktperson'));
+    // Availability is always Day, so there is no field for it.
     expect(
-      screen.getByText('Ved råden over vej er tilgængeligheden altid Dag.'),
-    ).toBeTruthy();
-    expect(
-      screen
-        .getByRole('combobox', { name: /Tilgængelighed/ })
-        .getAttribute('aria-disabled'),
-    ).toBe('true');
+      screen.queryByRole('combobox', { name: /Tilgængelighed/ }),
+    ).toBeNull();
+    expect(screen.queryByText(/Tilgængelighed/)).toBeNull();
     await user.type(field(/Navn/), 'Jens Jensen');
     await user.type(field(/Telefonnummer/), '12345678');
     await user.type(field(/E-mail/), 'jens@example.com');

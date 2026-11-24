@@ -22,6 +22,24 @@ type RoadLocationDialogProps = {
   suggestedLocation: RoadLocation;
 };
 
+/** Removes spaces around every field of the address. */
+function trimLocation(location: RoadLocation): RoadLocation {
+  return {
+    road: location.road.trim(),
+    houseNumberFrom: location.houseNumberFrom.trim(),
+    houseNumberTo: location.houseNumberTo.trim(),
+    postalCode: location.postalCode.trim(),
+    city: location.city.trim(),
+  };
+}
+
+/** True when neither the map nor the user has given any house number. */
+function hasNoHouseNumbers(suggested: RoadLocation, location: RoadLocation) {
+  return [suggested, location].every(
+    ({ houseNumberFrom, houseNumberTo }) => !houseNumberFrom && !houseNumberTo,
+  );
+}
+
 /** Lets the user review and correct the map's suggested address before confirming it. */
 export function RoadLocationDialog({
   container,
@@ -35,15 +53,13 @@ export function RoadLocationDialog({
   const [submitted, setSubmitted] = useState(false);
 
   const errors = validateRoadLocation(location, t);
+  // Errors are shown once the user has tried to confirm.
+  const shown: Partial<typeof errors> = submitted ? errors : {};
   const roadHint =
     !suggestedLocation.road && !location.road
       ? t('permit.map.roadSelection.enterName')
       : undefined;
-  const numbersMissing =
-    !suggestedLocation.houseNumberFrom &&
-    !suggestedLocation.houseNumberTo &&
-    !location.houseNumberFrom &&
-    !location.houseNumberTo;
+  const numbersMissing = hasNoHouseNumbers(suggestedLocation, location);
 
   /** Validates the address, focuses the first invalid field, or confirms the trimmed values. */
   function submit(event: SubmitEvent<HTMLFormElement>) {
@@ -58,13 +74,7 @@ export function RoadLocationDialog({
       return;
     }
 
-    onConfirm({
-      road: location.road.trim(),
-      houseNumberFrom: location.houseNumberFrom.trim(),
-      houseNumberTo: location.houseNumberTo.trim(),
-      postalCode: location.postalCode.trim(),
-      city: location.city.trim(),
-    });
+    onConfirm(trimLocation(location));
   }
 
   return (
@@ -90,10 +100,9 @@ export function RoadLocationDialog({
         >
           <TextField
             autoFocus
-            error={submitted && Boolean(errors.road)}
+            error={Boolean(shown.road)}
             helperText={
-              (submitted && errors.road) ||
-              (roadHint && <span role="status">{roadHint}</span>)
+              shown.road || (roadHint && <span role="status">{roadHint}</span>)
             }
             label={t('permit.usage.road')}
             name="road"
@@ -114,9 +123,9 @@ export function RoadLocationDialog({
             }}
           >
             <TextField
-              error={submitted && Boolean(errors.houseNumberFrom)}
+              error={Boolean(shown.houseNumberFrom)}
               helperText={
-                (submitted && errors.houseNumberFrom) ||
+                shown.houseNumberFrom ||
                 (numbersMissing && t('permit.map.roadSelection.numbersMissing'))
               }
               label={t('permit.usage.houseNumberFrom')}
@@ -131,8 +140,8 @@ export function RoadLocationDialog({
               value={location.houseNumberFrom}
             />
             <TextField
-              error={submitted && Boolean(errors.houseNumberTo)}
-              helperText={submitted && errors.houseNumberTo}
+              error={Boolean(shown.houseNumberTo)}
+              helperText={shown.houseNumberTo}
               label={t('permit.usage.houseNumberTo')}
               name="houseNumberTo"
               onChange={(event) =>
@@ -141,8 +150,8 @@ export function RoadLocationDialog({
               value={location.houseNumberTo}
             />
             <TextField
-              error={submitted && Boolean(errors.postalCode)}
-              helperText={submitted && errors.postalCode}
+              error={Boolean(shown.postalCode)}
+              helperText={shown.postalCode}
               label={t('permit.usage.postalCode')}
               name="postalCode"
               onChange={(event) =>
@@ -153,8 +162,8 @@ export function RoadLocationDialog({
               value={location.postalCode}
             />
             <TextField
-              error={submitted && Boolean(errors.city)}
-              helperText={submitted && errors.city}
+              error={Boolean(shown.city)}
+              helperText={shown.city}
               label={t('permit.usage.city')}
               name="city"
               onChange={(event) =>

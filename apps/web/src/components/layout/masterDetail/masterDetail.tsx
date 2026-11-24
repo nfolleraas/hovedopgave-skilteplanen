@@ -34,6 +34,154 @@ type MasterDetailGridProps = {
   showStepValidation?: boolean;
 };
 
+/** Whether a checked step still has missing information. */
+function stepStatus(item: DetailItem): 'error' | 'success' {
+  return item.validationErrors?.length ? 'error' : 'success';
+}
+
+/** One step in the step list, with its number, label and checked status. */
+function StepListItem({
+  item,
+  index,
+  isSelected,
+  validationStatus,
+  statusId,
+  onSelect,
+}: {
+  item: DetailItem;
+  index: number;
+  isSelected: boolean;
+  /** Set once the step has been checked. */
+  validationStatus?: 'error' | 'success';
+  statusId: string;
+  onSelect: () => void;
+}) {
+  const { t } = useTranslation();
+  const validationErrors = item.validationErrors ?? [];
+  const StatusIcon =
+    validationStatus === 'error' ? PriorityHighIcon : CheckIcon;
+
+  return (
+    <ListItem disablePadding sx={{ mb: 0.5, '&:last-child': { mb: 0 } }}>
+      <Tooltip
+        arrow
+        describeChild
+        leaveDelay={150}
+        placement="right"
+        slotProps={{
+          tooltip: {
+            sx: {
+              bgcolor: 'grey.800',
+              fontSize: 14,
+              lineHeight: 1.6,
+              px: 1.5,
+              py: 1,
+            },
+          },
+          arrow: { sx: { color: 'grey.800' } },
+        }}
+        title={
+          validationStatus === 'error' && (
+            <Box component="ul" sx={{ m: 0, pl: 2 }}>
+              {validationErrors.map((message) => (
+                <li key={message}>{message}</li>
+              ))}
+            </Box>
+          )
+        }
+      >
+        <ListItemButton
+          aria-current={isSelected ? 'step' : undefined}
+          aria-describedby={validationStatus ? statusId : undefined}
+          component="button"
+          onClick={onSelect}
+          selected={isSelected}
+          sx={(theme) => {
+            const statusColor = validationStatus
+              ? theme.palette[validationStatus].main
+              : undefined;
+            const tint = statusColor && alpha(statusColor, 0.12);
+            const hoverTint = statusColor && alpha(statusColor, 0.2);
+            return {
+              minHeight: { xs: 56, md: 72 },
+              gap: 2,
+              width: '100%',
+              textAlign: 'start',
+              overflowWrap: 'anywhere',
+              px: 2,
+              py: { xs: 1.5, md: 2 },
+              borderRadius: 2,
+              bgcolor: tint,
+              '&:hover': { bgcolor: hoverTint ?? '#F7F9FC' },
+              '&.Mui-selected': {
+                bgcolor: tint ?? 'primary.main',
+                color: tint ? 'text.primary' : 'primary.contrastText',
+                boxShadow: tint
+                  ? `inset 0 0 0 2px ${theme.palette.primary.main}`
+                  : undefined,
+                '&:hover': { bgcolor: hoverTint ?? 'primary.dark' },
+              },
+              '&.Mui-focusVisible': {
+                outline: '2px solid',
+                outlineColor: 'primary.dark',
+                outlineOffset: 2,
+              },
+            };
+          }}
+          type="button"
+        >
+          <Box
+            aria-hidden="true"
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: { xs: 32, md: 40 },
+              height: { xs: 32, md: 40 },
+              flexShrink: 0,
+              borderRadius: '50%',
+              bgcolor:
+                isSelected && !validationStatus
+                  ? 'rgba(255, 255, 255, 0.2)'
+                  : '#F5F5F5',
+              fontSize: { xs: 14, md: 16 },
+              fontWeight: 600,
+            }}
+          >
+            {index + 1}
+          </Box>
+          <Typography
+            sx={{
+              fontWeight: isSelected ? 700 : 600,
+              fontSize: { md: 16 },
+            }}
+            variant="body2"
+          >
+            {item.label}
+          </Typography>
+          {validationStatus && (
+            <StatusIcon
+              fontSize="small"
+              sx={{
+                color: `${validationStatus}.dark`,
+                flexShrink: 0,
+                marginInlineStart: 'auto',
+              }}
+            />
+          )}
+        </ListItemButton>
+      </Tooltip>
+      {validationStatus && (
+        <Box component="span" id={statusId} sx={visuallyHidden}>
+          {validationStatus === 'error'
+            ? [t('permit.steps.needsAttention'), ...validationErrors].join(' ')
+            : t('permit.steps.complete')}
+        </Box>
+      )}
+    </ListItem>
+  );
+}
+
 /** Renders the application steps, their content, and the controls for navigation and submission. */
 export function MasterDetailGrid({
   items,
@@ -41,7 +189,9 @@ export function MasterDetailGrid({
   showStepValidation = false,
 }: MasterDetailGridProps) {
   const { t } = useTranslation();
-  const [selectedId, setSelectedId] = useState(items[0]?.id);
+  // The step the user chose. Until then, the first step is shown.
+  const [chosenId, setSelectedId] = useState<string>();
+  const selectedId = chosenId ?? items[0]?.id;
   const [mobileListOpen, setMobileListOpen] = useState(false);
   const [checkedSteps, setCheckedSteps] = useState(new Set<string>());
   const [focusRequest, setFocusRequest] = useState<{
@@ -167,149 +317,21 @@ export function MasterDetailGrid({
             </Typography>
           </Box>
           <List component="ol" disablePadding sx={{ p: 1.5 }}>
-            {items.map((item, index) => {
-              const isSelected = item.id === selectedId;
-              const validationErrors = item.validationErrors ?? [];
-              const validationStatus =
-                showStepValidation && checkedSteps.has(item.id)
-                  ? validationErrors.length
-                    ? 'error'
-                    : 'success'
-                  : undefined;
-              const statusId = `${listId}-${item.id}-status`;
-              const StatusIcon =
-                validationStatus === 'error' ? PriorityHighIcon : CheckIcon;
-
-              return (
-                <ListItem
-                  disablePadding
-                  key={item.id}
-                  sx={{ mb: 0.5, '&:last-child': { mb: 0 } }}
-                >
-                  <Tooltip
-                    arrow
-                    describeChild
-                    leaveDelay={150}
-                    placement="right"
-                    slotProps={{
-                      tooltip: {
-                        sx: {
-                          bgcolor: 'grey.800',
-                          fontSize: 14,
-                          lineHeight: 1.6,
-                          px: 1.5,
-                          py: 1,
-                        },
-                      },
-                      arrow: { sx: { color: 'grey.800' } },
-                    }}
-                    title={
-                      validationStatus === 'error' && (
-                        <Box component="ul" sx={{ m: 0, pl: 2 }}>
-                          {validationErrors.map((message) => (
-                            <li key={message}>{message}</li>
-                          ))}
-                        </Box>
-                      )
-                    }
-                  >
-                    <ListItemButton
-                      aria-current={isSelected ? 'step' : undefined}
-                      aria-describedby={validationStatus ? statusId : undefined}
-                      component="button"
-                      onClick={() => selectStep(item.id)}
-                      selected={isSelected}
-                      sx={(theme) => {
-                        const statusColor = validationStatus
-                          ? theme.palette[validationStatus].main
-                          : undefined;
-                        const tint = statusColor && alpha(statusColor, 0.12);
-                        const hoverTint =
-                          statusColor && alpha(statusColor, 0.2);
-                        return {
-                          minHeight: { xs: 56, md: 72 },
-                          gap: 2,
-                          width: '100%',
-                          textAlign: 'start',
-                          overflowWrap: 'anywhere',
-                          px: 2,
-                          py: { xs: 1.5, md: 2 },
-                          borderRadius: 2,
-                          bgcolor: tint,
-                          '&:hover': { bgcolor: hoverTint ?? '#F7F9FC' },
-                          '&.Mui-selected': {
-                            bgcolor: tint ?? 'primary.main',
-                            color: tint
-                              ? 'text.primary'
-                              : 'primary.contrastText',
-                            boxShadow: tint
-                              ? `inset 0 0 0 2px ${theme.palette.primary.main}`
-                              : undefined,
-                            '&:hover': { bgcolor: hoverTint ?? 'primary.dark' },
-                          },
-                          '&.Mui-focusVisible': {
-                            outline: '2px solid',
-                            outlineColor: 'primary.dark',
-                            outlineOffset: 2,
-                          },
-                        };
-                      }}
-                      type="button"
-                    >
-                      <Box
-                        aria-hidden="true"
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          width: { xs: 32, md: 40 },
-                          height: { xs: 32, md: 40 },
-                          flexShrink: 0,
-                          borderRadius: '50%',
-                          bgcolor:
-                            isSelected && !validationStatus
-                              ? 'rgba(255, 255, 255, 0.2)'
-                              : '#F5F5F5',
-                          fontSize: { xs: 14, md: 16 },
-                          fontWeight: 600,
-                        }}
-                      >
-                        {index + 1}
-                      </Box>
-                      <Typography
-                        sx={{
-                          fontWeight: isSelected ? 700 : 600,
-                          fontSize: { md: 16 },
-                        }}
-                        variant="body2"
-                      >
-                        {item.label}
-                      </Typography>
-                      {validationStatus && (
-                        <StatusIcon
-                          fontSize="small"
-                          sx={{
-                            color: `${validationStatus}.dark`,
-                            flexShrink: 0,
-                            marginInlineStart: 'auto',
-                          }}
-                        />
-                      )}
-                    </ListItemButton>
-                  </Tooltip>
-                  {validationStatus && (
-                    <Box component="span" id={statusId} sx={visuallyHidden}>
-                      {validationStatus === 'error'
-                        ? [
-                            t('permit.steps.needsAttention'),
-                            ...validationErrors,
-                          ].join(' ')
-                        : t('permit.steps.complete')}
-                    </Box>
-                  )}
-                </ListItem>
-              );
-            })}
+            {items.map((item, index) => (
+              <StepListItem
+                index={index}
+                isSelected={item.id === selectedId}
+                item={item}
+                key={item.id}
+                onSelect={() => selectStep(item.id)}
+                statusId={`${listId}-${item.id}-status`}
+                validationStatus={
+                  showStepValidation && checkedSteps.has(item.id)
+                    ? stepStatus(item)
+                    : undefined
+                }
+              />
+            ))}
           </List>
         </Paper>
         <Paper

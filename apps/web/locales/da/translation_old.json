@@ -11,5 +11,8 @@
     "contact": {
       "heading": "Opret kontaktperson"
     }
+  },
+  "contacts": {
+    "availabilityFixed": "Ved råden over vej er tilgængeligheden altid Dag."
   }
 }

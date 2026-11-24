@@ -8,7 +8,7 @@ afterEach(() => {
 });
 
 it('resumes the countdown with the time remaining before hover', async () => {
-  vi.stubEnv('VITE_DATAFORSYNINGEN_TOKEN', '');
+  vi.stubEnv('VITE_DATAFORSYNINGEN_PUBLISHABLE_TOKEN', '');
   vi.useFakeTimers();
   const { DataforsyningenMap } = await import(
     '../../src/components/ui/map/DataforsyningenMap'
@@ -33,7 +33,7 @@ it('resumes the countdown with the time remaining before hover', async () => {
 });
 
 it('dismisses the map error toast after five seconds', async () => {
-  vi.stubEnv('VITE_DATAFORSYNINGEN_TOKEN', '');
+  vi.stubEnv('VITE_DATAFORSYNINGEN_PUBLISHABLE_TOKEN', '');
   vi.useFakeTimers();
   const { DataforsyningenMap } = await import(
     '../../src/components/ui/map/DataforsyningenMap'

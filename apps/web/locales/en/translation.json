@@ -606,7 +606,6 @@
     "intro": "Welcome to Applicantplatform."
   },
   "contacts": {
-    "availabilityFixed": "For road use applications, availability is always Day.",
     "actorGroup": "{{role}} · {{name}}",
     "unknownActor": "Unknown actor",
     "listTitle": "Contact persons ({{number}})",
@@ -680,5 +679,10 @@
   "login": {
     "title": "Log in",
     "formPlaceholder": "The login form will appear here."
+  },
+  "routeError": {
+    "title": "Something went wrong",
+    "text": "The page could not be shown. Try reloading it.",
+    "reload": "Reload the page"
   }
 }

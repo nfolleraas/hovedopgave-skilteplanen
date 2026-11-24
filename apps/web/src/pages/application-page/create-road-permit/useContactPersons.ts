@@ -1,8 +1,10 @@
 import { useEffect, useReducer, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { getApplicationContactPersons } from '../../../api/contact-persons.api.js';
 import {
   contactPersonEditReducer,
   initialContactPersonEditState,
+  isDirty,
 } from '../../../features/contact-persons/contact-person-edit-state.js';
 import type { WizardApplication } from '../../../types/application.types.js';
 import type { ContactPersonActor } from '../../../types/contact-person.types.js';
@@ -46,10 +48,35 @@ export function useContactPersons(caseNumber: string) {
     };
   }, [caseNumber, load.status]);
 
+  const { t } = useTranslation();
+  const actors = load.status === 'ready' ? load.actors : [];
+  // The saved contact persons, as the summary shows them.
+  const rows = state.entries.flatMap(({ saved }) =>
+    saved
+      ? [
+          {
+            id: saved.uuid,
+            name: saved.name,
+            actorName:
+              actors.find(({ uuid }) => uuid === saved.actorId)?.name ?? '',
+            phoneNumber: saved.phoneNumber,
+            email: saved.email,
+          },
+        ]
+      : [],
+  );
+  // The step is complete with a saved contact person and no open changes.
+  const errors = [
+    rows.length ? undefined : t('permit.errors.contactRequired'),
+    isDirty(state) ? t('permit.errors.contactUnsaved') : undefined,
+  ].filter((error) => error !== undefined);
+
   return {
     state,
     dispatch,
     load,
+    rows,
+    errors,
     retry: () => setLoad({ status: 'loading' }),
   };
 }

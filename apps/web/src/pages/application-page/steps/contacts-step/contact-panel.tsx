@@ -18,15 +18,9 @@ import type {
   ContactPersonFormField,
   ContactPersonFormValues,
 } from '../../../../types/contact-person.types.js';
-import { labelAboveSlots } from '../../components/form-fields.js';
+import { labelAboveSlots } from '../../components/form-field-helpers.js';
 import { ContactForm } from './contact-form.js';
-
-/** Element ids, so the step can move focus into the panel. */
-export const contactPanelIds = {
-  title: 'contact-panel-title',
-  actor: 'contact-form-actor',
-  errorSummary: 'contact-panel-errors',
-};
+import { contactPanelIds } from './contact-step-ids.js';
 
 interface ContactPanelProps {
   /** True for a contact person that has not been saved yet. */

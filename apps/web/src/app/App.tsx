@@ -1,4 +1,4 @@
-import { Container, Typography } from '@mui/material';
+import { Button, Container, Typography } from '@mui/material';
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Outlet, useLocation } from 'react-router';
@@ -16,6 +16,28 @@ export function NotFoundPage() {
         <Typography component="h1" variant="h4">
           {t('notFound.title')}
         </Typography>
+      </Container>
+    </main>
+  );
+}
+
+/**
+ * Shown instead of the page when it fails to render, so the user gets a
+ * Danish message and a way to try again instead of React Router's default.
+ */
+export function RouteErrorPage() {
+  const { t } = useTranslation();
+
+  return (
+    <main>
+      <Container sx={{ py: 8 }}>
+        <Typography component="h1" sx={{ mb: 2 }} variant="h4">
+          {t('routeError.title')}
+        </Typography>
+        <Typography sx={{ mb: 3 }}>{t('routeError.text')}</Typography>
+        <Button onClick={() => window.location.reload()} variant="contained">
+          {t('routeError.reload')}
+        </Button>
       </Container>
     </main>
   );

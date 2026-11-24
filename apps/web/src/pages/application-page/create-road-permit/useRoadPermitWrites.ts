@@ -32,12 +32,12 @@ export const exampleDocument = {
   DateForUpload: '21-10-2001',
 };
 
-type WriteFailure =
+export type WriteFailure =
   | 'conflict'
   | 'network'
   | 'serviceUnavailable'
   | 'unexpected';
-type RejectedSelection =
+export type RejectedSelection =
   | { field: 'municipality'; value: string | null }
   | { field: 'material' | 'trafficChange'; value: string };
 

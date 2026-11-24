@@ -11,5 +11,8 @@
     "contact": {
       "heading": "Add a contact person"
     }
+  },
+  "contacts": {
+    "availabilityFixed": "For road use applications, availability is always Day."
   }
 }

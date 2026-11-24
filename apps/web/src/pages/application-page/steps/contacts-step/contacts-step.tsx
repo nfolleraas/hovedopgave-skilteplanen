@@ -1,5 +1,4 @@
 import { Alert, Box, Paper, Typography } from '@mui/material';
-import { isAxiosError } from 'axios';
 import {
   type Dispatch,
   type RefObject,
@@ -10,7 +9,6 @@ import {
 import { useTranslation } from 'react-i18next';
 import {
   createContactPerson,
-  deleteContactPerson,
   updateContactPerson,
 } from '../../../../api/contact-persons.api.js';
 import {
@@ -21,31 +19,36 @@ import {
   isDirty,
 } from '../../../../features/contact-persons/contact-person-edit-state.js';
 import {
-  canDeleteContactPerson,
   canEditContactPersons,
   getContactPersonFieldSet,
   toContactPersonInput,
   validateContactPerson,
 } from '../../../../features/contact-persons/contact-person-validation.js';
+import { usePendingFocus } from '../../../../hooks/use-pending-focus.js';
 import type { WizardApplication } from '../../../../types/application.types.js';
 import type {
   ContactPerson,
   ContactPersonActor,
   ContactPersonFormField,
 } from '../../../../types/contact-person.types.js';
-import { focusById } from '../../../../utils/focus-by-id.js';
 import { WizardFooter } from '../../components/wizard-footer.js';
 import type { LeaveGuard } from '../step-props.js';
-import { contactFieldId } from './contact-form.js';
-import { ContactList, contactListIds } from './contact-list.js';
-import { ContactPanel, contactPanelIds } from './contact-panel.js';
+import { useLeaveGuard } from '../use-leave-guard.js';
+import { ContactList } from './contact-list.js';
+import { ContactPanel } from './contact-panel.js';
+import { saveErrorMessage } from './contact-step-errors.js';
+import {
+  contactFieldId,
+  contactListIds,
+  contactPanelIds,
+} from './contact-step-ids.js';
+import { ContactsStepHeader } from './contacts-step-header.js';
 import { DeleteContactDialog } from './delete-contact-dialog.js';
 import { UnsavedChangesDialog } from './unsaved-changes-dialog.js';
-
-interface Notice {
-  severity: 'success' | 'error';
-  message: string;
-}
+import {
+  type ContactNotice,
+  useContactDeletion,
+} from './use-contact-deletion.js';
 
 interface ContactsStepProps {
   application: WizardApplication;
@@ -62,12 +65,6 @@ interface ContactsStepProps {
   leaveGuard?: RefObject<LeaveGuard | null>;
   onBack?: () => void;
   onNext?: () => void;
-}
-
-/** The status and error code (such as `LAST_CONTACT_PERSON`) the API sent. */
-function apiFailure(error: unknown): { status?: number; code?: string } {
-  if (!isAxiosError<{ code?: string }>(error)) return {};
-  return { status: error.response?.status, code: error.response?.data?.code };
 }
 
 /**
@@ -88,13 +85,14 @@ export function ContactsStep({
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<ContactPerson | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<Notice | null>(null);
+  const [notice, setNotice] = useState<ContactNotice | null>(null);
   const [showMissing, setShowMissing] = useState(false);
   const missingRef = useRef<HTMLDivElement>(null);
   // Element to focus after the next render, e.g. when a button disappears.
-  const [focusId, setFocusId] = useState<string | null>(null);
+  // It waits while a dialog holds focus.
+  const setFocusId = usePendingFocus(
+    state.pendingKey !== null || deleteTarget !== null,
+  );
 
   const { type } = application;
   const fieldSet = getContactPersonFieldSet(type);
@@ -103,12 +101,6 @@ export function ContactsStep({
   const savedCount = state.entries.filter((entry) => entry.saved).length;
   const errors = state.draft ? validateContactPerson(type, state.draft) : {};
   const hasUnsavedChanges = isDirty(state);
-
-  // Wait until the element exists and no dialog holds focus.
-  useEffect(() => {
-    if (!focusId || state.pendingKey !== null || deleteTarget) return;
-    if (focusById(focusId)) setFocusId(null);
-  });
 
   useEffect(() => {
     if (showMissing) missingRef.current?.focus();
@@ -138,34 +130,6 @@ export function ContactsStep({
     const remaining = saved.filter((entry) => entry.key !== key);
     const next = remaining[Math.min(index, remaining.length - 1)];
     setFocusId(next ? contactListIds.edit(next.key) : contactListIds.add);
-  }
-
-  /** A specific message for each error the API can send (UC-031 F5). */
-  function saveErrorMessage(error: unknown): string {
-    if (!isAxiosError(error)) return t('contacts.saveError');
-    const { status, code } = apiFailure(error);
-    switch (code) {
-      case 'APPLICATION_NOT_EDITABLE':
-        return t('contacts.notEditable');
-      case 'ACTOR_NOT_FOUND':
-        return t('contacts.actorNotFound');
-      case 'CONTACT_PERSON_DUPLICATE':
-        return t('contacts.duplicate');
-      // Deleted in another tab while this one had it open.
-      case 'CONTACT_PERSON_NOT_FOUND':
-        return t('contacts.notFound');
-      case 'APPLICATION_NOT_FOUND':
-        return t('applicationWizard.caseNotFound');
-      // The form checks the same rules, so this only happens if the rules
-      // differ between the web app and the API.
-      case 'CONTACT_PERSON_INVALID':
-      case 'CONTACT_PERSON_FIELDS_NOT_ALLOWED':
-        return t('contacts.rejectedByServer');
-      default:
-        return status === 400
-          ? t('contacts.rejectedByServer')
-          : t('contacts.saveError');
-    }
   }
 
   /**
@@ -208,7 +172,7 @@ export function ContactsStep({
       return true;
     } catch (error) {
       // The draft stays in state, so the user's input is kept (UC-033 F5).
-      setSaveError(saveErrorMessage(error));
+      setSaveError(saveErrorMessage(t, error));
       setFocusId(contactPanelIds.title);
       return false;
     } finally {
@@ -225,16 +189,7 @@ export function ContactsStep({
     return await save();
   }
 
-  useEffect(() => {
-    if (leaveGuard) leaveGuard.current = saveIfDirty;
-  });
-  // biome-ignore lint/correctness/useExhaustiveDependencies: unmount only.
-  useEffect(
-    () => () => {
-      if (leaveGuard) leaveGuard.current = null;
-    },
-    [],
-  );
+  useLeaveGuard(leaveGuard, saveIfDirty);
 
   async function handleBack() {
     if (await saveIfDirty()) onBack?.();
@@ -278,55 +233,15 @@ export function ContactsStep({
     dispatch({ type: 'cancel' });
   }
 
-  function handleDelete(entry: ContactPersonEntry) {
-    if (!entry.saved) return;
-    setNotice(null);
-    if (!canDeleteContactPerson(savedCount)) {
-      setNotice({ severity: 'error', message: t('contacts.lastContactError') });
-      return;
-    }
-    setDeleteError(null);
-    setDeleteTarget(entry.saved);
-  }
-
-  async function confirmDelete() {
-    if (!deleteTarget) return;
-    setIsDeleting(true);
-    setDeleteError(null);
-    try {
-      await deleteContactPerson(deleteTarget.uuid);
-      focusAfterRemoving(deleteTarget.uuid);
-      dispatch({ type: 'removed', key: deleteTarget.uuid });
-      setNotice({
-        severity: 'success',
-        message: t('contacts.deleted', { name: deleteTarget.name }),
-      });
-      setDeleteTarget(null);
-    } catch (error) {
-      // Deleted in another tab: the result is the same, so show it as done.
-      const { code } = apiFailure(error);
-      if (code === 'CONTACT_PERSON_NOT_FOUND') {
-        focusAfterRemoving(deleteTarget.uuid);
-        dispatch({ type: 'removed', key: deleteTarget.uuid });
-        setNotice({
-          severity: 'success',
-          message: t('contacts.alreadyDeleted', { name: deleteTarget.name }),
-        });
-        setDeleteTarget(null);
-        return;
-      }
-      setDeleteError(
-        code === 'LAST_CONTACT_PERSON'
-          ? t('contacts.lastContactError')
-          : code === 'APPLICATION_NOT_EDITABLE'
-            ? t('contacts.notEditable')
-            : // UC-032 F4: the contact person could not be deleted.
-              t('contacts.deleteError'),
-      );
-    } finally {
-      setIsDeleting(false);
-    }
-  }
+  const { isDeleting, deleteError, handleDelete, confirmDelete } =
+    useContactDeletion({
+      dispatch,
+      savedCount,
+      deleteTarget,
+      setDeleteTarget,
+      setNotice,
+      focusAfterRemoving,
+    });
 
   const pendingEntry = state.entries.find(
     (entry) => entry.key === state.pendingKey,
@@ -337,37 +252,12 @@ export function ContactsStep({
       aria-labelledby={embedded ? undefined : 'step-title'}
       component={embedded ? 'div' : 'section'}
     >
-      {!embedded && (
-        <Typography
-          component="h1"
-          id="step-title"
-          sx={{ mb: 1 }}
-          tabIndex={-1}
-          variant="h5"
-        >
-          {t('applicationWizard.steps.contactInfo')}
-        </Typography>
-      )}
-      <Typography color="text.secondary" sx={{ mb: 2 }}>
-        {t('contacts.intro')}
-      </Typography>
-      {!canEdit && (
-        <Alert severity="info" sx={{ mb: 2 }}>
-          {t('contacts.notEditable')}
-        </Alert>
-      )}
-
-      <Box aria-live="polite" role="status">
-        {notice && (
-          <Alert
-            onClose={() => setNotice(null)}
-            severity={notice.severity}
-            sx={{ mb: 2 }}
-          >
-            {notice.message}
-          </Alert>
-        )}
-      </Box>
+      <ContactsStepHeader
+        canEdit={canEdit}
+        embedded={embedded}
+        notice={notice}
+        onCloseNotice={() => setNotice(null)}
+      />
 
       <Box
         sx={{

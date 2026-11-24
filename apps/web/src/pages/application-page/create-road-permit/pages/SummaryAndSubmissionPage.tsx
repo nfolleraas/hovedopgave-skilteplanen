@@ -23,7 +23,14 @@ import {
   useMediaQuery,
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import { type ReactNode, useEffect, useId, useRef } from 'react';
+import {
+  type ReactNode,
+  type Ref,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+} from 'react';
 import { useTranslation } from 'react-i18next';
 import { visuallyHidden } from '../../../../components/ui/visuallyHidden';
 import type {
@@ -213,6 +220,393 @@ function SummarySection({
   );
 }
 
+type ValidationErrors = SummaryAndSubmissionPageProps['validationErrors'];
+
+/** True when the summary should point the user to missing information. */
+function hasSummaryErrors(validationErrors: ValidationErrors): boolean {
+  if (!validationErrors) return false;
+  const {
+    municipality,
+    usage,
+    materials,
+    contact,
+    trafficChange,
+    trafficMeasure,
+  } = validationErrors;
+  return [
+    materials.length > 0,
+    contact.length > 0,
+    Boolean(trafficChange),
+    Boolean(trafficMeasure),
+    Object.values(municipality).some(Boolean),
+    Object.values(usage).some(Boolean),
+  ].some(Boolean);
+}
+
+/** The chosen materials, or why the list is not complete. */
+function MaterialsSummary({
+  materials,
+  materialError,
+}: {
+  materials: MaterialEntry[];
+  materialError?: string;
+}) {
+  const { t } = useTranslation();
+  const materialTypes = getMaterialTypes(t);
+  return (
+    <SummarySection title={t('permit.materials.list')}>
+      {materials.length > 0 ? (
+        <PermitTable
+          columns={[
+            { label: t('permit.steps.materials') },
+            { label: t('permit.materials.quantity'), align: 'right' },
+            { label: t('permit.materials.notes') },
+          ]}
+          label={t('permit.materials.list')}
+          rows={materials.map((material) => ({
+            id: material.id,
+            cells: [
+              materialTypes[material.type] ?? material.type,
+              material.quantity,
+              material.notes || '—',
+            ],
+          }))}
+        />
+      ) : (
+        !materialError && <Typography>{t('permit.materials.empty')}</Typography>
+      )}
+      {materialError && <SummaryIssue message={materialError} />}
+    </SummarySection>
+  );
+}
+
+/** The contact persons, or why the step is not complete. */
+function ContactPersonsSummary({
+  contactPersons,
+  contactError,
+}: {
+  contactPersons: SummaryAndSubmissionPageProps['contactPersons'];
+  contactError?: string;
+}) {
+  const { t } = useTranslation();
+  return (
+    <SummarySection title={t('permit.steps.contact')}>
+      {contactPersons.length > 0 && (
+        <PermitTable
+          columns={[
+            { label: t('permit.contact.name') },
+            { label: t('permit.contact.actor') },
+            { label: t('permit.contact.phone') },
+            { label: t('permit.contact.email') },
+          ]}
+          label={t('permit.steps.contact')}
+          rows={contactPersons.map((person) => ({
+            id: person.id,
+            cells: [
+              person.name,
+              person.actorName || '—',
+              person.phoneNumber,
+              person.email,
+            ],
+          }))}
+        />
+      )}
+      {contactError && <SummaryIssue message={contactError} />}
+    </SummarySection>
+  );
+}
+
+/** The traffic changes, access ways and traffic measures. */
+function RoadMarkingSummary({
+  roadMarking,
+  validationErrors,
+}: {
+  roadMarking: RoadMarkingDetails;
+  validationErrors: ValidationErrors;
+}) {
+  const { t } = useTranslation();
+  const trafficChanges = getTrafficChangeLabels(t);
+  const trafficMeasures = getTrafficMeasureLabels(t);
+  const trafficMeasureError = validationErrors?.trafficMeasure;
+  return (
+    <SummarySection title={t('permit.steps.roadMarking')}>
+      <SummaryFacts
+        entries={[
+          [
+            t('permit.roadMarking.changes'),
+            roadMarking.trafficChanges
+              .map((option) => trafficChanges[option] ?? option)
+              .join('\n'),
+            validationErrors?.trafficChange,
+          ],
+          [t('permit.roadMarking.accessWays'), roadMarking.accessWays],
+        ]}
+      />
+      <Typography component="h4" variant="h6">
+        {t('permit.roadMarking.selectedMeasures')}
+      </Typography>
+      {roadMarking.trafficPrecautions.length > 0 ? (
+        <PermitTable
+          columns={[
+            { label: t('permit.roadMarking.measureColumn') },
+            { label: t('permit.roadMarking.protectionColumn') },
+            { label: t('permit.roadMarking.scopeColumn') },
+            { label: t('permit.roadMarking.descriptionColumn') },
+          ]}
+          label={t('permit.roadMarking.selectedMeasures')}
+          rows={roadMarking.trafficPrecautions.map((measure) => ({
+            id: measure.type,
+            cells: [
+              measure.type,
+              trafficMeasures[measure.type]?.protection ??
+                measure.protectionLevel,
+              trafficMeasures[measure.type]?.scope ?? measure.scope,
+              trafficMeasures[measure.type]?.description ?? measure.description,
+            ],
+          }))}
+        />
+      ) : trafficMeasureError ? (
+        <SummaryIssue message={trafficMeasureError} />
+      ) : (
+        <Typography>{t('permit.roadMarking.noMeasures')}</Typography>
+      )}
+    </SummarySection>
+  );
+}
+
+/** The example document that will be uploaded. */
+function DocumentsSummary({
+  documentToUpload,
+}: {
+  documentToUpload: SummaryAndSubmissionPageProps['documentToUpload'];
+}) {
+  const { t } = useTranslation();
+  return (
+    <SummarySection title={t('permit.steps.documents')}>
+      <TableContainer>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Navn</TableCell>
+              <TableCell>Type</TableCell>
+              <TableCell>Dato</TableCell>
+              <TableCell></TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            <TableRow>
+              <TableCell>{documentToUpload.name}</TableCell>
+              <TableCell>{documentToUpload.DocumentType}</TableCell>
+              <TableCell>{documentToUpload.DateForUpload}</TableCell>
+              <TableCell>
+                <IconButton
+                  aria-label={t('permit.actions.remove')}
+                  type="button"
+                >
+                  <DeleteIcon />
+                </IconButton>
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </SummarySection>
+  );
+}
+
+/** The example applicant's company details. */
+function ApplicantSummary({ applicant }: { applicant: CompanyInformation }) {
+  const { t } = useTranslation();
+  return (
+    <SummarySection title={t('permit.summary.exampleApplicant')}>
+      <SummaryFacts
+        entries={[
+          [t('permit.contact.name'), applicant.name],
+          [t('permit.summary.department'), applicant.department],
+          [t('permit.summary.address1'), applicant.address1],
+          [t('permit.summary.address2'), applicant.address2],
+          [t('permit.summary.postalCode'), applicant.postalCode],
+          [t('permit.summary.city'), applicant.city],
+          [t('permit.summary.contactPerson'), applicant.contactPerson],
+          [t('permit.summary.directPhone'), applicant.directPhone],
+          [t('permit.summary.mobile'), applicant.mobile],
+          [t('permit.contact.email'), applicant.email],
+          [t('permit.summary.companyPhone'), applicant.companyPhone],
+          [t('permit.summary.cvr'), applicant.cvr],
+        ]}
+      />
+    </SummarySection>
+  );
+}
+
+/** The declaration checkbox and the reason the application cannot be sent. */
+function ConfirmationSection({
+  confirmed,
+  confirmationError,
+  hasValidationErrors,
+  submissionError,
+  onConfirmedChange,
+  onShowMissing,
+  resultRef,
+}: {
+  confirmed: boolean;
+  confirmationError?: string;
+  hasValidationErrors: boolean;
+  submissionError?: string;
+  onConfirmedChange: (confirmed: boolean) => void;
+  onShowMissing: () => void;
+  resultRef: Ref<HTMLDivElement>;
+}) {
+  const { t } = useTranslation();
+  return (
+    <SummarySection title={t('permit.summary.confirmTitle')}>
+      <FormControlLabel
+        control={
+          <Checkbox
+            checked={confirmed}
+            onChange={(event) => onConfirmedChange(event.target.checked)}
+            required
+            slotProps={{
+              input: {
+                'aria-describedby': confirmationError
+                  ? 'application-confirmation-error'
+                  : undefined,
+                'aria-invalid': Boolean(confirmationError),
+              },
+            }}
+          />
+        }
+        label={t('permit.summary.confirmLabel')}
+        sx={{ alignItems: 'flex-start', mx: 0, minHeight: 44 }}
+      />
+      {confirmationError && (
+        <FormHelperText error id="application-confirmation-error">
+          {confirmationError}
+        </FormHelperText>
+      )}
+      {(hasValidationErrors || submissionError) && (
+        <Alert
+          action={
+            hasValidationErrors && (
+              <Button
+                onClick={onShowMissing}
+                size="small"
+                sx={{ color: 'primary.main', minHeight: 36 }}
+                variant="text"
+              >
+                {t('permit.summary.seeMissingFields')}
+              </Button>
+            )
+          }
+          ref={resultRef}
+          severity="error"
+          sx={{
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            '& .MuiAlert-action': { py: 0 },
+          }}
+          tabIndex={submissionError ? -1 : undefined}
+        >
+          {submissionError ?? t('permit.summary.validationError')}
+        </Alert>
+      )}
+    </SummarySection>
+  );
+}
+
+/** Shows a spinner while the application is sent, then a checkmark. */
+function SubmissionDialog({
+  submissionStatus,
+  animationDuration,
+  reduceMotion,
+  onExited,
+}: {
+  submissionStatus: SubmissionStatus;
+  animationDuration: number;
+  reduceMotion: boolean;
+  onExited: () => void;
+}) {
+  const { t } = useTranslation();
+  const submissionTitleId = useId();
+  const submitted = submissionStatus === 'success';
+  const submissionMessage = submitted
+    ? t('permit.summary.submissionSuccess')
+    : t('permit.summary.submissionPending');
+  return (
+    <Dialog
+      aria-labelledby={submissionTitleId}
+      fullWidth
+      maxWidth="xs"
+      open={submissionStatus === 'sending' || submitted}
+      slotProps={{ transition: { onExited } }}
+      transitionDuration={reduceMotion ? 0 : undefined}
+    >
+      <DialogContent sx={{ display: 'grid', justifyItems: 'center', pt: 4 }}>
+        <Box
+          aria-hidden="true"
+          sx={{
+            display: 'grid',
+            placeItems: 'center',
+            width: 72,
+            height: 72,
+            '& > *': {
+              gridArea: '1 / 1',
+              transition: `opacity ${animationDuration}ms ease, transform ${animationDuration}ms ease`,
+            },
+            '@media (prefers-reduced-motion: reduce)': {
+              '& .MuiCircularProgress-root, & .MuiCircularProgress-circle': {
+                animation: 'none',
+              },
+            },
+          }}
+        >
+          <Box
+            sx={{
+              display: 'flex',
+              opacity: submitted ? 0 : 1,
+              transform: submitted ? 'scale(0.7)' : 'scale(1)',
+              '& .MuiCircularProgress-root, & .MuiCircularProgress-circle': {
+                animationPlayState: submitted ? 'paused' : undefined,
+              },
+            }}
+          >
+            <CircularProgress size={56} />
+          </Box>
+          <Box
+            sx={{
+              display: 'grid',
+              placeItems: 'center',
+              width: 64,
+              height: 64,
+              borderRadius: '50%',
+              bgcolor: 'success.dark',
+              color: 'success.contrastText',
+              opacity: submitted ? 1 : 0,
+              animation:
+                submitted && animationDuration
+                  ? `showSubmissionCheck ${animationDuration}ms ease both`
+                  : undefined,
+              '@keyframes showSubmissionCheck': {
+                from: { opacity: 0, transform: 'scale(0.65)' },
+                to: { opacity: 1, transform: 'scale(1)' },
+              },
+            }}
+          >
+            <CheckRoundedIcon sx={{ fontSize: 40 }} />
+          </Box>
+        </Box>
+        <DialogTitle
+          component="h2"
+          id={submissionTitleId}
+          sx={{ px: 0, pb: 0, textAlign: 'center' }}
+        >
+          <span role="status">{submissionMessage}</span>
+        </DialogTitle>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 /** Displays the permit details for review and reports the submission result. */
 export function SummaryAndSubmissionPage({
   title,
@@ -232,13 +626,11 @@ export function SummaryAndSubmissionPage({
   onSubmissionComplete,
 }: SummaryAndSubmissionPageProps) {
   const { t, i18n } = useTranslation();
-  const submissionTitleId = useId();
   const submissionResultRef = useRef<HTMLParagraphElement>(null);
   const summaryRef = useRef<HTMLDivElement>(null);
   const reduceMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
   const submitted = submissionStatus === 'success';
   const animationDuration = reduceMotion ? 0 : checkmarkDuration;
-  const submissionDialogOpen = submissionStatus === 'sending' || submitted;
 
   useEffect(() => {
     if (!submitted) return;
@@ -251,27 +643,32 @@ export function SummaryAndSubmissionPage({
     return () => window.clearTimeout(redirect);
   }, [animationDuration, onSubmissionComplete, submitted]);
 
-  const submissionMessage = submitted
-    ? t('permit.summary.submissionSuccess')
-    : t('permit.summary.submissionPending');
-  const materialTypes = getMaterialTypes(t);
   const usageTypes = getUsageTypes(t);
-  const trafficChanges = getTrafficChangeLabels(t);
-  const trafficMeasures = getTrafficMeasureLabels(t);
   const materialError = validationErrors?.materials.join(' ');
   const contactError = validationErrors?.contact.join(' ');
-  const hasValidationErrors =
-    validationErrors &&
-    (Boolean(materialError) ||
-      Boolean(validationErrors.trafficChange) ||
-      Boolean(validationErrors.trafficMeasure) ||
-      Object.values(validationErrors.municipality).some(Boolean) ||
-      Object.values(validationErrors.usage).some(Boolean) ||
-      Boolean(contactError));
-  const dateFormat = new Intl.DateTimeFormat(i18n.resolvedLanguage, {
-    dateStyle: 'medium',
-    timeZone: 'UTC',
-  });
+  const hasValidationErrors = hasSummaryErrors(validationErrors);
+
+  /** Moves focus and scrolls to the first field that is missing or invalid. */
+  function showFirstMissing() {
+    const firstError = summaryRef.current?.querySelector<HTMLElement>(
+      '[data-summary-error]',
+    );
+    firstError?.focus({ preventScroll: true });
+    firstError?.scrollIntoView({
+      behavior: reduceMotion ? 'instant' : 'smooth',
+      block: 'center',
+    });
+  }
+  const language = i18n.resolvedLanguage;
+  // Built once per language instead of on every render.
+  const dateFormat = useMemo(
+    () =>
+      new Intl.DateTimeFormat(language, {
+        dateStyle: 'medium',
+        timeZone: 'UTC',
+      }),
+    [language],
+  );
   /** Formats a valid date in the selected language using UTC to preserve the calendar day. */
   const formatDate = (date: string) => {
     if (!date) return '';
@@ -323,55 +720,12 @@ export function SummaryAndSubmissionPage({
         />
       </Box>
       <Divider />
-      <SummarySection title={t('permit.materials.list')}>
-        {materials.length > 0 ? (
-          <PermitTable
-            columns={[
-              { label: t('permit.steps.materials') },
-              { label: t('permit.materials.quantity'), align: 'right' },
-              { label: t('permit.materials.notes') },
-            ]}
-            label={t('permit.materials.list')}
-            rows={materials.map((material) => ({
-              id: material.id,
-              cells: [
-                materialTypes[material.type] ?? material.type,
-                material.quantity,
-                material.notes || '—',
-              ],
-            }))}
-          />
-        ) : (
-          !materialError && (
-            <Typography>{t('permit.materials.empty')}</Typography>
-          )
-        )}
-        {materialError && <SummaryIssue message={materialError} />}
-      </SummarySection>
+      <MaterialsSummary materialError={materialError} materials={materials} />
       <Divider />
-      <SummarySection title={t('permit.steps.contact')}>
-        {contactPersons.length > 0 && (
-          <PermitTable
-            columns={[
-              { label: t('permit.contact.name') },
-              { label: t('permit.contact.actor') },
-              { label: t('permit.contact.phone') },
-              { label: t('permit.contact.email') },
-            ]}
-            label={t('permit.steps.contact')}
-            rows={contactPersons.map((person) => ({
-              id: person.id,
-              cells: [
-                person.name,
-                person.actorName || '—',
-                person.phoneNumber,
-                person.email,
-              ],
-            }))}
-          />
-        )}
-        {contactError && <SummaryIssue message={contactError} />}
-      </SummarySection>
+      <ContactPersonsSummary
+        contactError={contactError}
+        contactPersons={contactPersons}
+      />
       <Divider />
       <SummarySection title={t('permit.usage.location')}>
         <SummaryFacts
@@ -409,237 +763,32 @@ export function SummaryAndSubmissionPage({
         />
       </SummarySection>
       <Divider />
-      <SummarySection title={t('permit.steps.roadMarking')}>
-        <SummaryFacts
-          entries={[
-            [
-              t('permit.roadMarking.changes'),
-              roadMarking.trafficChanges
-                .map((option) => trafficChanges[option] ?? option)
-                .join('\n'),
-              validationErrors?.trafficChange,
-            ],
-            [t('permit.roadMarking.accessWays'), roadMarking.accessWays],
-          ]}
-        />
-        <Typography component="h4" variant="h6">
-          {t('permit.roadMarking.selectedMeasures')}
-        </Typography>
-        {roadMarking.trafficPrecautions.length > 0 ? (
-          <PermitTable
-            columns={[
-              { label: t('permit.roadMarking.measureColumn') },
-              { label: t('permit.roadMarking.protectionColumn') },
-              { label: t('permit.roadMarking.scopeColumn') },
-              { label: t('permit.roadMarking.descriptionColumn') },
-            ]}
-            label={t('permit.roadMarking.selectedMeasures')}
-            rows={roadMarking.trafficPrecautions.map((measure) => ({
-              id: measure.type,
-              cells: [
-                measure.type,
-                trafficMeasures[measure.type]?.protection ??
-                  measure.protectionLevel,
-                trafficMeasures[measure.type]?.scope ?? measure.scope,
-                trafficMeasures[measure.type]?.description ??
-                  measure.description,
-              ],
-            }))}
-          />
-        ) : validationErrors?.trafficMeasure ? (
-          <SummaryIssue message={validationErrors.trafficMeasure} />
-        ) : (
-          <Typography>{t('permit.roadMarking.noMeasures')}</Typography>
-        )}
-      </SummarySection>
+      <RoadMarkingSummary
+        roadMarking={roadMarking}
+        validationErrors={validationErrors}
+      />
       <Divider />
-      <SummarySection title={t('permit.steps.documents')}>
-        <TableContainer>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Navn</TableCell>
-                <TableCell>Type</TableCell>
-                <TableCell>Dato</TableCell>
-                <TableCell></TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              <TableRow>
-                <TableCell>{documentToUpload.name}</TableCell>
-                <TableCell>{documentToUpload.DocumentType}</TableCell>
-                <TableCell>{documentToUpload.DateForUpload}</TableCell>
-                <TableCell>
-                  <IconButton
-                    aria-label={t('permit.actions.remove')}
-                    type="button"
-                  >
-                    <DeleteIcon />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </SummarySection>
+      <DocumentsSummary documentToUpload={documentToUpload} />
       <Divider />
-      <SummarySection title={t('permit.summary.exampleApplicant')}>
-        <SummaryFacts
-          entries={[
-            [t('permit.contact.name'), applicant.name],
-            [t('permit.summary.department'), applicant.department],
-            [t('permit.summary.address1'), applicant.address1],
-            [t('permit.summary.address2'), applicant.address2],
-            [t('permit.summary.postalCode'), applicant.postalCode],
-            [t('permit.summary.city'), applicant.city],
-            [t('permit.summary.contactPerson'), applicant.contactPerson],
-            [t('permit.summary.directPhone'), applicant.directPhone],
-            [t('permit.summary.mobile'), applicant.mobile],
-            [t('permit.contact.email'), applicant.email],
-            [t('permit.summary.companyPhone'), applicant.companyPhone],
-            [t('permit.summary.cvr'), applicant.cvr],
-          ]}
-        />
-      </SummarySection>
+      <ApplicantSummary applicant={applicant} />
       <Divider />
-      <SummarySection title={t('permit.summary.confirmTitle')}>
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={confirmed}
-              onChange={(event) => onConfirmedChange(event.target.checked)}
-              required
-              slotProps={{
-                input: {
-                  'aria-describedby': confirmationError
-                    ? 'application-confirmation-error'
-                    : undefined,
-                  'aria-invalid': Boolean(confirmationError),
-                },
-              }}
-            />
-          }
-          label={t('permit.summary.confirmLabel')}
-          sx={{ alignItems: 'flex-start', mx: 0, minHeight: 44 }}
-        />
-        {confirmationError && (
-          <FormHelperText error id="application-confirmation-error">
-            {confirmationError}
-          </FormHelperText>
-        )}
-        {(hasValidationErrors || submissionError) && (
-          <Alert
-            action={
-              hasValidationErrors && (
-                <Button
-                  onClick={() => {
-                    const firstError =
-                      summaryRef.current?.querySelector<HTMLElement>(
-                        '[data-summary-error]',
-                      );
-                    firstError?.focus({ preventScroll: true });
-                    firstError?.scrollIntoView({
-                      behavior: reduceMotion ? 'instant' : 'smooth',
-                      block: 'center',
-                    });
-                  }}
-                  size="small"
-                  sx={{ color: 'primary.main', minHeight: 36 }}
-                  variant="text"
-                >
-                  {t('permit.summary.seeMissingFields')}
-                </Button>
-              )
-            }
-            ref={submissionResultRef}
-            severity="error"
-            sx={{
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              '& .MuiAlert-action': { py: 0 },
-            }}
-            tabIndex={submissionError ? -1 : undefined}
-          >
-            {submissionError ?? t('permit.summary.validationError')}
-          </Alert>
-        )}
-      </SummarySection>
-      <Dialog
-        aria-labelledby={submissionTitleId}
-        fullWidth
-        maxWidth="xs"
-        open={submissionDialogOpen}
-        slotProps={{
-          transition: {
-            onExited: () =>
-              submissionResultRef.current?.focus({ preventScroll: true }),
-          },
-        }}
-        transitionDuration={reduceMotion ? 0 : undefined}
-      >
-        <DialogContent sx={{ display: 'grid', justifyItems: 'center', pt: 4 }}>
-          <Box
-            aria-hidden="true"
-            sx={{
-              display: 'grid',
-              placeItems: 'center',
-              width: 72,
-              height: 72,
-              '& > *': {
-                gridArea: '1 / 1',
-                transition: `opacity ${animationDuration}ms ease, transform ${animationDuration}ms ease`,
-              },
-              '@media (prefers-reduced-motion: reduce)': {
-                '& .MuiCircularProgress-root, & .MuiCircularProgress-circle': {
-                  animation: 'none',
-                },
-              },
-            }}
-          >
-            <Box
-              sx={{
-                display: 'flex',
-                opacity: submitted ? 0 : 1,
-                transform: submitted ? 'scale(0.7)' : 'scale(1)',
-                '& .MuiCircularProgress-root, & .MuiCircularProgress-circle': {
-                  animationPlayState: submitted ? 'paused' : undefined,
-                },
-              }}
-            >
-              <CircularProgress size={56} />
-            </Box>
-            <Box
-              sx={{
-                display: 'grid',
-                placeItems: 'center',
-                width: 64,
-                height: 64,
-                borderRadius: '50%',
-                bgcolor: 'success.dark',
-                color: 'success.contrastText',
-                opacity: submitted ? 1 : 0,
-                animation:
-                  submitted && animationDuration
-                    ? `showSubmissionCheck ${animationDuration}ms ease both`
-                    : undefined,
-                '@keyframes showSubmissionCheck': {
-                  from: { opacity: 0, transform: 'scale(0.65)' },
-                  to: { opacity: 1, transform: 'scale(1)' },
-                },
-              }}
-            >
-              <CheckRoundedIcon sx={{ fontSize: 40 }} />
-            </Box>
-          </Box>
-          <DialogTitle
-            component="h2"
-            id={submissionTitleId}
-            sx={{ px: 0, pb: 0, textAlign: 'center' }}
-          >
-            <span role="status">{submissionMessage}</span>
-          </DialogTitle>
-        </DialogContent>
-      </Dialog>
+      <ConfirmationSection
+        confirmationError={confirmationError}
+        confirmed={confirmed}
+        hasValidationErrors={hasValidationErrors}
+        onConfirmedChange={onConfirmedChange}
+        onShowMissing={showFirstMissing}
+        resultRef={submissionResultRef}
+        submissionError={submissionError}
+      />
+      <SubmissionDialog
+        animationDuration={animationDuration}
+        onExited={() =>
+          submissionResultRef.current?.focus({ preventScroll: true })
+        }
+        reduceMotion={reduceMotion}
+        submissionStatus={submissionStatus}
+      />
     </Box>
   );
 }

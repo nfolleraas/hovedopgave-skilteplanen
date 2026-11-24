@@ -606,7 +606,6 @@
     "intro": "Velkommen til Ansøgningsplatformen"
   },
   "contacts": {
-    "availabilityFixed": "Ved råden over vej er tilgængeligheden altid Dag.",
     "actorGroup": "{{role}} · {{name}}",
     "unknownActor": "Ukendt aktør",
     "listTitle": "Kontaktpersoner ({{number}})",
@@ -680,5 +679,10 @@
   "login": {
     "title": "Log ind",
     "formPlaceholder": "Her kommer loginformularen."
+  },
+  "routeError": {
+    "title": "Noget gik galt",
+    "text": "Siden kunne ikke vises. Prøv at genindlæse den.",
+    "reload": "Genindlæs siden"
   }
 }

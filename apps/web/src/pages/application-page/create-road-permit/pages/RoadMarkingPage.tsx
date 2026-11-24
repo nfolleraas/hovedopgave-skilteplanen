@@ -45,6 +45,8 @@ export function RoadMarkingPage({
   const trafficChangeLabels = getTrafficChangeLabels(t);
   const labels = getTrafficMeasureLabels(t);
   const { trafficChanges, accessWays, trafficPrecautions } = value;
+  // Marks the chosen options in the list with a checkbox.
+  const chosenTrafficChanges = new Set(trafficChanges);
 
   /** Adds a selected safety measure with its details or removes it by type. */
   function changeMeasure(measure: TrafficMeasure, checked: boolean) {
@@ -112,7 +114,7 @@ export function RoadMarkingPage({
               }}
               value={option}
             >
-              {trafficChanges.includes(option) ? (
+              {chosenTrafficChanges.has(option) ? (
                 <CheckBoxIcon color="primary" />
               ) : (
                 <CheckBoxOutlineBlankIcon />
