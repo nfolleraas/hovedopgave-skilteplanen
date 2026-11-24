@@ -3,5 +3,10 @@
   "compilerOptions": {
     "types": ["node"]
   },
-  "include": ["playwright.config.ts", "tests/**/*.spec.ts", "tests/**/*.spec.tsx", "tests/**/e2e/**/*"]
+  "include": [
+    "playwright.config.ts",
+    "tests/**/*.spec.ts",
+    "tests/**/*.spec.tsx",
+    "tests/**/e2e/**/*"
+  ]
 }
