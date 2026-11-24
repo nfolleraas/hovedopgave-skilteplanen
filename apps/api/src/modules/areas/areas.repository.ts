@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Application, Area, Prisma } from '../../generated/prisma/client.js';
-import { PrismaService } from '../../prisma/prisma.service.js';
+import { PrismaService } from '../prisma/prisma.service.js';
 import type { AreaWithRelations } from './mappers/area.mapper.js';
 
 const areaInclude = { areaDetail: true, areaSize: true } as const;

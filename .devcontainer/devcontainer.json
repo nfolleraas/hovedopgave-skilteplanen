@@ -21,12 +21,9 @@
 
   "mounts": [
     "source=codex-home,target=/home/node/.codex,type=volume",
+    "source=codex-sdk-cache,target=/home/node/.vscode-server/data/agent-host/sdk-cache,type=volume",
     "source=claude-home,target=/home/node/.claude,type=volume"
   ],
-
-  "containerEnv": {
-    "CLAUDE_CONFIG_DIR": "/home/node/.claude"
-  },
 
   "postCreateCommand": "bash .devcontainer/post-create-command.sh",
 
@@ -44,8 +41,7 @@
         "PKief.material-icon-theme",
         "YoavBls.pretty-ts-errors",
         "ms-azuretools.vscode-containers",
-        "Prisma.prisma",
-        "Anthropic.claude-code"
+        "Prisma.prisma"
       ],
       "settings": {
         "terminal.integrated.defaultProfile.linux": "zsh",
@@ -58,7 +54,11 @@
           "source.fixAll.biome": "explicit",
           "source.organizeImports.biome": "explicit",
           "source.action.useSortedAttributes.biome": "explicit"
-        }
+        },
+        "chat.agentHost.claudeAgent.enabled": false,
+        "chat.agentHost.codexAgent.enabled": true,
+        "chat.editor.codex.preferAgentHost": true,
+        "chat.agentHost.codexAgent.codexHome": "/home/node/.codex"
       }
     }
   },

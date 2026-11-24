@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Application, Prisma } from '../../generated/prisma/client.js';
-import { PrismaService } from '../../prisma/prisma.service.js';
+import { PrismaService } from '../prisma/prisma.service.js';
 
 export type ApplicationWithAreaCount = Pick<
   Application,
