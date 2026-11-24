@@ -201,7 +201,7 @@ function formatNumber(value: number | null): string {
 export function toAreaFormValues(area: Area): AreaFormValues {
   return {
     roadName: area.roadName,
-    roadOwnership: area.roadOwnership,
+    roadOwnership: area.roadOwnership ?? '',
     postalCode: area.postalCode,
     houseNumberFrom: area.houseNumberFrom ?? '',
     houseNumberTo: area.houseNumberTo ?? '',

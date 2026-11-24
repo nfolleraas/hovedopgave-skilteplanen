@@ -24,3 +24,59 @@ body {
 main {
   flex: 1;
 }
+
+.skip-link {
+  position: fixed;
+  z-index: 1500;
+  inset-block-start: 0.5rem;
+  inset-inline-start: 0.5rem;
+  max-inline-size: calc(100% - 1rem);
+  box-sizing: border-box;
+  padding: 0.75rem 1rem;
+  background: #ffffff;
+  color: #1562ad;
+  font-weight: 600;
+}
+
+.skip-link:not(:focus) {
+  clip-path: inset(50%);
+  inline-size: 1px;
+  block-size: 1px;
+  padding: 0;
+  overflow: hidden;
+}
+
+#root :is(:focus-visible, .Mui-focusVisible) {
+  outline: 2px solid #212121;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px #ffffff;
+}
+
+#root
+  .application-page
+  :is(
+    .MuiInputBase-input,
+    input[type="checkbox"],
+    input[type="radio"]
+  ):focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+#root
+  .application-page
+  .MuiCheckbox-root:is(.Mui-focusVisible, :has(input:focus-visible)) {
+  background-color: #1562ad;
+  color: #ffffff;
+  outline: none;
+  box-shadow: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #root *,
+  #root *::before,
+  #root *::after {
+    animation-duration: 0.01ms;
+    transition-duration: 0.01ms;
+  }
+}

@@ -71,7 +71,7 @@ export class DevApplicationsService {
         applicantReference: caseNumber,
         type,
         status: Status.Draft,
-        trafficChange: TrafficChange.SpeedLimitWorkZone,
+        trafficChanges: [TrafficChange.SpeedLimitWorkZone],
         ...(type === ApplicationType.ExcavationPermit
           ? {
               excavationPermit: {

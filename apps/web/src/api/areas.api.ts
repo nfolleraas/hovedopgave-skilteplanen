@@ -4,7 +4,7 @@ import type {
   AreaCreateInput,
   AreaInput,
 } from '../types/area.types.js';
-import { apiClient } from './client.js';
+import { apiClient } from './client.api.js';
 
 export function getApplicationAreas(
   applicationId: string,

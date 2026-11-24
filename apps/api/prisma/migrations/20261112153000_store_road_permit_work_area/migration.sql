@@ -1,0 +1,7 @@
+ALTER TABLE "Area"
+    ADD COLUMN "city" TEXT,
+    ALTER COLUMN "roadOwnership" DROP NOT NULL,
+    ALTER COLUMN "areaDetailId" DROP NOT NULL,
+    ALTER COLUMN "areaSizeId" DROP NOT NULL;
+
+ALTER TABLE "Applicant" ALTER COLUMN "addressId" DROP NOT NULL;

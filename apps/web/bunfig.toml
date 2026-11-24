@@ -1,3 +1,0 @@
-[test]
-# Gives component tests a browser-like DOM (window, document) in `bun test`.
-preload = ["./src/test/setup-dom.ts"]

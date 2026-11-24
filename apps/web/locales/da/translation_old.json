@@ -1,1 +1,7 @@
-{}
+{
+  "permit": {
+    "documents": {
+      "empty": "Ingen bilag vedhæftet."
+    }
+  }
+}

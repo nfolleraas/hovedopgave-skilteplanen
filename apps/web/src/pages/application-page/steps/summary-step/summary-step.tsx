@@ -172,7 +172,8 @@ export function SummaryStep({
                 })}
               >
                 {[
-                  t(roadOwnershipLabelKeys[area.roadOwnership]),
+                  area.roadOwnership &&
+                    t(roadOwnershipLabelKeys[area.roadOwnership]),
                   area.areaInSquareMeters
                     ? `${area.areaInSquareMeters} m²`
                     : undefined,

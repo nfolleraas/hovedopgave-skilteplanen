@@ -2,7 +2,7 @@ import { Alert, Box, Button, Typography } from '@mui/material';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { createAreas } from '../../../../api/areas.api.js';
-import { ApiError } from '../../../../api/client.js';
+import { getApiErrorCode } from '../../../../api/client.api.js';
 import { canEditAreas } from '../../../../features/areas/area-validation.js';
 import { usePendingFocus } from '../../../../hooks/use-pending-focus.js';
 import type {
@@ -80,7 +80,7 @@ export function MapStep({
     } catch (error) {
       // The status can change in another tab after the page was loaded.
       setError(
-        error instanceof ApiError && error.code === 'APPLICATION_NOT_EDITABLE'
+        getApiErrorCode(error) === 'APPLICATION_NOT_EDITABLE'
           ? t('areas.notEditable')
           : t('mapStep.createError'),
       );

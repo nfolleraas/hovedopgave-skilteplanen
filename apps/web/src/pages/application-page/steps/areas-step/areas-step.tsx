@@ -12,7 +12,7 @@ import {
   deleteArea,
   updateArea,
 } from '../../../../api/areas.api.js';
-import { ApiError } from '../../../../api/client.js';
+import { getApiErrorCode } from '../../../../api/client.api.js';
 import {
   type AreaEditAction,
   type AreaEditState,
@@ -143,7 +143,7 @@ export function AreasStep({
     } catch (error) {
       // The draft stays in state, so the user's input is kept.
       setSaveError(
-        error instanceof ApiError && error.code === 'APPLICATION_NOT_EDITABLE'
+        getApiErrorCode(error) === 'APPLICATION_NOT_EDITABLE'
           ? t('areas.notEditable')
           : t('areas.saveError'),
       );
@@ -200,10 +200,9 @@ export function AreasStep({
       setDeleteTarget(null);
     } catch (error) {
       setDeleteError(
-        error instanceof ApiError && error.code === 'LAST_AREA'
+        getApiErrorCode(error) === 'LAST_AREA'
           ? t('areas.lastAreaError')
-          : error instanceof ApiError &&
-              error.code === 'APPLICATION_NOT_EDITABLE'
+          : getApiErrorCode(error) === 'APPLICATION_NOT_EDITABLE'
             ? t('areas.notEditable')
             : t('areas.deleteError'),
       );

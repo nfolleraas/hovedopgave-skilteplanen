@@ -20,7 +20,7 @@ export interface AreaResponse {
   uuid: string;
   applicationId: string;
   roadName: string;
-  roadOwnership: RoadOwnership;
+  roadOwnership: RoadOwnership | null;
   postalCode: string;
   houseNumberFrom: string | null;
   houseNumberTo: string | null;

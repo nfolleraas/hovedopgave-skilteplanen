@@ -1,1 +1,7 @@
-{}
+{
+  "permit": {
+    "documents": {
+      "empty": "No attachments added."
+    }
+  }
+}
