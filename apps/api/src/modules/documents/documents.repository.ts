@@ -10,8 +10,11 @@ export class DocumentsRepository {
     return await this.prisma.document.create({ data: document });
   }
 
-  async getAll(): Promise<Document[]> {
-    return await this.prisma.document.findMany({ include: { signPlan: true } });
+  async getAll(applicationId: string): Promise<Document[]> {
+    return await this.prisma.document.findMany({
+      where: { applicationId },
+      include: { signPlan: true },
+    });
   }
 
   async get(uuid: string): Promise<Document> {

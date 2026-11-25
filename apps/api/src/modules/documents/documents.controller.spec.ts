@@ -35,7 +35,7 @@ describe('DocumentsController', () => {
     expect(controller).toBeDefined();
   });
 
-  it('creates a document through the service', () => {
+  it('creates a document through the service', async () => {
     const dto = {
       name: 'Traffic plan',
       documentType: DocumentType.Other,
@@ -44,33 +44,33 @@ describe('DocumentsController', () => {
     } as CreateDocumentDto;
     const file = { originalname: 'traffic-plan.pdf' } as Express.Multer.File;
     const result = { uuid: 'document-1' };
-    service.create.mockReturnValue(result);
+    service.create.mockResolvedValue(result);
 
-    expect(controller.create(file, dto)).toBe(result);
+    await expect(controller.create(file, dto)).resolves.toBe(result);
     expect(service.create).toHaveBeenCalledWith(dto, file);
   });
 
-  it('returns all documents from the service', () => {
+  it("returns an application's documents from the service", async () => {
     const result = [{ uuid: 'document-1' }];
-    service.findAll.mockReturnValue(result);
+    service.findAll.mockResolvedValue(result);
 
-    expect(controller.findAll()).toBe(result);
-    expect(service.findAll).toHaveBeenCalledOnce();
+    await expect(controller.findAll('APP-123')).resolves.toBe(result);
+    expect(service.findAll).toHaveBeenCalledWith('APP-123');
   });
 
-  it('returns one document from the service', () => {
+  it('returns one document from the service', async () => {
     const result = { uuid: 'document-1' };
-    service.findOne.mockReturnValue(result);
+    service.findOne.mockResolvedValue(result);
 
-    expect(controller.findOne('document-1')).toBe(result);
+    await expect(controller.findOne('document-1')).resolves.toBe(result);
     expect(service.findOne).toHaveBeenCalledWith('document-1');
   });
 
-  it('removes a document through the service', () => {
+  it('removes a document through the service', async () => {
     const result = { uuid: 'document-1' };
-    service.remove.mockReturnValue(result);
+    service.remove.mockResolvedValue(result);
 
-    expect(controller.remove('document-1')).toBe(result);
+    await expect(controller.remove('document-1')).resolves.toBe(result);
     expect(service.remove).toHaveBeenCalledWith('document-1');
   });
 });

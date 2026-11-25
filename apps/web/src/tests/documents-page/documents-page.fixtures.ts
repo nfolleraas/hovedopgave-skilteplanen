@@ -1,8 +1,8 @@
 import { type BrowserContext, expect, type Page } from '@playwright/test';
 import type { Document as ApplicationDocument } from '../../pages/documents-page/document.types.js';
 
-export const documentsPagePath = '/ansoegning/dokumenter?lng=en';
 export const demoApplicationId = 'DEMO-2026-0001';
+export const documentsPagePath = `/ansoegning/dokumenter?draft=${encodeURIComponent(demoApplicationId)}&lng=en`;
 
 export const overviewDocuments: ApplicationDocument[] = [
   {
@@ -151,11 +151,18 @@ export async function installDocumentsApiMock(
     async (route) => {
       const request = route.request();
       const method = request.method();
-      const pathname = new URL(request.url()).pathname;
+      const requestUrl = new URL(request.url());
+      const pathname = requestUrl.pathname;
 
       if (method === 'GET' && pathname === '/api/documents') {
         state.documentListRequestCount += 1;
-        await route.fulfill({ json: initialDocuments, status: 200 });
+        const applicationId = requestUrl.searchParams.get('applicationId');
+        await route.fulfill({
+          json: initialDocuments.filter(
+            (document) => document.applicationId === applicationId,
+          ),
+          status: applicationId ? 200 : 400,
+        });
         return;
       }
 

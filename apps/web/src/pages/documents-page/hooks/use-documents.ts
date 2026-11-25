@@ -5,9 +5,10 @@ import type { Document } from '../document.types.js';
 
 /**
  * Loads documents and manages local additions and removals.
+ * @param applicationId - The application whose documents should be loaded
  * @returns The document collection, status, and update callbacks
  */
-export function useDocuments() {
+export function useDocuments(applicationId: string) {
   const { t } = useTranslation();
   const [documents, setDocuments] = useState<Document[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -16,8 +17,12 @@ export function useDocuments() {
 
   useEffect(() => {
     let isMounted = true;
+    setDocuments([]);
+    setError(null);
+    setIsLoading(true);
+    setLoadStatusMessage('');
 
-    getDocuments()
+    getDocuments(applicationId)
       .then((loadedDocuments) => {
         if (isMounted) {
           setDocuments(loadedDocuments);
@@ -40,7 +45,7 @@ export function useDocuments() {
     return () => {
       isMounted = false;
     };
-  }, [t]);
+  }, [applicationId, t]);
 
   /**
    * Appends newly uploaded documents to the local collection.

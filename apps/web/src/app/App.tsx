@@ -29,7 +29,8 @@ export default function App() {
   const hasSkipTarget =
     pathname === routes.home ||
     pathname === routes.application ||
-    pathname === routes.createRoadPermit;
+    pathname === routes.createRoadPermit ||
+    pathname === routes.applicationDocuments;
 
   useEffect(() => {
     if (previousPath.current !== pathname && hasSkipTarget) {

@@ -5,6 +5,7 @@ import {
   Get,
   Param,
   Post,
+  Query,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
@@ -57,12 +58,13 @@ export class DocumentsController {
   }
 
   /**
-   * Lists all stored documents.
-   * @returns The stored documents
+   * Lists the documents belonging to one application.
+   * @param applicationId - The application whose documents should be returned
+   * @returns The application's stored documents
    */
   @Get()
-  async findAll() {
-    return await this.documentsService.findAll();
+  async findAll(@Query('applicationId') applicationId?: string) {
+    return await this.documentsService.findAll(applicationId);
   }
 
   /**

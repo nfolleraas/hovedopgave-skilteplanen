@@ -24,6 +24,7 @@ import {
   MasterDetailGrid,
 } from '../../../components/layout/masterDetail/masterDetail';
 import { visuallyHidden } from '../../../components/ui/visuallyHidden';
+import DocumentsManager from '../../documents-page/components/documents-manager';
 import {
   type ContactInformation,
   emptyMaterialDraft,
@@ -34,7 +35,6 @@ import {
 } from './formTypes';
 import { ChooseMunicipalityAndTitlePage } from './pages/ChooseMunicipalityAndTitlePage';
 import { ContactInformationPage } from './pages/ContactInformationPage';
-import { DocumentsAndDrawingsPage } from './pages/DocumentsAndDrawingsPage';
 import { MaterialsPage } from './pages/MaterialsPage';
 import { RoadMarkingPage } from './pages/RoadMarkingPage';
 import { SummaryAndSubmissionPage } from './pages/SummaryAndSubmissionPage';
@@ -389,9 +389,9 @@ function RoadPermitForm({
       ),
     },
     {
-      id: 'documents-and-drawings',
-      label: t('permit.steps.documents'),
-      content: <DocumentsAndDrawingsPage />,
+      id: 'documents',
+      label: t('documents.title'),
+      content: <DocumentsManager applicationId={caseNumber} />,
     },
     {
       id: 'summary-and-submission',

@@ -79,11 +79,17 @@ export class DocumentsService {
   }
 
   /**
-   * Retrieves all document records.
-   * @returns The stored documents
+   * Retrieves the document records belonging to one application.
+   * @param applicationId - The application whose documents should be returned
+   * @returns The application's stored documents
    */
-  async findAll() {
-    return await this.documentsRepository.getAll();
+  async findAll(applicationId?: string) {
+    const normalizedApplicationId = applicationId?.trim();
+    if (!normalizedApplicationId) {
+      throw new BadRequestException('An application ID is required.');
+    }
+
+    return await this.documentsRepository.getAll(normalizedApplicationId);
   }
 
   /**

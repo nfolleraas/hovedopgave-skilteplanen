@@ -6,10 +6,13 @@ import { apiClient } from './client.api.js';
 
 /**
  * Retrieves all documents available to the current application.
+ * @param applicationId - The application whose documents should be retrieved
  * @returns The documents returned by the API
  */
-export async function getDocuments(): Promise<Document[]> {
-  return apiClient.get<Document[]>('/documents');
+export async function getDocuments(applicationId: string): Promise<Document[]> {
+  return apiClient.get<Document[]>(
+    `/documents?applicationId=${encodeURIComponent(applicationId)}`,
+  );
 }
 
 /**

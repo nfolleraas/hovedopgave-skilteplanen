@@ -50,12 +50,13 @@ describe('DocumentsRepository', () => {
     expect(prisma.document.create).toHaveBeenCalledWith({ data });
   });
 
-  it('gets all documents', async () => {
+  it('gets all documents for an application', async () => {
     const result = [{ uuid: 'document-1' }];
     prisma.document.findMany.mockResolvedValue(result);
 
-    await expect(repository.getAll()).resolves.toBe(result);
+    await expect(repository.getAll('APP-123')).resolves.toBe(result);
     expect(prisma.document.findMany).toHaveBeenCalledWith({
+      where: { applicationId: 'APP-123' },
       include: { signPlan: true },
     });
   });
@@ -67,6 +68,7 @@ describe('DocumentsRepository', () => {
     await expect(repository.get('document-1')).resolves.toBe(result);
     expect(prisma.document.findUniqueOrThrow).toHaveBeenCalledWith({
       where: { uuid: 'document-1' },
+      include: { signPlan: true },
     });
   });
 

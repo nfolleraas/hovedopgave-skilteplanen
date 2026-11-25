@@ -16,11 +16,11 @@ import {
 import { useTheme } from '@mui/material/styles';
 import { useId } from 'react';
 import { useTranslation } from 'react-i18next';
-import { demoApplicationId } from '../document.constants.js';
 import type { Document } from '../document.types.js';
 import DocumentDropZone from './document-drop-zone.js';
 
 type AddSignplanDialogProps = {
+  applicationId: string;
   onClose: () => void;
   onDocumentsUploaded: (documents: Document[]) => void;
   open: boolean;
@@ -32,6 +32,7 @@ type AddSignplanDialogProps = {
  * @returns The add-sign-plan dialog
  */
 export default function AddSignplanDialog({
+  applicationId,
   onClose,
   onDocumentsUploaded,
   open,
@@ -82,7 +83,7 @@ export default function AddSignplanDialog({
               </Box>
 
               <DocumentDropZone
-                applicationId={demoApplicationId}
+                applicationId={applicationId}
                 documentType="SignPlan"
                 onDocumentsUploaded={onDocumentsUploaded}
               />

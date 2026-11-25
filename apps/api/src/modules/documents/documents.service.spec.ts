@@ -126,7 +126,7 @@ describe('DocumentsService', () => {
     expect(repository.add).not.toHaveBeenCalled();
   });
 
-  it('delegates reads and deletes to the repository', async () => {
+  it('delegates application-scoped reads and deletes to the repository', async () => {
     const documents = [{ uuid: 'document-1' }];
     const document = { uuid: 'document-1', r2ObjectKey: 'documents/file.pdf' };
     repository.getAll.mockResolvedValue(documents);
@@ -134,13 +134,20 @@ describe('DocumentsService', () => {
     repository.delete.mockResolvedValue(document);
     r2Service.delete.mockResolvedValue({});
 
-    await expect(service.findAll()).resolves.toBe(documents);
+    await expect(service.findAll(' APP-123 ')).resolves.toBe(documents);
     await expect(service.findOne('document-1')).resolves.toBe(document);
     await expect(service.remove('document-1')).resolves.toBeUndefined();
 
-    expect(repository.getAll).toHaveBeenCalledOnce();
+    expect(repository.getAll).toHaveBeenCalledWith('APP-123');
     expect(repository.get).toHaveBeenCalledWith('document-1');
     expect(repository.delete).toHaveBeenCalledWith('document-1');
     expect(r2Service.delete).toHaveBeenCalledWith('documents/file.pdf');
+  });
+
+  it('rejects a document list request without an application ID', async () => {
+    await expect(service.findAll()).rejects.toThrow(
+      new BadRequestException('An application ID is required.'),
+    );
+    expect(repository.getAll).not.toHaveBeenCalled();
   });
 });
