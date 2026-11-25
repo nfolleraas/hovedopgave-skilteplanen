@@ -8,7 +8,7 @@ import {
   TrafficChange,
   Usage,
 } from '../../generated/prisma/enums.js';
-import { PrismaService } from '../../prisma.service.js';
+import { PrismaService } from '../prisma/prisma.service.js';
 import type { CreateRoadPermitData } from './mappers/road-permit.mapper.js';
 import { placeholderActorIds } from './placeholder-actors.js';
 import { RoadPermitRepository } from './road-permit.repository.js';
