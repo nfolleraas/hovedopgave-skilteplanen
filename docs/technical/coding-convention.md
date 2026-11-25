@@ -188,6 +188,67 @@ For declaration files (`.d.ts`), follow the TypeScript handbook's
 Keep declarations aligned with actual runtime behavior and avoid unnecessary
 or misleading global declarations.
 
+## Testing
+
+Tests are part of the feature structure and should cover the behavior at the
+layer where it is implemented.
+
+- **Frontend unit and integration tests:** Use Vitest for components, pages,
+  hooks, utilities, and domain use cases. Test files for a single component or
+  page may live next to the source file; broader domain tests belong under
+  `apps/web/tests/<domain>/`.
+- **Frontend end-to-end tests:** Use Playwright for user flows with UI
+  interaction, API requests, and other browser-visible behavior. Put these
+  tests under `apps/web/tests/<domain>/e2e/` and name them `*.spec.ts`.
+- **Backend unit tests:** Use Vitest for services, controllers, repositories,
+  and other isolated API behavior. Place them next to the file they test and
+  name them `<module>.<layer>.spec.ts`.
+- **Backend API tests:** Use API tests for a module's endpoints and their
+  integration with the application boundary. Place them under `apps/api/test/`
+  and name them `*.api-spec.ts`.
+
+Keep tests close to the behavior they verify and use descriptive names for the
+scenario or expected outcome. A representative structure is:
+
+```text
+apps/
+├── api/
+│   ├── src/modules/<feature>/
+│   │   ├── <feature>.controller.ts
+│   │   ├── <feature>.controller.spec.ts
+│   │   ├── <feature>.repository.ts
+│   │   ├── <feature>.repository.spec.ts
+│   │   ├── <feature>.service.ts
+│   │   └── <feature>.service.spec.ts
+│   └── test/
+│       └── <feature>.api-spec.ts
+└── web/
+    ├── src/<component-or-page>/
+    │   └── index.test.tsx
+    └── tests/<domain>/
+        ├── <use-case>.test.tsx
+        └── e2e/<flow>.spec.ts
+```
+
+Run the relevant suite from the repository root:
+
+```bash
+# Backend unit tests
+bun run --cwd apps/api test
+
+# Backend API tests
+bun run --cwd apps/api test:api
+
+# Frontend unit and integration tests
+bun run --cwd apps/web test:unit
+
+# Frontend end-to-end tests
+bun run --cwd apps/web test:e2e
+
+# All frontend tests
+bun run --cwd apps/web test
+```
+
 ## Review checklist
 
 - Is each function, class, or module's responsibility clear?
@@ -195,5 +256,7 @@ or misleading global declarations.
 - Do comments explain intent or complex reasoning, and match the code?
 - Is duplicated logic worth extracting without adding needless abstraction?
 - Is this the simplest design that satisfies the requirement?
+- Does the change have the appropriate unit, integration, or end-to-end tests?
+- Are test files located and named according to the test structure?
 - Does TypeScript formatting follow Biome?
 - Do declaration files follow the TypeScript handbook guidance?
