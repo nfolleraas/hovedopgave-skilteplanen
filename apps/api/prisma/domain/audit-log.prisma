@@ -1,0 +1,15 @@
+model AuditLog {
+  id                   String   @id @default(uuid())
+  createdAt            DateTime @default(now())
+  action               String
+  actorEmployeeNumber  String?
+  targetEmployeeNumber String?
+  actorApplicantId     String?
+  targetApplicantId    String?
+  details              Json?
+
+  @@index([createdAt])
+  @@index([actorEmployeeNumber])
+  @@index([targetEmployeeNumber])
+  @@index([targetApplicantId])
+}

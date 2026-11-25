@@ -48,11 +48,11 @@ describe('validateCreateApplicant', () => {
     ).toThrow(BadRequestException);
   });
 
-  it('accepts Danish letters and plus addressing in both flows', () => {
+  it('accepts Danish letters in both flows', () => {
     const data = {
       ...validApplicant,
       name: 'Søren Ærø',
-      email: 'kontakt+test@example.dk',
+      email: 'kontakt.test@example.dk',
     };
     expect(() => validateCreateApplicant(data)).not.toThrow();
     expect(validateProfile(data, false)).toMatchObject({
@@ -66,6 +66,7 @@ describe('validateCreateApplicant', () => {
     { name: 'Søren!' },
     { name: 'Søren 2' },
     { email: 'kontakt😊@example.dk' },
+    { email: 'kontakt+test@example.dk' },
     { email: 'kontakt@example' },
   ])('rejects invalid applicant fields %j in both flows', (input) => {
     const data = { ...validApplicant, ...input };

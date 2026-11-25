@@ -26,8 +26,11 @@ test('opens a private profile, cancels, validates and saves changes', async ({
   await expect(name).toHaveAttribute('aria-invalid', 'true');
   await expect(email).toHaveAttribute('aria-invalid', 'true');
 
-  await email.fill('kontakt+test@example.dk');
   await name.fill('Opdateret Profilnavn');
+  await email.fill('kontakt+test@example.dk');
+  await save.click();
+  await expect(email).toHaveAttribute('aria-invalid', 'true');
+  await email.fill('kontakt.test@example.dk');
   await phone.fill('123');
   await save.click();
   await expect(phone).toHaveAttribute('aria-invalid', 'true');

@@ -68,6 +68,11 @@ describe('Applicants API', () => {
         .send({ ...update, phoneNumber: '123' })
         .expect(400);
       expect(invalid.body.fields).toEqual(['phoneNumber']);
+      expect(
+        await prisma.auditLog.count({
+          where: { targetApplicantId: applicant.uuid },
+        }),
+      ).toBe(0);
 
       const original = await api.get(path).expect(200);
       expect(original.body).toEqual({
@@ -95,8 +100,27 @@ describe('Applicants API', () => {
         type: 'Private',
         cvrNumber: null,
       });
+      expect(
+        await prisma.auditLog.findMany({
+          where: { targetApplicantId: applicant.uuid },
+        }),
+      ).toEqual([
+        expect.objectContaining({
+          action: 'applicant.updated',
+          actorApplicantId: applicant.uuid,
+          createdAt: expect.any(Date),
+          details: {
+            actorSource: 'developmentProfile',
+            applicantName: update.name,
+            type: 'Private',
+          },
+        }),
+      ]);
     } finally {
       vi.unstubAllEnvs();
+      await prisma.auditLog.deleteMany({
+        where: { targetApplicantId: applicant.uuid },
+      });
       await prisma.applicant.delete({ where: { uuid: applicant.uuid } });
       if (applicant.addressId) {
         await prisma.address.delete({ where: { uuid: applicant.addressId } });
@@ -134,6 +158,18 @@ describe('Applicants API', () => {
         where: { uuid: applicantUuid },
         include: { address: true },
       });
+      expect(
+        await prisma.auditLog.findMany({
+          where: { targetApplicantId: applicantUuid },
+        }),
+      ).toEqual([
+        expect.objectContaining({
+          action: 'applicant.created',
+          actorApplicantId: null,
+          createdAt: expect.any(Date),
+          details: { applicantName: 'Test Applicant', type: 'Private' },
+        }),
+      ]);
 
       expect(savedApplicant).toMatchObject({
         name: 'Test Applicant',
@@ -152,6 +188,9 @@ describe('Applicants API', () => {
       });
 
       if (savedApplicant) {
+        await prisma.auditLog.deleteMany({
+          where: { targetApplicantId: savedApplicant.uuid },
+        });
         await prisma.applicant.delete({ where: { uuid: savedApplicant.uuid } });
         if (savedApplicant.addressId) {
           await prisma.address.deleteMany({
@@ -203,7 +242,10 @@ describe('Applicants API', () => {
       const where = { email: { in: [email, secondEmail] } };
       const fixtures = await prisma.applicant.findMany({
         where,
-        select: { addressId: true },
+        select: { uuid: true, addressId: true },
+      });
+      await prisma.auditLog.deleteMany({
+        where: { targetApplicantId: { in: fixtures.map(({ uuid }) => uuid) } },
       });
       await prisma.applicant.deleteMany({ where });
       await prisma.address.deleteMany({
@@ -259,6 +301,9 @@ describe('Applicants API', () => {
       });
 
       if (savedApplicant) {
+        await prisma.auditLog.deleteMany({
+          where: { targetApplicantId: savedApplicant.uuid },
+        });
         await prisma.applicant.delete({ where: { uuid: savedApplicant.uuid } });
         if (savedApplicant.addressId) {
           await prisma.address.deleteMany({
@@ -314,6 +359,9 @@ describe('Applicants API', () => {
       });
 
       if (savedApplicant) {
+        await prisma.auditLog.deleteMany({
+          where: { targetApplicantId: savedApplicant.uuid },
+        });
         await prisma.applicant.delete({ where: { uuid: savedApplicant.uuid } });
         if (savedApplicant.addressId) {
           await prisma.address.deleteMany({

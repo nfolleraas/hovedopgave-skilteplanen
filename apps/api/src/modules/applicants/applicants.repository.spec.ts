@@ -4,12 +4,17 @@ import { ApplicantsRepository } from './applicants.repository.js';
 import type { CreateApplicantDto } from './dto/create-applicant.dto.js';
 
 describe('ApplicantsRepository', () => {
-  const createdApplicant = { uuid: 'applicant-1' };
+  const createdApplicant = {
+    uuid: 'applicant-1',
+    name: 'Testvirksomhed',
+    type: 'Business',
+  };
   const create = vi.fn(async (_args: unknown) => createdApplicant);
   const findFirst = vi.fn();
   const transaction = {
     applicant: { create },
     address: { findFirst },
+    auditLog: { create: vi.fn() },
     $queryRaw: vi.fn(),
   };
   const prisma = {
@@ -36,6 +41,7 @@ describe('ApplicantsRepository', () => {
 
   beforeEach(() => {
     create.mockClear();
+    transaction.auditLog.create.mockClear();
     findFirst.mockReset().mockResolvedValue(null);
   });
 
@@ -43,6 +49,16 @@ describe('ApplicantsRepository', () => {
     await expect(repository.createApplicant(applicantData)).resolves.toEqual(
       createdApplicant,
     );
+    expect(transaction.auditLog.create).toHaveBeenCalledExactlyOnceWith({
+      data: {
+        action: 'applicant.created',
+        targetApplicantId: createdApplicant.uuid,
+        details: {
+          applicantName: createdApplicant.name,
+          type: createdApplicant.type,
+        },
+      },
+    });
 
     expect(create).toHaveBeenCalledWith({
       data: {

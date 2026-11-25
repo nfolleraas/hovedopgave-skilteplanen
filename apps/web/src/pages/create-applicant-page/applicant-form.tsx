@@ -75,13 +75,14 @@ export default function ApplicantForm({ applicantType }: ApplicantFormProps) {
     if (!isValidPhoneNumber(phoneNumber)) {
       nextErrors.phoneNumber = 'Indtast et telefonnummer med præcis 8 cifre.';
     }
-    if (
+    if (email.includes('+')) {
+      nextErrors.email = 'E-mailadressen må ikke indeholde tegnet +.';
+    } else if (
       !email ||
       (emailInput instanceof HTMLInputElement && !emailInput.validity.valid)
-    ) {
+    )
       nextErrors.email =
         'Indtast en gyldig e-mailadresse, fx navn@eksempel.dk.';
-    }
     if (!selectedAddress) {
       nextErrors.address = 'Vælg en adresse med husnummer fra listen.';
     }
@@ -150,10 +151,11 @@ export default function ApplicantForm({ applicantType }: ApplicantFormProps) {
         <Box
           sx={{
             display: 'grid',
-            gap: 3,
+            columnGap: { xs: 2, md: 5 },
+            rowGap: 3,
             gridTemplateColumns: {
               xs: '1fr',
-              md: '1fr 1fr',
+              md: 'repeat(2, minmax(0, 1fr))',
             },
           }}
         >
@@ -203,7 +205,9 @@ export default function ApplicantForm({ applicantType }: ApplicantFormProps) {
             onChange={() => clearError('email')}
             placeholder="E-mailadresse"
             required
-            slotProps={{ htmlInput: { pattern: /[^@]+@[^@]+\.[^@]+/.source } }}
+            slotProps={{
+              htmlInput: { pattern: /[^@+]+@[^@+]+\.[^@+]+/.source },
+            }}
             type="email"
           />
 

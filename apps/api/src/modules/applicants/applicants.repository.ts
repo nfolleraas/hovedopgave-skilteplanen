@@ -31,10 +31,25 @@ export class ApplicantsRepository {
     type: Applicant['type'],
     data: Pick<Applicant, 'name' | 'email' | 'phoneNumber' | 'cvrNumber'>,
   ): Promise<ApplicantProfile> {
-    return this.prisma.applicant.update({
-      where: { uuid, type, isActive: true },
-      data,
-      select: profileFields,
+    return this.prisma.$transaction(async (tx) => {
+      const profile = await tx.applicant.update({
+        where: { uuid, type, isActive: true },
+        data,
+        select: profileFields,
+      });
+      await tx.auditLog.create({
+        data: {
+          action: 'applicant.updated',
+          actorApplicantId: uuid,
+          targetApplicantId: uuid,
+          details: {
+            actorSource: 'developmentProfile',
+            applicantName: profile.name,
+            type: profile.type,
+          },
+        },
+      });
+      return profile;
     });
   }
 
@@ -72,7 +87,7 @@ export class ApplicantsRepository {
           select: { uuid: true },
         });
 
-        return tx.applicant.create({
+        const applicant = await tx.applicant.create({
           data: {
             name: data.name,
             type: data.type === 'private' ? 'Private' : 'Business',
@@ -84,6 +99,14 @@ export class ApplicantsRepository {
             address: existing ? { connect: existing } : { create: address },
           },
         });
+        await tx.auditLog.create({
+          data: {
+            action: 'applicant.created',
+            targetApplicantId: applicant.uuid,
+            details: { applicantName: applicant.name, type: applicant.type },
+          },
+        });
+        return applicant;
       },
       { isolationLevel: 'ReadCommitted' },
     );
