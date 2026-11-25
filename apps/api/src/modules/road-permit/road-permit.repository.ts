@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { Prisma } from '../../generated/prisma/client.js';
 import { ApplicationType, Status } from '../../generated/prisma/enums.js';
-import { PrismaService } from '../../prisma.service.js';
+import { PrismaService } from '../prisma/prisma.service.js';
 import type { UpdateRoadPermitDto } from './dto/update-road-permit.dto.js';
 import type { CreateRoadPermitData } from './mappers/road-permit.mapper.js';
 
