@@ -14,7 +14,9 @@
     "danish": "Dansk",
     "english": "Engelsk",
     "logoHome": "Ansøgningsplatformen – gå til forsiden",
-    "main": "Hovednavigation"
+    "main": "Hovednavigation",
+    "back": "Tilbage",
+    "next": "Næste"
   },
   "footer": {
     "shortcuts": "Genveje",
@@ -311,6 +313,18 @@
       "noProtection": "Ingen beskyttelsesgrad"
     }
   },
+  "deleteConfirmation": {
+    "title": "Bekræft sletning",
+    "description": "Er du sikker på, at du vil slette \"{{name}}\"? Handlingen kan ikke fortrydes.",
+    "error": "Elementet kunne ikke slettes. Prøv igen.",
+    "cancel": "Annuller",
+    "deleting": "Sletter...",
+    "delete": "Slet"
+  },
+  "urlPreview": {
+    "openInNewTab": "Åbn i en ny fane",
+    "close": "Luk forhåndsvisning"
+  },
   "application": {
     "drafts": {
       "heading": "Kladder",
@@ -325,17 +339,12 @@
     "unavailable": "Kommer senere",
     "createDraftError": "Ansøgningskladden kunne ikke oprettes. Prøv igen."
   },
-  "deleteConfirmation": {
-    "title": "Bekræft sletning",
-    "description": "Er du sikker på, at du vil slette \"{{name}}\"? Handlingen kan ikke fortrydes.",
-    "error": "Elementet kunne ikke slettes. Prøv igen.",
-    "cancel": "Annuller",
-    "deleting": "Sletter...",
-    "delete": "Slet"
-  },
-  "urlPreview": {
-    "openInNewTab": "Åbn i en ny fane",
-    "close": "Luk forhåndsvisning"
+  "home": {
+    "createRoadPermit": "Opret tilladelse til råden over vej",
+    "createRoadPermitEvent": "Opret tilladelse til råden over vej til begivenhed",
+    "createDiggingPermit": "Opret gravetilladelse",
+    "title": "Ansøgningsplatformen",
+    "intro": "Velkommen til Ansøgningsplatformen"
   },
   "documents": {
     "addSignplan": "Tilføj skilteplan",
@@ -383,13 +392,6 @@
   },
   "signPlan": {
     "createSignPlan": "Opret skilteplan"
-  },
-  "home": {
-    "createRoadPermit": "Opret tilladelse til råden over vej",
-    "createRoadPermitEvent": "Opret tilladelse til råden over vej til begivenhed",
-    "createDiggingPermit": "Opret gravetilladelse",
-    "title": "Ansøgningsplatformen",
-    "intro": "Velkommen til Ansøgningsplatformen"
   },
   "login": {
     "title": "Log ind",

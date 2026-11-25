@@ -14,7 +14,9 @@
     "danish": "Danish",
     "english": "English",
     "logoHome": "Applicantplatform – go to the home page",
-    "main": "Main navigation"
+    "main": "Main navigation",
+    "back": "",
+    "next": ""
   },
   "footer": {
     "shortcuts": "Shortcuts",
@@ -311,6 +313,18 @@
       "noProtection": "No protection level"
     }
   },
+  "deleteConfirmation": {
+    "title": "Confirm deletion",
+    "description": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
+    "error": "The item could not be deleted. Try again.",
+    "cancel": "Cancel",
+    "deleting": "Deleting...",
+    "delete": "Delete"
+  },
+  "urlPreview": {
+    "openInNewTab": "Open in a new tab",
+    "close": "Close preview"
+  },
   "application": {
     "drafts": {
       "heading": "Drafts",
@@ -325,17 +339,12 @@
     "unavailable": "Coming later",
     "createDraftError": "The application draft could not be created. Try again."
   },
-  "deleteConfirmation": {
-    "title": "Confirm deletion",
-    "description": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
-    "error": "The item could not be deleted. Try again.",
-    "cancel": "Cancel",
-    "deleting": "Deleting...",
-    "delete": "Delete"
-  },
-  "urlPreview": {
-    "openInNewTab": "Open in a new tab",
-    "close": "Close preview"
+  "home": {
+    "createRoadPermit": "Apply for a road occupancy permit",
+    "createRoadPermitEvent": "Apply for a road occupancy permit for event",
+    "createDiggingPermit": "Apply for a digging permit",
+    "title": "Applicantplatform",
+    "intro": "Welcome to Applicantplatform."
   },
   "documents": {
     "addSignplan": "Add signplan",
@@ -383,13 +392,6 @@
   },
   "signPlan": {
     "createSignPlan": "Create sign plan"
-  },
-  "home": {
-    "createRoadPermit": "Apply for a road occupancy permit",
-    "createRoadPermitEvent": "Apply for a road occupancy permit for event",
-    "createDiggingPermit": "Apply for a digging permit",
-    "title": "Applicantplatform",
-    "intro": "Welcome to Applicantplatform."
   },
   "login": {
     "title": "Log in",
