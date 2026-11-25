@@ -5,7 +5,7 @@ import type { App } from 'supertest/types.js';
 import { roadPermitSubmission } from '../../../test/fixtures/road-permit.js';
 import { AppModule } from '../../app.module.js';
 import { Status, TrafficChange } from '../../generated/prisma/enums.js';
-import { PrismaService } from '../../prisma.service.js';
+import { PrismaService } from '../prisma/prisma.service.js';
 
 // This suite writes to PostgreSQL. Use a disposable database with migrations applied.
 const databaseUrl = process.env.DATABASE_URL;
