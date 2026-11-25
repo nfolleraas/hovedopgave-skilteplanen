@@ -1,9 +1,11 @@
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../src/generated/prisma/client.js';
 import { seedApplication } from './seeders/application.seeder.js';
-import { seedMunicipalities } from './seeders/municipality.seeder.js';
 import { seedDemoSuperUser } from './seeders/case-worker.seeder.js';
-import { seedMunicipality } from './seeders/municipality.seeder.js';
+import {
+  seedMunicipalities,
+  seedMunicipality,
+} from './seeders/municipality.seeder.js';
 
 const connectionString = process.env.DATABASE_URL;
 
@@ -17,6 +19,8 @@ const prisma = new PrismaClient({
 
 /** Seeds the demo data and prints the municipality URL and superuser number. */
 export async function seed(): Promise<void> {
+  await seedMunicipalities(prisma);
+
   const application = await seedApplication(prisma);
   console.log('Seeded application:', application.caseNumber);
 

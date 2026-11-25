@@ -3,6 +3,7 @@
     "title": "Siden blev ikke fundet"
   },
   "navigation": {
+    "skipToContent": "Gå til hovedindhold",
     "skipToMain": "Spring til hovedindhold",
     "home": "Hjem",
     "application": "Ansøgning",
@@ -100,18 +101,6 @@
       "region": "Region",
       "save": "Gem kommune"
     }
-  },
-  "navigation": {
-    "skipToContent": "Gå til hovedindhold",
-    "home": "Hjem",
-    "application": "Ansøgning",
-    "messages": "Beskeder",
-    "logoHome": "Ansøgningsplatformen – gå til forsiden",
-    "main": "Hovednavigation",
-    "openUserMenu": "Åbn brugermenu",
-    "settings": "Indstillinger",
-    "logOut": "Log af",
-    "language": "Sprog"
   },
   "footer": {
     "shortcuts": "Genveje",

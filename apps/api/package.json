@@ -21,7 +21,6 @@
     "test:e2e": "vitest run --config ./vitest.config.e2e.ts",
     "dev": "NODE_ENV=development nest start --watch",
     "test:api": "vitest run --config ./vitest.config.api.ts",
-    "dev": "nest start --watch",
     "db:format": "bun --bun prisma --config prisma7.config.ts format",
     "db:generate": "bun --bun prisma --config prisma7.config.ts generate",
     "db:seed": "bun --bun prisma --config prisma7.config.ts db seed",
