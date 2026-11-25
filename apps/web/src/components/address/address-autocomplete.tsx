@@ -6,12 +6,16 @@ import {
   searchAddresses,
 } from '../../api/addresses.api.js';
 
+const minQueryLength = 2;
+const maxQueryLength = 73;
+const searchDelay = 250;
+
 interface AddressAutocompleteProps {
   onChange: (address: AddressSuggestion | null) => void;
 }
 
 /**
- * Autocomplete field that searches addresses via the API and returns the
+ * Autocomplete field that uses the shared Adressevælger search and returns the
  * selected suggestion to the parent.
  */
 export default function AddressAutocomplete({
@@ -23,8 +27,10 @@ export default function AddressAutocomplete({
   const [selectedAddress, setSelectedAddress] =
     useState<AddressSuggestion | null>(null);
 
+  const query = inputValue.trim();
+
   useEffect(() => {
-    if (inputValue.trim().length < 3 || selectedAddress) {
+    if (query.length < minQueryLength || selectedAddress) {
       return;
     }
 
@@ -32,7 +38,7 @@ export default function AddressAutocomplete({
 
     const timeout = setTimeout(async () => {
       try {
-        const addresses = await searchAddresses(inputValue, controller.signal);
+        const addresses = await searchAddresses(query, controller.signal);
         if (!controller.signal.aborted) {
           setOptions(addresses);
           setLookupComplete(true);
@@ -44,38 +50,49 @@ export default function AddressAutocomplete({
           setLookupComplete(true);
         }
       }
-    }, 300);
+    }, searchDelay);
 
     return () => {
       clearTimeout(timeout);
       controller.abort();
     };
-  }, [inputValue, selectedAddress]);
+  }, [query, selectedAddress]);
 
   return (
     <Autocomplete
       filterOptions={(options) => options}
+      getOptionKey={(option) => option.id}
       getOptionLabel={(option) => option.titel}
       inputValue={inputValue}
       loading={
-        inputValue.trim().length >= 3 && !selectedAddress && !lookupComplete
+        query.length >= minQueryLength && !selectedAddress && !lookupComplete
       }
       loadingText="Søger efter adresser…"
       noOptionsText={
         lookupComplete
           ? 'Ugyldig adresse. Prøv igen senere eller kontakt support.'
-          : 'Skriv mindst 3 tegn for at søge efter en adresse.'
+          : 'Skriv mindst 2 tegn for at søge efter en adresse.'
       }
       onChange={(_, value) => {
-        setSelectedAddress(value);
+        const address = value?.type === 'husnummer' ? value : null;
+        if (
+          value?.type === 'navngivenvejpostnummer' &&
+          value.titel.trim() !== query
+        ) {
+          setOptions([]);
+          setLookupComplete(false);
+        }
+        setSelectedAddress(address);
         setInputValue(value?.titel ?? '');
-        onChange(value);
+        onChange(address);
       }}
       onInputChange={(_, value, reason) => {
         if (reason === 'input' || reason === 'clear') {
           setInputValue(value);
-          setOptions([]);
-          setLookupComplete(false);
+          if (value.trim() !== query || selectedAddress) {
+            setOptions([]);
+            setLookupComplete(false);
+          }
           setSelectedAddress(null);
           onChange(null);
         }
@@ -84,10 +101,17 @@ export default function AddressAutocomplete({
       renderInput={(params) => (
         <TextField
           {...params}
-          helperText="Vælg en adresse eller et vejforslag."
+          helperText="Vælg en adresse med husnummer. Hvis du vælger en vej, kan du søge videre efter husnummeret."
           label="Adresse"
           placeholder="Søg efter adresse..."
           required
+          slotProps={{
+            ...params.slotProps,
+            htmlInput: {
+              ...params.slotProps.htmlInput,
+              maxLength: maxQueryLength,
+            },
+          }}
         />
       )}
       value={selectedAddress}

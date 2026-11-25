@@ -10,17 +10,27 @@ afterEach(() => {
 describe('searchAddresses', () => {
   it('calls the search endpoint with the given text', async () => {
     globalThis.fetch = (async (input, _init) => {
-      expect(input).toBe('/api/addresses/search?text=Vestergade');
-      return new Response(
-        JSON.stringify([{ id: '1', titel: 'X', type: 'adresse' }]),
-        {
-          status: 200,
-        },
-      );
+      const url = new URL(String(input));
+      expect(url.origin).toBe('https://adressevaelger.dk');
+      expect(url.pathname).toBe('/husnumre/soeg');
+      expect(url.searchParams.get('tekst')).toBe('Vestergade');
+      expect(url.searchParams.get('maksimum')).toBe('5');
+      return Response.json({
+        status: 'ok',
+        fund: [
+          { id: '1', titel: 'Vestergade 1, 8000 Aarhus C', type: 'husnummer' },
+          { id: '1', titel: 'Vestergade 1, 8000 Aarhus C', type: 'husnummer' },
+          { titel: 'Vestergade', type: 'navngivenvejpostnummer' },
+          { titel: 'Manglende id', type: 'husnummer' },
+        ],
+      });
     }) as typeof fetch;
 
-    await expect(searchAddresses('Vestergade')).resolves.toEqual([
-      { id: '1', titel: 'X', type: 'adresse' },
+    await expect(
+      searchAddresses('Vestergade', new AbortController().signal),
+    ).resolves.toEqual([
+      { id: '1', titel: 'Vestergade 1, 8000 Aarhus C', type: 'husnummer' },
+      { id: 'Vestergade', titel: 'Vestergade', type: 'navngivenvejpostnummer' },
     ]);
   });
 
@@ -29,8 +39,8 @@ describe('searchAddresses', () => {
       return new Response('nope', { status: 500 });
     }) as typeof fetch;
 
-    await expect(searchAddresses('Vestergade')).rejects.toThrow(
-      'Address lookup failed (500)',
-    );
+    await expect(
+      searchAddresses('Vestergade', new AbortController().signal),
+    ).rejects.toThrow('Address request failed');
   });
 });

@@ -2,6 +2,23 @@ import { expect, test } from '@playwright/test';
 
 const address = 'Vestergade 1, 8000 Aarhus C';
 
+test.beforeEach(async ({ page }) => {
+  await page.route('https://adressevaelger.dk/husnumre/soeg?*', (route) => {
+    const query = new URL(route.request().url()).searchParams.get('tekst');
+    return route.fulfill({
+      json: {
+        status: 'ok',
+        fund: query?.startsWith('Ve')
+          ? [
+              { titel: 'Vestergade', type: 'navngivenvejpostnummer' },
+              { id: 'test-house', titel: address, type: 'husnummer' },
+            ]
+          : [],
+      },
+    });
+  });
+});
+
 for (const { route, applicantType, heading } of [
   {
     route: '/opret-privat',
@@ -34,8 +51,12 @@ for (const { route, applicantType, heading } of [
     await name.fill(heading);
     await page.getByRole('textbox', { name: 'Telefonnummer' }).fill('12345678');
     await email.fill(`${applicantType.toLowerCase()}+test@example.com`);
-    await page.getByRole('combobox', { name: 'Adresse' }).fill('Vestergade');
-    await page.getByRole('option', { name: address }).click();
+    const addressField = page.getByRole('combobox', { name: 'Adresse' });
+    await addressField.fill('Ve');
+    await page.getByRole('option', { name: 'Vestergade', exact: true }).click();
+    await expect(addressField).toHaveValue('Vestergade');
+    await addressField.fill('Vestergade 1');
+    await page.getByRole('option', { name: address, exact: true }).click();
 
     const cvr = page.getByRole('textbox', { name: 'CVR-nummer' });
     if (applicantType === 'Business') {

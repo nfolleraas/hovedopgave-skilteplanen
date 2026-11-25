@@ -1,26 +1,30 @@
+import { searchAddresses as searchAdressevaelger } from '../utils/adressevaelger.js';
+
 export interface AddressOption {
   id: string;
   titel: string;
   type: 'adresse' | 'husnummer' | 'navngivenvejpostnummer';
-  husnummerId?: string;
 }
 
 export type AddressSuggestion = AddressOption;
 
-/**
- * Searches for address suggestions through the API.
- */
+/** Adapts the shared Adressevælger search results to the applicant form. */
 export async function searchAddresses(
   text: string,
-  signal?: AbortSignal,
+  signal: AbortSignal,
 ): Promise<AddressOption[]> {
-  const params = new URLSearchParams({ text });
+  const results = await searchAdressevaelger(text, signal);
+  const options = new Map<string, AddressOption>();
 
-  const response = await fetch(`/api/addresses/search?${params}`, { signal });
-
-  if (!response.ok) {
-    throw new Error(`Address lookup failed (${response.status})`);
+  for (const { id, titel, type } of results) {
+    if (!titel) continue;
+    if (type === 'navngivenvejpostnummer') {
+      const key = id ?? titel;
+      options.set(key, { id: key, titel, type });
+    } else if (type === 'husnummer' && id) {
+      options.set(id, { id, titel, type });
+    }
   }
 
-  return (await response.json()) as AddressOption[];
+  return [...options.values()];
 }

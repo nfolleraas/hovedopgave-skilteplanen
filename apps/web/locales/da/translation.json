@@ -8,14 +8,14 @@
     "application": "Ansøgning",
     "messages": "Beskeder",
     "openUserMenu": "Åbn brugermenu",
+    "profile": "Profil",
     "settings": "Indstillinger",
     "logOut": "Log af",
     "language": "Sprog",
     "danish": "Dansk",
     "english": "Engelsk",
     "logoHome": "Ansøgningsplatformen – gå til forsiden",
-    "main": "Hovednavigation",
-    "profile": "Profil"
+    "main": "Hovednavigation"
   },
   "footer": {
     "shortcuts": "Genveje",
