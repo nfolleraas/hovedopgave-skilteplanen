@@ -366,7 +366,7 @@
     "intro": "Welcome to Applicantplatform."
   },
   "login": {
-    "title": "",
-    "formPlaceholder": ""
+    "title": "Log in",
+    "formPlaceholder": "The login form will appear here."
   }
 }
