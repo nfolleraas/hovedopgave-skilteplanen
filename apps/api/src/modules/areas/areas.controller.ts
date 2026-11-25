@@ -13,6 +13,7 @@ import {
 import { AreasService } from './areas.service.js';
 import { CreateAreaDto } from './dto/create-area.dto.js';
 import { CreateAreasDto } from './dto/create-areas.dto.js';
+import { FindAreasQueryDto } from './dto/find-areas-query.dto.js';
 import { UpdateAreaDto } from './dto/update-area.dto.js';
 
 @Controller('areas')
@@ -30,8 +31,8 @@ export class AreasController {
   }
 
   @Get()
-  findByApplication(@Query('applicationId') applicationId: string) {
-    return this.areasService.findByApplication(applicationId);
+  findByApplication(@Query() query: FindAreasQueryDto) {
+    return this.areasService.findByApplication(query.applicationId);
   }
 
   @Get(':id')
