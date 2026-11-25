@@ -44,11 +44,7 @@ import type {
   RoadPermitDraft,
   RoadPermitDraftSnapshot,
 } from './RoadPermitApplication.types';
-import {
-  exampleApplicant,
-  exampleDocument,
-  useRoadPermitWrites,
-} from './useRoadPermitWrites';
+import { exampleApplicant, useRoadPermitWrites } from './useRoadPermitWrites';
 import { useUnsavedDraftNavigation } from './useUnsavedDraftNavigation';
 import {
   hasMaterialDraft,

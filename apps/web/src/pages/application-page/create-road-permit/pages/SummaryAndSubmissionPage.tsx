@@ -432,10 +432,10 @@ export function SummaryAndSubmissionPage({
               cells: [
                 measure.type,
                 trafficMeasures[measure.type]?.protection ??
-                  measure.protectionLevel,
+                measure.protectionLevel,
                 trafficMeasures[measure.type]?.scope ?? measure.scope,
                 trafficMeasures[measure.type]?.description ??
-                  measure.description,
+                measure.description,
               ],
             }))}
           />
@@ -446,7 +446,7 @@ export function SummaryAndSubmissionPage({
         )}
       </SummarySection>
       <Divider />
-      <SummarySection title={t('permit.steps.documents')}>
+      <SummarySection title={t('documents.title')}>
         <TableContainer>
           <Table>
             <TableHead>

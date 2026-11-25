@@ -14,9 +14,7 @@
     "danish": "Dansk",
     "english": "Engelsk",
     "logoHome": "Ansøgningsplatformen – gå til forsiden",
-    "main": "Hovednavigation",
-    "back": "Tilbage",
-    "next": "Næste"
+    "main": "Hovednavigation"
   },
   "footer": {
     "shortcuts": "Genveje",
@@ -52,7 +50,6 @@
       "materials": "Materiale",
       "contact": "Kontaktoplysninger",
       "roadMarking": "Afmærkning",
-      "documents": "Dokumenter og tegninger",
       "summary": "Opsummering & indsendelse"
     },
     "errors": {
@@ -231,10 +228,6 @@
       "phone": "Telefonnummer",
       "email": "E-mail"
     },
-    "documents": {
-      "heading": "Bilag til ansøgningen",
-      "placeholder": "Her vil du kunne vedhæfte dokumenter, tegninger og andre filer til din ansøgning."
-    },
     "materials": {
       "intro": "Tilføj de materialer, der skal placeres på vejarealet.",
       "retryTypes": "Prøv igen",
@@ -325,28 +318,8 @@
     "openInNewTab": "Åbn i en ny fane",
     "close": "Luk forhåndsvisning"
   },
-  "application": {
-    "drafts": {
-      "heading": "Kladder",
-      "loading": "Indlæser kladder…",
-      "empty": "Der er ingen kladder endnu.",
-      "loadError": "Kladderne kunne ikke indlæses. Genindlæs siden for at prøve igen.",
-      "untitled": "Kladde uden titel",
-      "caseNumber": "Sagsnummer {{caseNumber}}"
-    },
-    "title": "Vælg ansøgningstype",
-    "creatingDraft": "Opretter kladde…",
-    "unavailable": "Kommer senere",
-    "createDraftError": "Ansøgningskladden kunne ikke oprettes. Prøv igen."
-  },
-  "home": {
-    "createRoadPermit": "Opret tilladelse til råden over vej",
-    "createRoadPermitEvent": "Opret tilladelse til råden over vej til begivenhed",
-    "createDiggingPermit": "Opret gravetilladelse",
-    "title": "Ansøgningsplatformen",
-    "intro": "Velkommen til Ansøgningsplatformen"
-  },
   "documents": {
+    "title": "Dokumenter og skilteplaner",
     "addSignplan": "Tilføj skilteplan",
     "closeAddSignplan": "Luk tilføj skilteplan",
     "addSignplanDescription": "Vælg, om du vil uploade en eksisterende skilteplan eller oprette en ny.",
@@ -382,13 +355,32 @@
     "loadSuccess_one": "Dokumentlisten er indlæst med 1 dokument.",
     "loadSuccess_other": "Dokumentlisten er indlæst med {{count}} dokumenter.",
     "loadError": "Dokumenterne kunne ikke hentes.",
-    "title": "Dokumenter og skilteplaner",
     "description": "Upload og administrer de dokumenter og skilteplaner, der kræves til din ansøgning.",
     "deleteSuccess": "{{name}} er slettet.",
     "listTitle": "Uploadede dokumenter og skilteplaner",
     "loading": "Henter dokumenter",
-    "empty": "Der er ikke uploadet dokumenter endnu.",
-    "pageNavigation": "Navigation for ansøgningsdokumenter"
+    "empty": "Der er ikke uploadet dokumenter endnu."
+  },
+  "application": {
+    "drafts": {
+      "heading": "Kladder",
+      "loading": "Indlæser kladder…",
+      "empty": "Der er ingen kladder endnu.",
+      "loadError": "Kladderne kunne ikke indlæses. Genindlæs siden for at prøve igen.",
+      "untitled": "Kladde uden titel",
+      "caseNumber": "Sagsnummer {{caseNumber}}"
+    },
+    "title": "Vælg ansøgningstype",
+    "creatingDraft": "Opretter kladde…",
+    "unavailable": "Kommer senere",
+    "createDraftError": "Ansøgningskladden kunne ikke oprettes. Prøv igen."
+  },
+  "home": {
+    "createRoadPermit": "Opret tilladelse til råden over vej",
+    "createRoadPermitEvent": "Opret tilladelse til råden over vej til begivenhed",
+    "createDiggingPermit": "Opret gravetilladelse",
+    "title": "Ansøgningsplatformen",
+    "intro": "Velkommen til Ansøgningsplatformen"
   },
   "signPlan": {
     "createSignPlan": "Opret skilteplan"

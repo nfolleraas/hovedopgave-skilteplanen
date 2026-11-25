@@ -14,9 +14,7 @@
     "danish": "Danish",
     "english": "English",
     "logoHome": "Applicantplatform – go to the home page",
-    "main": "Main navigation",
-    "back": "Tilbage",
-    "next": "Næste"
+    "main": "Main navigation"
   },
   "footer": {
     "shortcuts": "Shortcuts",
@@ -52,7 +50,6 @@
       "materials": "Materials",
       "contact": "Contact details",
       "roadMarking": "Road markings",
-      "documents": "Documents and drawings",
       "summary": "Review & submission"
     },
     "errors": {
@@ -231,10 +228,6 @@
       "phone": "Phone number",
       "email": "Email"
     },
-    "documents": {
-      "heading": "Attachments for the application",
-      "placeholder": "You will be able to attach documents, drawings and other files to your application here."
-    },
     "materials": {
       "intro": "Add the materials that will be placed on the road.",
       "retryTypes": "Try again",
@@ -325,28 +318,8 @@
     "openInNewTab": "Open in a new tab",
     "close": "Close preview"
   },
-  "application": {
-    "drafts": {
-      "heading": "Drafts",
-      "loading": "Loading drafts…",
-      "empty": "There are no drafts yet.",
-      "loadError": "Drafts could not be loaded. Reload the page to try again.",
-      "untitled": "Untitled draft",
-      "caseNumber": "Case number {{caseNumber}}"
-    },
-    "title": "Choose an application type",
-    "creatingDraft": "Creating draft…",
-    "unavailable": "Coming later",
-    "createDraftError": "The application draft could not be created. Try again."
-  },
-  "home": {
-    "createRoadPermit": "Apply for a road occupancy permit",
-    "createRoadPermitEvent": "Apply for a road occupancy permit for event",
-    "createDiggingPermit": "Apply for a digging permit",
-    "title": "Applicantplatform",
-    "intro": "Welcome to Applicantplatform."
-  },
   "documents": {
+    "title": "Documents and sign plans",
     "addSignplan": "Add signplan",
     "closeAddSignplan": "Close add signplan",
     "addSignplanDescription": "Choose whether to upload an existing sign plan or create a new one.",
@@ -382,13 +355,32 @@
     "loadSuccess_one": "The document list loaded with 1 document.",
     "loadSuccess_other": "The document list loaded with {{count}} documents.",
     "loadError": "The documents could not be loaded.",
-    "title": "Documents and sign plans",
     "description": "Upload and manage the documents and sign plans required for your application.",
     "deleteSuccess": "{{name}} was deleted.",
     "listTitle": "Uploaded documents",
     "loading": "Loading documents",
-    "empty": "No documents have been uploaded yet.",
-    "pageNavigation": "Application document navigation"
+    "empty": "No documents have been uploaded yet."
+  },
+  "application": {
+    "drafts": {
+      "heading": "Drafts",
+      "loading": "Loading drafts…",
+      "empty": "There are no drafts yet.",
+      "loadError": "Drafts could not be loaded. Reload the page to try again.",
+      "untitled": "Untitled draft",
+      "caseNumber": "Case number {{caseNumber}}"
+    },
+    "title": "Choose an application type",
+    "creatingDraft": "Creating draft…",
+    "unavailable": "Coming later",
+    "createDraftError": "The application draft could not be created. Try again."
+  },
+  "home": {
+    "createRoadPermit": "Apply for a road occupancy permit",
+    "createRoadPermitEvent": "Apply for a road occupancy permit for event",
+    "createDiggingPermit": "Apply for a digging permit",
+    "title": "Applicantplatform",
+    "intro": "Welcome to Applicantplatform."
   },
   "signPlan": {
     "createSignPlan": "Create sign plan"
