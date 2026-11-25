@@ -6,7 +6,7 @@ import { AppModule } from './../src/app.module.js';
 import { TrafficChange } from './../src/generated/prisma/enums.js';
 import { PrismaService } from './../src/prisma.service.js';
 
-describe('AppModule (api)', () => {
+describe('AppModule (e2e)', () => {
   let app: INestApplication<App>;
   const prisma = {
     $queryRaw: vi.fn(),
