@@ -52,6 +52,7 @@ main {
   box-shadow: 0 0 0 2px #ffffff;
 }
 
+#root .applicant-form .MuiInputBase-input:focus-visible,
 #root
   .application-page
   :is(

@@ -1,6 +1,15 @@
 export const applicantSaveError =
   'Kunne ikke gemme ansøgeren. Prøv igen senere eller kontakt support.';
 
+export class ApplicantSaveError extends Error {
+  constructor(
+    message: string,
+    readonly field: 'email' | 'cvrNumber' | 'address',
+  ) {
+    super(message);
+  }
+}
+
 export interface CreateApplicantInput {
   name: string;
   type: 'business' | 'private';
@@ -46,7 +55,7 @@ export function useApplicants(): ApplicantsActions {
         'message' in result &&
         typeof result.message === 'string'
       ) {
-        throw new Error(result.message);
+        throw new ApplicantSaveError(result.message, 'address');
       }
       throw new Error(applicantSaveError);
     }
@@ -67,6 +76,20 @@ export function useApplicants(): ApplicantsActions {
         }
       }
 
+      if (response.status === 422) {
+        throw new ApplicantSaveError(message, 'address');
+      }
+      if (
+        typeof result === 'object' &&
+        result !== null &&
+        'fields' in result &&
+        Array.isArray(result.fields)
+      ) {
+        const [field] = result.fields;
+        if (field === 'email' || field === 'cvrNumber') {
+          throw new ApplicantSaveError(message, field);
+        }
+      }
       throw new Error(message);
     }
 

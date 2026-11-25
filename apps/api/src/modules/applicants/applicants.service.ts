@@ -142,7 +142,7 @@ export class ApplicantsService {
       applicant =
         await this.applicantsRepository.createApplicant(normalizedData);
     } catch (error: unknown) {
-      mapApplicantCreateError(error);
+      mapApplicantCreateError(error, { includeField: true });
     }
 
     this.logger.log({
