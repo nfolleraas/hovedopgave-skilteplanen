@@ -1,10 +1,7 @@
 import { spawn } from 'node:child_process';
-import { resolve } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
-import { fileURLToPath } from 'node:url';
 
 const apiHealthUrl = 'http://localhost:3000/api/health';
-const repositoryRoot = fileURLToPath(new URL('..', import.meta.url));
 const childProcesses = [];
 let shutdownPromise;
 const mode = process.argv[2] ?? 'all';
