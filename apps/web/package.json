@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "bun run locale:extract && vite",
+    "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "biome lint .",
     "test": "bun run test:unit && bun run test:e2e",
