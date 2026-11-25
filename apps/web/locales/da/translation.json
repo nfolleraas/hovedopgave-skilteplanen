@@ -582,7 +582,9 @@
       "areas": "Områder"
     },
     "caseNotFound": "Ansøgningen blev ikke fundet.",
-    "loadError": "Ansøgningen kunne ikke hentes, prøv igen senere eller kontakt supporten."
+    "loadError": "Ansøgningen kunne ikke hentes, prøv igen senere eller kontakt supporten.",
+    "draftCorrupt": "Nogle af dine tidligere indtastninger kunne ikke indlæses. Gennemgå trinnene og udfyld de manglende oplysninger igen.",
+    "draftUnavailable": "Browseren tillader ikke, at ansøgningen gemmes midlertidigt. Dine indtastninger går tabt, hvis du lukker eller genindlæser siden."
   },
   "application": {
     "drafts": {

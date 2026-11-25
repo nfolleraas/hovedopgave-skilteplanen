@@ -74,8 +74,17 @@ export default function ApplicationPage() {
     initialContactPersonEditState,
   );
   // Parts of the application without an API yet live in this tab's storage.
-  const [draft, setDraft] = useState<ApplicationDraft | null>(() =>
+  const [initialDraft] = useState(() =>
     caseNumber ? loadApplicationDraft(caseNumber) : null,
+  );
+  const [draft, setDraft] = useState<ApplicationDraft | null>(
+    initialDraft?.draft ?? null,
+  );
+  // Tells the user when their saved draft could not be restored.
+  const [draftProblem, setDraftProblem] = useState(
+    initialDraft?.status === 'corrupt' || initialDraft?.status === 'unavailable'
+      ? initialDraft.status
+      : null,
   );
   // Set by the contacts step so leaving it saves the open form first.
   const leaveGuard = useRef<LeaveGuard | null>(null);
@@ -259,6 +268,17 @@ export default function ApplicationPage() {
         )}
         {load.status === 'error' && (
           <Alert severity="error">{t(load.messageKey)}</Alert>
+        )}
+        {load.status === 'ready' && draftProblem && (
+          <Alert
+            onClose={() => setDraftProblem(null)}
+            severity="warning"
+            sx={{ mb: 3 }}
+          >
+            {draftProblem === 'corrupt'
+              ? t('applicationWizard.draftCorrupt')
+              : t('applicationWizard.draftUnavailable')}
+          </Alert>
         )}
         {load.status === 'ready' && (
           <Box

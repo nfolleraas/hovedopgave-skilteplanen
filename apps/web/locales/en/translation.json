@@ -582,7 +582,9 @@
       "areas": "Areas"
     },
     "caseNotFound": "The application was not found.",
-    "loadError": "The application could not be loaded. Try again later or contact support."
+    "loadError": "The application could not be loaded. Try again later or contact support.",
+    "draftCorrupt": "Some of your earlier entries could not be loaded. Go through the steps and fill in the missing information again.",
+    "draftUnavailable": "Your browser does not allow the application to be saved temporarily. Your entries will be lost if you close or reload the page."
   },
   "application": {
     "drafts": {
