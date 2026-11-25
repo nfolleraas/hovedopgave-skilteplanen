@@ -24,11 +24,6 @@ navigation, visual accessibility, and clear language for non-technical users.
 
 ## Temporary feature placeholders
 
-Until the application feature is merged, actor creation without a case number
-in the route uses the seeded application `DEMO-2026-0001`. An explicit route
-case number takes precedence. The application must exist in the database;
-API errors must still be reported if the seed is missing.
-
 Contact persons are implemented in a separate branch. Actor forms must allow
 saving without contact details or availability, and the active submission
 mapper omits contact-person data. The API temporarily creates a placeholder
@@ -104,8 +99,10 @@ The suite starts its own Vite server on `127.0.0.1:4173`; leave that port free.
 It covers navigation, keyboard skip navigation, Danish and English language
 detection and fallback, actor details, validation, editing, deletion, and
 recovery from API errors. Actor API responses are intercepted in the browser,
-so these frontend tests need no running API, database, or external address
-service. They do not verify backend persistence or external integrations.
+while each actor test opens a real application draft from the overview and
+uses step 4. The test servers therefore require the development API and
+database. Address and company lookups use fixture responses. These tests do
+not verify actor persistence or external integrations.
 
 Tests live in [`apps/web/e2e/`](../../apps/web/e2e/) and configuration in
 [`playwright.config.ts`](../../apps/web/playwright.config.ts). The test server
