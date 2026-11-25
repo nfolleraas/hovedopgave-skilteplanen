@@ -98,7 +98,9 @@ describe('Applicants API', () => {
     } finally {
       vi.unstubAllEnvs();
       await prisma.applicant.delete({ where: { uuid: applicant.uuid } });
-      await prisma.address.delete({ where: { uuid: applicant.addressId } });
+      if (applicant.addressId) {
+        await prisma.address.delete({ where: { uuid: applicant.addressId } });
+      }
     }
   });
 
@@ -151,13 +153,15 @@ describe('Applicants API', () => {
 
       if (savedApplicant) {
         await prisma.applicant.delete({ where: { uuid: savedApplicant.uuid } });
-        await prisma.address.deleteMany({
-          where: {
-            uuid: savedApplicant.addressId,
-            applicants: { none: {} },
-            municipality: null,
-          },
-        });
+        if (savedApplicant.addressId) {
+          await prisma.address.deleteMany({
+            where: {
+              uuid: savedApplicant.addressId,
+              applicants: { none: {} },
+              municipality: null,
+            },
+          });
+        }
       }
     }
   });
@@ -204,7 +208,11 @@ describe('Applicants API', () => {
       await prisma.applicant.deleteMany({ where });
       await prisma.address.deleteMany({
         where: {
-          uuid: { in: fixtures.map(({ addressId }) => addressId) },
+          uuid: {
+            in: fixtures.flatMap(({ addressId }) =>
+              addressId ? [addressId] : [],
+            ),
+          },
           applicants: { none: {} },
           municipality: null,
         },
@@ -252,13 +260,15 @@ describe('Applicants API', () => {
 
       if (savedApplicant) {
         await prisma.applicant.delete({ where: { uuid: savedApplicant.uuid } });
-        await prisma.address.deleteMany({
-          where: {
-            uuid: savedApplicant.addressId,
-            applicants: { none: {} },
-            municipality: null,
-          },
-        });
+        if (savedApplicant.addressId) {
+          await prisma.address.deleteMany({
+            where: {
+              uuid: savedApplicant.addressId,
+              applicants: { none: {} },
+              municipality: null,
+            },
+          });
+        }
       }
     }
   });
@@ -305,13 +315,15 @@ describe('Applicants API', () => {
 
       if (savedApplicant) {
         await prisma.applicant.delete({ where: { uuid: savedApplicant.uuid } });
-        await prisma.address.deleteMany({
-          where: {
-            uuid: savedApplicant.addressId,
-            applicants: { none: {} },
-            municipality: null,
-          },
-        });
+        if (savedApplicant.addressId) {
+          await prisma.address.deleteMany({
+            where: {
+              uuid: savedApplicant.addressId,
+              applicants: { none: {} },
+              municipality: null,
+            },
+          });
+        }
       }
     }
   });

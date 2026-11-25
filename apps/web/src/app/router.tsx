@@ -1,4 +1,5 @@
 import type { ComponentType } from 'react';
+import CreateRoadPermitPage from '../pages/application-page/create-road-permit/index.js';
 import ApplicationPage from '../pages/application-page/index.js';
 import ContactsPage from '../pages/contacts-page/index.js';
 import BusinessApplicantPage from '../pages/create-applicant-page/business.js';
@@ -11,6 +12,7 @@ import ProfilePage from '../pages/profile-page/index.js';
 export const routes = {
   home: '/',
   application: '/ansoegning',
+  createRoadPermit: '/ansoegning/opret-vejtilladelse',
   contacts: '/kontaktpersoner',
   messages: '/beskeder',
   profile: '/profil',
@@ -22,6 +24,7 @@ export const routes = {
 export const pages: Record<string, ComponentType> = {
   [routes.home]: HomePage,
   [routes.application]: ApplicationPage,
+  [routes.createRoadPermit]: CreateRoadPermitPage,
   [routes.contacts]: ContactsPage,
   [routes.messages]: MessagesPage,
   [routes.profile]: ProfilePage,
