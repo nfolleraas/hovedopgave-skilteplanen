@@ -52,6 +52,9 @@
       "no": "No",
       "delete": "Delete",
       "updateAction": "Update",
+      "deleteForbidden": "You are not allowed to delete this caseworker.",
+      "deleteConflict": "The caseworker cannot be deleted because it would violate a rule.",
+      "deleteSave": "Could not delete the caseworker. Try again.",
       "deleteTitle": "Delete caseworker",
       "deleteConfirmation": "Are you sure you want to delete {{name}}?",
       "cancel": "Cancel",
@@ -102,7 +105,6 @@
       "save": "Save municipality"
     }
   },
-
   "footer": {
     "shortcuts": "Shortcuts",
     "aboutUs": "About us",

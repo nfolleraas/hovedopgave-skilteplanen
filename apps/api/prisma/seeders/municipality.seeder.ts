@@ -138,27 +138,42 @@ const municipalities = [
   { id: 10098, name: 'Morsø', region: 'Nordjylland' },
 ];
 
-export function seedMunicipalities(prisma: PrismaClient) {
-  return prisma.$transaction(
-    municipalities.map((municipality) =>
-      prisma.municipality.upsert({
+/** Seeds the municipality choices with fixed IDs and preserves existing records. */
+export async function seedMunicipalities(
+  prisma: PrismaClient,
+): Promise<{ id: number }[]> {
+  return prisma.$transaction(async (tx) => {
+    const seeded: { id: number }[] = [];
+    for (const municipality of municipalities) {
+      const existing = await tx.municipality.findUnique({
         where: { id: municipality.id },
-        update: {},
-        create: {
+        select: { id: true },
+      });
+      if (existing) {
+        seeded.push(existing);
+        continue;
+      }
+
+      const address = await tx.address.create({
+        data: {
+          street: 'Testvej',
+          houseNumber: '1',
+          postalCode: '0000',
+          city: municipality.name,
+        },
+        select: { uuid: true },
+      });
+      const created = await tx.municipality.create({
+        data: {
           ...municipality,
           email: `municipality-${municipality.id}@example.com`,
           phoneNumber: '00000000',
-          address: {
-            create: {
-              street: 'Testvej',
-              houseNumber: '1',
-              postalCode: '0000',
-              city: municipality.name,
-            },
-          },
+          addressId: address.uuid,
         },
         select: { id: true },
-      }),
-    ),
-  );
+      });
+      seeded.push(created);
+    }
+    return seeded;
+  });
 }

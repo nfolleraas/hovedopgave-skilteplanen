@@ -88,7 +88,11 @@ export default function CaseWorkerLayout({
           component="h1"
           key={`${id}-${title}`}
           ref={focusHeading}
-          sx={{ mb: 4, fontWeight: 600, outline: 'none' }}
+          sx={{
+            mb: 4,
+            fontWeight: 600,
+            '#root &:focus-visible': { outline: 'none', boxShadow: 'none' },
+          }}
           tabIndex={-1}
           variant="h4"
         >

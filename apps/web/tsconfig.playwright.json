@@ -5,6 +5,7 @@
   },
   "include": [
     "playwright.config.ts",
+    "src/tests/**/*.spec.ts",
     "tests/**/*.spec.ts",
     "tests/**/*.spec.tsx",
     "tests/**/e2e/**/*"

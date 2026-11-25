@@ -59,6 +59,8 @@ async function verifyCreation({ page }: { page: Page }): Promise<void> {
   await expect(create).toBeFocused();
   await page.keyboard.press('Enter');
 
+  await expect(name).toBeFocused();
+
   const employeeNumber = dialog.getByRole('textbox', {
     name: 'Medarbejdernummer',
   });
@@ -75,7 +77,9 @@ async function verifyCreation({ page }: { page: Page }): Promise<void> {
   await employeeNumber.fill('001ABC');
   await dialog.getByRole('button', { name: 'Opret', exact: true }).click();
   await expect(dialog).toBeHidden();
-  await expect(page.getByRole('status')).toHaveText('Anne Müller er oprettet.');
+  await expect(page.getByRole('status')).toHaveText(
+    'Sagsbehandleren Anne Müller er oprettet.',
+  );
   await expect(page.getByRole('row', { name: /001ABC/ })).toContainText(
     'anne+test@example.dk',
   );

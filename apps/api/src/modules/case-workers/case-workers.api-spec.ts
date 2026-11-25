@@ -31,7 +31,10 @@ async function verifyCaseWorkerLifecycle(): Promise<void> {
   let fixture: { id: number; addressId: string } | undefined;
 
   let applicationFixture:
-    | { applicantId: string; applicant: { addressId: string } }
+    | {
+        applicantId: string | null;
+        applicant: { addressId: string | null } | null;
+      }
     | undefined;
   const caseNumber = `CASE-${marker}`;
   let notificationIds: string[] = [];
@@ -226,7 +229,7 @@ async function verifyCaseWorkerLifecycle(): Promise<void> {
         title: 'Caseworker deletion test',
         applicantReference: marker,
         type: ApplicationType.RoadUsePermit,
-        trafficChange: TrafficChange.SpeedLimitWorkZone,
+        trafficChanges: [TrafficChange.SpeedLimitWorkZone],
         caseWorker: { connect: { employeeNumber: input.employeeNumber } },
         applicant: {
           create: {
@@ -311,19 +314,54 @@ async function verifyCaseWorkerLifecycle(): Promise<void> {
     expect(
       await prisma.caseWorker.count({ where: { municipalityId: fixture.id } }),
     ).toBe(1);
+
+    const auditEntries = await prisma.auditLog.findMany({
+      where: {
+        actorEmployeeNumber,
+        targetEmployeeNumber: input.employeeNumber,
+      },
+      select: { action: true, details: true },
+    });
+    expect(auditEntries).toHaveLength(4);
+    expect(auditEntries).toEqual(
+      expect.arrayContaining([
+        {
+          action: 'caseWorker.created',
+          details: { municipalityId: fixture.id },
+        },
+        { action: 'caseWorker.updated', details: update },
+        {
+          action: 'caseWorker.updated',
+          details: { ...update, isSuperUser: false },
+        },
+        {
+          action: 'caseWorker.deleted',
+          details: { releasedCases: 1, municipalityId: fixture.id },
+        },
+      ]),
+    );
   } finally {
     try {
+      await prisma.auditLog.deleteMany({
+        where: {
+          actorEmployeeNumber,
+          targetEmployeeNumber: input.employeeNumber,
+        },
+      });
       if (applicationFixture) {
-        await prisma.$transaction([
-          prisma.feedback.deleteMany({ where: { applicationId: caseNumber } }),
-          prisma.application.delete({ where: { caseNumber } }),
-          prisma.applicant.delete({
-            where: { uuid: applicationFixture.applicantId },
-          }),
-          prisma.address.delete({
-            where: { uuid: applicationFixture.applicant.addressId },
-          }),
-        ]);
+        const { applicantId, applicant } = applicationFixture;
+        await prisma.$transaction(async (tx) => {
+          await tx.feedback.deleteMany({
+            where: { applicationId: caseNumber },
+          });
+          await tx.application.delete({ where: { caseNumber } });
+          if (applicantId) {
+            await tx.applicant.delete({ where: { uuid: applicantId } });
+          }
+          if (applicant?.addressId) {
+            await tx.address.delete({ where: { uuid: applicant.addressId } });
+          }
+        });
       }
       if (fixture) {
         await prisma.$transaction([

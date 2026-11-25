@@ -86,7 +86,6 @@ export default function CaseWorkerList({
     setUpdatedName(undefined);
   }
 
-  /** Closes the creation form. */
   function closeForm(): void {
     setCreating(false);
     setEditing(undefined);
@@ -293,9 +292,13 @@ export default function CaseWorkerList({
           <DialogContent>
             {deleteError ? (
               <Alert severity="error">
-                {t(
-                  `caseworker.management.delete${deleteError[0].toUpperCase()}${deleteError.slice(1)}`,
-                )}
+                {
+                  {
+                    forbidden: t('caseworker.management.deleteForbidden'),
+                    conflict: t('caseworker.management.deleteConflict'),
+                    save: t('caseworker.management.deleteSave'),
+                  }[deleteError]
+                }
               </Alert>
             ) : (
               t('caseworker.management.deleteConfirmation', {

@@ -17,7 +17,10 @@ import {
   createCaseWorker,
   updateCaseWorker,
 } from '../../../api/case-workers.api.js';
-import type { CaseWorker } from '../../../types/case-worker.types.js';
+import type {
+  CaseWorker,
+  CaseWorkerInput,
+} from '../../../types/case-worker.types.js';
 
 type Field = 'name' | 'employeeNumber' | 'email' | 'phoneNumber' | 'password';
 
@@ -32,7 +35,28 @@ const namePattern = /^[\p{L}\p{M} '\u2019-]+$/u;
 const emailPattern =
   /^[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+)*@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
 
-/** Collects and validates the details of a new caseworker. */
+/** Returns invalid fields in focus order. Credentials are required only on creation. */
+function validateCaseWorker(
+  input: CaseWorkerInput,
+  creating: boolean,
+): Field[] {
+  const errors: Field[] = [];
+  if (!namePattern.test(input.name) || !/\p{L}/u.test(input.name))
+    errors.push('name');
+  if (creating && !employeeNumberPattern.test(input.employeeNumber))
+    errors.push('employeeNumber');
+  if (!emailPattern.test(input.email)) errors.push('email');
+  if (!/^\d{8}$/.test(input.phoneNumber)) errors.push('phoneNumber');
+  if (
+    creating &&
+    (!input.password.trim() ||
+      new TextEncoder().encode(input.password).length > 1024)
+  )
+    errors.push('password');
+  return errors;
+}
+
+/** Uses the same dialog for creating and editing a caseworker. */
 export default function CreateCaseWorkerForm({
   onCancel,
   onSaved,
@@ -72,19 +96,7 @@ export default function CreateCaseWorkerForm({
       isSuperUser: data.has('isSuperUser'),
     };
 
-    const errors: Field[] = [];
-    if (!namePattern.test(input.name) || !/\p{L}/u.test(input.name))
-      errors.push('name');
-    if (!worker && !employeeNumberPattern.test(input.employeeNumber))
-      errors.push('employeeNumber');
-    if (!emailPattern.test(input.email)) errors.push('email');
-    if (!/^\d{8}$/.test(input.phoneNumber)) errors.push('phoneNumber');
-    if (
-      !worker &&
-      (!input.password.trim() ||
-        new TextEncoder().encode(input.password).length > 1024)
-    )
-      errors.push('password');
+    const errors = validateCaseWorker(input, !worker);
 
     setInvalid(errors);
     setFailure(undefined);

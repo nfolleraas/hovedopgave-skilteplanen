@@ -3,8 +3,8 @@
     "title": "Siden blev ikke fundet"
   },
   "navigation": {
-    "skipToContent": "Gå til hovedindhold",
     "skipToMain": "Spring til hovedindhold",
+    "skipToContent": "Gå til hovedindhold",
     "home": "Hjem",
     "application": "Ansøgning",
     "messages": "Beskeder",
@@ -52,6 +52,9 @@
       "no": "Nej",
       "delete": "Slet",
       "updateAction": "Opdater",
+      "deleteForbidden": "Du har ikke tilladelse til at slette denne sagsbehandler.",
+      "deleteConflict": "Sagsbehandleren kan ikke slettes, fordi det ville bryde en regel.",
+      "deleteSave": "Sagsbehandleren kunne ikke slettes. Prøv igen.",
       "deleteTitle": "Slet sagsbehandler",
       "deleteConfirmation": "Er du sikker på, at du vil slette {{name}}?",
       "cancel": "Annuller",
