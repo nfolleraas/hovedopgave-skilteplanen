@@ -46,6 +46,11 @@ bun run db:migrate
 The API build generates Prisma Client automatically. To apply committed
 migrations in another environment, run `bun run db:deploy`.
 
+Run `bun run db:seed` after applying migrations to populate a local development
+database with all 98 municipality choices and a demo application. Municipality
+IDs are fixed across development databases. Contact details and addresses are
+test data.
+
 ## Compile and run the project
 
 ```bash

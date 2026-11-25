@@ -1,8 +1,9 @@
 import type {
   CreateMunicipality,
-  Municipality,
+  Municipality as MunicipalityDetails,
   UpdateMunicipality,
 } from '../types/municipality.types.js';
+import { apiClient } from './client.api';
 
 const API_URL = '/api/municipalities';
 const validationCodes = [
@@ -33,7 +34,7 @@ export class MunicipalityValidationError extends Error {
 export async function getMunicipality(
   id: number,
   signal?: AbortSignal,
-): Promise<Municipality> {
+): Promise<MunicipalityDetails> {
   const response = await fetch(`${API_URL}/${id}`, { signal });
 
   if (!response.ok) {
@@ -51,7 +52,7 @@ export async function getMunicipality(
  */
 export async function createMunicipality(
   data: CreateMunicipality,
-): Promise<Municipality> {
+): Promise<MunicipalityDetails> {
   const response = await fetch(API_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -74,7 +75,7 @@ export async function createMunicipality(
 export async function updateMunicipality(
   id: number,
   data: UpdateMunicipality,
-): Promise<Municipality> {
+): Promise<MunicipalityDetails> {
   const response = await fetch(`${API_URL}/${id}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
@@ -97,4 +98,9 @@ export async function updateMunicipality(
   }
 
   return response.json();
+}
+export type Municipality = Pick<MunicipalityDetails, 'id' | 'name'>;
+
+export async function getMunicipalities() {
+  return apiClient.get<Municipality[]>('/municipalities');
 }

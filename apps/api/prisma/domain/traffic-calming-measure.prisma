@@ -4,6 +4,8 @@ model TrafficCalmingMeasure {
   protectionLevel String
   scope           TrafficCalmingMeasureScope
   description     String
-  applicationId   String                     @unique
+  applicationId   String
   application     Application                @relation(fields: [applicationId], references: [caseNumber])
+
+  @@index([applicationId])
 }

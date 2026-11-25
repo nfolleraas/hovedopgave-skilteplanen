@@ -1,6 +1,7 @@
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../src/generated/prisma/client.js';
 import { seedApplication } from './seeders/application.seeder.js';
+import { seedMunicipalities } from './seeders/municipality.seeder.js';
 import { seedDemoSuperUser } from './seeders/case-worker.seeder.js';
 import { seedMunicipality } from './seeders/municipality.seeder.js';
 

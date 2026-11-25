@@ -57,7 +57,8 @@ Alt, som containeren har brug for, er beskrevet i `.devcontainer/`:
    en prompt, skal du åbne kommandopaletten og køre **Dev Containers: Reopen in Container**.
 3. Vent på builden. Ved første kørsel henter VS Code billederne, installerer bun
    og de fælles værktøjer, starter Postgres og pgweb og kører `bun install`
-   automatisk. Zsh konfigureres med Oh My Zsh, autosuggestions,
+   automatisk. Devcontaineren installerer også Chromium til Playwright og gemmer
+   browseren i et Docker-volume. Zsh konfigureres med Oh My Zsh, autosuggestions,
    syntax-highlighting og temaet `jnrowe`.
 
 Repositet monteres på `/workspaces/hovedopgave-skilteplanen` inde i containeren.
@@ -143,15 +144,13 @@ bun run lint                  # inde i apps/web
 | `dev`        | Vite dev server med HMR            | `nest start --watch`      |
 | `build`      | `tsc -b && vite build`             | `nest build` til `dist/`  |
 | `lint`       | `biome lint .`                     | `biome lint .`            |
-| `test`       | –                                  | Vitest unit tests        |
+| `test`       | Vitest og Playwright              | Vitest unit tests        |
+| `test:unit`  | Enhedstests med Vitest            | –                         |
+| `test:e2e`   | E2E-tests med Playwright          | Vitest e2e tests         |
+| `test:ui`    | Playwright UI                     | –                         |
 | `test:api`   | –                                  | Vitest API-tests          |
-| `test:e2e`   | Playwright E2E-tests               | –                         |
 | `preview`    | serverer produktionsbuild          | –                         |
 | `start:prod` | –                                  | `node dist/main`          |
-
-Backendens unit-tests (`*.spec.ts`) og API-tests (`*.api-spec.ts`) ligger ved
-siden af modulets kode under `apps/api/src/modules/`. Frontendens E2E-tests
-ligger under `apps/web/src/tests/<domæne>/` med én `*.spec.ts` pr. use case.
 
 ### Database
 

@@ -1,4 +1,10 @@
 {
+  "permit": {
+    "documents": {
+      "empty": "Ingen bilag vedhæftet."
+    }
+  },
+
   "municipality": {
     "create": {
       "address": "Adresse"
