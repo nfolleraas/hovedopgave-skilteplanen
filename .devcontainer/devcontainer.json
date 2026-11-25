@@ -58,7 +58,7 @@
           "source.fixAll.biome": "explicit",
           "source.organizeImports.biome": "explicit",
           "source.action.useSortedAttributes.biome": "explicit"
-        },
+        }
       }
     }
   },
