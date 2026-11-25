@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { Injectable } from '@nestjs/common';
 import type { SupportedApplicationType } from '../../common/application-types.js';
 import {
@@ -41,7 +42,8 @@ const devActors = [
   },
 ];
 
-const caseNumberPrefix: Record<SupportedApplicationType, string> = {
+// Shown in the title, so test applications are easy to tell apart.
+const titlePrefix: Record<SupportedApplicationType, string> = {
   ExcavationPermit: 'DEV-GRAVE',
   RoadUsePermit: 'DEV-ROV',
 };
@@ -64,8 +66,9 @@ export class DevApplicationsService {
   }
 
   async create(type: SupportedApplicationType): Promise<DevApplicationSummary> {
-    const caseNumber = await this.nextCaseNumber(type);
-    const title = `Testansøgning ${caseNumber}`;
+    // Case numbers are UUIDs, like in production.
+    const caseNumber = randomUUID();
+    const title = `Testansøgning ${titlePrefix[type]} ${caseNumber.slice(0, 8)}`;
     // Placeholder period until the period step is saved to the database.
     const start = new Date();
     start.setDate(start.getDate() + 7);
@@ -133,19 +136,5 @@ export class DevApplicationsService {
       status: Status.Draft,
       contactPersonCount: 0,
     };
-  }
-
-  /** The next free number, e.g. DEV-GRAVE-4 when DEV-GRAVE-1..3 exist. */
-  private async nextCaseNumber(
-    type: SupportedApplicationType,
-  ): Promise<string> {
-    const prefix = caseNumberPrefix[type];
-    const existing = await this.repository.getCaseNumbersStartingWith(
-      `${prefix}-`,
-    );
-    const numbers = existing
-      .map((caseNumber) => Number(caseNumber.slice(prefix.length + 1)))
-      .filter(Number.isInteger);
-    return `${prefix}-${Math.max(0, ...numbers) + 1}`;
   }
 }

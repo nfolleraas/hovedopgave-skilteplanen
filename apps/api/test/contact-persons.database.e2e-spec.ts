@@ -69,10 +69,10 @@ describe.skipIf(!databaseUrl)('/api/contact-persons (e2e)', () => {
       status = Status.Draft,
     }: { type?: ApplicationType; status?: Status } = {},
   ) {
-    const caseNumber = `E2E-CP-${run}-${suffix}`;
+    const caseNumber = randomUUID();
     const applicant = await prisma.applicant.create({
       data: {
-        name: `E2E ${caseNumber}`,
+        name: `E2E ${run} ${suffix}`,
         type: ApplicantType.Business,
         phoneNumber: '12345678',
         email: `${caseNumber.toLowerCase()}@example.com`,
@@ -84,7 +84,7 @@ describe.skipIf(!databaseUrl)('/api/contact-persons (e2e)', () => {
     await prisma.application.create({
       data: {
         caseNumber,
-        title: `E2E ${caseNumber}`,
+        title: `E2E ${run} ${suffix}`,
         applicantReference: caseNumber,
         type,
         status,
@@ -304,7 +304,7 @@ describe.skipIf(!databaseUrl)('/api/contact-persons (e2e)', () => {
   it('rejects a missing application', async () => {
     const response = await request(app.getHttpServer())
       .get('/api/contact-persons')
-      .query({ applicationId: `E2E-CP-${run}-missing` })
+      .query({ applicationId: randomUUID() })
       .expect(404);
     expect(response.body.code).toBe('APPLICATION_NOT_FOUND');
   });
@@ -313,10 +313,15 @@ describe.skipIf(!databaseUrl)('/api/contact-persons (e2e)', () => {
     const response = await request(app.getHttpServer())
       .get('/api/contact-persons')
       .expect(400);
-    expect(response.body.message).toEqual([
-      'applicationId should not be empty',
-      'applicationId must be a string',
-    ]);
+    expect(response.body.message).toEqual(['applicationId must be a UUID']);
+  });
+
+  it('rejects a list request with an applicationId that is not a UUID', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/api/contact-persons')
+      .query({ applicationId: 'DEV-GRAVE-1' })
+      .expect(400);
+    expect(response.body.message).toEqual(['applicationId must be a UUID']);
   });
 
   it('lists the invalid fields (UC-031 F1, F2, F4)', async () => {

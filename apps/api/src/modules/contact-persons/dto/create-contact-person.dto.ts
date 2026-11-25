@@ -4,6 +4,7 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
+  IsUUID,
   Matches,
   MaxLength,
 } from 'class-validator';
@@ -52,10 +53,10 @@ export class CreateContactPersonDto extends ContactPersonFieldsDto {
   @ApiProperty({
     description:
       'Case number of the application the contact person belongs to.',
-    example: 'DEV-GRAVE-1',
+    example: '3f2b8c1e-9d4a-4b7e-8a61-2c5d0e9f7a13',
+    format: 'uuid',
   })
-  @IsString()
-  @IsNotEmpty()
+  @IsUUID()
   applicationId: string;
 
   @ApiProperty({

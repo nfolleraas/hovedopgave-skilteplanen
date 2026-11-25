@@ -21,16 +21,8 @@ export class DevApplicationsRepository {
         status: true,
         _count: { select: { contactPersons: true } },
       },
-      orderBy: { caseNumber: 'asc' },
+      orderBy: { title: 'asc' },
     });
-  }
-
-  async getCaseNumbersStartingWith(prefix: string): Promise<string[]> {
-    const applications = await this.prisma.application.findMany({
-      where: { caseNumber: { startsWith: prefix } },
-      select: { caseNumber: true },
-    });
-    return applications.map(({ caseNumber }) => caseNumber);
   }
 
   /** Creates the applicant and its application in one transaction. */
