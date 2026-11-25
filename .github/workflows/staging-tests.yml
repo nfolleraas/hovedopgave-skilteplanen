@@ -55,8 +55,8 @@ jobs:
         run: bun run playwright install --with-deps chromium
       - name: Run frontend and database end-to-end tests
         run: |
-          TEST_DATABASE_URL="$DATABASE_URL" bun run --filter api test:e2e .database.e2e-spec.ts
-          bun run --filter web test:e2e
+          TEST_DATABASE_URL="$DATABASE_URL" bun run --cwd apps/api test:api .database.api-spec.ts
+          bun run --cwd apps/api test:e2e
       - name: Run Biome checks
         run: bun run check
 
@@ -84,6 +84,6 @@ jobs:
       - name: Run API unit tests
         working-directory: apps/api
         run: bun run test
-      - name: Run API end-to-end tests
+      - name: Run API api-tests
         working-directory: apps/api
-        run: bun run test:e2e
+        run: bun run test:api
