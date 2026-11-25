@@ -38,6 +38,10 @@ jobs:
         with:
           bun-version: '1.4.4'
       - run: bun install --frozen-lockfile
+      # The web app imports the enums Prisma generates in apps/api.
+      - name: Generate the Prisma client
+        working-directory: apps/api
+        run: bun run db:generate
       - name: Build frontend
         working-directory: apps/web
         run: bun run build
@@ -47,7 +51,6 @@ jobs:
       - name: Prepare the Playwright database
         working-directory: apps/api
         run: |
-          bun run db:generate
           bun run db:deploy
           bun run db:seed
       - name: Install Chromium
