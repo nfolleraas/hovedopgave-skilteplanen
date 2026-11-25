@@ -12,28 +12,23 @@ import {
 import type { ReactElement } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router';
 import { deleteActor as deleteActorRequest } from '../../api/actors.api.js';
 import { DeleteConfirmationDialog } from '../../components/ui/dialogs/delete-confirmation-dialog.js';
 import { reportError } from '../../lib/report-error.js';
 import type { SavedActor } from './actor.types.js';
 import type { ActorsPageContext } from './actors-page.context.js';
-import { useActorsPage } from './actors-page.context.js';
 
 export default function ActorsPage({
   context,
   onCreate,
   onEdit,
 }: {
-  context?: ActorsPageContext;
-  onCreate?: () => void;
-  onEdit?: (actor: SavedActor) => void;
-} = {}): ReactElement {
+  context: ActorsPageContext;
+  onCreate: () => void;
+  onEdit: (actor: SavedActor) => void;
+}): ReactElement {
   const { t } = useTranslation();
-  const routeContext = useActorsPage();
-  const { actors, setActors, isLoading, loadFailed, retry } =
-    context ?? routeContext;
-  const navigate = useNavigate();
+  const { actors, setActors, isLoading, loadFailed, retry } = context;
   const [expandedActors, setExpandedActors] = useState<Set<string>>(new Set());
   const [actorToDelete, setActorToDelete] = useState<SavedActor | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -180,13 +175,7 @@ export default function ActorsPage({
                   </Button>
                   <Button
                     aria-label={`Opdater ${actor.name}`}
-                    onClick={() =>
-                      onEdit
-                        ? onEdit(actor)
-                        : navigate(
-                            `actors/${encodeURIComponent(actor.uuid)}/edit`,
-                          )
-                    }
+                    onClick={() => onEdit(actor)}
                     sx={{
                       flexShrink: 0,
                       minWidth: 44,
@@ -337,7 +326,7 @@ export default function ActorsPage({
         >
           <Button
             disabled={isLoading || loadFailed}
-            onClick={onCreate ?? (() => navigate('actors/create'))}
+            onClick={onCreate}
             ref={createButton}
             sx={{ borderRadius: 1, px: 2.5 }}
             variant="contained"

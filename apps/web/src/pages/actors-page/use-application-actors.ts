@@ -16,21 +16,24 @@ export function useApplicationActors(caseNumber: string): ActorsPageContext {
     const controller = new AbortController();
     setIsLoading(true);
     setLoadFailed(false);
-    void getActors(controller.signal, caseNumber).then(
-      (saved) => {
+    async function loadActors(): Promise<void> {
+      try {
+        const saved = await getActors(controller.signal, caseNumber);
         if (!controller.signal.aborted) {
           setActors(saved);
-          setIsLoading(false);
         }
-      },
-      (error: unknown) => {
+      } catch (error: unknown) {
         if (!controller.signal.aborted) {
           reportError('Loading application actors failed', error);
           setLoadFailed(true);
+        }
+      } finally {
+        if (!controller.signal.aborted) {
           setIsLoading(false);
         }
-      },
-    );
+      }
+    }
+    void loadActors();
     return () => controller.abort();
   }, [caseNumber, attempt]);
 
@@ -40,7 +43,6 @@ export function useApplicationActors(caseNumber: string): ActorsPageContext {
     isLoading,
     loadFailed,
     retry: () => setAttempt((current) => current + 1),
-    cancel: () => {},
     createActor: async (_caseNumber, values) => {
       const saved = await createActor(caseNumber, values);
       setActors((current) => [...current, saved]);

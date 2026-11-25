@@ -10,7 +10,6 @@ export const routes = {
   home: '/',
   application: '/ansoegning',
   createRoadPermit: '/ansoegning/opret-vejtilladelse',
-  selectedApplication: '/ansoegning/:caseNumber',
   contacts: '/kontaktpersoner',
   messages: '/beskeder',
   login: '/login',

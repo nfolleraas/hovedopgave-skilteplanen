@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, type Page, test } from '@playwright/test';
 import type { SavedActor } from '../src/pages/actors-page/actor.types.js';
 
 const actor: SavedActor = {
@@ -19,16 +19,53 @@ const actor: SavedActor = {
   contactPersons: [],
 };
 
+async function openActorStep(page: Page): Promise<void> {
+  await expect(
+    page.getByRole('heading', { name: 'Kommune & titel', exact: true }),
+  ).toBeVisible();
+  const steps = page.getByRole('navigation', { name: 'Ansøgningens trin' });
+  if (!(await steps.isVisible())) {
+    await page.getByRole('button', { name: 'Vis trin', exact: true }).click();
+  }
+  await steps.getByRole('button', { name: 'Aktør', exact: true }).click();
+  await expect(
+    page.getByRole('heading', { name: 'Aktør', exact: true }),
+  ).toBeVisible();
+}
+
+/** Starts a real application draft before opening its embedded actor step. */
+async function startApplication(page: Page): Promise<string> {
+  await page.goto('/');
+  await page
+    .getByRole('navigation', { name: 'Hovednavigation' })
+    .getByRole('link', { name: 'Ansøgning', exact: true })
+    .click();
+  await expect(page).toHaveURL('/ansoegning');
+  await page
+    .getByRole('button', {
+      name: 'Opret tilladelse til råden over vej',
+      exact: true,
+    })
+    .click();
+  await expect(page).toHaveURL(/\/ansoegning\/opret-vejtilladelse\?draft=.+/);
+  const caseNumber = new URL(page.url()).searchParams.get('draft');
+  if (!caseNumber) throw new Error('Application draft has no case number.');
+  await openActorStep(page);
+  return caseNumber;
+}
+
 test.beforeEach(async ({ page }) => {
-  await page.route('**/api/actors', (route) =>
+  await page.route('**/api/actors?*', (route) =>
     route.fulfill({ json: [actor] }),
   );
 });
 
 test('navigation opens actors and expands their details', async ({ page }) => {
-  await page.goto('/');
-  await page.getByRole('tab', { name: 'Ansøgning', exact: true }).click();
-  await expect(page).toHaveURL('/ansoegning');
+  const actorRequest = page.waitForRequest('**/api/actors?*');
+  const caseNumber = await startApplication(page);
+  expect(
+    new URL((await actorRequest).url()).searchParams.get('caseNumber'),
+  ).toBe(caseNumber);
   const toggle = page.getByRole('button', { name: actor.name, exact: true });
   await expect(toggle).toHaveAttribute('aria-expanded', 'false');
   await toggle.click();
@@ -39,32 +76,132 @@ test('navigation opens actors and expands their details', async ({ page }) => {
   await expect(page.getByText(actor.email, { exact: true })).toBeHidden();
 });
 
-test('empty list allows creation, validates input, and cancels to selected application', async ({
+test('empty list allows creation, validates input, and cancels within the actor step', async ({
   page,
 }) => {
-  await page.route('**/api/actors', (route) => route.fulfill({ json: [] }));
-  await page.goto('/ansoegning/DEMO-2026-0001');
+  await page.route('**/api/actors?*', (route) => route.fulfill({ json: [] }));
+  await startApplication(page);
   await expect(
     page.getByText('Der er endnu ingen aktører på ansøgningen.'),
   ).toBeVisible();
   await page.getByRole('button', { name: 'Opret aktør', exact: true }).click();
-  await expect(page).toHaveURL('/ansoegning/DEMO-2026-0001/actors/create');
+  await expect(page.getByRole('dialog', { name: 'Opret aktør' })).toBeVisible();
   await page.getByRole('button', { name: 'Gem aktør', exact: true }).click();
   await expect(page.getByText('Vælg en rolle.', { exact: true })).toBeVisible();
   await expect(page.getByRole('combobox', { name: 'Rolle' })).toBeFocused();
   await page.getByRole('button', { name: 'Annuller', exact: true }).click();
-  await expect(page).toHaveURL('/ansoegning/DEMO-2026-0001');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(
+    page.getByRole('heading', { name: 'Aktør', exact: true }),
+  ).toBeVisible();
+});
+
+test('creates an actor for the current application without leaving its step', async ({
+  page,
+}) => {
+  await page.route('**/api/actors?*', (route) => route.fulfill({ json: [] }));
+  await page.route('**/address-lookup/husnumre/soeg?*', (route) =>
+    route.fulfill({
+      json: {
+        status: 'ok',
+        fund: [
+          {
+            type: 'husnummer',
+            id: actor.address.uuid,
+            titel: 'Vestergade 10, 5000 Odense C',
+          },
+        ],
+      },
+    }),
+  );
+  await page.route(
+    `**/address-lookup/husnumre/${actor.address.uuid}`,
+    (route) =>
+      route.fulfill({
+        json: {
+          status: 'ok',
+          husnummer: {
+            status: '3',
+            vejnavn: actor.address.street,
+            husnummertekst: actor.address.houseNumber,
+            postnummer: {
+              postnr: actor.address.postalCode,
+              navn: actor.address.city,
+            },
+          },
+        },
+      }),
+  );
+  const caseNumber = await startApplication(page);
+  const applicationURL = page.url();
+  await page.route('**/api/actors', async (route) => {
+    expect(route.request().method()).toBe('POST');
+    expect(route.request().postDataJSON()).toMatchObject({
+      applicationCaseNumber: caseNumber,
+      role: actor.role,
+      name: actor.name,
+      email: actor.email,
+      phoneNumber: actor.phoneNumber,
+    });
+    await route.fulfill({ status: 201, json: actor });
+  });
+  await page.getByRole('button', { name: 'Opret aktør', exact: true }).click();
+  const editor = page.getByRole('dialog', { name: 'Opret aktør' });
+  await editor.getByRole('combobox', { name: 'Rolle' }).click();
+  await page.getByRole('option', { name: 'Privat', exact: true }).click();
+  await editor
+    .getByRole('textbox', { name: 'Navn', exact: false })
+    .fill(actor.name);
+  await editor
+    .getByRole('textbox', { name: 'Telefonnummer' })
+    .fill(actor.phoneNumber);
+  await editor
+    .getByRole('textbox', { name: 'E-mail', exact: false })
+    .fill(actor.email);
+  await editor
+    .getByRole('combobox', { name: 'Adresse', exact: false })
+    .fill('Vestergade');
+  const lookup = page.waitForResponse(
+    `**/address-lookup/husnumre/${actor.address.uuid}`,
+  );
+  await page
+    .getByRole('option', { name: 'Vestergade 10, 5000 Odense C' })
+    .click();
+  await lookup;
+  await editor.getByRole('button', { name: 'Gem aktør', exact: true }).click();
+  await expect(editor).toHaveCount(0);
+  await expect(
+    page.getByRole('button', { name: actor.name, exact: true }),
+  ).toBeVisible();
+  await expect(page).toHaveURL(applicationURL);
+});
+
+test('placeholder application routes are no longer available', async ({
+  page,
+}) => {
+  for (const path of [
+    '/ansoegning/legacy-case',
+    '/ansoegning/legacy-case/actors/create',
+    `/ansoegning/legacy-case/actors/${actor.uuid}/edit`,
+    '/ansoegning/actors/create',
+    `/ansoegning/actors/${actor.uuid}/edit`,
+  ]) {
+    await page.goto(path);
+    await expect(
+      page.getByRole('heading', { name: 'Siden blev ikke fundet' }),
+    ).toBeVisible();
+  }
 });
 
 test('failed actor load can be retried', async ({ page }) => {
   let unavailable = true;
-  await page.route('**/api/actors', (route) =>
+  await page.route('**/api/actors?*', (route) =>
     route.fulfill({
       status: unavailable ? 503 : 200,
       json: unavailable ? { message: 'Unavailable' } : [actor],
     }),
   );
-  await page.goto('/ansoegning');
+  await startApplication(page);
   await expect(page.getByRole('alert')).toContainText(
     'Aktørerne kunne ikke hentes.',
   );
@@ -83,7 +220,7 @@ test('edit saves changed details and returns to the actor list', async ({
   page,
 }) => {
   let saved = actor;
-  await page.route('**/api/actors', (route) =>
+  await page.route('**/api/actors?*', (route) =>
     route.fulfill({ json: [saved] }),
   );
   await page.route(`**/api/actors/${actor.uuid}`, async (route) => {
@@ -94,7 +231,7 @@ test('edit saves changed details and returns to the actor list', async ({
     saved = { ...actor, name: payload.name };
     await route.fulfill({ json: saved });
   });
-  await page.goto('/ansoegning');
+  await startApplication(page);
   await page.getByRole('button', { name: `Opdater ${actor.name}` }).click();
   await expect(page.getByRole('combobox', { name: 'Rolle' })).toBeDisabled();
   await page
@@ -103,8 +240,9 @@ test('edit saves changed details and returns to the actor list', async ({
   await page
     .getByRole('button', { name: 'Opdater aktør', exact: true })
     .click();
-  await expect(page).toHaveURL('/ansoegning');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
   await page.reload();
+  await openActorStep(page);
   await expect(
     page.getByRole('button', { name: saved.name, exact: true }),
   ).toBeVisible();
@@ -116,7 +254,7 @@ test('updating a deleted actor asks the user to refresh and keeps their input', 
   await page.route(`**/api/actors/${actor.uuid}`, (route) =>
     route.fulfill({ status: 404, json: { message: 'Actor not found' } }),
   );
-  await page.goto('/ansoegning');
+  await startApplication(page);
   await page.getByRole('button', { name: `Opdater ${actor.name}` }).click();
   const name = page.getByRole('textbox', { name: 'Navn', exact: false });
   await name.fill('Anna Hansen');
@@ -143,7 +281,7 @@ test('business actor saves only after CVR API confirmation', async ({
   };
   let lookupStatus = 404;
   let saves = 0;
-  await page.route('**/api/actors', (route) =>
+  await page.route('**/api/actors?*', (route) =>
     route.fulfill({ json: [businessActor] }),
   );
   await page.route('https://apicvr.dk/api/v1/12345678', (route) =>
@@ -160,7 +298,7 @@ test('business actor saves only after CVR API confirmation', async ({
     saves++;
     await route.fulfill({ json: businessActor });
   });
-  await page.goto('/ansoegning');
+  await startApplication(page);
   await page.getByRole('button', { name: `Opdater ${actor.name}` }).click();
   const save = page.getByRole('button', { name: 'Opdater aktør', exact: true });
   for (const status of [404, 502]) {
@@ -172,7 +310,7 @@ test('business actor saves only after CVR API confirmation', async ({
   }
   lookupStatus = 200;
   await save.click();
-  await expect(page).toHaveURL('/ansoegning');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
   expect(saves).toBe(1);
 });
 
@@ -189,7 +327,7 @@ for (const field of ['email', 'cvrNumber'] as const) {
             cvrNumber: '12345678',
             department: 'Anlæg',
           };
-    await page.route('**/api/actors', (route) =>
+    await page.route('**/api/actors?*', (route) =>
       route.fulfill({ json: [existing] }),
     );
     await page.route('https://apicvr.dk/api/v1/12345678', (route) =>
@@ -202,7 +340,7 @@ for (const field of ['email', 'cvrNumber'] as const) {
     await page.route(`**/api/actors/${actor.uuid}`, (route) =>
       route.fulfill({ status: 409, json: { field, message } }),
     );
-    await page.goto('/ansoegning');
+    await startApplication(page);
     await page.getByRole('button', { name: `Opdater ${actor.name}` }).click();
     await page
       .getByRole('button', { name: 'Opdater aktør', exact: true })
@@ -221,7 +359,7 @@ test('delete requires confirmation and restores focus after success', async ({
   page,
 }) => {
   let deleted = false;
-  await page.route('**/api/actors', (route) =>
+  await page.route('**/api/actors?*', (route) =>
     route.fulfill({ json: deleted ? [] : [actor] }),
   );
   await page.route(`**/api/actors/${actor.uuid}`, async (route) => {
@@ -229,7 +367,7 @@ test('delete requires confirmation and restores focus after success', async ({
     deleted = true;
     await route.fulfill({ status: 204 });
   });
-  await page.goto('/ansoegning');
+  await startApplication(page);
   await page.getByRole('button', { name: `Slet ${actor.name}` }).click();
   const dialog = page.getByRole('dialog', { name: 'Bekræft sletning' });
   await expect(dialog).toContainText(actor.name);
@@ -252,7 +390,7 @@ test('failed deletion keeps the actor and allows retry', async ({ page }) => {
   await page.route(`**/api/actors/${actor.uuid}`, (route) =>
     route.fulfill({ status: 500, json: { message: 'Unavailable' } }),
   );
-  await page.goto('/ansoegning');
+  await startApplication(page);
   await page.getByRole('button', { name: `Slet ${actor.name}` }).click();
   const dialog = page.getByRole('dialog');
   await dialog.getByRole('button', { name: 'Slet', exact: true }).click();

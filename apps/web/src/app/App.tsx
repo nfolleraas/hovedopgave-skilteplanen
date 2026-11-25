@@ -1,7 +1,7 @@
 import { Container, Typography } from '@mui/material';
 import { type ReactElement, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { matchPath, Outlet, useLocation } from 'react-router';
+import { Outlet, useLocation } from 'react-router';
 import Footer from '../components/layout/footer/footer.js';
 import Navbar from '../components/layout/navbar/navbar.js';
 import { routes } from './router.js';
@@ -26,31 +26,20 @@ export default function App(): ReactElement {
   const { t } = useTranslation();
   const { pathname } = useLocation();
   const previousPath = useRef(pathname);
-  const isActorRoute =
-    pathname !== routes.createRoadPermit &&
-    [
-      routes.selectedApplication,
-      `${routes.selectedApplication}/actors/create`,
-      `${routes.selectedApplication}/actors/:uuid/edit`,
-      `${routes.application}/actors/create`,
-      `${routes.application}/actors/:uuid/edit`,
-    ].some((path) => matchPath(path, pathname));
   const hasSkipTarget =
     pathname === routes.home ||
     pathname === routes.application ||
-    pathname === routes.createRoadPermit ||
-    isActorRoute;
+    pathname === routes.createRoadPermit;
 
   useEffect(() => {
-    // Actor layouts manage their own heading focus.
-    if (previousPath.current !== pathname && hasSkipTarget && !isActorRoute) {
+    if (previousPath.current !== pathname && hasSkipTarget) {
       const main = document.getElementById('main-content');
       (
         main?.querySelector<HTMLElement>('[data-route-heading]') ?? main
       )?.focus();
     }
     previousPath.current = pathname;
-  }, [hasSkipTarget, isActorRoute, pathname]);
+  }, [hasSkipTarget, pathname]);
 
   return (
     <>

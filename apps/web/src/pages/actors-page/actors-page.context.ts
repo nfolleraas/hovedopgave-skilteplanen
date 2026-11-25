@@ -1,5 +1,4 @@
 import type { Dispatch, SetStateAction } from 'react';
-import { useOutletContext } from 'react-router';
 import type { ActorSubmission, SavedActor } from './actor.types.js';
 
 export type ActorsPageContext = {
@@ -8,11 +7,6 @@ export type ActorsPageContext = {
   isLoading: boolean;
   loadFailed: boolean;
   retry: () => void;
-  cancel: () => void;
   createActor: (caseNumber: string, actor: ActorSubmission) => Promise<void>;
   updateActor: (uuid: string, actor: ActorSubmission) => Promise<void>;
 };
-
-export function useActorsPage(): ActorsPageContext {
-  return useOutletContext<ActorsPageContext>();
-}

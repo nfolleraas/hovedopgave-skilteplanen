@@ -1,4 +1,5 @@
 import { Dialog, DialogContent, DialogTitle } from '@mui/material';
+import type { ReactElement } from 'react';
 import { useState } from 'react';
 import type { SavedActor } from '../../../actors-page/actor.types.js';
 import { ActorForm } from '../../../actors-page/actor-form.js';
@@ -12,7 +13,7 @@ export function ActorsSection({
 }: {
   caseNumber: string;
   context: ActorsPageContext;
-}) {
+}): ReactElement {
   const [editor, setEditor] = useState<SavedActor | 'create' | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
