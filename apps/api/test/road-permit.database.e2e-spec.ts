@@ -70,5 +70,4 @@ describe.skipIf(!databaseUrl)('Road permit transactions (PostgreSQL)', () => {
       .send({ title: 'Draft is still editable' })
       .expect(200);
   });
-
 });
