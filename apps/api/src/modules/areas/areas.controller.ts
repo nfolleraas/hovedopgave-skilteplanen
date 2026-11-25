@@ -9,7 +9,9 @@ import {
   Patch,
   Post,
   Query,
+  UsePipes,
 } from '@nestjs/common';
+import { dtoValidationPipe } from '../../common/dto-validation.pipe.js';
 import { AreasService } from './areas.service.js';
 import { CreateAreaDto } from './dto/create-area.dto.js';
 import { CreateAreasDto } from './dto/create-areas.dto.js';
@@ -17,6 +19,7 @@ import { FindAreasQueryDto } from './dto/find-areas-query.dto.js';
 import { UpdateAreaDto } from './dto/update-area.dto.js';
 
 @Controller('areas')
+@UsePipes(dtoValidationPipe)
 export class AreasController {
   constructor(private readonly areasService: AreasService) {}
 
