@@ -1,7 +1,10 @@
 import { spawn } from 'node:child_process';
+import { resolve } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
+import { fileURLToPath } from 'node:url';
 
 const apiHealthUrl = 'http://localhost:3000/api/health';
+const repositoryRoot = fileURLToPath(new URL('..', import.meta.url));
 const childProcesses = [];
 let shutdownPromise;
 const mode = process.argv[2] ?? 'all';
@@ -11,11 +14,10 @@ if (!['all', 'api', 'web'].includes(mode)) {
 }
 
 function startWorkspace(workspace) {
-  const childProcess = spawn(
-    'bun',
-    ['run', '--no-orphans', '--filter', workspace, 'dev'],
-    { stdio: 'inherit' },
-  );
+  const childProcess = spawn('bun', ['run', '--no-orphans', 'dev'], {
+    cwd: resolve(repositoryRoot, 'apps', workspace),
+    stdio: 'inherit',
+  });
   const exited = new Promise((resolve) => {
     childProcess.once('exit', (exitCode, signal) => {
       resolve({ exitCode: exitCode ?? 1, signal, workspace });
