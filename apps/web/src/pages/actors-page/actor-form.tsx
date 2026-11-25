@@ -73,9 +73,16 @@ export function ActorForm({
   const [companyNotice, setCompanyNotice] = useState<string>();
   const [addressVersion, setAddressVersion] = useState(0);
   const companyController = useRef<AbortController | null>(null);
+  const isMounted = useRef(false);
   const roleInput = useRef<{ focus: () => void } | null>(null);
 
-  useEffect(() => () => companyController.current?.abort(), []);
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+      companyController.current?.abort();
+    };
+  }, []);
 
   function change(
     field: Exclude<keyof CreateActorValues, 'address' | 'addressId'>,
@@ -173,6 +180,8 @@ export function ActorForm({
     setSaveError(undefined);
     try {
       const cvrError = await validateActorCvr(values);
+      // Dismissing the editor during verification must not trigger a write.
+      if (!isMounted.current) return;
       if (cvrError) {
         setErrors((current) => ({ ...current, cvrNumber: cvrError }));
         return;
