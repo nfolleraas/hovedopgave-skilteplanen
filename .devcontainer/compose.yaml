@@ -22,11 +22,13 @@ services:
         target: /workspaces/hovedopgave-skilteplanen/apps/web/node_modules
         volume:
           nocopy: true
+      - playwright-browsers:/home/node/.cache/ms-playwright
     command: sleep infinity
     env_file:
       - .env
     environment:
       - DATABASE_URL=${DATABASE_URL}
+      - PLAYWRIGHT_BROWSERS_PATH=/home/node/.cache/ms-playwright
     security_opt:
       - seccomp=unconfined
       - apparmor=unconfined
@@ -37,6 +39,8 @@ services:
     container_name: db
     image: postgres:17
     restart: unless-stopped
+    ports:
+      - "127.0.0.1:5432:5432"
     env_file:
       - .env
     environment:
@@ -46,7 +50,7 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -70,3 +74,4 @@ volumes:
   root-node-modules:
   api-node-modules:
   web-node-modules:
+  playwright-browsers:

@@ -8,9 +8,10 @@ This repository is a Danish 5th-semester Datamatiker project for Skilteplanen. I
 - Before implementing or changing web UI components, read and follow the [web stylesheet](docs/web/styles/stylesheet.md), including its component-specific variants.
 - All frontend pages must follow the [accessibility guidelines](docs/web/accessibility.md).
 - Keep changes focused and follow the existing TypeScript, React, NestJS, and Biome conventions.
+- For simple requests, make the smallest possible change that fully satisfies the request. Do not add unrequested features, refactors, abstractions, or broad testing. Keep verification proportional to the change; reserve larger implementations for complicated problems or explicitly requested scope.
 - Run commands from the repository root unless an app-specific command is needed. Use Bun workspaces; do not introduce another package manager or lockfile.
 - `bun run check` runs Biome checks. `bun run check:fix` writes safe fixes. App scripts and database/container commands are documented in `README.md` and `DEVCONTAINER.md`.
-- API unit and e2e tests are defined in `apps/api`; the web app currently has no test script. Run relevant checks for code changes and report what was run.
+- In `apps/web`, use `bun run test:unit` for Vitest, `bun run test:e2e` for Playwright, `bun run test:ui` for Playwright UI mode, and `bun run test` for both suites. The API test scripts are documented in `README.md`. Run relevant checks for code changes and report what was run.
 - Do not commit secrets, local environment files, generated build output, or dependency directories.
 - For commits, preserve the configured Git author and do not add Codex as an author or co-author, or add attribution trailers, unless explicitly requested.
 - Keep this file short and repository-wide. Put detailed, task-specific procedures in skills or documentation and link them here only when useful.
