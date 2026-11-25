@@ -196,17 +196,45 @@ export const dummyMunicipalities = [
 
 const storageKey = (caseNumber: string) => `application-draft:${caseNumber}`;
 
-/** Reads the draft kept in this browser tab, or an empty draft. */
-export function loadApplicationDraft(caseNumber: string): ApplicationDraft {
+/**
+ * Result of reading a stored draft. `corrupt` and `unavailable` still carry an
+ * empty draft so the form can render, but the caller must tell the user that
+ * their saved data could not be restored.
+ */
+export type LoadedApplicationDraft = {
+  status: 'loaded' | 'new' | 'corrupt' | 'unavailable';
+  draft: ApplicationDraft;
+};
+
+/** Reads the draft kept in this browser tab and reports why it failed, if it did. */
+export function loadApplicationDraft(
+  caseNumber: string,
+): LoadedApplicationDraft {
+  let stored: string | null;
   try {
-    const stored = sessionStorage.getItem(storageKey(caseNumber));
-    if (stored) {
-      return { ...emptyApplicationDraft(), ...JSON.parse(stored) };
-    }
+    stored = sessionStorage.getItem(storageKey(caseNumber));
   } catch {
-    // A broken or blocked storage just starts an empty draft.
+    // Storage is blocked (private mode, browser settings).
+    return { status: 'unavailable', draft: emptyApplicationDraft() };
   }
-  return emptyApplicationDraft();
+  if (!stored) return { status: 'new', draft: emptyApplicationDraft() };
+
+  try {
+    const parsed: unknown = JSON.parse(stored);
+    if (
+      typeof parsed !== 'object' ||
+      parsed === null ||
+      Array.isArray(parsed)
+    ) {
+      return { status: 'corrupt', draft: emptyApplicationDraft() };
+    }
+    return {
+      status: 'loaded',
+      draft: { ...emptyApplicationDraft(), ...parsed },
+    };
+  } catch {
+    return { status: 'corrupt', draft: emptyApplicationDraft() };
+  }
 }
 
 export function saveApplicationDraft(
