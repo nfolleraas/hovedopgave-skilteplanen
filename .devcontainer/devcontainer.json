@@ -58,12 +58,7 @@
           "source.fixAll.biome": "explicit",
           "source.organizeImports.biome": "explicit",
           "source.action.useSortedAttributes.biome": "explicit"
-        },
-        "terminal.integrated.scrollback": 50000,
-        "chat.agentHost.claudeAgent.enabled": false,
-        "chat.agentHost.codexAgent.enabled": true,
-        "chat.editor.codex.preferAgentHost": true,
-        "chat.agentHost.codexAgent.codexHome": "/home/node/.codex"
+        }
       }
     }
   },

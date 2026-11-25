@@ -18,7 +18,7 @@
     "test:watch": "vitest",
     "test:cov": "vitest run --coverage",
     "test:debug": "vitest --inspect-brk --no-file-parallelism",
-    "test:e2e": "vitest run --config ./vitest.config.e2e.ts",
+    "test:api": "vitest run --config ./vitest.config.api.ts",
     "dev": "NODE_ENV=development nest start --watch",
     "r2:list": "bun src/scripts/list-r2-files.ts",
     "r2:delete": "bun src/scripts/delete-r2-file.ts",
