@@ -15,21 +15,26 @@ change.
 | Low coupling, high cohesion | Keep related behavior together and reduce unnecessary dependencies. |
 | DRY | Reuse shared behavior when it improves clarity; avoid duplicated logic. |
 | KISS | Prefer the simplest design that meets the requirement. |
-| Fail early | Validate inputs and assumptions near the boundary. |
+| Offensive programming | Reject invalid input early and fail visibly when internal contracts are broken. |
 | TypeScript | Use meaningful types and follow the official guidance for declaration files. |
 | Formatting | Follow Biome: spaces, 80-character line width, single quotes, trailing commas. |
 
 ## Comments and documentation
 
-Describe a method's purpose when it is not clear from its name, types, and
-surrounding code. Comment on complex logic to explain intent, reasoning, or a
-non-obvious constraint. Do not comment every line or repeat what the code says.
+Add a descriptive summary comment to every function and method. Include
+relevant parameters and return values in the documentation. Comment on
+complex logic to explain intent, reasoning, or a non-obvious constraint. Do
+not comment every line or repeat what the code says.
 Update or remove comments when behavior changes.
 
 ```ts
-// Keep the selected route when a user refreshes the page.
-function restoreSelectedRoute(savedRoute: string | null): string {
-  return savedRoute ?? '/';
+/**
+ * Calculates the square of a number.
+ * @param value - The number to square
+ * @returns The squared result
+ */
+function square(value: number): number {
+  return value * value;
 }
 ```
 
@@ -54,6 +59,39 @@ function getSignName(sign: Sign | undefined): string {
   return sign.name;
 }
 ```
+
+## Offensive programming
+
+Apply offensive programming when adding or changing code: make contracts and
+assumptions explicit, and fail early when they are violated. Expose programming
+errors so they can be diagnosed and fixed instead of hiding them behind silent
+fallbacks, default values, or catch blocks that continue with invalid state.
+
+Validate untrusted input at API, UI, and external-service boundaries. Inside
+the application, rely on validated contracts rather than repeating the same
+validation at every layer. Use strict types and explicit guards or assertions
+for internal invariants that TypeScript cannot guarantee at runtime. Check
+preconditions before performing writes or other side effects.
+
+Distinguish expected failures from broken internal contracts. Handle expected
+cases, such as a requested record not existing, with an explicit result or an
+appropriate application error. Throw a descriptive error for impossible
+internal state and let it reach the error-handling boundary. Preserve the cause
+when translating errors, and keep internal details out of user-facing responses.
+
+```ts
+function requireSavedSignId(sign: { id: string | null }): string {
+  if (sign.id === null) {
+    throw new Error('Invariant violated: a saved sign must have an ID.');
+  }
+
+  return sign.id;
+}
+```
+
+Do not return an empty ID or invent a replacement when this invariant fails.
+Fix the code that produced the invalid state. When adding or changing an
+invariant, test that violations fail visibly before side effects occur.
 
 ## Responsibility and dependencies
 
