@@ -2,6 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { type Actor, Prisma } from '../../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 
+type ActorWithDetails = Prisma.ActorGetPayload<{
+  include: { address: true; contactPersons: true };
+}>;
+
 @Injectable()
 export class ActorsRepository {
   private client: Pick<PrismaService, 'actor'>;
@@ -45,7 +49,7 @@ export class ActorsRepository {
   }
 
   /** @summary Create an actor and return its address and contact persons. */
-  create(data: Prisma.ActorCreateInput) {
+  create(data: Prisma.ActorCreateInput): Promise<ActorWithDetails> {
     return this.client.actor.create({
       data,
       include: { address: true, contactPersons: true },
@@ -53,7 +57,10 @@ export class ActorsRepository {
   }
 
   /** @summary Update an actor, returning null if the actor is missing. */
-  async update(uuid: string, data: Prisma.ActorUpdateInput) {
+  async update(
+    uuid: string,
+    data: Prisma.ActorUpdateInput,
+  ): Promise<ActorWithDetails | null> {
     try {
       return await this.client.actor.update({
         where: { uuid },
@@ -99,7 +106,7 @@ export class ActorsRepository {
   }
 
   /** @summary Find an actor with its related details, returning null if absent. */
-  get(uuid: string) {
+  get(uuid: string): Promise<ActorWithDetails | null> {
     return this.client.actor.findUnique({
       where: { uuid },
       include: { address: true, contactPersons: true },
@@ -107,7 +114,7 @@ export class ActorsRepository {
   }
 
   /** @summary List all actors with their addresses and contact persons. */
-  getAll(caseNumber?: string) {
+  getAll(caseNumber?: string): Promise<ActorWithDetails[]> {
     return this.client.actor.findMany({
       ...(caseNumber
         ? { where: { applications: { some: { caseNumber } } } }
@@ -121,7 +128,7 @@ export class ActorsRepository {
     identity: { cvrNumber: string | null; email: string },
     application: Prisma.ApplicationWhereInput,
     excludeUuid?: string,
-  ) {
+  ): Promise<Pick<Actor, 'uuid'> | null> {
     const cvrNumber = identity.cvrNumber?.trim();
     return this.client.actor.findFirst({
       where: {

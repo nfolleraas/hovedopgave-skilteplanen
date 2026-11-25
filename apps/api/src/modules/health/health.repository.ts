@@ -5,7 +5,7 @@ import { PrismaService } from '../prisma/prisma.service.js';
 export class HealthRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  checkDatabase() {
+  checkDatabase(): Promise<unknown> {
     return this.prisma.$queryRaw`SELECT 1`;
   }
 }

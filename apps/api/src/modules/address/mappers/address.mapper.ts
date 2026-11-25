@@ -1,10 +1,13 @@
+import type { Prisma } from '../../../generated/prisma/client.js';
 import type { CreateAddressDto } from '../dto/create-address.dto.js';
 
 /**
  * @summary Map address fields to a trimmed representation
  * shared by creation and matching.
  */
-export function toAddressCreateInput(dto: CreateAddressDto) {
+export function toAddressCreateInput(
+  dto: CreateAddressDto,
+): Prisma.AddressCreateInput {
   return {
     street: dto.street.trim(),
     houseNumber: dto.houseNumber.trim(),

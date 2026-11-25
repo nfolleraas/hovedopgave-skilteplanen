@@ -20,7 +20,7 @@ describe('ApplicationsRepository', () => {
     title: 'Test application',
     applicantReference: 'REF-123',
     type: ApplicationType.RoadUsePermit,
-    trafficChange: TrafficChange.SpeedLimitWorkZone,
+    trafficChanges: [TrafficChange.SpeedLimitWorkZone],
     applicant: {
       create: {
         name: 'Test Applicant',

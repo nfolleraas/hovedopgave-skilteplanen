@@ -6,6 +6,7 @@ import {
   ActorRole,
   ApplicantType,
   ApplicationType,
+  Availability,
   TrafficChange,
 } from '../src/generated/prisma/enums.js';
 import { ActorsModule } from '../src/modules/actors/actors.module.js';
@@ -54,6 +55,13 @@ describe('ActorsService database write', () => {
   };
   const actorIds: string[] = [];
   const addressIds: string[] = [];
+  const placeholderContact = {
+    name: 'PLACEHOLDER kontaktperson',
+    email: 'placeholder@example.com',
+    phoneNumber: '00000000',
+    availability: Availability.AllDay,
+    applicationId: caseNumber,
+  };
   let applicantId: string | undefined;
   let applicantAddressId: string | undefined;
   let applicationCreated = false;
@@ -67,7 +75,7 @@ describe('ActorsService database write', () => {
         title: 'Test application',
         applicantReference: `REF-${marker}`,
         type: ApplicationType.RoadUsePermit,
-        trafficChange: TrafficChange.SpeedLimitWorkZone,
+        trafficChanges: [TrafficChange.SpeedLimitWorkZone],
         applicant: {
           create: {
             name: 'Test Applicant',
@@ -89,6 +97,15 @@ describe('ActorsService database write', () => {
       include: { applicant: true },
     });
     applicationCreated = true;
+    if (
+      application.applicantId === null ||
+      !application.applicant ||
+      application.applicant.addressId === null
+    ) {
+      throw new Error(
+        'Actor test fixture must include an applicant with an address.',
+      );
+    }
     applicantId = application.applicantId;
     applicantAddressId = application.applicant.addressId;
 
@@ -135,7 +152,13 @@ describe('ActorsService database write', () => {
     addressIds.push(saved.address.uuid);
 
     expect(saved.address.street).toBe(dto.address.street);
-    expect(saved.contactPersons).toEqual([]);
+    expect(saved.contactPersons).toEqual([
+      {
+        ...placeholderContact,
+        uuid: expect.any(String),
+        actorId: saved.uuid,
+      },
+    ]);
     expect(
       await prisma.actor.findUnique({
         where: { uuid: saved.uuid },
@@ -160,7 +183,7 @@ describe('ActorsService database write', () => {
       await prisma.contactPerson.count({
         where: { applicationId: caseNumber },
       }),
-    ).toBe(0);
+    ).toBe(2);
     const failedStreet = `Failed street ${marker}`;
     const duplicateIdMapper = Object.assign(new ActorMapper(), {
       toCreateInput: (...args: Parameters<ActorMapper['toCreateInput']>) => ({
@@ -207,7 +230,13 @@ describe('ActorsService database write', () => {
       .expect(201);
     actorIds.push(response.body.uuid);
     addressIds.push(response.body.address.uuid);
-    expect(response.body.contactPersons).toEqual([]);
+    expect(response.body.contactPersons).toEqual([
+      {
+        ...placeholderContact,
+        uuid: expect.any(String),
+        actorId: response.body.uuid,
+      },
+    ]);
 
     const listing = await request(app.getHttpServer())
       .get('/api/actors')

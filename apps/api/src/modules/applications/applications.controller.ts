@@ -16,17 +16,17 @@ export class ApplicationsController {
   constructor(private readonly applicationsService: ApplicationsService) {}
 
   @Post()
-  create(@Body() createApplicationDto: CreateApplicationDto) {
+  create(@Body() createApplicationDto: CreateApplicationDto): string {
     return this.applicationsService.create(createApplicationDto);
   }
 
   @Get()
-  findAll() {
+  findAll(): string {
     return this.applicationsService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id') id: string): string {
     return this.applicationsService.findOne(+id);
   }
 
@@ -34,12 +34,12 @@ export class ApplicationsController {
   update(
     @Param('id') id: string,
     @Body() updateApplicationDto: UpdateApplicationDto,
-  ) {
+  ): string {
     return this.applicationsService.update(+id, updateApplicationDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  remove(@Param('id') id: string): string {
     return this.applicationsService.remove(+id);
   }
 }

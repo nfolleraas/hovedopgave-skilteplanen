@@ -4,23 +4,23 @@ import { UpdateApplicationDto } from './dto/update-application.dto.js';
 
 @Injectable()
 export class ApplicationsService {
-  create(createApplicationDto: CreateApplicationDto) {
+  create(createApplicationDto: CreateApplicationDto): string {
     return 'This action adds a new application';
   }
 
-  findAll() {
+  findAll(): string {
     return `This action returns all applications`;
   }
 
-  findOne(id: number) {
+  findOne(id: number): string {
     return `This action returns a #${id} application`;
   }
 
-  update(id: number, updateApplicationDto: UpdateApplicationDto) {
+  update(id: number, updateApplicationDto: UpdateApplicationDto): string {
     return `This action updates a #${id} application`;
   }
 
-  remove(id: number) {
+  remove(id: number): string {
     return `This action removes a #${id} application`;
   }
 }
