@@ -3,5 +3,12 @@
     "create": {
       "address": "Address"
     }
+  },
+  "caseworker": {
+    "management": {
+      "deleteForbidden": "You are not allowed to delete this caseworker.",
+      "deleteConflict": "The caseworker cannot be deleted because it would violate a rule.",
+      "deleteSave": "Could not delete the caseworker. Try again."
+    }
   }
 }

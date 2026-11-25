@@ -3,5 +3,12 @@
     "create": {
       "address": "Adresse"
     }
+  },
+  "caseworker": {
+    "management": {
+      "deleteForbidden": "Du har ikke tilladelse til at slette denne sagsbehandler.",
+      "deleteConflict": "Sagsbehandleren kan ikke slettes, fordi det ville bryde en regel.",
+      "deleteSave": "Sagsbehandleren kunne ikke slettes. Prøv igen."
+    }
   }
 }
