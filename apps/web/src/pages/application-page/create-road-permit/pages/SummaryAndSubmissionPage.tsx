@@ -1,5 +1,4 @@
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
-import DeleteIcon from '@mui/icons-material/Delete';
 import {
   Alert,
   Box,
@@ -12,13 +11,6 @@ import {
   Divider,
   FormControlLabel,
   FormHelperText,
-  IconButton,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Typography,
   useMediaQuery,
 } from '@mui/material';
@@ -26,6 +18,8 @@ import { alpha } from '@mui/material/styles';
 import { type ReactNode, useEffect, useId, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { visuallyHidden } from '../../../../components/ui/visuallyHidden';
+import DocumentsTable from '../../../documents-page/components/documents-table';
+import type { DocumentsState } from '../../../documents-page/hooks/use-documents';
 import type {
   CompanyInformation,
   ContactInformation,
@@ -55,7 +49,7 @@ type SummaryAndSubmissionPageProps = {
   contactInformation: ContactInformation;
   roadMarking: RoadMarkingDetails;
   applicant: CompanyInformation;
-  documentToUpload: any;
+  documentsState: DocumentsState;
   confirmed: boolean;
   confirmationError?: string;
   validationErrors?: {
@@ -219,7 +213,7 @@ export function SummaryAndSubmissionPage({
   roadMarking,
   applicant,
   confirmed,
-  documentToUpload,
+  documentsState,
   confirmationError,
   validationErrors,
   submissionError,
@@ -432,10 +426,10 @@ export function SummaryAndSubmissionPage({
               cells: [
                 measure.type,
                 trafficMeasures[measure.type]?.protection ??
-                measure.protectionLevel,
+                  measure.protectionLevel,
                 trafficMeasures[measure.type]?.scope ?? measure.scope,
                 trafficMeasures[measure.type]?.description ??
-                measure.description,
+                  measure.description,
               ],
             }))}
           />
@@ -447,33 +441,7 @@ export function SummaryAndSubmissionPage({
       </SummarySection>
       <Divider />
       <SummarySection title={t('documents.title')}>
-        <TableContainer>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Navn</TableCell>
-                <TableCell>Type</TableCell>
-                <TableCell>Dato</TableCell>
-                <TableCell></TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              <TableRow>
-                <TableCell>{documentToUpload.name}</TableCell>
-                <TableCell>{documentToUpload.DocumentType}</TableCell>
-                <TableCell>{documentToUpload.DateForUpload}</TableCell>
-                <TableCell>
-                  <IconButton
-                    aria-label={t('permit.actions.remove')}
-                    type="button"
-                  >
-                    <DeleteIcon />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <DocumentsTable documentsState={documentsState} headingLevel="h4" />
       </SummarySection>
       <Divider />
       <SummarySection title={t('permit.summary.exampleApplicant')}>

@@ -3,10 +3,10 @@ import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import type { App } from 'supertest/types.js';
 import { AppModule } from '../src/app.module.js';
-import { Status } from '../src/generated/prisma/enums.js';
+import { DocumentType, Status } from '../src/generated/prisma/enums.js';
+import { PrismaService } from '../src/modules/prisma/prisma.service.js';
 import { mapCreateRoadPermit } from '../src/modules/road-permit/mappers/road-permit.mapper.js';
 import { RoadPermitRepository } from '../src/modules/road-permit/road-permit.repository.js';
-import { PrismaService } from '../src/prisma.service.js';
 import { roadPermitSubmission } from './fixtures/road-permit.js';
 
 // This suite writes to PostgreSQL. Use a disposable database with migrations applied.
@@ -69,5 +69,30 @@ describe.skipIf(!databaseUrl)('Road permit transactions (PostgreSQL)', () => {
       .patch(`/api/road-permit/${caseNumber}`)
       .send({ title: 'Draft is still editable' })
       .expect(200);
+  });
+
+  it('preserves documents linked to a draft when it is submitted', async () => {
+    const { caseNumber } = await permits.create();
+    const document = await prisma.document.create({
+      data: {
+        applicationId: caseNumber,
+        documentType: DocumentType.Other,
+        name: 'traffic-plan.pdf',
+        r2ObjectKey: `applications/${caseNumber}/documents/traffic-plan.pdf`,
+        url: `/documents/${caseNumber}/traffic-plan.pdf`,
+      },
+    });
+
+    await permits.submit(caseNumber, mapCreateRoadPermit(roadPermitSubmission));
+
+    await expect(
+      prisma.document.findUniqueOrThrow({ where: { uuid: document.uuid } }),
+    ).resolves.toEqual(document);
+    await expect(
+      prisma.application.findUniqueOrThrow({
+        where: { caseNumber },
+        select: { status: true },
+      }),
+    ).resolves.toEqual({ status: Status.InProgress });
   });
 });

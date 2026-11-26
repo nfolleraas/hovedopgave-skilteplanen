@@ -9,6 +9,9 @@ import userEvent, { type UserEvent } from '@testing-library/user-event';
 import { AxiosError } from 'axios';
 import { createMemoryRouter, Link, RouterProvider } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { apiClient } from '../../src/api/client.api';
+import { uploadDocumentFile } from '../../src/api/document-upload.api';
+import { getDocuments } from '../../src/api/documents.api';
 import { getMunicipalities } from '../../src/api/municipalities.api';
 import {
   createRoadPermitDraft,
@@ -22,6 +25,7 @@ import {
 import { routes } from '../../src/app/router';
 import ApplicationPage from '../../src/pages/application-page';
 import CreateRoadPermitPage from '../../src/pages/application-page/create-road-permit';
+import type { Document } from '../../src/pages/documents-page/document.types';
 import { renderWithTranslations } from '../renderWithTranslations';
 
 vi.mock('../../src/api/roadPermit.api', () => ({
@@ -38,6 +42,18 @@ vi.mock('../../src/api/municipalities.api', () => ({
   getMunicipalities: vi.fn(),
 }));
 
+vi.mock('../../src/api/documents.api', () => ({
+  getDocuments: vi.fn(),
+}));
+
+vi.mock('../../src/api/document-upload.api', () => ({
+  uploadDocumentFile: vi.fn(),
+}));
+
+vi.mock('../../src/api/client.api', () => ({
+  apiClient: { delete: vi.fn() },
+}));
+
 vi.mock('../../src/components/ui/map/DataforsyningenMap', () => ({
   /** Replaces the map so the workflow tests can enter the address manually. */
   DataforsyningenMap: () => null,
@@ -51,7 +67,19 @@ const loadDraft = vi.mocked(getRoadPermitDraft);
 const listDrafts = vi.mocked(listApplicationDrafts);
 const saveDraft = vi.mocked(saveRoadPermitDraft);
 const submitApplication = vi.mocked(submitRoadPermitApplication);
+const loadDocuments = vi.mocked(getDocuments);
+const uploadDocument = vi.mocked(uploadDocumentFile);
+const deleteResource = vi.mocked(apiClient.delete);
 const draftId = 'draft-123';
+
+const existingDocument: Document = {
+  applicationId: draftId,
+  date: '2026-11-20T10:00:00.000Z',
+  documentType: 'Other',
+  name: 'existing-permit.pdf',
+  url: '/previews/existing-permit.pdf',
+  uuid: 'existing-document',
+};
 
 /** Renders the permit form and its redirect destination in a memory router. */
 async function renderPermitFlow(
@@ -187,6 +215,9 @@ describe('Road permit application', () => {
     listDrafts.mockReset().mockResolvedValue([]);
     saveDraft.mockReset().mockResolvedValue(undefined);
     submitApplication.mockReset();
+    loadDocuments.mockReset().mockResolvedValue([]);
+    uploadDocument.mockReset();
+    deleteResource.mockReset().mockResolvedValue(undefined);
     vi.stubGlobal(
       'fetch',
       vi.fn(async () => Response.json({ status: 'ok', fund: [] })),
@@ -713,7 +744,7 @@ describe('Road permit application', () => {
     expect(screen.queryByRole('alert')).toBeNull();
     await next(user);
     expect(
-      screen.getByRole('heading', { name: 'Attachments for the application' }),
+      screen.getByRole('heading', { name: 'Documents and sign plans' }),
     ).toBeTruthy();
   });
 
@@ -866,6 +897,166 @@ describe('Road permit application', () => {
       screen.queryByText('Add at least one material to the list.'),
     ).toBeNull();
     expect(screen.queryByText('Fix the highlighted fields.')).toBeNull();
+  });
+
+  it('shares uploaded and deleted documents between the document step and summary', async () => {
+    const user = userEvent.setup();
+    const uploadedDocuments: Document[] = [];
+    loadDocuments.mockResolvedValueOnce([existingDocument]);
+    uploadDocument.mockImplementation(async (file, applicationId, type) => {
+      const document: Document = {
+        applicationId,
+        date: '2026-11-21T12:00:00.000Z',
+        documentType: type,
+        name: file.name,
+        url: `/previews/${file.name}`,
+        uuid: `uploaded-${type}`,
+      };
+      uploadedDocuments.push(document);
+      return { document, status: 'fulfilled' };
+    });
+    const view = await renderPermitFlow();
+    const { container } = view;
+
+    await user.click(button('Documents and sign plans'));
+    expect(container.querySelectorAll('main')).toHaveLength(1);
+    expect(document.title).toBe('Apply for a road permit | Skilteplanen');
+    expect(loadDocuments).toHaveBeenCalledExactlyOnceWith(draftId);
+    expect(
+      await screen.findByRole('button', {
+        name: 'Preview existing-permit.pdf',
+      }),
+    ).toBeTruthy();
+
+    const documentInput =
+      container.querySelector<HTMLInputElement>('input[type="file"]');
+    if (!documentInput) throw new Error('Document input was not rendered.');
+    await user.upload(
+      documentInput,
+      new File(['permit'], 'work-zone-photo.jpg', { type: 'image/jpeg' }),
+    );
+    expect(
+      await screen.findByRole('button', {
+        name: 'Preview work-zone-photo.jpg',
+      }),
+    ).toBeTruthy();
+
+    await user.click(button('Add signplan'));
+    const signPlanDialogElement = screen.getByRole('dialog', {
+      name: 'Add signplan',
+    });
+    const signPlanDialog = within(signPlanDialogElement);
+    const signPlanInput =
+      signPlanDialogElement.querySelector<HTMLInputElement>(
+        'input[type="file"]',
+      );
+    if (!signPlanInput) throw new Error('Sign-plan input was not rendered.');
+    await user.upload(
+      signPlanInput,
+      new File(['plan'], 'sign-plan.pdf', { type: 'application/pdf' }),
+    );
+    await user.click(
+      signPlanDialog.getByRole('button', { name: 'Close add signplan' }),
+    );
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog', { name: 'Add signplan' })).toBeNull(),
+    );
+
+    await user.click(button('Review & submission'));
+    for (const name of [
+      'existing-permit.pdf',
+      'work-zone-photo.jpg',
+      'sign-plan.pdf',
+    ]) {
+      expect(
+        screen.getByRole('button', { name: `Preview ${name}` }),
+      ).toBeTruthy();
+    }
+
+    await user.click(
+      screen.getByRole('button', { name: 'Preview existing-permit.pdf' }),
+    );
+    const previewDialog = within(
+      screen.getByRole('dialog', {
+        name: /^Preview of existing-permit\.pdf/,
+      }),
+    );
+    await user.click(
+      previewDialog.getByRole('button', { name: 'Close preview' }),
+    );
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('dialog', {
+          name: /^Preview of existing-permit\.pdf/,
+        }),
+      ).toBeNull(),
+    );
+
+    await user.click(
+      screen.getByRole('button', { name: 'Delete work-zone-photo.jpg' }),
+    );
+    const deleteDialog = within(
+      screen.getByRole('dialog', { name: 'Confirm deletion' }),
+    );
+    await user.click(deleteDialog.getByRole('button', { name: 'Delete' }));
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('button', { name: 'Preview work-zone-photo.jpg' }),
+      ).toBeNull(),
+    );
+    expect(deleteResource).toHaveBeenCalledExactlyOnceWith(
+      '/documents/uploaded-Other',
+    );
+
+    await user.click(button('Documents and sign plans'));
+    expect(
+      screen.queryByRole('button', { name: 'Preview work-zone-photo.jpg' }),
+    ).toBeNull();
+    expect(
+      screen.getByRole('button', { name: 'Preview sign-plan.pdf' }),
+    ).toBeTruthy();
+
+    view.unmount();
+    loadDocuments.mockResolvedValueOnce([
+      existingDocument,
+      ...uploadedDocuments.filter(
+        (document) => document.documentType === 'SignPlan',
+      ),
+    ]);
+    await renderPermitFlow();
+    await user.click(button('Documents and sign plans'));
+    expect(
+      await screen.findByRole('button', { name: 'Preview sign-plan.pdf' }),
+    ).toBeTruthy();
+  });
+
+  it('shows document loading, empty, and error states in the summary', async () => {
+    const user = userEvent.setup();
+    let finishLoad: (documents: Document[]) => void = () => {
+      throw new Error('Document load was not started.');
+    };
+    loadDocuments.mockImplementationOnce(
+      () =>
+        new Promise<Document[]>((resolve) => {
+          finishLoad = resolve;
+        }),
+    );
+    const view = await renderPermitFlow();
+
+    await user.click(button('Review & submission'));
+    expect(screen.getByText('Loading documents')).toBeTruthy();
+    await act(async () => finishLoad([]));
+    expect(
+      await screen.findByText('No documents have been uploaded yet.'),
+    ).toBeTruthy();
+
+    view.unmount();
+    loadDocuments.mockRejectedValueOnce(new Error('Unavailable'));
+    await renderPermitFlow();
+    await user.click(button('Review & submission'));
+    expect(
+      await screen.findByText('The documents could not be loaded.'),
+    ).toBeTruthy();
   });
 
   it('requires confirmation and redirects after showing submission success', async () => {

@@ -24,7 +24,8 @@ import {
   MasterDetailGrid,
 } from '../../../components/layout/masterDetail/masterDetail';
 import { visuallyHidden } from '../../../components/ui/visuallyHidden';
-import DocumentsManager from '../../documents-page/components/documents-manager';
+import DocumentsPage from '../../documents-page';
+import { useDocuments } from '../../documents-page/hooks/use-documents';
 import {
   type ContactInformation,
   emptyMaterialDraft,
@@ -206,6 +207,7 @@ function RoadPermitForm({
     trafficPrecautions: [],
     ...draft.roadMarking,
   });
+  const documentsState = useDocuments(caseNumber);
 
   const [confirmed, setConfirmed] = useState(false);
   const currentDraft: RoadPermitDraft = {
@@ -387,7 +389,13 @@ function RoadPermitForm({
     {
       id: 'documents',
       label: t('documents.title'),
-      content: <DocumentsManager applicationId={caseNumber} />,
+      content: (
+        <DocumentsPage
+          applicationId={caseNumber}
+          documentsState={documentsState}
+          listHeadingLevel="h3"
+        />
+      ),
     },
     {
       id: 'summary-and-submission',
@@ -402,7 +410,7 @@ function RoadPermitForm({
           confirmationError={showErrors ? confirmationError : undefined}
           confirmed={confirmed}
           contactInformation={contactInformation}
-          documentToUpload={exampleDocument}
+          documentsState={documentsState}
           materials={materials}
           municipalityName={municipalityName}
           onConfirmedChange={setConfirmed}

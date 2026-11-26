@@ -342,6 +342,10 @@
       "other": "Andet",
       "signPlan": "Skilteplan"
     },
+    "deleteSuccess": "{{name}} er slettet.",
+    "listTitle": "Uploadede dokumenter og skilteplaner",
+    "loading": "Henter dokumenter",
+    "empty": "Der er ikke uploadet dokumenter endnu.",
     "openPreview": "Vis {{name}}",
     "table": {
       "documentType": "Dokumenttype",
@@ -355,11 +359,7 @@
     "loadSuccess_one": "Dokumentlisten er indlæst med 1 dokument.",
     "loadSuccess_other": "Dokumentlisten er indlæst med {{count}} dokumenter.",
     "loadError": "Dokumenterne kunne ikke hentes.",
-    "description": "Upload og administrer de dokumenter og skilteplaner, der kræves til din ansøgning.",
-    "deleteSuccess": "{{name}} er slettet.",
-    "listTitle": "Uploadede dokumenter og skilteplaner",
-    "loading": "Henter dokumenter",
-    "empty": "Der er ikke uploadet dokumenter endnu."
+    "description": "Upload og administrer de dokumenter og skilteplaner, der kræves til din ansøgning."
   },
   "application": {
     "drafts": {

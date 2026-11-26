@@ -342,6 +342,10 @@
       "other": "Other",
       "signPlan": "Sign plan"
     },
+    "deleteSuccess": "{{name}} was deleted.",
+    "listTitle": "Uploaded documents",
+    "loading": "Loading documents",
+    "empty": "No documents have been uploaded yet.",
     "openPreview": "Preview {{name}}",
     "table": {
       "documentType": "Document type",
@@ -355,11 +359,7 @@
     "loadSuccess_one": "The document list loaded with 1 document.",
     "loadSuccess_other": "The document list loaded with {{count}} documents.",
     "loadError": "The documents could not be loaded.",
-    "description": "Upload and manage the documents and sign plans required for your application.",
-    "deleteSuccess": "{{name}} was deleted.",
-    "listTitle": "Uploaded documents",
-    "loading": "Loading documents",
-    "empty": "No documents have been uploaded yet."
+    "description": "Upload and manage the documents and sign plans required for your application."
   },
   "application": {
     "drafts": {

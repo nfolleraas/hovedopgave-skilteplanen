@@ -36,11 +36,6 @@ export const emptyMaterialDraft: MaterialDraft = {
   editingId: null,
 };
 
-export type ApplicationDocument = {
-  id: string;
-  file: File;
-};
-
 export type CompanyInformation = {
   name: string;
   department: string;

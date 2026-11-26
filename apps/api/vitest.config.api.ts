@@ -6,6 +6,6 @@ export default defineConfig({
   test: {
     globals: true,
     root: './',
-    include: ['**/*.api-spec.ts'],
+    include: ['**/*.api-spec.ts', 'test/**/*.e2e-spec.ts'],
   },
 });

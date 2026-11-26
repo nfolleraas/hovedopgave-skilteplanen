@@ -1,85 +1,71 @@
-import { Box, Button, Container, Stack, Typography } from '@mui/material';
-import { useEffect, useRef } from 'react';
+import { Box, Button, Stack, Typography } from '@mui/material';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, Navigate, useSearchParams } from 'react-router';
-import { routes } from '../../app/router.js';
-import DocumentsManager from './components/documents-manager.js';
+import AddSignplanDialog from './components/add-signplan-dialog.js';
+import DocumentDropZone from './components/document-drop-zone.js';
+import DocumentsTable from './components/documents-table.js';
+import type { DocumentsState } from './hooks/use-documents.js';
 
-/** Renders the standalone document-management page for one application. */
-export default function DocumentsPage() {
-  const { i18n, t } = useTranslation();
-  const [searchParams] = useSearchParams();
-  const applicationId = searchParams.get('draft');
-  const pageTitleRef = useRef<HTMLHeadingElement>(null);
-  const language = (i18n.resolvedLanguage ?? i18n.language).startsWith('da')
-    ? 'da'
-    : 'en';
+type DocumentsPageProps = {
+  applicationId: string;
+  documentsState: DocumentsState;
+  listHeadingLevel?: 'h2' | 'h3';
+};
 
-  useEffect(() => {
-    const previousTitle = document.title;
-    document.documentElement.lang = language;
-    document.title = `${t('documents.title')} – ${t('common.brandName')}`;
-    pageTitleRef.current?.focus();
-
-    return () => {
-      document.title = previousTitle;
-    };
-  }, [language, t]);
-
-  if (!applicationId) {
-    return <Navigate replace to={routes.application} />;
-  }
+/** Renders document uploads and the application-scoped document table. */
+export default function DocumentsPage({
+  applicationId,
+  documentsState,
+  listHeadingLevel = 'h2',
+}: DocumentsPageProps) {
+  const { t } = useTranslation();
+  const [isAddSignplanDialogOpen, setIsAddSignplanDialogOpen] = useState(false);
 
   return (
-    <Box component="main" id="main-content" sx={{ display: 'flex' }}>
-      <Container
-        maxWidth="md"
-        sx={{
-          display: 'flex',
-          flex: 1,
-          flexDirection: 'column',
-          py: { xs: 4, sm: 8 },
-        }}
+    <Stack spacing={3}>
+      <Typography color="text.secondary">
+        {t('documents.description')}
+      </Typography>
+
+      <Stack
+        direction={{ xs: 'column', md: 'row' }}
+        spacing={2}
+        sx={{ alignItems: 'stretch' }}
       >
-        <Stack spacing={3}>
-          <Typography
-            component="h1"
-            data-route-heading=""
-            ref={pageTitleRef}
-            sx={{ fontSize: 'clamp(1.75rem, 5vw, 2.125rem)' }}
-            tabIndex={-1}
-            variant="h4"
-          >
-            {t('documents.title')}
-          </Typography>
-
-          <DocumentsManager applicationId={applicationId} />
-        </Stack>
-
-        <Stack
-          aria-label={t('documents.pageNavigation')}
-          component="nav"
-          direction={{ xs: 'column', sm: 'row' }}
-          spacing={2}
+        <Box
           sx={{
-            justifyContent: 'center',
-            mt: 'auto',
-            pt: 3,
+            alignItems: 'center',
+            display: 'flex',
+            flex: 1,
           }}
         >
           <Button
-            color="secondary"
-            component={Link}
-            to={routes.application}
-            variant="contained"
+            fullWidth
+            onClick={() => setIsAddSignplanDialogOpen(true)}
+            variant="outlined"
           >
-            {t('navigation.back')}
+            {t('documents.addSignplan')}
           </Button>
-          <Button component={Link} to={routes.contacts} variant="contained">
-            {t('navigation.next')}
-          </Button>
-        </Stack>
-      </Container>
-    </Box>
+        </Box>
+
+        <DocumentDropZone
+          applicationId={applicationId}
+          documentType="Other"
+          onDocumentsUploaded={documentsState.addDocuments}
+        />
+      </Stack>
+
+      <AddSignplanDialog
+        applicationId={applicationId}
+        onClose={() => setIsAddSignplanDialogOpen(false)}
+        onDocumentsUploaded={documentsState.addDocuments}
+        open={isAddSignplanDialogOpen}
+      />
+
+      <DocumentsTable
+        documentsState={documentsState}
+        headingLevel={listHeadingLevel}
+      />
+    </Stack>
   );
 }
