@@ -34,7 +34,6 @@ describe('SignPlansRepository', () => {
   it('creates a sign plan', async () => {
     const data: Prisma.SignPlanCreateInput = {
       signPlanType: SignPlanType.AttachSpecificMarkingPlan,
-      application: { connect: { caseNumber: 'APP-123' } },
       document: { connect: { uuid: 'document-1' } },
     };
     const result = { documentId: 'document-1' };
@@ -48,8 +47,9 @@ describe('SignPlansRepository', () => {
     const result = { documentId: 'document-1' };
     prisma.signPlan.findUniqueOrThrow.mockResolvedValue(result);
 
-    await expect(repository.getById('document-1')).resolves.toBe(result);
+    await expect(repository.get('document-1')).resolves.toBe(result);
     expect(prisma.signPlan.findUniqueOrThrow).toHaveBeenCalledWith({
+      include: { document: true },
       where: { documentId: 'document-1' },
     });
   });

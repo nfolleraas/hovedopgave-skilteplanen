@@ -7,13 +7,13 @@ describe('SignPlansService', () => {
   let service: SignPlansService;
   let repository: {
     add: ReturnType<typeof vi.fn>;
-    getById: ReturnType<typeof vi.fn>;
+    get: ReturnType<typeof vi.fn>;
   };
 
   beforeEach(async () => {
     repository = {
       add: vi.fn(),
-      getById: vi.fn(),
+      get: vi.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -36,9 +36,9 @@ describe('SignPlansService', () => {
 
   it('gets a sign plan by document uuid', async () => {
     const signPlan = { documentId: 'document-1' };
-    repository.getById.mockResolvedValue(signPlan);
+    repository.get.mockResolvedValue(signPlan);
 
     await expect(service.findOne('document-1')).resolves.toBe(signPlan);
-    expect(repository.getById).toHaveBeenCalledWith('document-1');
+    expect(repository.get).toHaveBeenCalledWith('document-1');
   });
 });
