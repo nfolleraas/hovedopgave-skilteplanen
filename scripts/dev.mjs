@@ -11,11 +11,15 @@ if (!['all', 'api', 'web'].includes(mode)) {
 }
 
 function startWorkspace(workspace) {
-  const childProcess = spawn(
-    'bun',
-    ['run', '--no-orphans', '--filter', workspace, 'dev'],
-    { stdio: 'inherit' },
-  );
+  const workspaceDirectory = new URL(`../apps/${workspace}/`, import.meta.url);
+  const bunArguments =
+    workspace === 'api'
+      ? ['--env-file=.env', 'run', '--no-orphans', 'dev']
+      : ['run', '--no-orphans', 'dev'];
+  const childProcess = spawn('bun', bunArguments, {
+    cwd: workspaceDirectory,
+    stdio: 'inherit',
+  });
   const exited = new Promise((resolve) => {
     childProcess.once('exit', (exitCode, signal) => {
       resolve({ exitCode: exitCode ?? 1, signal, workspace });
