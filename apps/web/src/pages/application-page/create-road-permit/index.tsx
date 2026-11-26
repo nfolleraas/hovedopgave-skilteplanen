@@ -51,6 +51,7 @@ import {
   hasMaterialDraft,
   validateContactInformation,
   validateMunicipalityAndTitle,
+  validateRequiredSignPlan,
   validateUsageDetails,
 } from './validation';
 
@@ -304,6 +305,9 @@ function RoadPermitForm({
   const confirmationError = confirmed
     ? undefined
     : t('permit.errors.confirmation');
+  const signPlanErrors = getValidationErrors(
+    validateRequiredSignPlan(documentsState.documents, t),
+  );
 
   const categories: DetailItem[] = [
     {
@@ -389,6 +393,7 @@ function RoadPermitForm({
     {
       id: 'documents',
       label: t('documents.title'),
+      validationErrors: signPlanErrors,
       content: (
         <DocumentsPage
           applicationId={caseNumber}

@@ -1,6 +1,7 @@
 import type { TFunction } from 'i18next';
 import type { Municipality } from '../../../api/municipalities.api';
 import { validateRoadLocation } from '../../../utils/validateRoadLocation';
+import type { Document } from '../../documents-page/document.types';
 import type {
   ContactInformation,
   MaterialDraft,
@@ -66,5 +67,14 @@ export function validateContactInformation(
     name: value.name.trim() ? undefined : t('permit.errors.contactName'),
     phone: validPhone ? undefined : t('permit.errors.contactPhone'),
     email: validEmail ? undefined : t('permit.errors.contactEmail'),
+  };
+}
+
+/** Requires at least one sign plan; other uploaded documents are optional. */
+export function validateRequiredSignPlan(documents: Document[], t: TFunction) {
+  return {
+    signPlan: documents.some(({ documentType }) => documentType === 'SignPlan')
+      ? undefined
+      : t('permit.errors.signPlanRequired'),
   };
 }
