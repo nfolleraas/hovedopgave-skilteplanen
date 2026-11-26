@@ -10,7 +10,7 @@ model Application {
   trafficCalmingMeasures TrafficCalmingMeasure[]
   documents              Document[]
   areas                  Area[]
-  trafficChanges         TrafficChange[]          @default([])
+  trafficChanges         TrafficChange[]         @default([])
   accessWays             String?
   applicantId            String?
   applicant              Applicant?              @relation(fields: [applicantId], references: [uuid], onDelete: Restrict)

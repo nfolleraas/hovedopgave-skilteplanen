@@ -6,6 +6,6 @@ model Document {
   r2ObjectKey   String
   date          DateTime     @default(now())
   applicationId String
-  application   Application  @relation(fields: [applicationId], references: [caseNumber])
+  application   Application  @relation(fields: [applicationId], references: [caseNumber], onDelete: Cascade)
   signPlan      SignPlan?
 }
