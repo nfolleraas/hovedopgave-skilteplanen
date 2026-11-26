@@ -15,7 +15,7 @@ import {
   TableSortLabel,
   Typography,
 } from '@mui/material';
-import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { type JSX, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import DeleteConfirmationDialog from '../../../components/ui/dialogs/delete-confirmation-dialog.js';
 import UrlPreviewDialog from '../../../components/ui/dialogs/url-preview-dialog.js';
@@ -45,7 +45,7 @@ type SortDirection = 'asc' | 'desc';
 export default function DocumentsTable({
   documentsState,
   headingLevel = 'h2',
-}: DocumentsTableProps) {
+}: DocumentsTableProps): JSX.Element {
   const { i18n, t } = useTranslation();
   const { documents, error, isLoading, loadStatusMessage, removeDocument } =
     documentsState;

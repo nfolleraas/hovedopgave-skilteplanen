@@ -1,5 +1,5 @@
 import { Box, Button, Stack, Typography } from '@mui/material';
-import { useState } from 'react';
+import { type JSX, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import AddSignplanDialog from './components/add-signplan-dialog.js';
 import DocumentDropZone from './components/document-drop-zone.js';
@@ -17,7 +17,7 @@ export default function DocumentsPage({
   applicationId,
   documentsState,
   listHeadingLevel = 'h2',
-}: DocumentsPageProps) {
+}: DocumentsPageProps): JSX.Element {
   const { t } = useTranslation();
   const [isAddSignplanDialogOpen, setIsAddSignplanDialogOpen] = useState(false);
 

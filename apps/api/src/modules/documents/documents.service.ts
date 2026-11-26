@@ -4,6 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import type { Document } from '../../generated/prisma/client.js';
 import { DocumentType } from '../../generated/prisma/enums.js';
 import { getAllowedDocumentFileExtension } from '../../utils/allowed-document-file-extensions.js';
 import { R2Service } from '../r2/r2.service.js';
@@ -24,7 +25,10 @@ export class DocumentsService {
    * @param file - The uploaded document file
    * @returns The newly created document
    */
-  async create(dto: CreateDocumentDto, file: Express.Multer.File) {
+  async create(
+    dto: CreateDocumentDto,
+    file: Express.Multer.File,
+  ): Promise<Document> {
     if (!file) throw new BadRequestException('A document file is required.');
 
     const extension = getAllowedDocumentFileExtension(
@@ -83,7 +87,7 @@ export class DocumentsService {
    * @param applicationId - The application whose documents should be returned
    * @returns The application's stored documents
    */
-  async findAll(applicationId?: string) {
+  async findAll(applicationId?: string): Promise<Document[]> {
     const normalizedApplicationId = applicationId?.trim();
     if (!normalizedApplicationId) {
       throw new BadRequestException('An application ID is required.');
@@ -97,7 +101,7 @@ export class DocumentsService {
    * @param uuid - The document identifier
    * @returns The matching document
    */
-  async findOne(uuid: string) {
+  async findOne(uuid: string): Promise<Document> {
     const document = await this.documentsRepository.get(uuid);
 
     if (!document) {
@@ -112,7 +116,7 @@ export class DocumentsService {
    * @param uuid - The document identifier
    * @returns A promise that resolves when the removal attempt is complete
    */
-  async remove(uuid: string) {
+  async remove(uuid: string): Promise<void> {
     try {
       const document = await this.documentsRepository.delete(uuid);
 

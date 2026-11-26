@@ -16,6 +16,7 @@ import {
   ApiExtraModels,
   getSchemaPath,
 } from '@nestjs/swagger';
+import type { Document } from '../../generated/prisma/client.js';
 import { DocumentsService } from './documents.service.js';
 import { CreateDocumentDto } from './dto/create-document.dto.js';
 
@@ -53,7 +54,7 @@ export class DocumentsController {
   async create(
     @UploadedFile() file: Express.Multer.File,
     @Body() createDocumentDto: CreateDocumentDto,
-  ) {
+  ): Promise<Document> {
     return await this.documentsService.create(createDocumentDto, file);
   }
 
@@ -63,7 +64,7 @@ export class DocumentsController {
    * @returns The application's stored documents
    */
   @Get()
-  async findAll(@Query('applicationId') applicationId?: string) {
+  async findAll(@Query('applicationId') applicationId?: string): Promise<Document[]> {
     return await this.documentsService.findAll(applicationId);
   }
 
@@ -73,7 +74,7 @@ export class DocumentsController {
    * @returns The matching document
    */
   @Get(':uuid')
-  async findOne(@Param('uuid') uuid: string) {
+  async findOne(@Param('uuid') uuid: string): Promise<Document> {
     return await this.documentsService.findOne(uuid);
   }
 
@@ -83,7 +84,7 @@ export class DocumentsController {
    * @returns A promise that resolves when the document has been removed
    */
   @Delete(':uuid')
-  async remove(@Param('uuid') uuid: string) {
+  async remove(@Param('uuid') uuid: string): Promise<void> {
     return await this.documentsService.remove(uuid);
   }
 }

@@ -4,7 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { DocumentType } from '../../generated/prisma/client.js';
+import { DocumentType, SignPlan } from '../../generated/prisma/client.js';
 import { getAllowedDocumentFileExtension } from '../../utils/allowed-document-file-extensions.js';
 import { R2Service } from '../r2/r2.service.js';
 import { CreateSignPlanDto } from './dto/create-sign-plan.dto.js';
@@ -24,7 +24,10 @@ export class SignPlansService {
    * @param file - The uploaded sign plan file
    * @returns The newly created sign plan
    */
-  async create(dto: CreateSignPlanDto, file: Express.Multer.File) {
+  async create(
+    dto: CreateSignPlanDto,
+    file: Express.Multer.File,
+  ): Promise<SignPlan> {
     if (!file) throw new BadRequestException('A document file is required.');
 
     const extension = getAllowedDocumentFileExtension(
@@ -83,7 +86,7 @@ export class SignPlansService {
    * @param uuid - The related document identifier
    * @returns The matching sign plan
    */
-  async findOne(uuid: string) {
+  async findOne(uuid: string): Promise<SignPlan> {
     const signPlan = await this.signPlanRepository.get(uuid);
 
     if (!signPlan) {

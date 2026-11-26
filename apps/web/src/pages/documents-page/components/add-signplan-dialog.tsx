@@ -14,7 +14,7 @@ import {
   useMediaQuery,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { useId } from 'react';
+import { type JSX, useId } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Document } from '../document.types.js';
 import DocumentDropZone from './document-drop-zone.js';
@@ -36,7 +36,7 @@ export default function AddSignplanDialog({
   onClose,
   onDocumentsUploaded,
   open,
-}: AddSignplanDialogProps) {
+}: AddSignplanDialogProps): JSX.Element {
   const { t } = useTranslation();
   const theme = useTheme();
   const descriptionId = useId();

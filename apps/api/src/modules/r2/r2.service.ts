@@ -1,8 +1,12 @@
 import {
   DeleteObjectCommand,
+  DeleteObjectCommandOutput,
   GetObjectCommand,
+  GetObjectCommandOutput,
   ListObjectsV2Command,
+  ListObjectsV2CommandOutput,
   PutObjectCommand,
+  PutObjectCommandOutput,
   S3Client,
 } from '@aws-sdk/client-s3';
 import { Injectable } from '@nestjs/common';
@@ -33,7 +37,11 @@ export class R2Service {
    * @param contentType - The optional media type of the object
    * @returns The R2 upload response
    */
-  async upload(key: string, body: Buffer, contentType?: string) {
+  async upload(
+    key: string,
+    body: Buffer,
+    contentType?: string,
+  ): Promise<PutObjectCommandOutput> {
     return await this.client.send(
       new PutObjectCommand({
         Bucket: this.bucket,
@@ -49,7 +57,7 @@ export class R2Service {
    * @param key - The object key to retrieve
    * @returns The R2 download response
    */
-  async download(key: string) {
+  async download(key: string): Promise<GetObjectCommandOutput> {
     return await this.client.send(
       new GetObjectCommand({
         Bucket: this.bucket,
@@ -64,7 +72,10 @@ export class R2Service {
    * @param continuationToken - The optional token for the next result page
    * @returns A page of matching R2 objects
    */
-  async list(prefix?: string, continuationToken?: string) {
+  async list(
+    prefix?: string,
+    continuationToken?: string,
+  ): Promise<ListObjectsV2CommandOutput> {
     return await this.client.send(
       new ListObjectsV2Command({
         Bucket: this.bucket,
@@ -79,7 +90,7 @@ export class R2Service {
    * @param key - The object key to delete
    * @returns The R2 deletion response
    */
-  async delete(key: string) {
+  async delete(key: string): Promise<DeleteObjectCommandOutput> {
     return await this.client.send(
       new DeleteObjectCommand({
         Bucket: this.bucket,

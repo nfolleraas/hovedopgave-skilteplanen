@@ -8,7 +8,7 @@ import {
   Stack,
   Typography,
 } from '@mui/material';
-import type { ChangeEvent } from 'react';
+import type { ChangeEvent, JSX } from 'react';
 import { useId, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { acceptedFileTypes } from '../document.constants.js';
@@ -31,7 +31,7 @@ export default function DocumentDropZone({
   applicationId,
   documentType,
   onDocumentsUploaded,
-}: DocumentDropZoneProps) {
+}: DocumentDropZoneProps): JSX.Element {
   const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mobileSupportedFileTypesId = useId();

@@ -14,6 +14,7 @@ import {
   ApiExtraModels,
   getSchemaPath,
 } from '@nestjs/swagger';
+import { SignPlan } from '../../generated/prisma/client.js';
 import { CreateSignPlanDto } from './dto/create-sign-plan.dto.js';
 import { SignPlansService } from './sign-plans.service.js';
 
@@ -51,7 +52,7 @@ export class SignPlansController {
   async create(
     @UploadedFile() file: Express.Multer.File,
     @Body() createSignPlanDto: CreateSignPlanDto,
-  ) {
+  ): Promise<SignPlan> {
     return await this.signPlansService.create(createSignPlanDto, file);
   }
 
@@ -61,7 +62,7 @@ export class SignPlansController {
    * @returns The matching sign plan
    */
   @Get(':uuid')
-  async findOne(@Param('uuid') uuid: string) {
+  async findOne(@Param('uuid') uuid: string): Promise<SignPlan> {
     return await this.signPlansService.findOne(uuid);
   }
 }
