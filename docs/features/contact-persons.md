@@ -64,9 +64,9 @@ Reglerne ligger i
   (`CONTACT_PERSON_FIELDS_NOT_ALLOWED`).
 - Aktøren skal være på ansøgningen (`ACTOR_NOT_FOUND`). Ansøgning og aktør
   kan ikke ændres efter oprettelsen.
-- En aktør kan ikke have to kontaktpersoner med præcis de samme oplysninger
-  (navn, tilgængelighed, telefonnummer og e-mail efter trim) på samme
-  ansøgning. Det gælder både ved oprettelse og redigering
+- To kontaktpersoner på samme ansøgning kan ikke have samme telefonnummer
+  eller samme e-mail (efter trim), heller ikke med forskellige navne eller
+  aktører. Det gælder både ved oprettelse og redigering
   (`CONTACT_PERSON_DUPLICATE`, 409).
 - Den sidste kontaktperson på en ansøgning kan ikke slettes
   (`LAST_CONTACT_PERSON`, 400, UC-032 F1). Vil ansøgeren udskifte den, oprettes

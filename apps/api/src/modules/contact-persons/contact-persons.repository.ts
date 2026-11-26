@@ -43,25 +43,18 @@ export class ContactPersonsRepository {
   }
 
   /**
-   * A contact person on the same application and actor with exactly the
-   * same details, if one exists. `excludeUuid` skips the contact person
+   * Another contact person on the same application with the same phone
+   * number or email, if one exists. `excludeUuid` skips the contact person
    * being edited.
    */
   async findDuplicate(
-    fields: Pick<
-      ContactPerson,
-      | 'applicationId'
-      | 'actorId'
-      | 'name'
-      | 'availability'
-      | 'phoneNumber'
-      | 'email'
-    >,
+    fields: Pick<ContactPerson, 'applicationId' | 'phoneNumber' | 'email'>,
     excludeUuid?: string,
   ): Promise<ContactPerson | null> {
     return await this.prisma.contactPerson.findFirst({
       where: {
-        ...fields,
+        applicationId: fields.applicationId,
+        OR: [{ phoneNumber: fields.phoneNumber }, { email: fields.email }],
         ...(excludeUuid ? { uuid: { not: excludeUuid } } : {}),
       },
     });

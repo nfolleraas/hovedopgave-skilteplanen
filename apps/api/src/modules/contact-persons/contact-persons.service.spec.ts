@@ -256,7 +256,7 @@ describe('ContactPersonsService', () => {
   });
 
   describe('duplicates', () => {
-    it('rejects a contact person identical to an existing one', async () => {
+    it('rejects a contact person that reuses a phone number or email', async () => {
       repository.getApplication.mockResolvedValue(buildApplication());
       repository.findDuplicate.mockResolvedValue(buildContactPerson());
 
@@ -268,9 +268,6 @@ describe('ContactPersonsService', () => {
       expect(repository.findDuplicate).toHaveBeenCalledWith(
         {
           applicationId: 'APP-1',
-          actorId: 'actor-1',
-          name: 'Jens Jensen',
-          availability: Availability.Evening,
           phoneNumber: '12345678',
           email: 'jens@example.com',
         },
@@ -279,19 +276,19 @@ describe('ContactPersonsService', () => {
       expect(repository.add).not.toHaveBeenCalled();
     });
 
-    it('rejects an update that makes a contact person identical to another', async () => {
+    it('rejects an update that reuses the email of another contact person', async () => {
       repository.getById.mockResolvedValue(buildContactPerson());
       repository.findDuplicate.mockResolvedValue(
-        buildContactPerson({ uuid: 'contact-2', name: 'Ny Kontakt' }),
+        buildContactPerson({ uuid: 'contact-2', email: 'ny@example.com' }),
       );
 
       await expect(
-        service.update('contact-1', { name: 'Ny Kontakt' }),
+        service.update('contact-1', { email: 'ny@example.com' }),
       ).rejects.toMatchObject({
         response: { code: 'CONTACT_PERSON_DUPLICATE' },
       });
       expect(repository.findDuplicate).toHaveBeenCalledWith(
-        expect.objectContaining({ name: 'Ny Kontakt' }),
+        expect.objectContaining({ email: 'ny@example.com' }),
         'contact-1',
       );
       expect(repository.update).not.toHaveBeenCalled();

@@ -347,7 +347,7 @@ describe('ContactsStep', () => {
     ],
     [
       'CONTACT_PERSON_DUPLICATE',
-      'Aktøren har allerede en kontaktperson med præcis de samme oplysninger.',
+      'Telefonnummeret eller e-mailen bruges allerede af en anden kontaktperson på ansøgningen.',
     ],
     [
       'CONTACT_PERSON_INVALID',

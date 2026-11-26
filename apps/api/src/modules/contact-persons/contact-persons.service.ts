@@ -77,9 +77,6 @@ export class ContactPersonsService {
     this.assertValid(application.type, input);
     await this.assertNotDuplicate({
       applicationId: application.caseNumber,
-      actorId: dto.actorId,
-      name: fields.name,
-      availability: input.availability as Availability,
       phoneNumber: fields.phoneNumber,
       email: fields.email,
     });
@@ -118,9 +115,6 @@ export class ContactPersonsService {
     await this.assertNotDuplicate(
       {
         applicationId: existing.applicationId,
-        actorId: existing.actorId,
-        name: merged.name as string,
-        availability: merged.availability as Availability,
         phoneNumber: merged.phoneNumber as string,
         email: merged.email as string,
       },
@@ -160,8 +154,8 @@ export class ContactPersonsService {
   }
 
   /**
-   * An actor cannot have two contact persons with exactly the same details
-   * on the same application.
+   * Two contact persons on the same application cannot share a phone
+   * number or an email.
    */
   private async assertNotDuplicate(
     fields: Parameters<ContactPersonsRepository['findDuplicate']>[0],
@@ -175,8 +169,8 @@ export class ContactPersonsService {
       throw new ConflictException({
         code: 'CONTACT_PERSON_DUPLICATE',
         message:
-          'The actor already has a contact person with the same details on ' +
-          'this application.',
+          'Another contact person on this application already uses this ' +
+          'phone number or email.',
       });
     }
   }
