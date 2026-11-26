@@ -2,6 +2,12 @@ export const applicantSaveError =
   'Kunne ikke gemme ansøgeren. Prøv igen senere eller kontakt support.';
 
 export class ApplicantSaveError extends Error {
+  /**
+   * Creates an error that the form can display beside a duplicate field.
+   *
+   * @param message - User-facing explanation from the API.
+   * @param field - Applicant field associated with the error.
+   */
   constructor(
     message: string,
     readonly field: 'email' | 'cvrNumber',
@@ -23,16 +29,26 @@ export interface CreateApplicantInput {
 }
 
 export interface ApplicantsActions {
+  /**
+   * Submits applicant and address fields to the creation endpoint.
+   *
+   * @param data - Applicant fields and selected address.
+   * @returns The parsed API response, if present.
+   */
   createApplicant(data: CreateApplicantInput): Promise<unknown>;
 }
 
 /**
- * Provides applicant-related API actions for the UI.
+ * Provides the applicant creation action used by the form.
+ *
+ * @returns The actions available to applicant UI callers.
  */
 export function useApplicants(): ApplicantsActions {
   /**
-   * Creates a new applicant via the API and throws a user-friendly Error on
-   * failure.
+   * Posts the applicant and maps API failures to user-facing errors.
+   *
+   * @param data - Applicant fields and selected address.
+   * @returns The parsed API response, or undefined when it has no usable JSON.
    */
   async function createApplicant(data: CreateApplicantInput): Promise<unknown> {
     const response = await fetch('/api/applicants', {

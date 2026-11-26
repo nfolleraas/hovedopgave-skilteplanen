@@ -15,9 +15,19 @@ import { mapApplicantCreateError } from './mappers/applicant-error.mapper.js';
 export class ApplicantsService {
   private readonly logger = new Logger(ApplicantsService.name);
 
+  /**
+   * Creates the service with its applicant persistence dependency.
+   *
+   * @param applicantsRepository - Repository for applicant reads and writes.
+   */
   constructor(private readonly applicantsRepository: ApplicantsRepository) {}
 
-  /** Resolves the configured applicant UUID in development mode. */
+  /**
+   * Resolves the configured applicant UUID in development mode.
+   *
+   * @returns The configured applicant UUID.
+   * @throws {NotFoundException} If the development profile is unavailable.
+   */
   private getProfileApplicantId() {
     const uuid = process.env.DEV_PROFILE_APPLICANT_ID?.trim();
     if (process.env.NODE_ENV !== 'development' || !uuid) {
@@ -26,19 +36,34 @@ export class ApplicantsService {
     return uuid;
   }
 
-  /** Loads an active applicant or returns an HTTP not-found error. */
+  /**
+   * Loads the editable fields for an active applicant.
+   *
+   * @param uuid - Identifier of the applicant to load.
+   * @returns The active applicant profile.
+   * @throws {NotFoundException} If the applicant is missing or inactive.
+   */
   private async findProfile(uuid: string) {
     const profile = await this.applicantsRepository.findActiveProfile(uuid);
     if (!profile) throw new NotFoundException();
     return profile;
   }
 
-  /** Returns the editable profile for the configured development applicant. */
+  /**
+   * Loads the configured development applicant's profile.
+   *
+   * @returns The editable fields of the active applicant.
+   */
   getProfile(): Promise<ApplicantProfile> {
     return this.findProfile(this.getProfileApplicantId());
   }
 
-  /** Validates and saves editable fields for the configured development applicant. */
+  /**
+   * Validates and saves profile fields using the applicant's existing type.
+   *
+   * @param input - Untrusted profile fields to validate.
+   * @returns The saved profile fields.
+   */
   async updateProfile(input: unknown): Promise<ApplicantProfile> {
     const uuid = this.getProfileApplicantId();
     const profile = await this.findProfile(uuid);
@@ -74,7 +99,10 @@ export class ApplicantsService {
   }
 
   /**
-   * Creates a new applicant after normalizing and validating input.
+   * Validates applicant input, normalizes it, and creates the applicant.
+   *
+   * @param data - Untrusted applicant and address fields.
+   * @returns The created applicant.
    */
   async createApplicant(data: unknown): Promise<Applicant> {
     validateCreateApplicant(data);

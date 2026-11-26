@@ -1,6 +1,10 @@
 import ApplicantForm from './applicant-form.js';
 
-/** Renders the applicant creation form for businesses. */
+/**
+ * Configures the shared creation form for business applicants.
+ *
+ * @returns The business applicant form with a required CVR field.
+ */
 export default function BusinessApplicantPage() {
   return <ApplicantForm applicantType="business" />;
 }

@@ -26,7 +26,12 @@ interface ApplicantFormProps {
   applicantType: ApplicantType;
 }
 
-/** Renders the shared private and business applicant creation form. */
+/**
+ * Renders the creation form with fields for the chosen applicant type.
+ *
+ * @param props - Applicant type used to configure the form.
+ * @returns The applicant form with address lookup and field validation.
+ */
 export default function ApplicantForm({ applicantType }: ApplicantFormProps) {
   const isBusiness = applicantType === 'business';
   const title = isBusiness ? 'Opret erhvervsansøger' : 'Opret privatansøger';
@@ -40,12 +45,20 @@ export default function ApplicantForm({ applicantType }: ApplicantFormProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  /** Clears the validation message for the field being edited. */
+  /**
+   * Dismisses the validation message when its field changes.
+   *
+   * @param field - Field whose error should be cleared.
+   */
   function clearError(field: ApplicantField): void {
     setErrors((previous) => ({ ...previous, [field]: undefined }));
   }
 
-  /** Validates every field before sending the form and shows errors beside the inputs. */
+  /**
+   * Validates the form and saves the applicant when all fields are valid.
+   *
+   * @param event - Submit event for the applicant form.
+   */
   async function handleSubmit(
     event: React.SubmitEvent<HTMLFormElement>,
   ): Promise<void> {

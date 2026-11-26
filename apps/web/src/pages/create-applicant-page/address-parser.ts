@@ -8,7 +8,11 @@ interface ParsedAddress {
 }
 
 /**
- * Parses an address suggestion title into structured fields.
+ * Extracts structured address fields from a selected suggestion's label.
+ *
+ * @param address - Suggestion for a complete address or house number.
+ * @returns Street, house number, postal code, and city for the API.
+ * @throws {Error} If the suggestion is incomplete or its label cannot be parsed.
  */
 export function parseAddress(address: AddressSuggestion): ParsedAddress {
   if (address.type !== 'adresse' && address.type !== 'husnummer') {

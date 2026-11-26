@@ -1,5 +1,10 @@
 import type { Applicant } from '../types/applicant.types.js';
 
+/**
+ * Provides a placeholder result until applicant listing is implemented.
+ *
+ * @returns An empty applicant list.
+ */
 export async function getApplicants(): Promise<Applicant[]> {
   return [];
 }
@@ -21,6 +26,12 @@ export class ApplicantProfileError extends Error {
   readonly status: number;
   readonly fields: readonly string[];
 
+  /**
+   * Creates a profile request error with any fields reported by the API.
+   *
+   * @param status - HTTP status of the failed request.
+   * @param fields - Field names associated with the failure.
+   */
   constructor(status: number, fields: readonly string[]) {
     super('Profile request failed');
     this.status = status;
@@ -28,7 +39,13 @@ export class ApplicantProfileError extends Error {
   }
 }
 
-/** Returns profile data or an error with the affected fields. */
+/**
+ * Sends a profile request and exposes field errors from failed responses.
+ *
+ * @param options - Fetch options for the profile request.
+ * @returns The profile returned by the API.
+ * @throws {ApplicantProfileError} If the API returns a failed HTTP status.
+ */
 async function requestProfile(options: RequestInit): Promise<ApplicantProfile> {
   const response = await fetch('/api/applicants/profile', options);
   if (!response.ok) {
@@ -41,12 +58,22 @@ async function requestProfile(options: RequestInit): Promise<ApplicantProfile> {
   return response.json();
 }
 
-/** Fetches the active profile and supports cancellation via the supplied signal. */
+/**
+ * Fetches the configured development profile.
+ *
+ * @param signal - Signal used to cancel the request.
+ * @returns The editable applicant profile.
+ */
 export function getApplicantProfile(signal: AbortSignal) {
   return requestProfile({ signal });
 }
 
-/** Saves editable profile data and returns the updated profile. */
+/**
+ * Sends the editable profile fields to the API.
+ *
+ * @param data - Profile changes, including CVR for a business applicant.
+ * @returns The saved profile fields.
+ */
 export function updateApplicantProfile(data: ApplicantProfileInput) {
   return requestProfile({
     method: 'PATCH',

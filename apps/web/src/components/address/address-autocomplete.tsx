@@ -16,10 +16,11 @@ interface AddressAutocompleteProps {
 }
 
 /**
- * Autocomplete field that uses the shared Adressevælger search and returns the
- * selected suggestion to the parent.
+ * Renders a debounced search field backed by the shared Adressevælger client.
+ *
+ * @param props - Field error and callback for changes to the address selection.
+ * @returns The address field with selectable road and address suggestions.
  */
-/** Offers address suggestions and reports the current selection to the form. */
 export default function AddressAutocomplete({
   errorMessage,
   onChange,

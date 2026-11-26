@@ -17,7 +17,11 @@ import {
   updateApplicantProfile,
 } from '../../api/applicants.api.js';
 
-/** Displays the configured applicant profile and its editable fields. */
+/**
+ * Loads and displays the configured applicant's editable profile.
+ *
+ * @returns The profile page with read and edit states.
+ */
 export default function ProfilePage() {
   const { t } = useTranslation();
   const [profile, setProfile] = useState<ApplicantProfile>();
@@ -44,7 +48,11 @@ export default function ProfilePage() {
     return () => controller.abort();
   }, []);
 
-  /** Submits profile edits and displays field-level errors from the API. */
+  /**
+   * Submits edits and displays field errors or the saved profile.
+   *
+   * @param event - Submit event containing the edited profile fields.
+   */
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!profile || saving) return;

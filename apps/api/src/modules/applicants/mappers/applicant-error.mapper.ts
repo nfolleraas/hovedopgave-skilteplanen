@@ -2,7 +2,10 @@ import { ConflictException } from '@nestjs/common';
 import { Prisma } from '../../../generated/prisma/client.js';
 
 /**
- * Maps Prisma errors for applicant writes into user-friendly HTTP exceptions.
+ * Maps applicant uniqueness violations to HTTP conflicts and rethrows others.
+ *
+ * @param error - Error from an applicant database write.
+ * @param options - Whether known duplicate fields should be included in the error.
  */
 export function mapApplicantCreateError(
   error: unknown,

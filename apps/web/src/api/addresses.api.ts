@@ -8,7 +8,13 @@ export interface AddressOption {
 
 export type AddressSuggestion = AddressOption;
 
-/** Adapts the shared Adressevælger search results to the applicant form. */
+/**
+ * Adapts shared Adressevælger results to the applicant form.
+ *
+ * @param text - Text to search for.
+ * @param signal - Signal used to cancel the search.
+ * @returns Unique road and house-number options.
+ */
 export async function searchAddresses(
   text: string,
   signal: AbortSignal,

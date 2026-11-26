@@ -17,9 +17,19 @@ export type ApplicantProfile = Prisma.ApplicantGetPayload<{
 
 @Injectable()
 export class ApplicantsRepository {
+  /**
+   * Creates a repository for applicant persistence.
+   *
+   * @param prisma - Database client used for queries and transactions.
+   */
   constructor(private readonly prisma: PrismaService) {}
 
-  /** Selects editable profile fields for the active applicant with the given UUID. */
+  /**
+   * Selects editable profile fields for an active applicant.
+   *
+   * @param uuid - Identifier of the applicant to look up.
+   * @returns The selected fields, or null if the applicant is unavailable.
+   */
   findActiveProfile(uuid: string): Promise<ApplicantProfile | null> {
     return this.prisma.applicant.findUnique({
       where: { uuid, isActive: true },
@@ -27,7 +37,14 @@ export class ApplicantsRepository {
     });
   }
 
-  /** Updates the active applicant and records the profile change in one transaction. */
+  /**
+   * Updates the profile and writes its audit entry in one transaction.
+   *
+   * @param uuid - Identifier of the active applicant.
+   * @param type - Existing applicant type required for the update.
+   * @param data - Validated profile fields to persist.
+   * @returns The saved profile fields.
+   */
   updateActiveProfile(
     uuid: string,
     type: Applicant['type'],
@@ -56,7 +73,10 @@ export class ApplicantsRepository {
   }
 
   /**
-   * Reuses a matching address that is not owned by an editable municipality.
+   * Saves a new applicant and writes its audit entry in one transaction.
+   * Matching addresses are reused when they are not linked to a municipality.
+   * @param data - Validated applicant fields and normalized address.
+   * @returns The created applicant.
    */
   async createApplicant(data: CreateApplicantDto): Promise<Applicant> {
     const address = {
