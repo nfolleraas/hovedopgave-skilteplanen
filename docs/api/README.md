@@ -19,13 +19,14 @@ development seeders live under [`apps/api/prisma/`](../../apps/api/prisma/).
 
 ## Common commands
 
-Run these from the repository root:
+Run these from the repository root. API tests require a test database with
+all migrations applied (`bun run --filter api db:deploy`).
 
 ```bash
 bun run --filter api dev
 bun run --filter api build
 bun run --filter api test
-bun run --filter api test:e2e
+bun run --filter api test:api
 bun run --filter api lint
 ```
 

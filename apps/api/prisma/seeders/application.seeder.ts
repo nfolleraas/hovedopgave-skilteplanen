@@ -19,13 +19,14 @@ export async function seedApplication(prisma: PrismaClient) {
       applicantReference: 'DEMO-APPLICANT-0001',
       type: ApplicationType.RoadUsePermit,
       status: Status.Draft,
-      trafficChange: TrafficChange.SpeedLimitWorkZone,
+      trafficChanges: [TrafficChange.SpeedLimitWorkZone],
       applicant: {
         create: {
           name: 'Demo Applicant',
           type: ApplicantType.Business,
           phoneNumber: '12345678',
           email: 'demo@example.com',
+          cvrNumber: '12345678',
           mitIdKey: 'demo-mitid-key',
           address: {
             create: {

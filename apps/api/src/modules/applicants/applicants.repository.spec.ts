@@ -1,0 +1,91 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { PrismaService } from '../prisma/prisma.service.js';
+import { ApplicantsRepository } from './applicants.repository.js';
+import type { CreateApplicantDto } from './dto/create-applicant.dto.js';
+
+describe('ApplicantsRepository', () => {
+  const createdApplicant = {
+    uuid: 'applicant-1',
+    name: 'Testvirksomhed',
+    type: 'Business',
+  };
+  const create = vi.fn(async (_args: unknown) => createdApplicant);
+  const findFirst = vi.fn();
+  const transaction = {
+    applicant: { create },
+    address: { findFirst },
+    auditLog: { create: vi.fn() },
+    $queryRaw: vi.fn(),
+  };
+  const prisma = {
+    $transaction: vi.fn(
+      (callback: (tx: typeof transaction) => Promise<unknown>) =>
+        callback(transaction),
+    ),
+  };
+  const repository = new ApplicantsRepository(
+    prisma as unknown as PrismaService,
+  );
+
+  const applicantData: CreateApplicantDto = {
+    name: 'Testvirksomhed',
+    type: 'business',
+    phoneNumber: '12345678',
+    email: 'test@example.com',
+    cvrNumber: '87654321',
+    street: 'Vestergade',
+    houseNumber: '1',
+    postalCode: '8000',
+    city: 'Aarhus C',
+  };
+
+  beforeEach(() => {
+    create.mockClear();
+    transaction.auditLog.create.mockClear();
+    findFirst.mockReset().mockResolvedValue(null);
+  });
+
+  it('creates an applicant with a nested address', async () => {
+    await expect(repository.createApplicant(applicantData)).resolves.toEqual(
+      createdApplicant,
+    );
+    expect(transaction.auditLog.create).toHaveBeenCalledExactlyOnceWith({
+      data: {
+        action: 'applicant.created',
+        targetApplicantId: createdApplicant.uuid,
+        details: {
+          applicantName: createdApplicant.name,
+          type: createdApplicant.type,
+        },
+      },
+    });
+
+    expect(create).toHaveBeenCalledWith({
+      data: {
+        name: 'Testvirksomhed',
+        type: 'Business',
+        phoneNumber: '12345678',
+        email: 'test@example.com',
+        cvrNumber: '87654321',
+        mitIdKey: null,
+        address: {
+          create: {
+            street: 'Vestergade',
+            houseNumber: '1',
+            postalCode: '8000',
+            city: 'Aarhus C',
+          },
+        },
+      },
+    });
+  });
+  it('connects to the existing address', async () => {
+    findFirst.mockResolvedValue({ uuid: 'existing-address' });
+    await repository.createApplicant(applicantData);
+    expect(create).toHaveBeenCalledExactlyOnceWith({
+      data: expect.objectContaining({
+        address: { connect: { uuid: 'existing-address' } },
+      }),
+    });
+  });
+});

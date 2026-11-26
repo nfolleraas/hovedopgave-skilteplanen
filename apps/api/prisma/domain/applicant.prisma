@@ -3,13 +3,15 @@ model Applicant {
   name            String
   type            ApplicantType
   phoneNumber     String
-  email           String
-  cvrNumber       String?
-  mitIdKey        String
+  email           String         @unique
+  cvrNumber       String?        @unique
+  mitIdKey        String?
   skilteplanenKey String?
   isActive        Boolean        @default(true)
-  addressId       String         @unique
-  address         Address        @relation(fields: [addressId], references: [uuid])
+  addressId       String?
+  address         Address?       @relation(fields: [addressId], references: [uuid], onDelete: Restrict)
   notifications   Notification[]
   applications    Application[]
+
+  @@index([addressId])
 }

@@ -4,6 +4,8 @@ export class CreateApplicantDto {
   phoneNumber!: string;
   email!: string;
   cvrNumber?: string;
-  addressLookupId!: string;
+  street!: string;
   houseNumber!: string;
+  postalCode!: string;
+  city!: string;
 }
