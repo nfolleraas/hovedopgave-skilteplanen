@@ -47,8 +47,9 @@ const demoActors = [
  * Seeds demo actors (UC-040), so contact persons (UC-031) can be tested: a
  * contact person must belong to an actor on the application.
  *
- * The actors are linked to the demo application and to every test
- * application (`DEV-…`, created from the test list) that has no actors yet.
+ * The actors are linked to the demo application, to every test application
+ * (`DEV-…`, created from the test list) and to every draft, such as a
+ * road-permit draft, that has no actors yet.
  * Run `seedApplication` first, so the demo application exists.
  */
 export async function seedActors(prisma: PrismaClient) {
@@ -59,7 +60,10 @@ export async function seedActors(prisma: PrismaClient) {
   });
 
   const testApplications = await prisma.application.findMany({
-    where: { caseNumber: { startsWith: 'DEV-' }, actors: { none: {} } },
+    where: {
+      OR: [{ caseNumber: { startsWith: 'DEV-' } }, { status: 'Draft' }],
+      actors: { none: {} },
+    },
     select: { caseNumber: true },
   });
   const applications = [{ caseNumber: demoCaseNumber }, ...testApplications];

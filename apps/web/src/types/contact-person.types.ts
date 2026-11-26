@@ -20,6 +20,18 @@ export interface ContactPersonActor {
   uuid: string;
   name: string;
   role: ActorRole;
+  phoneNumber: string;
+  email: string;
+  cvrNumber: string | null;
+  department: string | null;
+  address: ActorAddress;
+}
+
+export interface ActorAddress {
+  street: string;
+  houseNumber: string;
+  postalCode: string;
+  city: string;
 }
 
 export interface ApplicationContactPersons {

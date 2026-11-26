@@ -608,24 +608,18 @@
     "intro": "Velkommen til Ansøgningsplatformen"
   },
   "contacts": {
-    "actorGroup": "{{role}} · {{name}}",
     "unknownActor": "Ukendt aktør",
-    "listTitle": "Kontaktpersoner ({{number}})",
     "noActors": "Ansøgningen har ingen aktører endnu. Tilføj en aktør under »Øvrige aktører«, før du opretter en kontaktperson.",
     "none": "Der er ingen kontaktpersoner endnu.",
-    "addContact": "+ Tilføj kontaktperson",
+    "addContact": "Opret kontakt",
     "newContact": "Ny kontaktperson",
-    "fillInForm": "udfyldes i formularen",
     "openInForm": "Redigeres i formularen",
     "editContactFor": "Redigér {{name}}",
     "edit": "Redigér",
     "deleteContactFor": "Slet {{name}}",
     "delete": "Slet",
-    "actorLabel": "{{name}} ({{role}})",
     "editTitle": "Rediger kontaktperson",
     "cannotSaveYet": "Kontaktpersonen kan ikke gemmes endnu. Ret felterne markeret med rødt.",
-    "actor": "Tilknyt til aktør",
-    "actorReadOnly": "Aktør",
     "cancel": "Annuller",
     "save": "Gem kontaktperson",
     "saveChanges": "Gem ændringer",
@@ -642,7 +636,6 @@
     "alreadyDeleted": "Kontaktpersonen {{name}} var allerede slettet.",
     "deleteError": "Kontaktpersonen kunne ikke slettes. Prøv igen senere eller kontakt supporten.",
     "intro": "Tilføj de personer, kommunen kan kontakte om ansøgningen. Der skal være mindst én kontaktperson.",
-    "panelHint": "Vælg »Redigér« ved en kontaktperson, eller tilføj en ny.",
     "atLeastOne": "Der skal være mindst én kontaktperson, før du kan gå videre.",
     "deleteDialog": {
       "title": "Slet kontaktperson?",
@@ -676,7 +669,27 @@
       "availability": "Tilgængelighed",
       "phoneNumber": "Telefonnummer",
       "email": "E-mail"
-    }
+    },
+    "actorsTitle": "Aktører",
+    "actorDetails": "Vis oplysninger om {{name}}",
+    "actorFields": {
+      "role": "Rolle",
+      "phoneNumber": "Telefonnummer",
+      "email": "E-mail",
+      "address": "Adresse",
+      "cvrNumber": "CVR-nummer",
+      "department": "Afdeling"
+    },
+    "notProvided": "Ikke oplyst",
+    "updateActor": "Opdater",
+    "deleteActor": "Slet",
+    "createActor": "Opret aktør",
+    "actorActionsPending": "Aktører oprettes, opdateres og slettes under et andet trin, som ikke er lavet endnu.",
+    "contactsHeading": "Kontaktpersoner",
+    "addContactFor": "Opret kontakt hos {{name}}",
+    "phoneLine": "Telefonnummer: {{phone}}",
+    "emailLine": "E-mail: {{email}}",
+    "availabilityLine": "Tilgængelighed: {{availability}}"
   },
   "login": {
     "title": "Log ind",

@@ -1,4 +1,4 @@
-import { Alert, Box, Paper, Typography } from '@mui/material';
+import { Alert, Box } from '@mui/material';
 import {
   type Dispatch,
   type RefObject,
@@ -34,7 +34,7 @@ import type {
 import { WizardFooter } from '../../components/wizard-footer.js';
 import type { LeaveGuard } from '../step-props.js';
 import { useLeaveGuard } from '../use-leave-guard.js';
-import { ContactList } from './contact-list.js';
+import { ActorList } from './actor-list.js';
 import { ContactPanel } from './contact-panel.js';
 import { saveErrorMessage } from './contact-step-errors.js';
 import {
@@ -69,7 +69,8 @@ interface ContactsStepProps {
 
 /**
  * Contact persons on the application: create (UC-031), delete (UC-032) and
- * update (UC-033). The list is on the left and the form on the right.
+ * update (UC-033). Each actor is a collapsible section with its contact
+ * persons, and the form opens inside the actor it belongs to.
  */
 export function ContactsStep({
   application,
@@ -123,13 +124,24 @@ export function ContactsStep({
     return actors.find((actor) => actor.uuid === actorId)?.name ?? '';
   }
 
-  /** When a contact person disappears, focus the next one or Add. */
+  /**
+   * When a contact person disappears, focus the next one of the same actor,
+   * or that actor's Add button. Other actors' sections may be collapsed.
+   */
   function focusAfterRemoving(key: string) {
-    const saved = state.entries.filter((entry) => entry.saved);
+    const removed = state.entries.find((entry) => entry.key === key);
+    if (!removed) return;
+    const saved = state.entries.filter(
+      (entry) => entry.saved && entry.actorId === removed.actorId,
+    );
     const index = saved.findIndex((entry) => entry.key === key);
     const remaining = saved.filter((entry) => entry.key !== key);
     const next = remaining[Math.min(index, remaining.length - 1)];
-    setFocusId(next ? contactListIds.edit(next.key) : contactListIds.add);
+    setFocusId(
+      next
+        ? contactListIds.edit(next.key)
+        : contactListIds.add(removed.actorId),
+    );
   }
 
   /**
@@ -207,13 +219,11 @@ export function ContactsStep({
     onNext?.();
   }
 
-  function handleAdd() {
-    const [firstActor] = actors;
-    if (!firstActor) return;
+  function handleAdd(actorId: string) {
     setSaveError(null);
     setNotice(null);
     setFocusId(contactPanelIds.title);
-    dispatch({ type: 'addNew', actorId: firstActor.uuid });
+    dispatch({ type: 'addNew', actorId });
   }
 
   function handleEdit(entry: ContactPersonEntry) {
@@ -228,7 +238,9 @@ export function ContactsStep({
     if (!active) return;
     setSaveError(null);
     setFocusId(
-      active.saved ? contactListIds.edit(active.key) : contactListIds.add,
+      active.saved
+        ? contactListIds.edit(active.key)
+        : contactListIds.add(active.actorId),
     );
     dispatch({ type: 'cancel' });
   }
@@ -259,58 +271,41 @@ export function ContactsStep({
         onCloseNotice={() => setNotice(null)}
       />
 
-      <Box
-        sx={{
-          alignItems: 'start',
-          display: 'grid',
-          gap: 2,
-          gridTemplateColumns: {
-            xs: 'minmax(0, 1fr)',
-            lg: 'repeat(2, minmax(0, 1fr))',
-          },
-        }}
-      >
-        <ContactList
-          activeKey={state.activeKey}
-          actors={actors}
-          addDisabled={hasUnsavedChanges || isSaving}
-          canEdit={canEdit}
-          entries={state.entries}
-          onAdd={handleAdd}
-          onDelete={handleDelete}
-          onEdit={handleEdit}
-        />
-        {active && state.draft ? (
-          <ContactPanel
-            actorId={active.actorId}
-            actors={actors}
-            errors={errors}
-            fieldSet={fieldSet}
-            isNew={!active.saved}
-            isSaving={isSaving}
-            // A new form starts without "left field" errors.
-            key={active.key}
-            onActorChange={(actorId) => dispatch({ type: 'setActor', actorId })}
-            onCancel={handleCancel}
-            onChange={(field, value) =>
-              dispatch({ type: 'change', field, value })
-            }
-            onSave={() => void save()}
-            saveError={saveError}
-            showAllErrors={state.showErrors}
-            values={state.draft}
-          />
-        ) : (
-          canEdit &&
-          actors.length > 0 && (
-            <Paper sx={{ backgroundColor: '#F5F5F5', p: 2 }} variant="outlined">
-              <Typography color="text.secondary" variant="body2">
-                {t('contacts.panelHint')}
-              </Typography>
-            </Paper>
+      <ActorList
+        activeKey={state.activeKey}
+        actors={actors}
+        addDisabled={hasUnsavedChanges || isSaving}
+        canEdit={canEdit}
+        entries={state.entries}
+        form={
+          active &&
+          state.draft && (
+            <ContactPanel
+              errors={errors}
+              fieldSet={fieldSet}
+              // The road-permit form renders the step heading as h2.
+              headingLevel={embedded ? 5 : 4}
+              isNew={!active.saved}
+              isSaving={isSaving}
+              // A new form starts without "left field" errors.
+              key={active.key}
+              onCancel={handleCancel}
+              onChange={(field, value) =>
+                dispatch({ type: 'change', field, value })
+              }
+              onSave={() => void save()}
+              saveError={saveError}
+              showAllErrors={state.showErrors}
+              values={state.draft}
+            />
           )
-        )}
-      </Box>
+        }
+        headingLevel={embedded ? 3 : 2}
+        onAdd={handleAdd}
+        onDelete={handleDelete}
+        onEdit={handleEdit}
+        showAvailability={fieldSet.availability}
+      />
 
       {showMissing && savedCount === 0 && (
         <Alert ref={missingRef} severity="error" sx={{ mt: 3 }} tabIndex={-1}>

@@ -26,6 +26,16 @@ export function buildActor(
     uuid,
     name: 'Graveselskabet A/S',
     role: ActorRole.Contractor,
+    phoneNumber: '33333333',
+    email: 'kontakt@graveselskabet.example',
+    cvrNumber: '33333333',
+    department: null,
+    address: {
+      street: 'Demovej',
+      houseNumber: '10',
+      postalCode: '5000',
+      city: 'Odense C',
+    },
     ...overrides,
   };
 }

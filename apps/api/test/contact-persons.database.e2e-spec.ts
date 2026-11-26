@@ -179,7 +179,16 @@ describe.skipIf(!databaseUrl)('/api/contact-persons (e2e)', () => {
       .expect(200);
     expect(listResponse.body).toEqual({
       application: { caseNumber, type: 'ExcavationPermit', status: 'Draft' },
-      actors: [{ uuid: actor.uuid, name: actor.name, role: 'Contractor' }],
+      actors: [
+        expect.objectContaining({
+          uuid: actor.uuid,
+          name: actor.name,
+          role: 'Contractor',
+          phoneNumber: actor.phoneNumber,
+          email: actor.email,
+          address: expect.objectContaining({ postalCode: '5220' }),
+        }),
+      ],
       contactPersons: [contact],
     });
 

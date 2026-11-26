@@ -65,7 +65,24 @@ const contractor = {
   uuid: 'actor-1',
   name: 'Graveselskabet A/S',
   role: 'Contractor',
+  phoneNumber: '33333333',
+  email: 'kontakt@graveselskabet.example',
+  cvrNumber: null,
+  department: null,
+  address: {
+    street: 'Demovej',
+    houseNumber: '10',
+    postalCode: '5000',
+    city: 'Odense C',
+  },
 } as const;
+
+/** Opens the actor's section; actor sections start collapsed. */
+async function openActor(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(
+    await screen.findByRole('button', { name: contractor.name }),
+  );
+}
 const siteContact = {
   uuid: 'contact-1',
   applicationId: draftId,
@@ -173,6 +190,7 @@ async function fillRequiredDetails(user: UserEvent) {
   await next(user);
 
   // The draft already has a saved contact person.
+  await openActor(user);
   await screen.findByText('Site Contact');
   await next(user);
   await user.click(screen.getByRole('combobox', { name: 'Traffic changes' }));
@@ -729,11 +747,12 @@ describe('Road permit application', () => {
     loadContacts.mockResolvedValue(contactPersonsAnswer([]));
     await renderPermitFlow();
     await user.click(button('Contact details'));
+    await openActor(user);
 
     expect(
       await screen.findByText('There are no contact persons yet.'),
     ).toBeTruthy();
-    expect(button('+ Add contact person')).toBeTruthy();
+    expect(button('Create contact at Graveselskabet A/S')).toBeTruthy();
     await next(user);
     expect(
       within(screen.getByRole('alert')).getByText(
@@ -755,6 +774,7 @@ describe('Road permit application', () => {
       await screen.findByText('The contact persons could not be loaded.'),
     ).toBeTruthy();
     await user.click(button('Try again'));
+    await openActor(user);
     expect(await screen.findByText('Site Contact')).toBeTruthy();
   });
 

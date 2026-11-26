@@ -7,7 +7,7 @@ export function contactFieldId(field: ContactPersonFormField): string {
 
 /** Element ids, so the step can move focus into the list. */
 export const contactListIds = {
-  add: 'contacts-add-new',
+  add: (actorId: string) => `actor-${actorId}-add-contact`,
   edit: (key: string) => `contact-${key}-edit`,
   delete: (key: string) => `contact-${key}-delete`,
 };
@@ -15,6 +15,5 @@ export const contactListIds = {
 /** Element ids, so the step can move focus into the panel. */
 export const contactPanelIds = {
   title: 'contact-panel-title',
-  actor: 'contact-form-actor',
   errorSummary: 'contact-panel-errors',
 };

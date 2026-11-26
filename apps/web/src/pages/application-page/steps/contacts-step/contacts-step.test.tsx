@@ -35,6 +35,7 @@ type User = ReturnType<typeof userEvent.setup>;
 async function renderStep(
   setup: (api: FakeContactPersonsApi) => void = () => {},
   application?: ContactPersonApplication,
+  { expand = true }: { expand?: boolean } = {},
 ) {
   api = new FakeContactPersonsApi(application).install();
   setup(api);
@@ -46,8 +47,24 @@ async function renderStep(
   const user = userEvent.setup();
   renderWithProviders(<ApplicationPage />);
   await screen.findByRole('heading', { level: 1, name: 'Kontaktoplysninger' });
+  if (expand) await expandActors(user);
   return { user, api };
 }
+
+/** Opens every actor section; they start collapsed. */
+async function expandActors(user: User) {
+  const toggles = document.querySelectorAll<HTMLButtonElement>(
+    'button[aria-controls^="actor-"][aria-expanded="false"]',
+  );
+  for (const toggle of toggles) await user.click(toggle);
+}
+
+/** The section of one actor, with its details and contact persons. */
+function actorSection(name: string) {
+  return screen.getByRole('region', { name });
+}
+
+const addAtContractor = 'Opret kontakt hos Graveselskabet A/S';
 
 function field(name: RegExp) {
   return screen.getByRole('textbox', { name });
@@ -78,20 +95,52 @@ async function confirmDelete(user: User) {
 }
 
 describe('ContactsStep', () => {
+  test('shows the actors collapsed, with their details when opened', async () => {
+    const { user } = await renderStep(
+      (fake) =>
+        fake
+          .withActors(contractor, networkOperator)
+          .seed(buildContactPerson('contact-1')),
+      undefined,
+      { expand: false },
+    );
+
+    const toggle = button('Graveselskabet A/S');
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    expect(screen.queryByText('Jens Jensen')).toBeNull();
+
+    await user.click(toggle);
+
+    expect(toggle.getAttribute('aria-expanded')).toBe('true');
+    const section = within(actorSection('Graveselskabet A/S'));
+    expect(section.getByText('Entreprenør')).toBeTruthy();
+    expect(section.getByText('Demovej 10, 5000 Odense C')).toBeTruthy();
+    expect(section.getByText('Jens Jensen')).toBeTruthy();
+    // The other actor stays collapsed.
+    expect(button('Fiberselskabet A/S').getAttribute('aria-expanded')).toBe(
+      'false',
+    );
+    // Managing actors is another use case, so these are placeholders.
+    for (const name of ['Opdater', 'Opret aktør']) {
+      expect(
+        (screen.getAllByRole('button', { name })[0] as HTMLButtonElement)
+          .disabled,
+      ).toBe(true);
+    }
+  });
+
   test('creates a contact person for the chosen actor (UC-031)', async () => {
     const { user, api } = await renderStep((fake) =>
       fake.withActors(contractor, networkOperator),
     );
 
-    await user.click(button('+ Tilføj kontaktperson'));
+    await user.click(button('Opret kontakt hos Fiberselskabet A/S'));
+    // The form opens inside the actor it was started from.
     expect(
-      screen.getByRole('heading', { name: 'Ny kontaktperson' }),
+      within(actorSection('Fiberselskabet A/S')).getByRole('heading', {
+        name: 'Ny kontaktperson',
+      }),
     ).toBeTruthy();
-    await choose(
-      user,
-      /Tilknyt til aktør/,
-      'Fiberselskabet A/S (Ledningsejer)',
-    );
     await fillContact(user);
     await user.click(button('Gem kontaktperson'));
 
@@ -113,8 +162,9 @@ describe('ContactsStep', () => {
       },
     ]);
     // The new contact person is listed under its actor, and the form closes.
-    expect(screen.getByText('Ledningsejer · Fiberselskabet A/S')).toBeTruthy();
-    expect(screen.getByText('12 34 56 78')).toBeTruthy();
+    const section = within(actorSection('Fiberselskabet A/S'));
+    expect(section.getByText('Jens Jensen')).toBeTruthy();
+    expect(section.getByText('Telefonnummer: 12 34 56 78')).toBeTruthy();
     expect(screen.queryByRole('textbox', { name: /Navn/ })).toBeNull();
   });
 
@@ -123,7 +173,7 @@ describe('ContactsStep', () => {
       fake.withActors(contractor),
     );
 
-    await user.click(button('+ Tilføj kontaktperson'));
+    await user.click(button(addAtContractor));
     await user.click(button('Gem kontaktperson'));
 
     expect(
@@ -154,7 +204,7 @@ describe('ContactsStep', () => {
       fake.withActors(contractor),
     );
 
-    await user.click(button('+ Tilføj kontaktperson'));
+    await user.click(button(addAtContractor));
     await user.type(field(/Navn/), 'Jens Jensen');
     await user.click(button('Annuller'));
 
@@ -162,7 +212,7 @@ describe('ContactsStep', () => {
     expect(
       screen.getByText('Der er ingen kontaktpersoner endnu.'),
     ).toBeTruthy();
-    expect(document.activeElement).toBe(button('+ Tilføj kontaktperson'));
+    expect(document.activeElement).toBe(button(addAtContractor));
     expect(api.changes()).toEqual([]);
   });
 
@@ -191,10 +241,6 @@ describe('ContactsStep', () => {
     expect(
       screen.getByRole('heading', { name: 'Rediger kontaktperson' }),
     ).toBeTruthy();
-    // The actor of a saved contact person is shown but cannot be changed.
-    expect((field(/^Aktør/) as HTMLInputElement).value).toBe(
-      'Graveselskabet A/S (Entreprenør)',
-    );
     await user.clear(field(/Telefonnummer/));
     await user.type(field(/Telefonnummer/), '87654321');
     await user.click(button('Gem ændringer'));
@@ -364,7 +410,7 @@ describe('ContactsStep', () => {
         fake.withActors(contractor),
       );
 
-      await user.click(button('+ Tilføj kontaktperson'));
+      await user.click(button(addAtContractor));
       await fillContact(user);
       api.failNext(409, { code });
       await user.click(button('Gem kontaktperson'));
@@ -382,9 +428,7 @@ describe('ContactsStep', () => {
         'Ansøgningen har ingen aktører endnu. Tilføj en aktør under »Øvrige aktører«, før du opretter en kontaktperson.',
       ),
     ).toBeTruthy();
-    expect(
-      screen.queryByRole('button', { name: '+ Tilføj kontaktperson' }),
-    ).toBeNull();
+    expect(screen.queryByRole('button', { name: /^Opret kontakt/ })).toBeNull();
   });
 
   test('adds another contact person to an actor that has one', async () => {
@@ -392,7 +436,7 @@ describe('ContactsStep', () => {
       fake.withActors(contractor).seed(buildContactPerson('contact-1')),
     );
 
-    await user.click(button('+ Tilføj kontaktperson'));
+    await user.click(button(addAtContractor));
     await user.type(field(/Navn/), 'Mette Hansen');
     await choose(user, /Tilgængelighed/, 'Nat');
     await user.type(field(/Telefonnummer/), '87654321');
@@ -403,7 +447,9 @@ describe('ContactsStep', () => {
       await screen.findByText('Kontaktpersonen Mette Hansen er oprettet.'),
     ).toBeTruthy();
     expect(api.changes()[0]?.body).toMatchObject({ actorId: 'actor-1' });
-    expect(screen.getByText('Kontaktpersoner (2)')).toBeTruthy();
+    expect(
+      within(actorSection('Graveselskabet A/S')).getAllByRole('listitem'),
+    ).toHaveLength(2);
   });
 
   test('road use applications do not send an availability (UC-031 A1)', async () => {
@@ -412,7 +458,7 @@ describe('ContactsStep', () => {
       { caseNumber: 'APP-1', type: 'RoadUsePermit', status: 'Draft' },
     );
 
-    await user.click(button('+ Tilføj kontaktperson'));
+    await user.click(button(addAtContractor));
     // Availability is always Day, so there is no field for it.
     expect(
       screen.queryByRole('combobox', { name: /Tilgængelighed/ }),
@@ -440,11 +486,13 @@ describe('ContactsStep', () => {
         'Kontaktpersoner kan kun ændres, mens ansøgningen er en kladde eller kræver rettelser.',
       ),
     ).toBeTruthy();
-    expect(screen.queryByRole('button', { name: /^Redigér/ })).toBeNull();
-    expect(screen.queryByRole('button', { name: /^Slet/ })).toBeNull();
     expect(
-      screen.queryByRole('button', { name: '+ Tilføj kontaktperson' }),
+      screen.queryByRole('button', { name: 'Redigér Jens Jensen' }),
     ).toBeNull();
+    expect(
+      screen.queryByRole('button', { name: 'Slet Jens Jensen' }),
+    ).toBeNull();
+    expect(screen.queryByRole('button', { name: /^Opret kontakt/ })).toBeNull();
   });
 
   test('Next needs at least one contact person (UC-004 F7)', async () => {
@@ -467,7 +515,7 @@ describe('ContactsStep', () => {
       fake.withActors(contractor),
     );
 
-    await user.click(button('+ Tilføj kontaktperson'));
+    await user.click(button(addAtContractor));
     await fillContact(user);
     await user.click(button('Næste'));
 
@@ -491,7 +539,7 @@ describe('ContactsStep', () => {
   test('shows a format error as soon as the field is left', async () => {
     const { user } = await renderStep((fake) => fake.withActors(contractor));
 
-    await user.click(button('+ Tilføj kontaktperson'));
+    await user.click(button(addAtContractor));
     // Leaving an empty field does not complain yet.
     await user.click(field(/Navn/));
     await user.tab();
@@ -511,7 +559,7 @@ describe('ContactsStep', () => {
       fake.withActors(contractor),
     );
 
-    await user.click(button('+ Tilføj kontaktperson'));
+    await user.click(button(addAtContractor));
     await user.type(field(/Navn/), 'Jens Jensen');
     await choose(user, /Tilgængelighed/, 'Dag');
     await user.click(field(/Telefonnummer/));

@@ -608,24 +608,18 @@
     "intro": "Welcome to Applicantplatform."
   },
   "contacts": {
-    "actorGroup": "{{role}} · {{name}}",
     "unknownActor": "Unknown actor",
-    "listTitle": "Contact persons ({{number}})",
     "noActors": "The application has no actors yet. Add an actor under “Other actors” before you create a contact person.",
     "none": "There are no contact persons yet.",
-    "addContact": "+ Add contact person",
+    "addContact": "Create contact",
     "newContact": "New contact person",
-    "fillInForm": "fill in the form",
     "openInForm": "Being edited in the form",
     "editContactFor": "Edit {{name}}",
     "edit": "Edit",
     "deleteContactFor": "Delete {{name}}",
     "delete": "Delete",
-    "actorLabel": "{{name}} ({{role}})",
     "editTitle": "Edit contact person",
     "cannotSaveYet": "The contact person cannot be saved yet. Correct the fields marked in red.",
-    "actor": "Link to actor",
-    "actorReadOnly": "Actor",
     "cancel": "Cancel",
     "save": "Save contact person",
     "saveChanges": "Save changes",
@@ -642,7 +636,6 @@
     "alreadyDeleted": "The contact person {{name}} had already been deleted.",
     "deleteError": "The contact person could not be deleted. Try again later or contact support.",
     "intro": "Add the people the municipality can contact about the application. There must be at least one contact person.",
-    "panelHint": "Choose “Edit” next to a contact person, or add a new one.",
     "atLeastOne": "There must be at least one contact person before you can continue.",
     "deleteDialog": {
       "title": "Delete contact person?",
@@ -676,7 +669,27 @@
       "availability": "Availability",
       "phoneNumber": "Phone number",
       "email": "Email"
-    }
+    },
+    "actorsTitle": "Actors",
+    "actorDetails": "Show details about {{name}}",
+    "actorFields": {
+      "role": "Role",
+      "phoneNumber": "Phone number",
+      "email": "Email",
+      "address": "Address",
+      "cvrNumber": "CVR number",
+      "department": "Department"
+    },
+    "notProvided": "Not provided",
+    "updateActor": "Update",
+    "deleteActor": "Delete",
+    "createActor": "Create actor",
+    "actorActionsPending": "Actors are created, updated and deleted in another step that has not been built yet.",
+    "contactsHeading": "Contact persons",
+    "addContactFor": "Create contact at {{name}}",
+    "phoneLine": "Phone number: {{phone}}",
+    "emailLine": "Email: {{email}}",
+    "availabilityLine": "Availability: {{availability}}"
   },
   "login": {
     "title": "Log in",

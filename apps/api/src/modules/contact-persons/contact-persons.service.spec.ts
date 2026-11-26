@@ -39,6 +39,16 @@ const actor = {
   uuid: 'actor-1',
   name: 'Graveselskabet',
   role: ActorRole.Contractor,
+  phoneNumber: '33333333',
+  email: 'kontakt@graveselskabet.example',
+  cvrNumber: '33333333',
+  department: null,
+  address: {
+    street: 'Demovej',
+    houseNumber: '10',
+    postalCode: '5000',
+    city: 'Odense C',
+  },
 };
 
 const createDto = {
