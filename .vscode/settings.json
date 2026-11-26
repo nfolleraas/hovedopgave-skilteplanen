@@ -1,0 +1,6 @@
+{
+  "chat.agentHost.claudeAgent.enabled": false,
+  "chat.agentHost.codexAgent.enabled": true,
+  "chat.editor.codex.preferAgentHost": true,
+  "chat.agentHost.codexAgent.codexHome": "/home/node/.codex"
+}
