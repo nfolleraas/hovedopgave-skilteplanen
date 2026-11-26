@@ -2,6 +2,21 @@
   "notFound": {
     "title": "Siden blev ikke fundet"
   },
+  "navigation": {
+    "skipToMain": "Spring til hovedindhold",
+    "skipToContent": "Gå til hovedindhold",
+    "home": "Hjem",
+    "application": "Ansøgning",
+    "messages": "Beskeder",
+    "openUserMenu": "Åbn brugermenu",
+    "settings": "Indstillinger",
+    "logOut": "Log af",
+    "language": "Sprog",
+    "danish": "Dansk",
+    "english": "Engelsk",
+    "logoHome": "Ansøgningsplatformen – gå til forsiden",
+    "main": "Hovednavigation"
+  },
   "address": {
     "lookupError": "Adresser kunne ikke hentes. Prøv at søge igen.",
     "noOptions": "Ingen forslag. Prøv vejnavn, husnummer og postnummer.",
@@ -15,21 +30,6 @@
     "users": "Brugere",
     "caseworkers": "Sagsbehandlere",
     "title": "Administration"
-  },
-  "navigation": {
-    "skipToContent": "Gå til hovedindhold",
-    "home": "Hjem",
-    "application": "Ansøgning",
-    "messages": "Beskeder",
-    "logoHome": "Ansøgningsplatformen – gå til forsiden",
-    "main": "Hovednavigation",
-    "openUserMenu": "Åbn brugermenu",
-    "settings": "Indstillinger",
-    "logOut": "Log af",
-    "language": "Sprog",
-    "skipToMain": "Spring til hovedindhold",
-    "danish": "Dansk",
-    "english": "Engelsk"
   },
   "footer": {
     "shortcuts": "Genveje",
@@ -49,51 +49,6 @@
   },
   "common": {
     "brandName": "Skilteplanen"
-  },
-  "municipality": {
-    "create": {
-      "title": "Opret kommune",
-      "phoneNumber": "Telefonnummer",
-      "addressError": "Vælg en gyldig adresse med husnummer.",
-      "email": "E-mail",
-      "cancel": "Annuller",
-      "success": "Kommunen er oprettet",
-      "error": "Kommunen kunne ikke oprettes",
-      "nameFormat": "Brug kun bogstaver og mellemrum mellem ord.",
-      "name": "Kommunens navn",
-      "region": "Region",
-      "save": "Gem kommune"
-    },
-    "update": {
-      "title": "Opdater kommuneoplysninger",
-      "loadError": "Kommunen kunne ikke hentes. Kontroller adressen eller prøv igen.",
-      "loading": "Henter kommuneoplysninger…",
-      "emailInUse": "E-mailadressen bruges allerede af en anden kommune.",
-      "phoneNumberInUse": "Telefonnummeret bruges allerede af en anden kommune.",
-      "noChanges": "Der er ingen ændringer at gemme.",
-      "invalidEmail": "Indtast en gyldig e-mailadresse.",
-      "invalidPhoneNumber": "Telefonnummeret skal bestå af 8 cifre.",
-      "invalidPostalCode": "Vælg en adresse med et postnummer på 4 cifre.",
-      "success": "Kommuneoplysningerne er gemt.",
-      "saveError": "Ændringerne kunne ikke gemmes. Prøv igen.",
-      "saving": "Gemmer…",
-      "save": "Gem ændringer"
-    }
-  },
-  "caseworker": {
-    "title": "Sagsbehandling",
-    "openMenu": "Åbn sagsbehandlermenu"
-  },
-  "home": {
-    "title": "Ansøgningsplatformen",
-    "intro": "Velkommen til Ansøgningsplatformen",
-    "createRoadPermit": "Opret tilladelse til råden over vej",
-    "createRoadPermitEvent": "Opret tilladelse til råden over vej til begivenhed",
-    "createDiggingPermit": "Opret gravetilladelse"
-  },
-  "login": {
-    "title": "Log ind",
-    "formPlaceholder": "Her kommer loginformularen."
   },
   "permit": {
     "steps": {
@@ -371,6 +326,36 @@
       "noProtection": "Ingen beskyttelsesgrad"
     }
   },
+  "municipality": {
+    "create": {
+      "title": "Opret kommune",
+      "phoneNumber": "Telefonnummer",
+      "email": "E-mail",
+      "addressError": "Vælg en gyldig adresse med husnummer.",
+      "cancel": "Annuller",
+      "success": "Kommunen er oprettet",
+      "error": "Kommunen kunne ikke oprettes",
+      "name": "Kommunens navn",
+      "nameFormat": "Brug kun bogstaver og mellemrum mellem ord.",
+      "region": "Region",
+      "save": "Gem kommune"
+    },
+    "update": {
+      "title": "Opdater kommuneoplysninger",
+      "loadError": "Kommunen kunne ikke hentes. Kontroller adressen eller prøv igen.",
+      "loading": "Henter kommuneoplysninger…",
+      "invalidEmail": "Indtast en gyldig e-mailadresse.",
+      "emailInUse": "E-mailadressen bruges allerede af en anden kommune.",
+      "phoneNumberInUse": "Telefonnummeret bruges allerede af en anden kommune.",
+      "invalidPhoneNumber": "Telefonnummeret skal bestå af 8 cifre.",
+      "invalidPostalCode": "Vælg en adresse med et postnummer på 4 cifre.",
+      "success": "Kommuneoplysningerne er gemt.",
+      "saveError": "Ændringerne kunne ikke gemmes. Prøv igen.",
+      "noChanges": "Der er ingen ændringer at gemme.",
+      "saving": "Gemmer…",
+      "save": "Gem ændringer"
+    }
+  },
   "application": {
     "drafts": {
       "heading": "Kladder",
@@ -384,5 +369,20 @@
     "creatingDraft": "Opretter kladde…",
     "unavailable": "Kommer senere",
     "createDraftError": "Ansøgningskladden kunne ikke oprettes. Prøv igen."
+  },
+  "home": {
+    "createRoadPermit": "Opret tilladelse til råden over vej",
+    "createRoadPermitEvent": "Opret tilladelse til råden over vej til begivenhed",
+    "createDiggingPermit": "Opret gravetilladelse",
+    "title": "Ansøgningsplatformen",
+    "intro": "Velkommen til Ansøgningsplatformen"
+  },
+  "caseworker": {
+    "title": "Sagsbehandling",
+    "openMenu": "Åbn sagsbehandlermenu"
+  },
+  "login": {
+    "title": "Log ind",
+    "formPlaceholder": "Her kommer loginformularen."
   }
 }

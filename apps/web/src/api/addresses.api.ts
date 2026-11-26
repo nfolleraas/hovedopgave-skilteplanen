@@ -1,27 +1,37 @@
+import { searchAddresses as searchAdressevaelger } from '../utils/adressevaelger.js';
+
 export interface AddressOption {
   id: string;
   titel: string;
-  type: 'adresse' | 'husnummer' | 'navngivenvejpostnummer';
-  husnummerId?: string;
+  type: 'husnummer' | 'navngivenvejpostnummer';
 }
 
 export type AddressSuggestion = AddressOption;
 
 /**
- * Fetches address suggestions from the API using the supplied query text. An
- * abort signal lets the caller cancel requests for outdated searches.
+ * Adapts the shared browser lookup to the municipality address field.
+ *
+ * @param text - Address or street name entered in the field.
+ * @param signal - Cancels the lookup when the search text changes.
+ * @returns Unique address and street suggestions for the field.
  */
 export async function searchAddresses(
   text: string,
-  signal?: AbortSignal,
+  signal: AbortSignal,
 ): Promise<AddressOption[]> {
-  const params = new URLSearchParams({ text });
+  const results = await searchAdressevaelger(text, signal);
+  const options = new Map<string, AddressOption>();
 
-  const response = await fetch(`/api/addresses/search?${params}`, { signal });
+  for (const { id, titel, type } of results) {
+    if (!titel) continue;
 
-  if (!response.ok) {
-    throw new Error(`Address lookup failed (${response.status})`);
+    if (type === 'husnummer' && id) {
+      options.set(id, { id, titel, type });
+    } else if (type === 'navngivenvejpostnummer') {
+      const key = id ?? titel;
+      options.set(key, { id: key, titel, type });
+    }
   }
 
-  return (await response.json()) as AddressOption[];
+  return [...options.values()];
 }

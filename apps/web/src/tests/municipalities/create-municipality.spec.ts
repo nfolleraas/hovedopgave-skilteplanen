@@ -2,15 +2,18 @@ import { expect, test } from '@playwright/test';
 import { municipality } from './municipality.fixture';
 
 test('creates a municipality from the administrator form', async ({ page }) => {
-  await page.route('**/api/addresses/search?**', (route) =>
+  await page.route('https://adressevaelger.dk/husnumre/soeg?*', (route) =>
     route.fulfill({
-      json: [
-        {
-          id: municipality.addressId,
-          titel: 'Vestergade 2, 5000 Odense C',
-          type: 'husnummer',
-        },
-      ],
+      json: {
+        status: 'ok',
+        fund: [
+          {
+            id: municipality.addressId,
+            titel: 'Vestergade 2, 5000 Odense C',
+            type: 'husnummer',
+          },
+        ],
+      },
     }),
   );
 

@@ -109,7 +109,11 @@ export default function CreateMunicipalityPage(): ReactElement {
           {t('municipality.create.title')}
         </Typography>
 
-        <Box component="form" onSubmit={handleSubmit}>
+        <Box
+          className="create-municipality-form"
+          component="form"
+          onSubmit={handleSubmit}
+        >
           <Stack spacing={3}>
             {success && (
               <Alert severity="success">

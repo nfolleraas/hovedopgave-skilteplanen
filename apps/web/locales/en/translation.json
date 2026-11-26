@@ -2,6 +2,21 @@
   "notFound": {
     "title": "Page not found"
   },
+  "navigation": {
+    "skipToMain": "Skip to main content",
+    "skipToContent": "Skip to main content",
+    "home": "Home",
+    "application": "Application",
+    "messages": "Messages",
+    "openUserMenu": "Open user menu",
+    "settings": "Settings",
+    "logOut": "Log out",
+    "language": "Language",
+    "danish": "Danish",
+    "english": "English",
+    "logoHome": "Applicantplatform – go to the home page",
+    "main": "Main navigation"
+  },
   "address": {
     "lookupError": "Could not load addresses. Try searching again.",
     "noOptions": "No suggestions. Try a street, house number and postal code.",
@@ -15,21 +30,6 @@
     "users": "Users",
     "caseworkers": "Caseworkers",
     "title": "Administration"
-  },
-  "navigation": {
-    "skipToContent": "Skip to main content",
-    "home": "Home",
-    "application": "Application",
-    "messages": "Messages",
-    "logoHome": "Applicantplatform – go to the home page",
-    "main": "Main navigation",
-    "openUserMenu": "Open user menu",
-    "settings": "Settings",
-    "logOut": "Log out",
-    "language": "Language",
-    "skipToMain": "Skip to main content",
-    "danish": "Danish",
-    "english": "English"
   },
   "footer": {
     "shortcuts": "Shortcuts",
@@ -49,51 +49,6 @@
   },
   "common": {
     "brandName": "Skilteplanen"
-  },
-  "municipality": {
-    "create": {
-      "title": "Create municipality",
-      "phoneNumber": "Phone number",
-      "addressError": "Select a valid address with a house number.",
-      "email": "Email",
-      "cancel": "Cancel",
-      "success": "Municipality created successfully",
-      "error": "Could not create municipality",
-      "nameFormat": "Use only letters and spaces between words.",
-      "name": "Municipality name",
-      "region": "Region",
-      "save": "Save municipality"
-    },
-    "update": {
-      "title": "Update municipality details",
-      "loadError": "Could not load the municipality. Check the URL or try again.",
-      "loading": "Loading municipality details…",
-      "emailInUse": "The email address is already used by another municipality.",
-      "phoneNumberInUse": "The phone number is already used by another municipality.",
-      "noChanges": "There are no changes to save.",
-      "invalidEmail": "Enter a valid email address.",
-      "invalidPhoneNumber": "The phone number must contain 8 digits.",
-      "invalidPostalCode": "Select an address with a 4-digit postal code.",
-      "success": "Municipality details have been saved.",
-      "saveError": "Could not save the changes. Try again.",
-      "saving": "Saving…",
-      "save": "Save changes"
-    }
-  },
-  "caseworker": {
-    "title": "Caseworker area",
-    "openMenu": "Open caseworker menu"
-  },
-  "home": {
-    "title": "Applicantplatform",
-    "intro": "Welcome to Applicantplatform.",
-    "createRoadPermit": "Apply for a road occupancy permit",
-    "createRoadPermitEvent": "Apply for a road occupancy permit for event",
-    "createDiggingPermit": "Apply for a digging permit"
-  },
-  "login": {
-    "title": "Log in",
-    "formPlaceholder": "The login form will appear here."
   },
   "permit": {
     "steps": {
@@ -371,6 +326,36 @@
       "noProtection": "No protection level"
     }
   },
+  "municipality": {
+    "create": {
+      "title": "Create municipality",
+      "phoneNumber": "Phone number",
+      "email": "Email",
+      "addressError": "Select a valid address with a house number.",
+      "cancel": "Cancel",
+      "success": "Municipality created successfully",
+      "error": "Could not create municipality",
+      "name": "Municipality name",
+      "nameFormat": "Use only letters and spaces between words.",
+      "region": "Region",
+      "save": "Save municipality"
+    },
+    "update": {
+      "title": "Update municipality details",
+      "loadError": "Could not load the municipality. Check the URL or try again.",
+      "loading": "Loading municipality details…",
+      "invalidEmail": "Enter a valid email address.",
+      "emailInUse": "The email address is already used by another municipality.",
+      "phoneNumberInUse": "The phone number is already used by another municipality.",
+      "invalidPhoneNumber": "The phone number must contain 8 digits.",
+      "invalidPostalCode": "Select an address with a 4-digit postal code.",
+      "success": "Municipality details have been saved.",
+      "saveError": "Could not save the changes. Try again.",
+      "noChanges": "There are no changes to save.",
+      "saving": "Saving…",
+      "save": "Save changes"
+    }
+  },
   "application": {
     "drafts": {
       "heading": "Drafts",
@@ -384,5 +369,20 @@
     "creatingDraft": "Creating draft…",
     "unavailable": "Coming later",
     "createDraftError": "The application draft could not be created. Try again."
+  },
+  "home": {
+    "createRoadPermit": "Apply for a road occupancy permit",
+    "createRoadPermitEvent": "Apply for a road occupancy permit for event",
+    "createDiggingPermit": "Apply for a digging permit",
+    "title": "Applicantplatform",
+    "intro": "Welcome to Applicantplatform."
+  },
+  "caseworker": {
+    "title": "Caseworker area",
+    "openMenu": "Open caseworker menu"
+  },
+  "login": {
+    "title": "Log in",
+    "formPlaceholder": "The login form will appear here."
   }
 }

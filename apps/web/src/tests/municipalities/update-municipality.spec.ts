@@ -20,15 +20,18 @@ test('updates municipality details from the caseworker sidebar', async ({
     await route.fulfill({ json: municipality });
   });
 
-  await page.route('**/api/addresses/search?**', (route) =>
+  await page.route('https://adressevaelger.dk/husnumre/soeg?*', (route) =>
     route.fulfill({
-      json: [
-        {
-          id: 'new-address',
-          titel: 'Vestergade 4, 5000 Odense C',
-          type: 'husnummer',
-        },
-      ],
+      json: {
+        status: 'ok',
+        fund: [
+          {
+            id: 'new-address',
+            titel: 'Vestergade 4, 5000 Odense C',
+            type: 'husnummer',
+          },
+        ],
+      },
     }),
   );
 

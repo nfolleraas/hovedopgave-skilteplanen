@@ -43,7 +43,10 @@ export default function AddressAutocomplete({
 
     const timeout = setTimeout(async () => {
       try {
-        const addresses = await searchAddresses(inputValue, controller.signal);
+        const addresses = await searchAddresses(
+          inputValue.trim(),
+          controller.signal,
+        );
         if (!controller.signal.aborted) {
           setOptions(addresses);
         }

@@ -15,7 +15,7 @@ interface ParsedAddress {
  * format.
  */
 export function parseAddress(address: AddressSuggestion): ParsedAddress {
-  if (address.type !== 'adresse' && address.type !== 'husnummer') {
+  if (address.type !== 'husnummer') {
     throw new Error('Vælg en adresse med husnummer fra listen.');
   }
 

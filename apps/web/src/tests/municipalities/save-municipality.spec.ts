@@ -22,15 +22,18 @@ test('persists a new municipality and caseworker edits through the API', async (
   const addressLabel = 'Vestergade 2, 5000 Odense C';
 
   try {
-    await page.route('**/api/addresses/search?**', (route) =>
+    await page.route('https://adressevaelger.dk/husnumre/soeg?*', (route) =>
       route.fulfill({
-        json: [
-          {
-            id: municipality.addressId,
-            titel: addressLabel,
-            type: 'husnummer',
-          },
-        ],
+        json: {
+          status: 'ok',
+          fund: [
+            {
+              id: municipality.addressId,
+              titel: addressLabel,
+              type: 'husnummer',
+            },
+          ],
+        },
       }),
     );
 
