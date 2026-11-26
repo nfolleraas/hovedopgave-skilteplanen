@@ -4,8 +4,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { App } from 'supertest/types.js';
 import { vi } from 'vitest';
-import { AppModule } from '../../app.module.js';
-import { PrismaService } from '../prisma/prisma.service.js';
+import { AppModule } from '../src/app.module.js';
+import { PrismaService } from '../src/modules/prisma/prisma.service.js';
 
 describe('Applicants API', () => {
   let app: INestApplication<App>;

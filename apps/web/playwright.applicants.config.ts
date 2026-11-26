@@ -5,7 +5,7 @@ const webPort = Number(process.env.PLAYWRIGHT_WEB_PORT ?? '5190');
 const webURL = `http://localhost:${webPort}`;
 
 export default defineConfig({
-  testDir: './src/tests',
+  testDir: './tests/applicants/e2e',
   outputDir: './node_modules/.cache/playwright-results',
   globalSetup: '../api/test/browser-setup.ts',
   use: {

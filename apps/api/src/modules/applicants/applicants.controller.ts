@@ -8,11 +8,13 @@ import type { CreateApplicantDto } from './dto/create-applicant.dto.js';
 export class ApplicantsController {
   constructor(private readonly applicantsService: ApplicantsService) {}
 
+  /** Returns the active development profile. */
   @Get('profile')
   getProfile(): Promise<ApplicantProfile> {
     return this.applicantsService.getProfile();
   }
 
+  /** Updates editable fields on the active development profile. */
   @Patch('profile')
   updateProfile(@Body() data: unknown): Promise<ApplicantProfile> {
     return this.applicantsService.updateProfile(data);

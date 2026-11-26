@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'bun:test';
+import { afterEach, describe, expect, it } from 'vitest';
 import { searchAddresses } from './addresses.api.js';
 
 const originalFetch = globalThis.fetch;

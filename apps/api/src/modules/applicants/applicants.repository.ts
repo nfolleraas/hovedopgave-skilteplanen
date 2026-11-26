@@ -19,6 +19,7 @@ export type ApplicantProfile = Prisma.ApplicantGetPayload<{
 export class ApplicantsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  /** Selects editable profile fields for the active applicant with the given UUID. */
   findActiveProfile(uuid: string): Promise<ApplicantProfile | null> {
     return this.prisma.applicant.findUnique({
       where: { uuid, isActive: true },
@@ -26,6 +27,7 @@ export class ApplicantsRepository {
     });
   }
 
+  /** Updates the active applicant and records the profile change in one transaction. */
   updateActiveProfile(
     uuid: string,
     type: Applicant['type'],

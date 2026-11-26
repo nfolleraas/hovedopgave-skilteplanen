@@ -17,6 +17,7 @@ export class ApplicantsService {
 
   constructor(private readonly applicantsRepository: ApplicantsRepository) {}
 
+  /** Resolves the configured applicant UUID in development mode. */
   private getProfileApplicantId() {
     const uuid = process.env.DEV_PROFILE_APPLICANT_ID?.trim();
     if (process.env.NODE_ENV !== 'development' || !uuid) {
@@ -25,16 +26,19 @@ export class ApplicantsService {
     return uuid;
   }
 
+  /** Loads an active applicant or returns an HTTP not-found error. */
   private async findProfile(uuid: string) {
     const profile = await this.applicantsRepository.findActiveProfile(uuid);
     if (!profile) throw new NotFoundException();
     return profile;
   }
 
+  /** Returns the editable profile for the configured development applicant. */
   getProfile(): Promise<ApplicantProfile> {
     return this.findProfile(this.getProfileApplicantId());
   }
 
+  /** Validates and saves editable fields for the configured development applicant. */
   async updateProfile(input: unknown): Promise<ApplicantProfile> {
     const uuid = this.getProfileApplicantId();
     const profile = await this.findProfile(uuid);

@@ -50,7 +50,8 @@ for (const { route, applicantType, heading } of [
     ).toBe(false);
     await name.fill(heading);
     await page.getByRole('textbox', { name: 'Telefonnummer' }).fill('12345678');
-    await email.fill(`${applicantType.toLowerCase()}.test@example.com`);
+    const emailAddress = `${applicantType.toLowerCase()}+test@example.com`;
+    await email.fill(emailAddress);
     const addressField = page.getByRole('combobox', { name: 'Adresse' });
     await addressField.fill('Ve');
     await page.getByRole('option', { name: 'Vestergade', exact: true }).click();
@@ -75,6 +76,7 @@ for (const { route, applicantType, heading } of [
     expect(response.status()).toBe(201);
     expect(await response.json()).toMatchObject({
       name: heading,
+      email: emailAddress,
       type: applicantType,
       cvrNumber: applicantType === 'Business' ? '12345678' : null,
     });
@@ -135,10 +137,4 @@ test('shows validation errors beside the applicant fields', async ({
     page.getByRole('combobox', { name: 'Adresse' }),
   ).toHaveAccessibleDescription('Vælg en adresse med husnummer fra listen.');
   await expect(page.getByRole('alert')).toHaveCount(0);
-  const email = page.getByRole('textbox', { name: 'E-mail' });
-  await email.fill('kontakt+test@example.dk');
-  await page.getByRole('button', { name: 'Gem ansøger' }).click();
-  await expect(email).toHaveAccessibleDescription(
-    'E-mailadressen må ikke indeholde tegnet +.',
-  );
 });

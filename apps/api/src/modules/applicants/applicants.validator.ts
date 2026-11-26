@@ -9,6 +9,7 @@ const personalNamePattern = /^(?:\p{L}\p{M}*)+(?: +(?:\p{L}\p{M}*)+)*$/u;
 const businessNamePattern =
   /^(?:\p{L}\p{M}*|[0-9])+(?: +(?:\p{L}\p{M}*|[0-9])+)*$/u;
 
+/** Checks allowed name characters for the applicant type. */
 function isValidName(name: string, isBusiness: boolean): boolean {
   return (isBusiness ? businessNamePattern : personalNamePattern).test(name);
 }
@@ -22,6 +23,7 @@ const houseNumberPattern = /^[0-9]+[a-z]?(?:[-/][0-9]+[a-z]?)?$/i;
 const postalCodePattern = /^[0-9]{4}$/;
 const addressNamePattern = /^[\p{L}\p{M}0-9 .,'’&()/-]+$/u;
 
+/** Checks that a street or city name has valid characters and contains a letter. */
 function isAddressName(value: unknown): boolean {
   return (
     typeof value === 'string' &&
@@ -30,6 +32,7 @@ function isAddressName(value: unknown): boolean {
   );
 }
 
+/** Normalizes profile input and reports all invalid editable fields. */
 export function validateProfile(
   data: unknown,
   isBusiness: boolean,

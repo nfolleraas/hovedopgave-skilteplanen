@@ -26,6 +26,7 @@ interface ApplicantFormProps {
   applicantType: ApplicantType;
 }
 
+/** Renders the shared private and business applicant creation form. */
 export default function ApplicantForm({ applicantType }: ApplicantFormProps) {
   const isBusiness = applicantType === 'business';
   const title = isBusiness ? 'Opret erhvervsansøger' : 'Opret privatansøger';
@@ -39,6 +40,7 @@ export default function ApplicantForm({ applicantType }: ApplicantFormProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
+  /** Clears the validation message for the field being edited. */
   function clearError(field: ApplicantField): void {
     setErrors((previous) => ({ ...previous, [field]: undefined }));
   }
@@ -75,9 +77,7 @@ export default function ApplicantForm({ applicantType }: ApplicantFormProps) {
     if (!isValidPhoneNumber(phoneNumber)) {
       nextErrors.phoneNumber = 'Indtast et telefonnummer med præcis 8 cifre.';
     }
-    if (email.includes('+')) {
-      nextErrors.email = 'E-mailadressen må ikke indeholde tegnet +.';
-    } else if (
+    if (
       !email ||
       (emailInput instanceof HTMLInputElement && !emailInput.validity.valid)
     )

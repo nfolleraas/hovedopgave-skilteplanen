@@ -19,6 +19,7 @@ interface AddressAutocompleteProps {
  * Autocomplete field that uses the shared Adressevælger search and returns the
  * selected suggestion to the parent.
  */
+/** Offers address suggestions and reports the current selection to the form. */
 export default function AddressAutocomplete({
   errorMessage,
   onChange,

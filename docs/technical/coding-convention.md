@@ -214,13 +214,14 @@ scenario or expected outcome. A representative structure is:
 apps/
 ├── api/
 │   ├── src/modules/<feature>/
-│   │   ├── <feature>.api-spec.ts
 │   │   ├── <feature>.controller.ts
 │   │   ├── <feature>.controller.spec.ts
 │   │   ├── <feature>.repository.ts
 │   │   ├── <feature>.repository.spec.ts
 │   │   ├── <feature>.service.ts
 │   │   └── <feature>.service.spec.ts
+│   └── test/
+│       └── <feature>.api-spec.ts
 └── web/
     ├── src/<component-or-page>/
     │   └── index.test.tsx

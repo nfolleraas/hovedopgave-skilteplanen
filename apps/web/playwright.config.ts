@@ -13,6 +13,7 @@ export default defineConfig({
   fullyParallel: true,
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   testDir: './tests',
+  testIgnore: '**/applicants/e2e/**',
   testMatch: '**/*.spec.{ts,tsx}',
   use: {
     actionTimeout: 8_000,

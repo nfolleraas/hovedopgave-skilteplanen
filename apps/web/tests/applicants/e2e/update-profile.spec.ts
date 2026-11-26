@@ -28,9 +28,6 @@ test('opens a private profile, cancels, validates and saves changes', async ({
 
   await name.fill('Opdateret Profilnavn');
   await email.fill('kontakt+test@example.dk');
-  await save.click();
-  await expect(email).toHaveAttribute('aria-invalid', 'true');
-  await email.fill('kontakt.test@example.dk');
   await phone.fill('123');
   await save.click();
   await expect(phone).toHaveAttribute('aria-invalid', 'true');
@@ -42,4 +39,5 @@ test('opens a private profile, cancels, validates and saves changes', async ({
   await page.reload();
   await expect(page.getByText('Opdateret Profilnavn')).toBeVisible();
   await expect(page.getByText('87654321')).toBeVisible();
+  await expect(page.getByText('kontakt+test@example.dk')).toBeVisible();
 });

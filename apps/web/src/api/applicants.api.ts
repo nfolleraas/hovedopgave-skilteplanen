@@ -28,6 +28,7 @@ export class ApplicantProfileError extends Error {
   }
 }
 
+/** Returns profile data or an error with the affected fields. */
 async function requestProfile(options: RequestInit): Promise<ApplicantProfile> {
   const response = await fetch('/api/applicants/profile', options);
   if (!response.ok) {
@@ -40,10 +41,12 @@ async function requestProfile(options: RequestInit): Promise<ApplicantProfile> {
   return response.json();
 }
 
+/** Fetches the active profile and supports cancellation via the supplied signal. */
 export function getApplicantProfile(signal: AbortSignal) {
   return requestProfile({ signal });
 }
 
+/** Saves editable profile data and returns the updated profile. */
 export function updateApplicantProfile(data: ApplicantProfileInput) {
   return requestProfile({
     method: 'PATCH',
