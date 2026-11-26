@@ -61,6 +61,7 @@
       "materialsRequired": "Add at least one material to the list.",
       "materialDraft": "Add the material, save your changes, or cancel the draft.",
       "trafficMeasureRequired": "Select at least one traffic measure.",
+      "signPlanRequired": "Add at least one sign plan.",
       "confirmation": "Confirm the information before submitting the application.",
       "materialType": "Select a material type.",
       "materialQuantity": "Enter a whole number of at least 1.",

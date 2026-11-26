@@ -61,6 +61,7 @@
       "materialsRequired": "Tilføj mindst ét materiale til listen.",
       "materialDraft": "Tilføj materialet, gem ændringerne eller annuller kladden.",
       "trafficMeasureRequired": "Vælg mindst én trafikforanstaltning.",
+      "signPlanRequired": "Tilføj mindst én skilteplan.",
       "confirmation": "Bekræft oplysningerne, før du indsender ansøgningen.",
       "materialType": "Vælg en materialetype.",
       "materialQuantity": "Angiv et helt tal på mindst 1.",
