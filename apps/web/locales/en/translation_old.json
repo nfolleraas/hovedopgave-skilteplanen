@@ -3,5 +3,10 @@
     "create": {
       "address": "Address"
     }
+  },
+  "permit": {
+    "documents": {
+      "empty": "No attachments added."
+    }
   }
 }

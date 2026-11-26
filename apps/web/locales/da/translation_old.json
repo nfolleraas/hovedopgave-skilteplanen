@@ -3,5 +3,10 @@
     "create": {
       "address": "Adresse"
     }
+  },
+  "permit": {
+    "documents": {
+      "empty": "Ingen bilag vedhæftet."
+    }
   }
 }
