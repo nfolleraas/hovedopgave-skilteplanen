@@ -28,10 +28,15 @@ export default function DocumentsPage({
       </Typography>
 
       <Stack
-        direction={{ xs: 'column', md: 'row' }}
-        spacing={2}
+        direction={'column'}
+        spacing={4}
         sx={{ alignItems: 'stretch' }}
       >
+        <DocumentDropZone
+          applicationId={applicationId}
+          documentType="Other"
+          onDocumentsUploaded={documentsState.addDocuments}
+        />
         <Box
           sx={{
             alignItems: 'center',
@@ -47,12 +52,6 @@ export default function DocumentsPage({
             {t('documents.addSignplan')}
           </Button>
         </Box>
-
-        <DocumentDropZone
-          applicationId={applicationId}
-          documentType="Other"
-          onDocumentsUploaded={documentsState.addDocuments}
-        />
       </Stack>
 
       <AddSignplanDialog
