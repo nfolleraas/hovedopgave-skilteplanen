@@ -24,7 +24,11 @@ interface SummaryStepProps {
   onGoTo: (step: ApplicationStepId) => void;
 }
 
-/** Overview of the whole application before it is sent (UC-004 step 28). */
+/**
+ * Overview of the whole application before it is sent (UC-004 step 28).
+ * @param props - The application, draft, areas and navigation handlers
+ * @returns The rendered step
+ */
 export function SummaryStep({
   application,
   draft,
@@ -243,6 +247,12 @@ interface SummarySectionProps {
   children: ReactNode;
 }
 
+/**
+ * One section of the summary with an Edit button that opens its step.
+ * @param props - The title, whether the section is incomplete, the edit
+ * handler and the content
+ * @returns The rendered section
+ */
 function SummarySection({
   title,
   incomplete,
@@ -291,6 +301,11 @@ function SummarySection({
   );
 }
 
+/**
+ * One label and value in a summary section.
+ * @param props - The label and the value
+ * @returns The rendered row
+ */
 function Row({ label, children }: { label: string; children: ReactNode }) {
   return (
     <Box

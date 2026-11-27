@@ -14,7 +14,13 @@ interface MissingFieldsSummaryProps {
   hasNoAreas: boolean;
 }
 
-/** Summary shown when Næste is blocked (NF1). Focused so it is announced. */
+/**
+ * Summary shown when Næste is blocked (NF1). Focused so it is announced.
+ * @param props - The areas with missing fields and whether there are no
+ * areas
+ * @param ref - Ref to the alert, so it can be focused
+ * @returns The rendered summary
+ */
 export const MissingFieldsSummary = forwardRef<
   HTMLDivElement,
   MissingFieldsSummaryProps

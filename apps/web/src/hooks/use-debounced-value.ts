@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react';
 
-/** Returns `value` once it has stopped changing for `delayMs`. */
+/**
+ * Delays a value until it has stopped changing.
+ * @param value - The value that changes, e.g. a search text
+ * @param delayMs - How long the value must stay the same, in milliseconds
+ * @returns The last value that stayed the same for `delayMs`
+ */
 export function useDebouncedValue<T>(value: T, delayMs: number): T {
   const [debounced, setDebounced] = useState(value);
 

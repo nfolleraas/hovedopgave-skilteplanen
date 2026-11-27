@@ -10,7 +10,11 @@ interface StepSidebarProps {
   onSelect: (step: ApplicationStepId) => void;
 }
 
-/** The list of steps. Selecting one shows it on the right (master-detail). */
+/**
+ * The list of steps. Selecting one shows it on the right (master-detail).
+ * @param props - The current step and the handler for selecting a step
+ * @returns The rendered step list
+ */
 export function StepSidebar({ currentStep, onSelect }: StepSidebarProps) {
   const { t } = useTranslation();
 

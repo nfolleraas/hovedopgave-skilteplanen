@@ -13,8 +13,11 @@ export interface NamedRoad {
 }
 
 /**
- * An area has exactly one postal code, so a road that crosses postal codes
- * becomes one result per postal code.
+ * Maps a named road to road search results. An area has exactly one postal
+ * code, so a road that crosses postal codes becomes one result per postal
+ * code.
+ * @param road - The road from Dataforsyningen
+ * @returns One search result per postal code
  */
 export function toRoadSearchResults(road: NamedRoad): RoadSearchResult[] {
   const postalCodes = road.postnummer.split(',');

@@ -14,7 +14,11 @@ export const labelAboveSlots = {
   input: { notched: false },
 };
 
-/** Turns a field path such as `actors.<id>.email` into a valid element id. */
+/**
+ * Turns a field path such as `actors.<id>.email` into a valid element id.
+ * @param path - The field path
+ * @returns The element id
+ */
 export function fieldId(path: string): string {
   return `field-${path.replace(/[^a-zA-Z0-9-]/g, '-')}`;
 }

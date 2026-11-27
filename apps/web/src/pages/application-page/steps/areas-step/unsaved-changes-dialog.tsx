@@ -19,6 +19,9 @@ interface UnsavedChangesDialogProps {
 /**
  * Asked before another area is expanded over unsaved changes (UC-036).
  * The areas step moves focus after closing, as the trigger may be gone.
+ * @param props - Whether the dialog is open, the area title and the save,
+ * discard and cancel handlers
+ * @returns The rendered dialog
  */
 export function UnsavedChangesDialog({
   open,

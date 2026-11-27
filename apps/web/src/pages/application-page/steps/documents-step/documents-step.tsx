@@ -10,6 +10,8 @@ import type { DraftStepProps } from '../step-props.js';
 /**
  * Other documents (UC-019, UC-020). Only the file names are kept until
  * upload to S3 is built.
+ * @param props - The draft, its updater and the navigation handlers
+ * @returns The rendered step
  */
 export function DocumentsStep({
   draft,

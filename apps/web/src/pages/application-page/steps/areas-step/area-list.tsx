@@ -26,7 +26,11 @@ interface AreaListProps {
   onSave: () => void;
 }
 
-/** The areas as cards. Only the open area shows its form. */
+/**
+ * The areas as cards. Only the open area shows its form.
+ * @param props - The edit state, used fields, save state and event handlers
+ * @returns The rendered list of cards
+ */
 export function AreaList({
   type,
   state,

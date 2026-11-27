@@ -107,10 +107,18 @@ export interface ApplicationDraft {
   documents: DocumentDraft[];
 }
 
+/**
+ * Creates a unique ID for a draft list item.
+ * @returns A random UUID
+ */
 export function newId(): string {
   return crypto.randomUUID();
 }
 
+/**
+ * Creates an empty cable task.
+ * @returns A cable task with a new ID and no values
+ */
 export function emptyCableTask(): CableTaskDraft {
   return {
     id: newId(),
@@ -125,10 +133,18 @@ export function emptyCableTask(): CableTaskDraft {
   };
 }
 
+/**
+ * Creates an empty material.
+ * @returns A material with a new ID and no values
+ */
 export function emptyMaterial(): MaterialDraft {
   return { id: newId(), type: '', amount: '', description: '' };
 }
 
+/**
+ * Creates an empty actor.
+ * @returns An actor with a new ID and no values
+ */
 export function emptyActor(): ActorDraft {
   return {
     id: newId(),
@@ -142,6 +158,10 @@ export function emptyActor(): ActorDraft {
   };
 }
 
+/**
+ * Creates an empty contact person.
+ * @returns A contact person with a new ID and no values
+ */
 export function emptyContactPerson(): ContactPersonDraft {
   return {
     id: newId(),
@@ -152,6 +172,10 @@ export function emptyContactPerson(): ContactPersonDraft {
   };
 }
 
+/**
+ * Creates an empty traffic calming measure.
+ * @returns A traffic calming measure with a new ID and no values
+ */
 export function emptyTrafficCalmingMeasure(): TrafficCalmingMeasureDraft {
   return {
     id: newId(),
@@ -162,6 +186,11 @@ export function emptyTrafficCalmingMeasure(): TrafficCalmingMeasureDraft {
   };
 }
 
+/**
+ * Creates an empty application draft with one cable task, one material and
+ * one contact person, so each list starts with a form to fill in.
+ * @returns The empty draft
+ */
 export function emptyApplicationDraft(): ApplicationDraft {
   return {
     period: {
@@ -194,6 +223,11 @@ export const dummyMunicipalities = [
   'Vejle Kommune',
 ];
 
+/**
+ * Builds the session storage key for an application's draft.
+ * @param caseNumber - The case number of the application
+ * @returns The storage key
+ */
 const storageKey = (caseNumber: string) => `application-draft:${caseNumber}`;
 
 /**
@@ -206,7 +240,12 @@ export type LoadedApplicationDraft = {
   draft: ApplicationDraft;
 };
 
-/** Reads the draft kept in this browser tab and reports why it failed, if it did. */
+/**
+ * Reads the draft kept in this browser tab and reports why it failed, if it
+ * did.
+ * @param caseNumber - The case number of the application
+ * @returns The load status and the stored or an empty draft
+ */
 export function loadApplicationDraft(
   caseNumber: string,
 ): LoadedApplicationDraft {
@@ -237,6 +276,12 @@ export function loadApplicationDraft(
   }
 }
 
+/**
+ * Saves the draft in this browser tab. If storage is blocked, the draft is
+ * only kept in memory for this visit.
+ * @param caseNumber - The case number of the application
+ * @param draft - The draft to save
+ */
 export function saveApplicationDraft(
   caseNumber: string,
   draft: ApplicationDraft,

@@ -8,6 +8,9 @@ import { focusById } from '../utils/focus-by-id.js';
  *
  * The request is state, not a ref: setting it renders again, and the effect
  * after that render can find an element the render has just added.
+ * @param isBlocked - Whether focusing must wait
+ * @returns A function that requests focus for an element id, or clears the
+ * request with null
  */
 export function usePendingFocus(isBlocked: boolean) {
   const [focusId, setFocusId] = useState<string | null>(null);

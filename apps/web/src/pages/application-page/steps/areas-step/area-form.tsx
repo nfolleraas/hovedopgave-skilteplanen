@@ -49,7 +49,12 @@ const countedFields: ReadonlySet<AreaFormField> = new Set([
   'roadSectionDescription',
 ]);
 
-/** Postal codes are digits only, so other characters are not typed in. */
+/**
+ * Removes every character that is not a digit. Postal codes are digits
+ * only, so other characters are not typed in.
+ * @param value - The typed text
+ * @returns The text with only digits
+ */
 function digitsOnly(value: string): string {
   return value.replace(/\D/g, '');
 }
@@ -71,6 +76,12 @@ interface AreaFormProps {
   onChange: (field: AreaFormField, value: string) => void;
 }
 
+/**
+ * Form with the location and size of an area. Format errors are shown when
+ * a field is left; missing values only after the user tries to save.
+ * @param props - The form values, errors, used fields and change handler
+ * @returns The rendered form
+ */
 export function AreaForm({
   idPrefix,
   values,
@@ -303,8 +314,10 @@ export function AreaForm({
 }
 
 /**
- * Fields side by side from the `sm` breakpoint. With `columns`, the width of
- * a column stays the same when some of the fields are hidden.
+ * Places fields side by side from the `sm` breakpoint. With `columns`, the
+ * width of a column stays the same when some of the fields are hidden.
+ * @param props - The fields and the optional number of columns
+ * @returns The rendered row
  */
 function Row({ children, columns }: { children: ReactNode; columns?: number }) {
   return (

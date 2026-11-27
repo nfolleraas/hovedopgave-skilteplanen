@@ -31,6 +31,8 @@ const searchDelayMs = 250;
 /**
  * Road search as an ARIA combobox: arrow keys move, Enter selects or removes
  * the active road. A checkbox icon and `aria-checked` show selected roads.
+ * @param props - The ids of the selected roads and the toggle handler
+ * @returns The rendered search field and results
  */
 export function RoadSearch({ selectedIds, onToggle }: RoadSearchProps) {
   const { t } = useTranslation();

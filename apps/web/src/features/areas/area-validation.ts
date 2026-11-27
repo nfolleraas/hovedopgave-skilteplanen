@@ -19,8 +19,11 @@ export interface AreaFieldSet {
 }
 
 /**
- * Which detail fields an application type uses. Excavation permits use all
- * of them (UC-034); road use permits have no direction or depth (UC-034 A1).
+ * Finds the detail fields an application type uses. Excavation permits use
+ * all of them (UC-034); road use permits have no direction or depth
+ * (UC-034 A1).
+ * @param type - The application type
+ * @returns Whether direction and depth are used
  */
 export function getAreaFieldSet(type: ApplicationType): AreaFieldSet {
   return type === ApplicationType.ExcavationPermit
@@ -28,11 +31,21 @@ export function getAreaFieldSet(type: ApplicationType): AreaFieldSet {
     : { direction: false, depth: false };
 }
 
+/**
+ * Checks whether areas may be changed for an application status.
+ * @param status - The status of the application
+ * @returns True for drafts and applications that require changes
+ */
 export function canEditAreas(status: Status): boolean {
   return status === 'Draft' || status === 'ChangeRequired';
 }
 
-/** The last area on an application cannot be deleted (UC-035 F1). */
+/**
+ * Checks whether an area may be deleted. The last area on an application
+ * cannot be deleted (UC-035 F1).
+ * @param areaCount - The number of areas on the application
+ * @returns True if there is more than one area
+ */
 export function canDeleteArea(areaCount: number): boolean {
   return areaCount > 1;
 }
@@ -72,7 +85,11 @@ export const areaTextMaxLengths = {
 // so `1.5` is rejected instead of being read as 15 or 1.5.
 const danishNumberPattern = /^(\d+|\d{1,3}(\.\d{3})+)(,\d+)?$/;
 
-/** Parses a number typed in Danish format, or undefined if it is not one. */
+/**
+ * Parses a number typed in Danish format, e.g. `1.000,5`.
+ * @param value - The typed text
+ * @returns The number, or undefined if the text is not a valid number
+ */
 export function parseDecimal(value: string): number | undefined {
   const trimmed = value.trim();
   if (!danishNumberPattern.test(trimmed)) {
@@ -81,7 +98,12 @@ export function parseDecimal(value: string): number | undefined {
   return Number(trimmed.replaceAll('.', '').replace(',', '.'));
 }
 
-/** Area in m² = length × width, or undefined until both are valid. */
+/**
+ * Calculates the area as length × width.
+ * @param lengthInMeters - The typed length in meters
+ * @param widthInMeters - The typed width in meters
+ * @returns The area in m², or undefined until both values are valid
+ */
 export function calculateAreaInSquareMeters(
   lengthInMeters: string,
   widthInMeters: string,
@@ -94,7 +116,11 @@ export function calculateAreaInSquareMeters(
   return length * width;
 }
 
-/** Formats with one decimal and a Danish decimal comma, e.g. `10,8`. */
+/**
+ * Formats an area with one decimal and a Danish decimal comma, e.g. `10,8`.
+ * @param value - The area in m²
+ * @returns The formatted number
+ */
 export function formatSquareMeters(value: number): string {
   return value.toLocaleString('da-DK', {
     minimumFractionDigits: 1,
@@ -102,10 +128,21 @@ export function formatSquareMeters(value: number): string {
   });
 }
 
+/**
+ * Checks whether a value contains non-whitespace text.
+ * @param value - The value to check
+ * @returns True if the value is not blank
+ */
 function hasText(value: string): boolean {
   return value.trim().length > 0;
 }
 
+/**
+ * Adds an error when a measurement is missing or not a positive number.
+ * @param errors - The errors to add to
+ * @param field - The field to check
+ * @param value - The typed value
+ */
 function checkPositive(
   errors: AreaFieldErrors,
   field: AreaFormField,
@@ -125,6 +162,10 @@ function checkPositive(
  * Finds missing or invalid fields. Road name and postal code are only
  * checked for areas that were entered manually (UC-034 A3). The road status
  * is checked for every area, because the applicant always chooses it.
+ * @param type - The application type, which decides the required fields
+ * @param values - The form values
+ * @param options - Whether to check the road name and postal code
+ * @returns The errors keyed by field
  */
 export function validateArea(
   type: ApplicationType,
@@ -192,12 +233,20 @@ export const emptyAreaFormValues: AreaFormValues = {
   depthInMeters: '',
 };
 
-/** Shows a saved number in the same format the user types it, e.g. `0,6`. */
+/**
+ * Shows a saved number in the same format the user types it, e.g. `0,6`.
+ * @param value - The saved number
+ * @returns The number with a decimal comma, or an empty string for null
+ */
 function formatNumber(value: number | null): string {
   return value === null ? '' : String(value).replace('.', ',');
 }
 
-/** Prefills the form from a saved area (UC-036). */
+/**
+ * Prefills the form from a saved area (UC-036).
+ * @param area - The saved area
+ * @returns The form values
+ */
 export function toAreaFormValues(area: Area): AreaFormValues {
   return {
     roadName: area.roadName,
@@ -216,6 +265,11 @@ export function toAreaFormValues(area: Area): AreaFormValues {
   };
 }
 
+/**
+ * Trims a text and turns a blank text into null.
+ * @param value - The typed text
+ * @returns The trimmed text, or null if it is blank
+ */
 function textOrNull(value: string): string | null {
   return hasText(value) ? value.trim() : null;
 }
@@ -223,6 +277,10 @@ function textOrNull(value: string): string | null {
 /**
  * Builds the request body. Only sends fields the application type uses, and
  * road name and postal code only for manually entered roads.
+ * @param type - The application type
+ * @param values - The form values
+ * @param options - Whether to send the road name and postal code
+ * @returns The area input for the API
  */
 export function toAreaInput(
   type: ApplicationType,

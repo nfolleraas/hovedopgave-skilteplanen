@@ -30,6 +30,9 @@ import { type DraftStepProps, patchItem } from '../step-props.js';
 /**
  * Cable tasks for excavation permits (UC-028–030) and materials for road
  * use permits (UC-006 steps 12–14, UC-007 steps 8–11).
+ * @param props - The application, draft, its updater and the navigation
+ * handlers
+ * @returns The rendered step
  */
 export function TasksStep(props: DraftStepProps) {
   const { t } = useTranslation();
@@ -63,6 +66,11 @@ type ListProps = DraftStepProps & {
   errors: ReturnType<typeof validateTasks>;
 };
 
+/**
+ * The list of cable tasks with a button to add another.
+ * @param props - The draft, its updater and the step errors
+ * @returns The rendered list
+ */
 function CableTaskList({ draft, update, errors }: ListProps) {
   const { t } = useTranslation();
   const cableTypeOptions = useEnumOptions('CableType', CableType);
@@ -213,7 +221,11 @@ interface OtherDescriptionsProps {
   onChange: (key: DescriptionKey, value: string) => void;
 }
 
-/** Remark fields shown when "Andet" is chosen (UC-028 A1–A2). */
+/**
+ * Remark fields shown when "Andet" is chosen (UC-028 A1–A2).
+ * @param props - The task, its path, errors, fields and change handler
+ * @returns The rendered fields, or null if no field is shown
+ */
 function OtherDescriptions({
   task,
   path,
@@ -240,6 +252,11 @@ function OtherDescriptions({
   );
 }
 
+/**
+ * The list of materials with a button to add another.
+ * @param props - The draft, its updater and the step errors
+ * @returns The rendered list
+ */
 function MaterialList({ draft, update, errors }: ListProps) {
   const { t } = useTranslation();
   const typeOptions = useEnumOptions('MaterialType', MaterialType);

@@ -1,7 +1,10 @@
 import { Box, Typography } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 
-/** Stand-in for the interactive map. Replace this component later. */
+/**
+ * Stand-in for the interactive map. Replace this component later.
+ * @returns The rendered placeholder
+ */
 export function MapPlaceholder() {
   const { t } = useTranslation();
 

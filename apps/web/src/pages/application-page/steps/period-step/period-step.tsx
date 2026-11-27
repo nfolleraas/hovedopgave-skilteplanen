@@ -19,7 +19,12 @@ import {
 import { StepShell } from '../../components/step-shell.js';
 import type { DraftStepProps } from '../step-props.js';
 
-/** Municipality, title and period (UC-004 steps 2–8, UC-007 steps 3–14). */
+/**
+ * Municipality, title and period (UC-004 steps 2–8, UC-007 steps 3–14).
+ * @param props - The application, draft, its updater and the navigation
+ * handlers
+ * @returns The rendered step
+ */
 export function PeriodStep({
   application,
   draft,

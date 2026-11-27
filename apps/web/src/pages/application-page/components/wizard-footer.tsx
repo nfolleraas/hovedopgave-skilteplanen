@@ -10,6 +10,12 @@ interface WizardFooterProps {
   nextLabel?: string;
 }
 
+/**
+ * Back and Next buttons at the bottom of a wizard step.
+ * @param props - The navigation handlers, state of the Next button and its
+ * optional label
+ * @returns The rendered footer
+ */
 export function WizardFooter({
   onBack,
   onNext,

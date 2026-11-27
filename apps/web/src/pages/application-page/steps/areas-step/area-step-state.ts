@@ -16,7 +16,14 @@ import type { AreaFormField } from '../../../../types/area.types.js';
 import type { ApplicationType } from '../../../../types/prisma-enums.js';
 import type { MissingFieldsItem } from './missing-fields-summary.js';
 
-/** Errors in the values the user sees: the open draft or the saved area. */
+/**
+ * Finds the errors in the values the user sees: the open draft or the
+ * saved area.
+ * @param type - The application type
+ * @param state - The current edit state
+ * @param entry - The area entry
+ * @returns The errors keyed by field
+ */
 export function areaErrorsFor(
   type: ApplicationType,
   state: AreaEditState,
@@ -31,7 +38,13 @@ export function areaErrorsFor(
   return validateArea(type, values, { includeRoad: isRoadEditable(entry) });
 }
 
-/** Saved values decide whether a collapsed area is missing information. */
+/**
+ * Finds the errors in the saved values, which decide whether a collapsed
+ * area is missing information.
+ * @param type - The application type
+ * @param entry - The area entry
+ * @returns The errors keyed by field
+ */
 export function savedAreaErrorsFor(
   type: ApplicationType,
   entry: AreaEntry,
@@ -42,7 +55,13 @@ export function savedAreaErrorsFor(
   return validateArea(type, values, { includeRoad: isRoadEditable(entry) });
 }
 
-/** The card title, such as "Område 2: Strandvej". */
+/**
+ * Builds the card title, such as "Område 2: Strandvej".
+ * @param t - The translation function
+ * @param state - The current edit state
+ * @param entry - The area entry
+ * @returns The card title
+ */
 export function areaTitleFor(
   t: TFunction,
   state: AreaEditState,
@@ -56,7 +75,14 @@ export function areaTitleFor(
   return t('areas.cardTitle', { number, road });
 }
 
-/** Areas that keep the user on the step: missing fields or unsaved. */
+/**
+ * Finds the areas that keep the user on the step: areas with missing fields
+ * or unsaved changes.
+ * @param t - The translation function
+ * @param type - The application type
+ * @param state - The current edit state
+ * @returns One summary item per area that blocks the step
+ */
 export function getMissingFieldsItems(
   t: TFunction,
   type: ApplicationType,

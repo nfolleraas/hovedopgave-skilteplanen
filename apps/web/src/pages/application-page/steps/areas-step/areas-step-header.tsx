@@ -13,7 +13,12 @@ interface AreasStepHeaderProps {
   onCloseNotice: () => void;
 }
 
-/** The step heading, the read-only notice and the latest message. */
+/**
+ * The step heading, the read-only notice and the latest message.
+ * @param props - Whether areas can be edited, the notice and its close
+ * handler
+ * @returns The rendered header
+ */
 export function AreasStepHeader({
   canEdit,
   notice,

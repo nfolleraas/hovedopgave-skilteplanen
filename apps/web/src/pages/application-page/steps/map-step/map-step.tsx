@@ -26,6 +26,13 @@ interface MapStepProps {
   onNext: () => void;
 }
 
+/**
+ * The map step: the user searches for roads, chooses their ownership and
+ * creates one area per selected road (UC-034), or adds an area manually.
+ * @param props - The application, the number of existing areas and the
+ * event handlers
+ * @returns The rendered step
+ */
 export function MapStep({
   application,
   existingAreaCount,
@@ -179,6 +186,11 @@ export function MapStep({
   );
 }
 
+/**
+ * Checks whether the user has chosen an ownership for a road.
+ * @param road - The selected road
+ * @returns True if the road has an ownership
+ */
 function hasOwnership(
   road: SelectedRoad,
 ): road is SelectedRoad & { roadOwnership: RoadOwnership } {

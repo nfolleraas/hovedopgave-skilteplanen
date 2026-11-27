@@ -56,6 +56,14 @@ interface AreasStepProps {
   onNext: () => void;
 }
 
+/**
+ * The areas step (UC-034–036): lists the areas of the application and lets
+ * the user edit, save and delete them. Next is blocked while an area is
+ * missing fields or has unsaved changes.
+ * @param props - The application, edit state, leave guard and navigation
+ * handlers
+ * @returns The rendered step
+ */
 export function AreasStep({
   application,
   state,

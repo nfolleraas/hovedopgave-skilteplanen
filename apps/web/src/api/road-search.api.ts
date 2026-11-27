@@ -15,10 +15,13 @@ const searchLimit = 20;
 export const roadSearchMaxLength = 100;
 
 /**
- * Keeps letters, digits, spaces and points (as in `H.C. Andersens Boulevard`).
- * Other characters, such as `&`, `|`, `:`, `!` and quotes, can be read as
- * search operators by GSearch and make it answer HTTP 400, so they become
- * spaces. Accents and æ, ø, å are letters and are kept.
+ * Cleans a search text before it is sent to GSearch. Keeps letters, digits,
+ * spaces and points (as in `H.C. Andersens Boulevard`). Other characters,
+ * such as `&`, `|`, `:`, `!` and quotes, can be read as search operators by
+ * GSearch and make it answer HTTP 400, so they become spaces. Accents and
+ * æ, ø, å are letters and are kept.
+ * @param query - The text the user typed
+ * @returns The cleaned search text, which may be empty
  */
 export function toRoadSearchText(query: string): string {
   return query
@@ -30,11 +33,22 @@ export function toRoadSearchText(query: string): string {
 
 /** Searches roads by street name and optionally postal code. */
 export interface RoadSearchService {
+  /**
+   * Searches roads by street name and optionally postal code.
+   * @param query - The text the user typed
+   * @returns The matching roads, one per postal code
+   */
   search(query: string): Promise<RoadSearchResult[]>;
 }
 
 /** Calls Dataforsyningen's GSearch directly from the browser (F3). */
 export const roadSearchService: RoadSearchService = {
+  /**
+   * Searches Dataforsyningen's GSearch for named roads.
+   * @param query - The text the user typed
+   * @returns The matching roads, one per postal code
+   * @throws Error if the token is missing or the request fails
+   */
   async search(query) {
     const token = env.dataforsyningenToken;
     if (!token) {

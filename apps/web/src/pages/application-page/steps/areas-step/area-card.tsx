@@ -57,6 +57,12 @@ interface AreaCardProps {
   onCancel: () => void;
 }
 
+/**
+ * Card for one area. A collapsed card shows the road and saved details; an
+ * expanded card shows the form to edit the area.
+ * @param props - The area values, edit state, errors and event handlers
+ * @returns The rendered card
+ */
 export function AreaCard({
   areaKey,
   number,

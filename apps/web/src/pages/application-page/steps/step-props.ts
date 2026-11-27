@@ -14,7 +14,13 @@ export interface DraftStepProps {
   onNext: () => void;
 }
 
-/** Replaces the fields of one item in a list, matched by id. */
+/**
+ * Replaces the fields of one item in a list, matched by id.
+ * @param items - The list of items
+ * @param id - The id of the item to change
+ * @param patch - The fields to change
+ * @returns A new list with the changed item
+ */
 export function patchItem<T extends { id: string }>(
   items: T[],
   id: string,

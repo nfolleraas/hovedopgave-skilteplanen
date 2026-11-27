@@ -51,31 +51,66 @@ export const initialAreaEditState: AreaEditState = {
   nextTempId: 1,
 };
 
-/** The key the next manually added area gets. */
+/**
+ * Gets the temporary key the next manually added area gets.
+ * @param state - The current edit state
+ * @returns The temporary key, e.g. `new-1`
+ */
 export function nextManualKey(state: AreaEditState): string {
   return `new-${state.nextTempId}`;
 }
 
+/**
+ * Finds where a saved area's road came from.
+ * @param area - The saved area
+ * @returns `manual` if the road was entered manually, otherwise `search`
+ */
 function sourceOf(area: Area): AreaSource {
   return area.isManual ? 'manual' : 'search';
 }
 
+/**
+ * Creates a list entry for a saved area.
+ * @param area - The saved area
+ * @returns The entry, keyed by the area uuid
+ */
 function toEntry(area: Area): AreaEntry {
   return { key: area.uuid, saved: area, source: sourceOf(area) };
 }
 
+/**
+ * Checks whether the road of an area can be changed. Only manually entered
+ * roads can be renamed (UC-036).
+ * @param entry - The area entry
+ * @returns True if the road can be edited
+ */
 export function isRoadEditable(entry: AreaEntry): boolean {
   return entry.source === 'manual';
 }
 
+/**
+ * Finds the area that is open for editing.
+ * @param state - The current edit state
+ * @returns The active entry, or undefined if no area is open
+ */
 export function getActiveEntry(state: AreaEditState): AreaEntry | undefined {
   return state.entries.find((entry) => entry.key === state.activeKey);
 }
 
+/**
+ * Gets the stored form values of an area.
+ * @param entry - The area entry
+ * @returns The saved values, or empty values for an unsaved area
+ */
 function savedValues(entry: AreaEntry): AreaFormValues {
   return entry.saved ? toAreaFormValues(entry.saved) : emptyAreaFormValues;
 }
 
+/**
+ * Checks whether the open area has changes that are not saved.
+ * @param state - The current edit state
+ * @returns True if the draft differs from the saved values
+ */
 export function isDirty(state: AreaEditState): boolean {
   const active = getActiveEntry(state);
   if (!active || !state.draft) {
@@ -87,6 +122,12 @@ export function isDirty(state: AreaEditState): boolean {
   );
 }
 
+/**
+ * Opens an area for editing with its saved values, or closes all areas.
+ * @param state - The current edit state
+ * @param key - The key of the area to open, or null to close all areas
+ * @returns The new edit state
+ */
 function open(state: AreaEditState, key: string | null): AreaEditState {
   const entry = state.entries.find((candidate) => candidate.key === key);
   return {
@@ -98,7 +139,11 @@ function open(state: AreaEditState, key: string | null): AreaEditState {
   };
 }
 
-/** Removes the active area if it was never saved. */
+/**
+ * Removes the active area if it was never saved.
+ * @param state - The current edit state
+ * @returns The edit state without the unsaved area
+ */
 function dropUnsavedActive(state: AreaEditState): AreaEditState {
   const active = getActiveEntry(state);
   if (!active || active.saved) {
@@ -110,6 +155,13 @@ function dropUnsavedActive(state: AreaEditState): AreaEditState {
   };
 }
 
+/**
+ * Updates the area edit state. Unsaved changes are protected: opening
+ * another area while the active one is dirty only stores it as pending.
+ * @param state - The current edit state
+ * @param action - The action to apply
+ * @returns The new edit state
+ */
 export function areaEditReducer(
   state: AreaEditState,
   action: AreaEditAction,

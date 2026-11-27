@@ -19,8 +19,11 @@ interface DeleteAreaDialogProps {
 }
 
 /**
- * MUI Dialog traps focus and closes on Escape (UC-035). The areas step moves
- * focus after closing, because a deleted area's button no longer exists.
+ * Asks the user to confirm that an area is deleted (UC-035). MUI Dialog
+ * traps focus and closes on Escape. The areas step moves focus after
+ * closing, because a deleted area's button no longer exists.
+ * @param props - The area to delete, delete state and dialog handlers
+ * @returns The rendered dialog
  */
 export function DeleteAreaDialog({
   area,

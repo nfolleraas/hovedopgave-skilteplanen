@@ -16,6 +16,12 @@ interface SelectedRoadsProps {
   onRemove: (road: SelectedRoad) => void;
 }
 
+/**
+ * The selected roads, each with a field for its ownership and a remove
+ * button.
+ * @param props - The roads, whether to show errors and the event handlers
+ * @returns The rendered list of roads
+ */
 export function SelectedRoads({
   roads,
   showErrors,

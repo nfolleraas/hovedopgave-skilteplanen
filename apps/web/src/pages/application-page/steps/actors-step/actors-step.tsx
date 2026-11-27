@@ -16,7 +16,11 @@ import {
 import { StepShell } from '../../components/step-shell.js';
 import { type DraftStepProps, patchItem } from '../step-props.js';
 
-/** Other actors on the application (UC-040–042, UC-004 A2). */
+/**
+ * Other actors on the application (UC-040–042, UC-004 A2).
+ * @param props - The draft, its updater and the navigation handlers
+ * @returns The rendered step
+ */
 export function ActorsStep({ draft, update, onBack, onNext }: DraftStepProps) {
   const { t } = useTranslation();
   const roleOptions = useEnumOptions('ActorRole', ActorRole);

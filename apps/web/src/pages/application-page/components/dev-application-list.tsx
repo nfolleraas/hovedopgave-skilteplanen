@@ -28,7 +28,11 @@ import {
 import { ApplicationType } from '../../../types/prisma-enums.js';
 import { labelAboveSlots } from './form-field-helpers.js';
 
-/** Opens the wizard for a test application. */
+/**
+ * Builds the wizard URL for a test application.
+ * @param caseNumber - The case number of the application
+ * @returns The URL of the wizard for the application
+ */
 function applicationUrl(caseNumber: string): string {
   return `/ansoegning?${new URLSearchParams({ sag: caseNumber })}`;
 }
@@ -36,6 +40,7 @@ function applicationUrl(caseNumber: string): string {
 /**
  * Test-only list shown at /ansoegning without a case number, so a test
  * application can be opened or created without typing the URL.
+ * @returns The list of test applications and a form to create one
  */
 export function DevApplicationList() {
   const { t } = useTranslation();

@@ -17,7 +17,11 @@ import {
 import { StepShell } from '../../components/step-shell.js';
 import { type DraftStepProps, patchItem } from '../step-props.js';
 
-/** Contact persons on the application (UC-031–033). */
+/**
+ * Contact persons on the application (UC-031–033).
+ * @param props - The draft, its updater and the navigation handlers
+ * @returns The rendered step
+ */
 export function ContactsStep({
   draft,
   update,

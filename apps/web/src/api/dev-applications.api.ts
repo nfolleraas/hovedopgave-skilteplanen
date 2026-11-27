@@ -11,10 +11,19 @@ export interface DevApplication {
   areaCount: number;
 }
 
+/**
+ * Test-only: fetches all applications with their number of areas.
+ * @returns The listed applications
+ */
 export function getDevApplications(): Promise<DevApplication[]> {
   return apiClient.get('/dev/applications');
 }
 
+/**
+ * Test-only: creates a draft application.
+ * @param type - The type of application to create
+ * @returns The created application
+ */
 export function createDevApplication(
   type: SupportedApplicationType,
 ): Promise<DevApplication> {

@@ -39,12 +39,22 @@ const cvrPattern = /^\d{8}$/;
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const lettersPattern = /^[\p{L} '-]+$/u;
 
+/**
+ * Gets today's date in the user's local time zone.
+ * @returns The date as `YYYY-MM-DD`
+ */
 function today(): string {
   const now = new Date();
   const offset = now.getTimezoneOffset() * 60_000;
   return new Date(now.getTime() - offset).toISOString().slice(0, 10);
 }
 
+/**
+ * Adds a `required` error when a text is blank or a list is empty.
+ * @param errors - The errors to add to
+ * @param path - The field path to use as the error key
+ * @param value - The text or list to check
+ */
 function requireText(
   errors: DraftErrors,
   path: string,
@@ -56,7 +66,13 @@ function requireText(
   if (isEmpty) errors[path] = 'required';
 }
 
-/** UC-004 F1–F5, UC-007 F1–F2. */
+/**
+ * Validates the period step (UC-004 F1–F5, UC-007 F1–F2). Excavation
+ * permits need a permit type; road use permits need a title and usage.
+ * @param type - The application type
+ * @param period - The period values
+ * @returns The errors keyed by field path
+ */
 export function validatePeriod(
   type: ApplicationType,
   period: PeriodDraft,
@@ -91,7 +107,11 @@ export function validatePeriod(
   return errors;
 }
 
-/** UC-028 F1–F2. */
+/**
+ * Validates a cable task (UC-028 F1–F2).
+ * @param errors - The errors to add to
+ * @param task - The cable task to check
+ */
 function validateCableTask(errors: DraftErrors, task: CableTaskDraft): void {
   const path = `cableTasks.${task.id}`;
   requireText(errors, `${path}.cableType`, task.cableType);
@@ -128,7 +148,11 @@ function validateCableTask(errors: DraftErrors, task: CableTaskDraft): void {
   }
 }
 
-/** UC-007 F2–F3. */
+/**
+ * Validates a material (UC-007 F2–F3).
+ * @param errors - The errors to add to
+ * @param material - The material to check
+ */
 function validateMaterial(errors: DraftErrors, material: MaterialDraft): void {
   const path = `materials.${material.id}`;
   requireText(errors, `${path}.type`, material.type);
@@ -137,7 +161,13 @@ function validateMaterial(errors: DraftErrors, material: MaterialDraft): void {
   }
 }
 
-/** Tasks for excavation permits, materials for road use permits. */
+/**
+ * Validates the tasks step: cable tasks for excavation permits, materials
+ * for road use permits.
+ * @param type - The application type
+ * @param draft - The application draft
+ * @returns The errors keyed by field path
+ */
 export function validateTasks(
   type: ApplicationType,
   draft: ApplicationDraft,
@@ -155,6 +185,12 @@ export function validateTasks(
   return errors;
 }
 
+/**
+ * Validates the phone number and email of an actor or contact person.
+ * @param errors - The errors to add to
+ * @param path - The field path of the item
+ * @param item - The item with a phone number and email
+ */
 function validatePhoneAndEmail(
   errors: DraftErrors,
   path: string,
@@ -168,7 +204,12 @@ function validatePhoneAndEmail(
   }
 }
 
-/** UC-040 F1–F6. Private actors have no CVR, department or contact. */
+/**
+ * Validates an actor (UC-040 F1–F6). Private actors have no CVR,
+ * department or contact.
+ * @param errors - The errors to add to
+ * @param actor - The actor to check
+ */
 function validateActor(errors: DraftErrors, actor: ActorDraft): void {
   const path = `actors.${actor.id}`;
   requireText(errors, `${path}.role`, actor.role);
@@ -187,13 +228,22 @@ function validateActor(errors: DraftErrors, actor: ActorDraft): void {
   }
 }
 
+/**
+ * Validates all actors in the draft.
+ * @param draft - The application draft
+ * @returns The errors keyed by field path
+ */
 export function validateActors(draft: ApplicationDraft): DraftErrors {
   const errors: DraftErrors = {};
   for (const actor of draft.actors) validateActor(errors, actor);
   return errors;
 }
 
-/** UC-031 F1–F4, UC-004 F7. */
+/**
+ * Validates a contact person (UC-031 F1–F4, UC-004 F7).
+ * @param errors - The errors to add to
+ * @param contact - The contact person to check
+ */
 function validateContactPerson(
   errors: DraftErrors,
   contact: ContactPersonDraft,
@@ -204,6 +254,11 @@ function validateContactPerson(
   validatePhoneAndEmail(errors, path, contact);
 }
 
+/**
+ * Validates that the draft has at least one valid contact person.
+ * @param draft - The application draft
+ * @returns The errors keyed by field path
+ */
 export function validateContactPersons(draft: ApplicationDraft): DraftErrors {
   const errors: DraftErrors = {};
   if (draft.contactPersons.length === 0) {
@@ -215,7 +270,12 @@ export function validateContactPersons(draft: ApplicationDraft): DraftErrors {
   return errors;
 }
 
-/** UC-004 F10: at least one traffic calming measure with a type. */
+/**
+ * Validates the sign plan step (UC-004 F10): at least one traffic calming
+ * measure with a type and scope.
+ * @param draft - The application draft
+ * @returns The errors keyed by field path
+ */
 export function validateSignPlanAndTraffic(
   draft: ApplicationDraft,
 ): DraftErrors {
@@ -231,11 +291,21 @@ export function validateSignPlanAndTraffic(
   return errors;
 }
 
-/** Only PNG and JPG files can be uploaded (UC-019 F2). */
+/**
+ * Checks whether a file can be uploaded. Only PNG and JPG files are allowed
+ * (UC-019 F2).
+ * @param fileName - The name of the file
+ * @returns True if the file has an allowed extension
+ */
 export function isAllowedDocument(fileName: string): boolean {
   return /\.(png|jpe?g)$/i.test(fileName);
 }
 
+/**
+ * Checks whether a validation result contains any errors.
+ * @param errors - The validation result
+ * @returns True if there is at least one error
+ */
 export function hasErrors(errors: DraftErrors): boolean {
   return Object.keys(errors).length > 0;
 }

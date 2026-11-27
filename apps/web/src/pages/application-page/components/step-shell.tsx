@@ -22,7 +22,13 @@ interface StepShellProps {
 
 const noErrors: DraftErrors = {};
 
-/** Title, error summary and Back/Next buttons shared by the wizard steps. */
+/**
+ * Title, error summary and Back/Next buttons shared by the wizard steps.
+ * Errors stay hidden until the user tries to continue.
+ * @param props - The title, intro, step errors, navigation handlers and
+ * content
+ * @returns The rendered step
+ */
 export function StepShell({
   title,
   intro,

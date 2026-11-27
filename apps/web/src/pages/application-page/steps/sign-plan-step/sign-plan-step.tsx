@@ -24,7 +24,11 @@ import {
 import { StepShell } from '../../components/step-shell.js';
 import { type DraftStepProps, patchItem } from '../step-props.js';
 
-/** Sign plan, traffic changes and measures (UC-004 steps 22–24). */
+/**
+ * Sign plan, traffic changes and measures (UC-004 steps 22–24).
+ * @param props - The draft, its updater and the navigation handlers
+ * @returns The rendered step
+ */
 export function SignPlanStep({
   draft,
   update,
