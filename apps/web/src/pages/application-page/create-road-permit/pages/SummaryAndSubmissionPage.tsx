@@ -61,6 +61,7 @@ type SummaryAndSubmissionPageProps = {
     id: string;
     name: string;
     actorName: string;
+    availability: string;
     phoneNumber: string;
     email: string;
   }[];
@@ -296,6 +297,7 @@ function ContactPersonsSummary({
           columns={[
             { label: t('permit.contact.name') },
             { label: t('permit.contact.actor') },
+            { label: t('permit.contact.availability') },
             { label: t('permit.contact.phone') },
             { label: t('permit.contact.email') },
           ]}
@@ -305,6 +307,7 @@ function ContactPersonsSummary({
             cells: [
               person.name,
               person.actorName || '—',
+              person.availability,
               person.phoneNumber,
               person.email,
             ],

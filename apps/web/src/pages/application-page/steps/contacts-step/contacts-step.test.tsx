@@ -273,7 +273,7 @@ describe('ContactsStep', () => {
     );
 
     await user.click(button('Redigér Jens Jensen'));
-    await user.type(field(/Navn/), ' Jr.');
+    await user.type(field(/Navn/), ' Junior');
     await user.click(button('Redigér Mette Hansen'));
 
     const dialog = await screen.findByRole('dialog');
@@ -607,7 +607,7 @@ describe('ContactsStep', () => {
     );
 
     await user.click(button('Redigér Jens Jensen'));
-    await user.type(field(/Navn/), ' Jr.');
+    await user.type(field(/Navn/), ' Junior');
     api.failNext(404, { code: 'CONTACT_PERSON_NOT_FOUND' });
     await user.click(button('Gem ændringer'));
 
@@ -617,6 +617,8 @@ describe('ContactsStep', () => {
       ),
     ).toBeTruthy();
     // The input is kept.
-    expect((field(/Navn/) as HTMLInputElement).value).toBe('Jens Jensen Jr.');
+    expect((field(/Navn/) as HTMLInputElement).value).toBe(
+      'Jens Jensen Junior',
+    );
   });
 });

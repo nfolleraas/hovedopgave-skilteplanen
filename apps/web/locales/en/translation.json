@@ -228,6 +228,7 @@
       "loadError": "The contact persons could not be loaded.",
       "name": "Name",
       "actor": "Company",
+      "availability": "Availability",
       "phone": "Phone number",
       "email": "Email"
     },
@@ -650,7 +651,8 @@
     },
     "errors": {
       "name": {
-        "required": "Enter a name"
+        "required": "Enter a name",
+        "name": "The name may only contain letters, spaces, hyphens and apostrophes"
       },
       "availability": {
         "required": "Choose an availability"

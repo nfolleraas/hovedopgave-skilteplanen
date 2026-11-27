@@ -228,6 +228,7 @@
       "loadError": "Kontaktpersonerne kunne ikke hentes.",
       "name": "Navn",
       "actor": "Aktør",
+      "availability": "Tilgængelighed",
       "phone": "Telefonnummer",
       "email": "E-mail"
     },
@@ -650,7 +651,8 @@
     },
     "errors": {
       "name": {
-        "required": "Navn skal udfyldes"
+        "required": "Navn skal udfyldes",
+        "name": "Navn må kun indeholde bogstaver, mellemrum, bindestreg og apostrof"
       },
       "availability": {
         "required": "Vælg en tilgængelighed"

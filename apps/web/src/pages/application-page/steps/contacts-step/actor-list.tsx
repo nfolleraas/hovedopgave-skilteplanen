@@ -36,8 +36,6 @@ interface ActorListProps {
   canEdit: boolean;
   /** True while the form has unsaved changes. */
   addDisabled: boolean;
-  /** Excavation permits show the contact person's availability. */
-  showAvailability: boolean;
   /** Level of the actor headings; 3 when the page renders the step's h2. */
   headingLevel: HeadingLevel;
   /** The open form, shown inside the actor it belongs to. */
@@ -58,7 +56,6 @@ export function ActorList({
   activeKey,
   canEdit,
   addDisabled,
-  showAvailability,
   headingLevel,
   form,
   onAdd,
@@ -89,7 +86,6 @@ export function ActorList({
   const contactsProps = {
     activeKey,
     canEdit,
-    showAvailability,
     headingLevel: headingLevel + 1,
     onEdit,
     onDelete,
@@ -331,7 +327,6 @@ interface ContactPersonsProps {
   entries: ContactPersonEntry[];
   activeKey: string | null;
   canEdit: boolean;
-  showAvailability: boolean;
   headingLevel: number;
   form: ReactNode;
   addButton?: ReactNode;
@@ -345,7 +340,6 @@ function ContactPersons({
   entries,
   activeKey,
   canEdit,
-  showAvailability,
   headingLevel,
   form,
   addButton,
@@ -378,7 +372,7 @@ function ContactPersons({
                 isActive={entry.key === activeKey}
                 onDelete={() => onDelete(entry)}
                 onEdit={() => onEdit(entry)}
-                showAvailability={showAvailability}
+                showAvailability={false}
               />
             </ListItem>
           ))}
@@ -401,12 +395,16 @@ interface ContactCardProps {
   isActive: boolean;
   canEdit: boolean;
   showAvailability: boolean;
-  onEdit: () => void;
-  onDelete: () => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
 }
 
-/** One saved contact person with buttons to edit or delete it. */
-function ContactCard({
+/**
+ * One saved contact person with buttons to edit or delete it. Without
+ * `canEdit` it is read-only, as on the summary step. Availability is only
+ * shown on the summary step.
+ */
+export function ContactCard({
   entry,
   isActive,
   canEdit,

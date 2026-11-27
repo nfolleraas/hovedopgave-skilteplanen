@@ -86,6 +86,13 @@ export function trimContactPersonText<T extends ContactPersonRuleInput>(
   return result;
 }
 
+/**
+ * A name of letters, spaces, hyphens and apostrophes, like `Anne-Marie
+ * O'Brien` or `Søren Ærø`. It starts with a letter, so digits and other
+ * special characters are rejected. The web app uses the same pattern.
+ */
+const namePattern = /^\p{L}[\p{L}\p{M}' -]*$/u;
+
 const phonePattern = /^\d{8}$/;
 
 /**
@@ -99,7 +106,9 @@ export function findInvalidContactPersonFields(
   const fields = getContactPersonFieldSet(type);
   const invalid: ContactPersonRuleField[] = [];
 
-  if (!hasText(input.name)) invalid.push('name');
+  if (!hasText(input.name) || !namePattern.test(input.name?.trim() ?? '')) {
+    invalid.push('name');
+  }
   if (fields.availability && !input.availability) invalid.push('availability');
   if (!phonePattern.test(input.phoneNumber ?? '')) invalid.push('phoneNumber');
   if (!emailPattern.test(input.email ?? '')) invalid.push('email');

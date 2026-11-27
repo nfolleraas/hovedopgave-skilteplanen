@@ -304,7 +304,6 @@ export function ContactsStep({
         onAdd={handleAdd}
         onDelete={handleDelete}
         onEdit={handleEdit}
-        showAvailability={fieldSet.availability}
       />
 
       {showMissing && savedCount === 0 && (

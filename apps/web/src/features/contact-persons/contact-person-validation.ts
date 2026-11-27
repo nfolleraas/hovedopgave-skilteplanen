@@ -39,7 +39,11 @@ export function canDeleteContactPerson(savedCount: number): boolean {
   return savedCount > 1;
 }
 
-export type ContactPersonFieldError = 'required' | 'phoneNumber' | 'email';
+export type ContactPersonFieldError =
+  | 'required'
+  | 'name'
+  | 'phoneNumber'
+  | 'email';
 
 export type ContactPersonFieldErrors = Partial<
   Record<ContactPersonFormField, ContactPersonFieldError>
@@ -62,6 +66,13 @@ function hasText(value: string): boolean {
 const emailPattern =
   /^[A-Za-z0-9_+-]+(\.[A-Za-z0-9_+-]+)*@([A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?\.)+[A-Za-z]{2,}$/;
 
+/**
+ * A name of letters, spaces, hyphens and apostrophes, like `Anne-Marie
+ * O'Brien` or `Søren Ærø`. It starts with a letter, so digits and other
+ * special characters are rejected. The API uses the same pattern.
+ */
+const namePattern = /^\p{L}[\p{L}\p{M}' -]*$/u;
+
 /** A Danish phone number has 8 digits. */
 const phoneNumberLength = 8;
 const phonePattern = /^\d{8}$/;
@@ -75,6 +86,7 @@ export function validateContactPerson(
   const errors: ContactPersonFieldErrors = {};
 
   if (!hasText(values.name)) errors.name = 'required';
+  else if (!namePattern.test(values.name.trim())) errors.name = 'name';
   if (fieldSet.availability && !values.availability) {
     errors.availability = 'required';
   }

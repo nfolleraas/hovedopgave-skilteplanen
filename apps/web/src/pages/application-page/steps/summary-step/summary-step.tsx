@@ -8,11 +8,7 @@ import {
   validateSignPlanAndTraffic,
   validateTasks,
 } from '../../../../features/application-draft/draft-validation.js';
-import {
-  actorRoleLabelKeys,
-  availabilityLabelKeys,
-  formatPhoneNumber,
-} from '../../../../features/contact-persons/contact-person-labels.js';
+import { actorRoleLabelKeys } from '../../../../features/contact-persons/contact-person-labels.js';
 import type { WizardApplication } from '../../../../types/application.types.js';
 import type {
   ContactPerson,
@@ -21,6 +17,7 @@ import type {
 import { ApplicationType } from '../../../../types/prisma-enums.js';
 import type { ApplicationStepId } from '../../application-steps.js';
 import { WizardFooter } from '../../components/wizard-footer.js';
+import { ContactCard } from '../contacts-step/actor-list.js';
 
 interface SummaryStepProps {
   application: WizardApplication;
@@ -159,18 +156,28 @@ export function SummaryStep({
               {t('wizard.summary.noContacts')}
             </Typography>
           ) : (
-            contactPersons.map((contact) => (
-              <Row key={contact.uuid} label={contact.name}>
-                {[
-                  actors.find((actor) => actor.uuid === contact.actorId)?.name,
-                  t(availabilityLabelKeys[contact.availability]),
-                  formatPhoneNumber(contact.phoneNumber),
-                  contact.email,
-                ]
-                  .filter(Boolean)
-                  .join(' · ')}
-              </Row>
-            ))
+            // Grouped by actor, with the cards from the contact step.
+            contactGroups(actors, contactPersons).map(
+              ({ actorId, name, contacts }) => (
+                <Row key={actorId} label={name ?? t('contacts.unknownActor')}>
+                  <Box component="div" sx={{ display: 'grid', gap: 1, mb: 1 }}>
+                    {contacts.map((contact) => (
+                      <ContactCard
+                        canEdit={false}
+                        entry={{
+                          key: contact.uuid,
+                          actorId: contact.actorId,
+                          saved: contact,
+                        }}
+                        isActive={false}
+                        key={contact.uuid}
+                        showAvailability
+                      />
+                    ))}
+                  </Box>
+                </Row>
+              ),
+            )
           ),
         )}
 
@@ -230,6 +237,28 @@ export function SummaryStep({
       />
     </section>
   );
+}
+
+/**
+ * Contact persons grouped by their actor, in the order of the actors. Contact
+ * persons whose actor is unknown come last, with no name.
+ */
+function contactGroups(
+  actors: ContactPersonActor[],
+  contactPersons: ContactPerson[],
+) {
+  const groups = actors.map((actor) => ({
+    actorId: actor.uuid,
+    name: actor.name as string | undefined,
+    contacts: contactPersons.filter((c) => c.actorId === actor.uuid),
+  }));
+  const orphans = contactPersons.filter(
+    (c) => !actors.some((actor) => actor.uuid === c.actorId),
+  );
+  if (orphans.length > 0) {
+    groups.push({ actorId: 'unknown', name: undefined, contacts: orphans });
+  }
+  return groups.filter((group) => group.contacts.length > 0);
 }
 
 interface SummarySectionProps {

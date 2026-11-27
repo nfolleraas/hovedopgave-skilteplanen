@@ -6,6 +6,7 @@ import {
   initialContactPersonEditState,
   isDirty,
 } from '../../../features/contact-persons/contact-person-edit-state.js';
+import { availabilityLabelKeys } from '../../../features/contact-persons/contact-person-labels.js';
 import type { WizardApplication } from '../../../types/application.types.js';
 import type { ContactPersonActor } from '../../../types/contact-person.types.js';
 
@@ -59,6 +60,7 @@ export function useContactPersons(caseNumber: string) {
             name: saved.name,
             actorName:
               actors.find(({ uuid }) => uuid === saved.actorId)?.name ?? '',
+            availability: t(availabilityLabelKeys[saved.availability]),
             phoneNumber: saved.phoneNumber,
             email: saved.email,
           },

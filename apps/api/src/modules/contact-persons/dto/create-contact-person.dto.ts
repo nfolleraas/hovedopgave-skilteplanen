@@ -20,6 +20,9 @@ export class ContactPersonFieldsDto {
   @IsString()
   @IsNotEmpty()
   @MaxLength(200)
+  @Matches(/^\s*\p{L}[\p{L}\p{M}' -]*$/u, {
+    message: 'name may only contain letters, spaces, hyphens and apostrophes',
+  })
   name: string;
 
   @ApiPropertyOptional({
