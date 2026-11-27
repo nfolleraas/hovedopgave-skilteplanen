@@ -7,17 +7,17 @@ change.
 
 ## Quick lookup
 
-| Convention | What to do |
-| --- | --- |
-| Comments | Explain non-obvious purpose and complex reasoning. Keep comments accurate. |
-| Error handling | Handle failures with useful, actionable messages and preserve relevant context. |
-| Single responsibility | Give each function, class, and module one clear job. |
-| Low coupling, high cohesion | Keep related behavior together and reduce unnecessary dependencies. |
-| DRY | Reuse shared behavior when it improves clarity; avoid duplicated logic. |
-| KISS | Prefer the simplest design that meets the requirement. |
-| Offensive programming | Reject invalid input early and fail visibly when internal contracts are broken. |
-| TypeScript | Use meaningful types and follow the official guidance for declaration files. |
-| Formatting | Follow Biome: spaces, 80-character line width, single quotes, trailing commas. |
+| Convention                  | What to do                                                                      |
+| --------------------------- | ------------------------------------------------------------------------------- |
+| Comments                    | Explain non-obvious purpose and complex reasoning. Keep comments accurate.      |
+| Error handling              | Handle failures with useful, actionable messages and preserve relevant context. |
+| Single responsibility       | Give each function, class, and module one clear job.                            |
+| Low coupling, high cohesion | Keep related behavior together and reduce unnecessary dependencies.             |
+| DRY                         | Reuse shared behavior when it improves clarity; avoid duplicated logic.         |
+| KISS                        | Prefer the simplest design that meets the requirement.                          |
+| Offensive programming       | Reject invalid input early and fail visibly when internal contracts are broken. |
+| TypeScript                  | Use meaningful types and follow the official guidance for declaration files.    |
+| Formatting                  | Follow Biome: spaces, 80-character line width, single quotes, trailing commas.  |
 
 ## Comments and documentation
 

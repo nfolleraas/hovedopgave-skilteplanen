@@ -4,6 +4,7 @@ This repository is a Danish 5th-semester Datamatiker project for Skilteplanen. I
 
 ## Working agreements
 
+- Only inspect the currently active editor file when explicitly asked; otherwise target searches and context to the complete repository.
 - Read the relevant app documentation and nearby code before changing behavior. Use `DEVCONTAINER.md` for container setup changes.
 - Before implementing or changing web UI components, read and follow the [web stylesheet](docs/web/styles/stylesheet.md), including its component-specific variants.
 - All frontend pages must follow the [accessibility guidelines](docs/web/accessibility.md).

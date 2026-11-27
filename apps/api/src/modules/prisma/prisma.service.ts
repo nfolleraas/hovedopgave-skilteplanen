@@ -17,11 +17,11 @@ export class PrismaService
     super({ adapter: new PrismaPg({ connectionString }) });
   }
 
-  async onModuleInit() {
+  async onModuleInit(): Promise<void> {
     await this.$connect();
   }
 
-  async onModuleDestroy() {
+  async onModuleDestroy(): Promise<void> {
     await this.$disconnect();
   }
 }

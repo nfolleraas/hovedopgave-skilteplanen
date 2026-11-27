@@ -23,12 +23,6 @@ export class CreateRoadPermitDto {
     phone: string;
     email: string;
   };
-  documentPlaceholder: {
-    name: string;
-    DocumentType: string;
-    Doc_URL: string;
-    DateForUpload: string;
-  };
   roadMarking: {
     trafficChanges: string[];
     accessWays: string;

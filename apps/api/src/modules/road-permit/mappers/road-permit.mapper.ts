@@ -111,7 +111,6 @@ export function mapCreateRoadPermit(
         },
       },
     },
-    // TODO: Map documents when an uploaded document's r2ObjectKey is available.
     // Municipality, confirmation and extra company details have no matching columns.
   };
 }

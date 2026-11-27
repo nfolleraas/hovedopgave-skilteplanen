@@ -81,23 +81,41 @@ changes. Do not stage, unstage, or commit unstaged changes.
 
 If no changes have been staged manually, examine all changes for context,
 group them into fitting logical commits, then stage and commit each group one
-at a time.
+at a time. Do not assume that all changes in the repository belong to the
+requested commit.
+
+Scope is mandatory:
+
+- Treat every user-provided file path as a scope constraint. A path mentioned
+  with `@` is still an explicit path constraint.
+- Include only the explicitly requested files and files directly required for
+  that requested change. Do not include merely related, nearby, or pre-existing
+  changes.
+- Preserve unrelated modifications and deletions. In particular, never stage
+  an unrelated deleted file just because it is in the same app or directory.
+- If the requested scope cannot be determined confidently, stop and ask the
+  user before staging anything.
 
 ### 3. Stage the files
 
-Put one logical change in each commit. If the staged files contain more than one change, first unstage the files of the other changes. Then stage the files for this change:
+Put one logical change in each commit. If the staged files contain more than one change, first unstage the files of the other changes. When no files were staged manually, create an explicit `FILES_TO_COMMIT` list from the requested scope and stage only those paths:
 
 ```bash
-git reset -q -- path/to/other-file1 path/to/other-file2
-git add -- path/to/file1 path/to/file2
-git add -- '*.test.*'
-git add -- src/components/
+FILES_TO_COMMIT=(path/to/file1 path/to/file2)
+git add -- "${FILES_TO_COMMIT[@]}"
 ```
 
-- Put a glob in quotes. Without quotes, the shell expands the glob and does not find the files in subdirectories.
+- Never use `git add .`, `git add -A`, or stage a broad directory such as
+  `apps/web` or `apps/api` for a scoped commit.
+- Do not use globs or directory paths unless the user explicitly requested the
+  complete matching set.
 - Do not use `git add -p` or `git add -i`. These commands wait for input from a person.
 - After you resolve a merge conflict, use `git add --resolved`. This command stages only the resolved files. If a file still has conflict markers, the command stops.
-- Examine the list of staged files with `git diff --staged --name-only`. Do not commit secrets, for example `.env` files, `credentials.json`, or private keys.
+- Examine the list of staged files with `git diff --staged --name-only` and
+  compare it with `FILES_TO_COMMIT` before committing. If any staged file is
+  outside the requested scope, unstage it or stop and ask the user.
+- Do not commit secrets, for example `.env` files, `credentials.json`, or
+  private keys.
 
 ### 4. Write the message
 

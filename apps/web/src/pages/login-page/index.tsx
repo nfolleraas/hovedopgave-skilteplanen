@@ -1,5 +1,9 @@
 import { useTranslation } from 'react-i18next';
 
+/**
+ * Renders the localized login page.
+ * @returns The login page UI
+ */
 export default function LoginPage() {
   const { t } = useTranslation();
 

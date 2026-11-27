@@ -125,12 +125,6 @@ const submissionShape = object({
   usageDetails: object(usageDetails),
   contactInformation: object(contactInformation),
   roadMarking: object(roadMarking),
-  documentPlaceholder: object({
-    name: string,
-    DocumentType: string,
-    Doc_URL: string,
-    DateForUpload: string,
-  }),
   applicant: object({
     name: string,
     department: string,

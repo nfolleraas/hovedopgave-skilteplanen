@@ -24,6 +24,8 @@ import {
   MasterDetailGrid,
 } from '../../../components/layout/masterDetail/masterDetail';
 import { visuallyHidden } from '../../../components/ui/visuallyHidden';
+import DocumentsPage from '../../documents-page';
+import { useDocuments } from '../../documents-page/hooks/use-documents';
 import {
   type ContactInformation,
   emptyMaterialDraft,
@@ -34,7 +36,6 @@ import {
 } from './formTypes';
 import { ChooseMunicipalityAndTitlePage } from './pages/ChooseMunicipalityAndTitlePage';
 import { ContactInformationPage } from './pages/ContactInformationPage';
-import { DocumentsAndDrawingsPage } from './pages/DocumentsAndDrawingsPage';
 import { MaterialsPage } from './pages/MaterialsPage';
 import { RoadMarkingPage } from './pages/RoadMarkingPage';
 import { SummaryAndSubmissionPage } from './pages/SummaryAndSubmissionPage';
@@ -44,16 +45,13 @@ import type {
   RoadPermitDraft,
   RoadPermitDraftSnapshot,
 } from './RoadPermitApplication.types';
-import {
-  exampleApplicant,
-  exampleDocument,
-  useRoadPermitWrites,
-} from './useRoadPermitWrites';
+import { exampleApplicant, useRoadPermitWrites } from './useRoadPermitWrites';
 import { useUnsavedDraftNavigation } from './useUnsavedDraftNavigation';
 import {
   hasMaterialDraft,
   validateContactInformation,
   validateMunicipalityAndTitle,
+  validateRequiredSignPlan,
   validateUsageDetails,
 } from './validation';
 
@@ -210,6 +208,7 @@ function RoadPermitForm({
     trafficPrecautions: [],
     ...draft.roadMarking,
   });
+  const documentsState = useDocuments(caseNumber);
 
   const [confirmed, setConfirmed] = useState(false);
   const currentDraft: RoadPermitDraft = {
@@ -306,6 +305,9 @@ function RoadPermitForm({
   const confirmationError = confirmed
     ? undefined
     : t('permit.errors.confirmation');
+  const signPlanErrors = getValidationErrors(
+    validateRequiredSignPlan(documentsState.documents, t),
+  );
 
   const categories: DetailItem[] = [
     {
@@ -389,9 +391,16 @@ function RoadPermitForm({
       ),
     },
     {
-      id: 'documents-and-drawings',
-      label: t('permit.steps.documents'),
-      content: <DocumentsAndDrawingsPage />,
+      id: 'documents',
+      label: t('documents.title'),
+      validationErrors: signPlanErrors,
+      content: (
+        <DocumentsPage
+          applicationId={caseNumber}
+          documentsState={documentsState}
+          listHeadingLevel="h3"
+        />
+      ),
     },
     {
       id: 'summary-and-submission',
@@ -406,7 +415,7 @@ function RoadPermitForm({
           confirmationError={showErrors ? confirmationError : undefined}
           confirmed={confirmed}
           contactInformation={contactInformation}
-          documentToUpload={exampleDocument}
+          documentsState={documentsState}
           materials={materials}
           municipalityName={municipalityName}
           onConfirmedChange={setConfirmed}

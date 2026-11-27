@@ -8,12 +8,13 @@
     "build": "tsc -b && vite build",
     "lint": "biome lint .",
     "test": "bun run test:unit && bun run test:e2e",
-    "test:unit": "vitest run --config tests/vitest.config.ts",
+    "test:unit": "vitest run --config vitest.config.ts",
     "test:e2e": "tsc -p tsconfig.playwright.json && bun --env-file=../../.devcontainer/.env run playwright test",
     "test:ui": "bun run test:e2e --ui --ui-host=127.0.0.1 --ui-port=9323",
     "preview": "vite preview",
     "locale:extract": "i18next 'src/**/*.{ts,tsx}' --config locales/i18next-parser.config.mjs",
-    "locale:check": "node locales/check-locales.mjs"
+    "locale:check": "node locales/check-locales.mjs",
+    "doctor": "npx react-doctor@latest"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -27,7 +28,8 @@
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-i18next": "^17.1.11",
-    "react-router": "^8.5.1"
+    "react-router": "^8.5.1",
+    "axios": "^1.21.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.56.1",

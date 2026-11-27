@@ -20,12 +20,6 @@ export const roadPermitSubmission: CreateRoadPermitDto = {
     phone: '12345678',
     email: 'site@example.com',
   },
-  documentPlaceholder: {
-    name: '',
-    DocumentType: '',
-    Doc_URL: '',
-    DateForUpload: '',
-  },
   roadMarking: {
     trafficChanges: [],
     accessWays: '',

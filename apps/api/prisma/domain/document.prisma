@@ -5,7 +5,7 @@ model Document {
   url           String
   r2ObjectKey   String
   date          DateTime     @default(now())
-  applicationId String       @unique
-  application   Application  @relation(fields: [applicationId], references: [caseNumber])
+  applicationId String
+  application   Application  @relation(fields: [applicationId], references: [caseNumber], onDelete: Cascade)
   signPlan      SignPlan?
 }

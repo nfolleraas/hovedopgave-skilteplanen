@@ -25,13 +25,6 @@ export const exampleApplicant: CompanyInformation = {
   cvr: '00000000',
 };
 
-export const exampleDocument = {
-  name: 'Test Dokument',
-  DocumentType: 'Skilteplan',
-  Doc_URL: '/testDokument',
-  DateForUpload: '21-10-2001',
-};
-
 type WriteFailure =
   | 'conflict'
   | 'network'
@@ -144,7 +137,6 @@ export function useRoadPermitWrites(
         city: usageDetails.city.trim(),
       },
       contactInformation,
-      documentPlaceholder: exampleDocument,
       roadMarking,
       applicant: exampleApplicant,
       confirmed,

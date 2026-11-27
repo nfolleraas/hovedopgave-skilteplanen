@@ -43,3 +43,8 @@ bun install
 
 echo "Installing Playwright Chromium and its system dependencies"
 bun run --cwd apps/web playwright install --with-deps chromium
+
+echo "Configuring Git defaults"
+git config init.defaultBranch main
+git config pull.rebase false
+git config core.autocrlf input

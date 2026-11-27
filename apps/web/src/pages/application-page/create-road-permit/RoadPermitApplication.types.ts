@@ -13,12 +13,6 @@ export type RoadPermitApplication = {
   materials: MaterialEntry[];
   usageDetails: UsageDetails;
   contactInformation: ContactInformation;
-  documentPlaceholder: {
-    name: string;
-    DocumentType: string;
-    Doc_URL: string;
-    DateForUpload: string;
-  };
   roadMarking: RoadMarkingDetails;
   applicant: CompanyInformation;
   confirmed: boolean;
