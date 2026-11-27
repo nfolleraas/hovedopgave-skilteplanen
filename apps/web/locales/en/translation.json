@@ -3,6 +3,7 @@
     "title": "Page not found"
   },
   "navigation": {
+    "application": "Application",
     "skipToMain": "Skip to main content",
     "openUserMenu": "Open user menu",
     "settings": "Settings",

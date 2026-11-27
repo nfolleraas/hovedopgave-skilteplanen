@@ -3,6 +3,7 @@
     "title": "Siden blev ikke fundet"
   },
   "navigation": {
+    "application": "Ansøgning",
     "skipToMain": "Spring til hovedindhold",
     "openUserMenu": "Åbn brugermenu",
     "settings": "Indstillinger",

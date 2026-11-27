@@ -23,6 +23,11 @@ test('English preference survives a reload', async ({ page }) => {
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   await page.reload();
   await expect(
+    page
+      .getByRole('navigation', { name: 'Main navigation' })
+      .getByRole('link', { name: 'Application', exact: true }),
+  ).toBeVisible();
+  await expect(
     page.getByText('The login form will appear here.'),
   ).toBeVisible();
 });

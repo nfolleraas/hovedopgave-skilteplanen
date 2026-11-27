@@ -32,7 +32,7 @@ export default function Navbar() {
   };
   const navigationItems = [
     { label: 'Dashboard', path: routes.home },
-    { label: 'Ansøgning', path: routes.application },
+    { label: t('navigation.application'), path: routes.application },
   ];
   const activeTab = navigationItems.findIndex(
     (item) =>
