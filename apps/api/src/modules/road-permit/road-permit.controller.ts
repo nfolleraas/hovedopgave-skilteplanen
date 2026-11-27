@@ -10,8 +10,6 @@ import {
   Post,
 } from '@nestjs/common';
 import { MaterialType } from '../../generated/prisma/enums.js';
-import { CreateRoadPermitDto } from './dto/create-road-permit.dto.js';
-import { UpdateRoadPermitDto } from './dto/update-road-permit.dto.js';
 import { RoadPermitService } from './road-permit.service.js';
 import { roadPermitTrafficChanges } from './road-permit-options.js';
 
@@ -27,9 +25,9 @@ export class RoadPermitController {
     return this.roadPermitService.create();
   }
 
-  /** Submits the existing draft and propagates failures to Nest. */
+  /** Passes the untrusted body to the service's submission parser. */
   @Post(':id/submit')
-  async submit(@Param('id') id: string, @Body() dto: CreateRoadPermitDto) {
+  async submit(@Param('id') id: string, @Body() dto: unknown) {
     try {
       const application = await this.roadPermitService.submit(id, dto);
       this.logger.log(`Road permit submitted ${application.caseNumber}`);
@@ -65,12 +63,9 @@ export class RoadPermitController {
     return this.roadPermitService.findOne(id);
   }
 
-  /** Saves the current form snapshot to the existing draft. */
+  /** Passes the untrusted snapshot to the service's draft parser. */
   @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updateRoadPermitDto: UpdateRoadPermitDto,
-  ) {
+  update(@Param('id') id: string, @Body() updateRoadPermitDto: unknown) {
     return this.roadPermitService.update(id, updateRoadPermitDto);
   }
 
