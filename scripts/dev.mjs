@@ -12,10 +12,7 @@ if (!['all', 'api', 'web'].includes(mode)) {
 
 function startWorkspace(workspace) {
   const workspaceDirectory = new URL(`../apps/${workspace}/`, import.meta.url);
-  const bunArguments =
-    workspace === 'api'
-      ? ['--env-file=.env', 'run', '--no-orphans', 'dev']
-      : ['run', '--no-orphans', 'dev'];
+  const bunArguments = ['--env-file=.env', 'run', '--no-orphans', 'dev'];
   const childProcess = spawn('bun', bunArguments, {
     cwd: workspaceDirectory,
     stdio: 'inherit',
