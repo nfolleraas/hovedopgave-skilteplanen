@@ -37,12 +37,6 @@ describe('CreateActorDto', () => {
   });
 
   it('accepts the frontend payload through the global validation settings', async () => {
-    const pipe = new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-    });
-    const metadata = { type: 'body' as const, metatype: CreateActorDto };
     await expect(pipe.transform(validActor, metadata)).resolves.toMatchObject(
       validActor,
     );
