@@ -8,36 +8,36 @@ import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import {
   Alert,
   Box,
-  Button,
-  FormControlLabel,
-  FormGroup,
   IconButton,
-  Popover,
   Slide,
   type SlideProps,
   Snackbar,
-  Switch,
   Typography,
   useMediaQuery,
 } from '@mui/material';
 import type OpenLayersMap from 'ol/Map.js';
 import { transform } from 'ol/proj.js';
-import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import {
+  type RefObject,
+  useCallback,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+} from 'react';
 import { useTranslation } from 'react-i18next';
 import type { RoadLocation } from '../../../utils/validateRoadLocation';
 import { visuallyHidden } from '../visuallyHidden';
 import { MapAddressSearch } from './MapAddressSearch';
-import {
-  type CatalogLayerId,
-  catalogLayers,
-  type LayerId,
-  mapProjection,
-  token,
-} from './mapLayers';
+import { MapLayersPopover } from './MapLayersPopover';
+import { mapProjection, token } from './mapLayers';
 import { RoadLocationDialog } from './RoadLocationDialog';
 import { useDataforsyningenMap } from './useDataforsyningenMap';
 import { useMapLayerCatalog } from './useMapLayerCatalog';
-import { useRoadSelection } from './useRoadSelection';
+import {
+  type RoadSelectionStatus as RoadSelectionStatusValue,
+  useRoadSelection,
+} from './useRoadSelection';
 import 'ol/ol.css';
 
 const errorToastDuration = 5000;
@@ -116,6 +116,142 @@ function MapErrorToast({
   );
 }
 
+/** Tells the user what the road drawing is doing. */
+function RoadSelectionStatus({
+  status,
+}: {
+  status: RoadSelectionStatusValue | null;
+}) {
+  const { t } = useTranslation();
+  const messages = {
+    zoomIn: t('permit.map.roadSelection.zoomIn'),
+    loading: t('permit.map.roadSelection.loading'),
+    noRoad: t('permit.map.roadSelection.noRoad'),
+    error: t('permit.map.roadSelection.error'),
+    drawEnd: t('permit.map.roadSelection.drawEnd'),
+    noPath: t('permit.map.roadSelection.noPath'),
+    drawn: t('permit.map.roadSelection.drawn'),
+  };
+  const message = status ? messages[status] : undefined;
+  // Once drawn, the road is shown in a dialog, so this is only read aloud.
+  const visuallyHiddenOnly = status === 'drawn';
+  return (
+    <Box
+      role="status"
+      sx={{
+        position: 'absolute',
+        bottom: 34,
+        insetInline: 8,
+        display: 'flex',
+        justifyContent: 'center',
+        pointerEvents: 'none',
+        zIndex: 1,
+      }}
+    >
+      {message && (
+        <Typography
+          sx={
+            visuallyHiddenOnly
+              ? visuallyHidden
+              : {
+                  px: 1.5,
+                  py: 0.5,
+                  bgcolor: 'background.paper',
+                  borderRadius: 1,
+                }
+          }
+          variant="body2"
+        >
+          {message}
+        </Typography>
+      )}
+    </Box>
+  );
+}
+
+/**
+ * Enters and leaves fullscreen for `ref`, keeps `isFullscreen` in sync with
+ * the browser, and calls `onError` when the browser refuses.
+ */
+function useFullscreen(
+  ref: RefObject<HTMLElement | null>,
+  onError: () => void,
+) {
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  useEffect(() => {
+    /** Keeps the fullscreen button in sync with the browser's fullscreen state. */
+    const updateFullscreen = () =>
+      setIsFullscreen(document.fullscreenElement === ref.current);
+
+    document.addEventListener('fullscreenchange', updateFullscreen);
+    return () =>
+      document.removeEventListener('fullscreenchange', updateFullscreen);
+  }, [ref]);
+
+  /** Enters or exits fullscreen and shows a toast if the browser rejects it. */
+  async function toggleFullscreen() {
+    try {
+      if (document.fullscreenElement === ref.current) {
+        await document.exitFullscreen();
+      } else {
+        await ref.current?.requestFullscreen();
+      }
+    } catch {
+      onError();
+    }
+  }
+
+  return { isFullscreen, toggleFullscreen };
+}
+
+/** Enters or leaves fullscreen, when the browser supports it. */
+function FullscreenButton({
+  isFullscreen,
+  onToggle,
+}: {
+  isFullscreen: boolean;
+  onToggle: () => void;
+}) {
+  const { t } = useTranslation();
+  if (!document.fullscreenEnabled) return null;
+  return (
+    <IconButton
+      aria-label={
+        isFullscreen
+          ? t('permit.map.exitFullscreen')
+          : t('permit.map.enterFullscreen')
+      }
+      color="primary"
+      onClick={onToggle}
+      sx={{ flexShrink: 0 }}
+    >
+      {isFullscreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
+    </IconButton>
+  );
+}
+
+/** Marks the map centre, where Enter places a point while drawing. */
+function RoadCrosshair() {
+  return (
+    <AddIcon
+      className="road-selection-crosshair"
+      sx={{
+        display: 'none',
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        fontSize: 16,
+        color: 'text.primary',
+        filter: 'drop-shadow(0 0 2px white)',
+        pointerEvents: 'none',
+        zIndex: 1,
+      }}
+    />
+  );
+}
+
 type DataforsyningenMapProps = {
   onRoadLocationConfirm: (location: RoadLocation) => void;
 };
@@ -147,7 +283,6 @@ export function DataforsyningenMap({
     useMapLayerCatalog(layersOpen);
   const catalog =
     layerCatalog.status === 'loaded' ? layerCatalog.catalog : undefined;
-  const [isFullscreen, setIsFullscreen] = useState(false);
   const [mapError, setMapError] = useState<MapError | null>(
     token ? null : 'unavailable',
   );
@@ -161,6 +296,9 @@ export function DataforsyningenMap({
 
   /** Clears the current map error toast. */
   const dismissMapError = useCallback(() => setMapError(null), []);
+  const { isFullscreen, toggleFullscreen } = useFullscreen(controlsRef, () =>
+    setMapError('fullscreenError'),
+  );
 
   const mapErrorMessages = {
     unavailable: t('permit.map.unavailable'),
@@ -169,84 +307,6 @@ export function DataforsyningenMap({
   };
   const helpId = useId();
   const layersId = useId();
-  const layersHeadingId = useId();
-  const roadSelectionMessages = {
-    zoomIn: t('permit.map.roadSelection.zoomIn'),
-    loading: t('permit.map.roadSelection.loading'),
-    noRoad: t('permit.map.roadSelection.noRoad'),
-    error: t('permit.map.roadSelection.error'),
-    drawEnd: t('permit.map.roadSelection.drawEnd'),
-    noPath: t('permit.map.roadSelection.noPath'),
-    drawn: t('permit.map.roadSelection.drawn'),
-  };
-  const roadSelectionMessage = roadSelectionStatus
-    ? roadSelectionMessages[roadSelectionStatus]
-    : undefined;
-  const layerOptions = [
-    { id: 'streetNames', label: t('permit.map.streetNamesLayer') },
-    { id: 'houseNumbers', label: t('permit.map.houseNumbersLayer') },
-    { id: 'parcels', label: t('permit.map.parcelsLayer') },
-    { id: 'kilometerMarkers', label: t('permit.map.kilometerMarkersLayer') },
-    {
-      id: 'roadReferenceLines',
-      label: t('permit.map.roadReferenceLinesLayer'),
-    },
-    { id: 'placeNames', label: t('permit.map.placeNamesLayer') },
-    {
-      id: 'municipalBoundaries',
-      label: t('permit.map.municipalBoundariesLayer'),
-    },
-    { id: 'traffic', label: t('permit.map.trafficLayer') },
-    { id: 'hydrography', label: t('permit.map.hydrographyLayer') },
-    { id: 'nature', label: t('permit.map.natureLayer') },
-    { id: 'infrastructure', label: t('permit.map.infrastructureLayer') },
-  ] satisfies { id: LayerId; label: string }[];
-
-  useEffect(() => {
-    /** Keeps the fullscreen button in sync with the browser's fullscreen state. */
-    const updateFullscreen = () =>
-      setIsFullscreen(document.fullscreenElement === controlsRef.current);
-
-    document.addEventListener('fullscreenchange', updateFullscreen);
-    return () =>
-      document.removeEventListener('fullscreenchange', updateFullscreen);
-  }, []);
-
-  /** Renders a toggle and disables it when its layer is absent from the catalog. */
-  function renderLayerSwitch({ id, label }: (typeof layerOptions)[number]) {
-    const disabled = id in catalogLayers && !catalog?.[id as CatalogLayerId];
-
-    return (
-      <FormControlLabel
-        control={
-          <Switch
-            checked={enabledLayers.includes(id)}
-            disabled={disabled}
-            onChange={(event) => setLayerEnabled(id, event.target.checked)}
-            size="small"
-            slotProps={{ input: { role: 'switch' } }}
-          />
-        }
-        key={id}
-        label={label}
-        slotProps={{ typography: { variant: 'body2' } }}
-        sx={{ m: 0, minHeight: 36, gap: 1 }}
-      />
-    );
-  }
-
-  /** Enters or exits fullscreen and shows a toast if the browser rejects it. */
-  async function toggleFullscreen() {
-    try {
-      if (document.fullscreenElement === controlsRef.current) {
-        await document.exitFullscreen();
-      } else {
-        await controlsRef.current?.requestFullscreen();
-      }
-    } catch {
-      setMapError('fullscreenError');
-    }
-  }
 
   return (
     <Box>
@@ -381,77 +441,22 @@ export function DataforsyningenMap({
                   view?.setZoom(Math.max(view.getZoom() ?? 0, 17));
                 }}
               />
-              {document.fullscreenEnabled && (
-                <IconButton
-                  aria-label={
-                    isFullscreen
-                      ? t('permit.map.exitFullscreen')
-                      : t('permit.map.enterFullscreen')
-                  }
-                  color="primary"
-                  onClick={toggleFullscreen}
-                  sx={{ flexShrink: 0 }}
-                >
-                  {isFullscreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
-                </IconButton>
-              )}
+              <FullscreenButton
+                isFullscreen={isFullscreen}
+                onToggle={toggleFullscreen}
+              />
             </Box>
-            <Popover
-              anchorEl={layersAnchor}
-              anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+            <MapLayersPopover
+              anchor={layersAnchor}
+              catalog={catalog}
+              catalogStatus={layerCatalog.status}
               container={() => controlsRef.current}
+              enabledLayers={enabledLayers}
+              id={layersId}
               onClose={() => setLayersAnchor(null)}
-              open={layersOpen}
-              slotProps={{
-                paper: {
-                  'aria-labelledby': layersHeadingId,
-                  'aria-modal': true,
-                  id: layersId,
-                  role: 'dialog',
-                  sx: {
-                    p: 1.5,
-                    mt: 0.5,
-                    width: 280,
-                    maxHeight: 'min(360px, calc(100dvh - 32px))',
-                    overflowY: 'auto',
-                  },
-                },
-              }}
-              transformOrigin={{ vertical: 'top', horizontal: 'left' }}
-            >
-              <Typography
-                id={layersHeadingId}
-                sx={{ mb: 1 }}
-                variant="subtitle1"
-              >
-                {t('permit.map.layers')}
-              </Typography>
-              <FormGroup>{layerOptions.map(renderLayerSwitch)}</FormGroup>
-              <Typography sx={{ mt: 0.5 }} variant="body2">
-                {t('permit.map.layersZoomHint')}
-              </Typography>
-              {layerCatalog.status === 'failed' ? (
-                <Alert severity="error" sx={{ mt: 1 }}>
-                  {t('permit.map.layersLoadError')}
-                  <Button
-                    color="inherit"
-                    onClick={retryLayerCatalog}
-                    sx={{ display: 'block', minHeight: 44, mt: 0.5 }}
-                  >
-                    {t('permit.map.layersRetry')}
-                  </Button>
-                </Alert>
-              ) : (
-                <Typography role="status" variant="body2">
-                  {layerCatalog.status === 'loading' &&
-                    t('permit.map.layersLoading')}
-                  {catalog &&
-                    Object.keys(catalog).length <
-                      Object.keys(catalogLayers).length &&
-                    t('permit.map.layersUnavailable')}
-                </Typography>
-              )}
-            </Popover>
+              onLayerChange={setLayerEnabled}
+              onRetry={retryLayerCatalog}
+            />
           </Box>
         )}
         <Box
@@ -472,53 +477,8 @@ export function DataforsyningenMap({
           }}
           tabIndex={token ? 0 : undefined}
         />
-        {drawingRoad && (
-          <AddIcon
-            className="road-selection-crosshair"
-            sx={{
-              display: 'none',
-              position: 'absolute',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-              fontSize: 16,
-              color: 'text.primary',
-              filter: 'drop-shadow(0 0 2px white)',
-              pointerEvents: 'none',
-              zIndex: 1,
-            }}
-          />
-        )}
-        <Box
-          role="status"
-          sx={{
-            position: 'absolute',
-            bottom: 34,
-            insetInline: 8,
-            display: 'flex',
-            justifyContent: 'center',
-            pointerEvents: 'none',
-            zIndex: 1,
-          }}
-        >
-          {roadSelectionMessage && (
-            <Typography
-              sx={
-                roadSelectionStatus === 'drawn'
-                  ? visuallyHidden
-                  : {
-                      px: 1.5,
-                      py: 0.5,
-                      bgcolor: 'background.paper',
-                      borderRadius: 1,
-                    }
-              }
-              variant="body2"
-            >
-              {roadSelectionMessage}
-            </Typography>
-          )}
-        </Box>
+        {drawingRoad && <RoadCrosshair />}
+        <RoadSelectionStatus status={roadSelectionStatus} />
         {mapError && (
           <MapErrorToast
             key={mapError}

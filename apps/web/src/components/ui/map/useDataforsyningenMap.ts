@@ -3,6 +3,7 @@ import ScaleLine from 'ol/control/ScaleLine.js';
 import { defaults as defaultInteractions } from 'ol/interaction/defaults.js';
 import TileLayer from 'ol/layer/Tile.js';
 import OpenLayersMap from 'ol/Map.js';
+import { unByKey } from 'ol/Observable.js';
 import { fromLonLat } from 'ol/proj.js';
 import TileWMS from 'ol/source/TileWMS.js';
 import View from 'ol/View.js';
@@ -25,6 +26,19 @@ import { roadDataAttribution } from './roadData';
 import type { useRoadSelection } from './useRoadSelection';
 
 type TileError = 'unavailable' | 'overlayError';
+
+/**
+ * Calls each handler when its source fails to load a tile, and returns a
+ * function that removes the listeners again.
+ */
+function listenForTileErrors(
+  listeners: (readonly [TileWMS, () => void])[],
+): () => void {
+  const keys = listeners.map(([tileSource, onError]) =>
+    tileSource.on('tileloaderror', onError),
+  );
+  return () => unByKey(keys);
+}
 
 export function useDataforsyningenMap({
   mapRef,
@@ -76,11 +90,11 @@ export function useDataforsyningenMap({
 
     /** Reports a base-map tile failure. */
     const reportTileError = () => reportTileFailure('unavailable');
-    source.on('tileloaderror', reportTileError);
     /** Flags an optional road-overlay tile failure separately from the base map. */
     const reportOverlayError = () => reportTileFailure('overlayError');
-    const roadLayers = roadOverlays.map(({ id, url, name }) => {
-      const overlaySource = new TileWMS({
+    const overlaySources = roadOverlays.map(({ id, url, name }) => ({
+      id,
+      source: new TileWMS({
         url,
         params: {
           LAYERS: name,
@@ -89,13 +103,18 @@ export function useDataforsyningenMap({
           TRANSPARENT: true,
         },
         attributions: roadDataAttribution,
-      });
-      overlaySource.on('tileloaderror', reportOverlayError);
-      return {
-        id,
-        layer: new TileLayer({ source: overlaySource, visible: false }),
-      };
-    });
+      }),
+    }));
+    const stopTileErrors = listenForTileErrors([
+      [source, reportTileError],
+      ...overlaySources.map(
+        (overlay) => [overlay.source, reportOverlayError] as const,
+      ),
+    ]);
+    const roadLayers = overlaySources.map(({ id, source: overlaySource }) => ({
+      id,
+      layer: new TileLayer({ source: overlaySource, visible: false }),
+    }));
     roadLayersRef.current = roadLayers;
     const view = new View({
       center: fromLonLat([10.4, 55.7]),
@@ -125,11 +144,8 @@ export function useDataforsyningenMap({
     });
     mapRef.current = map;
     return () => {
-      source.un('tileloaderror', reportTileError);
+      stopTileErrors();
       tileLayerRef.current = null;
-      for (const { layer } of roadLayers) {
-        layer.getSource()?.un('tileloaderror', reportOverlayError);
-      }
       roadLayersRef.current = [];
       mapRef.current = null;
       viewRef.current = null;
@@ -140,10 +156,11 @@ export function useDataforsyningenMap({
   useEffect(() => {
     const source = tileLayerRef.current?.getSource();
     const names = { ...catalog, ...labelLayers };
+    const enabled = new Set<string>(enabledLayers);
     const layerNames = [
       baseLayerName,
       ...Object.entries(names)
-        .filter(([id]) => enabledLayers.includes(id as LayerId))
+        .filter(([id]) => enabled.has(id))
         .map(([, name]) => name),
     ].join(',');
 
@@ -152,7 +169,7 @@ export function useDataforsyningenMap({
     }
 
     for (const { id, layer } of roadLayersRef.current) {
-      layer.setVisible(enabledLayers.includes(id));
+      layer.setVisible(enabled.has(id));
     }
   }, [enabledLayers, catalog]);
 

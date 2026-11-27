@@ -32,12 +32,12 @@ export const exampleDocument = {
   DateForUpload: '21-10-2001',
 };
 
-type WriteFailure =
+export type WriteFailure =
   | 'conflict'
   | 'network'
   | 'serviceUnavailable'
   | 'unexpected';
-type RejectedSelection =
+export type RejectedSelection =
   | { field: 'municipality'; value: string | null }
   | { field: 'material' | 'trafficChange'; value: string };
 
@@ -126,14 +126,8 @@ export function useRoadPermitWrites(
     if (!confirmed || writePending.current || submissionStatus === 'success')
       return;
 
-    const {
-      title,
-      municipalityName,
-      materials,
-      usageDetails,
-      contactInformation,
-      roadMarking,
-    } = currentDraft;
+    const { title, municipalityName, materials, usageDetails, roadMarking } =
+      currentDraft;
     const application: RoadPermitApplication = {
       title,
       municipalityName,
@@ -143,7 +137,6 @@ export function useRoadPermitWrites(
         postalCode: usageDetails.postalCode.trim(),
         city: usageDetails.city.trim(),
       },
-      contactInformation,
       documentPlaceholder: exampleDocument,
       roadMarking,
       applicant: exampleApplicant,

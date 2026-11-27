@@ -2,6 +2,7 @@ import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import type { App } from 'supertest/types.js';
+import { addContactPerson } from '../../../test/fixtures/contact-person.js';
 import { roadPermitSubmission } from '../../../test/fixtures/road-permit.js';
 import { AppModule } from '../../app.module.js';
 import { Status, TrafficChange } from '../../generated/prisma/enums.js';
@@ -37,6 +38,7 @@ describe.skipIf(!databaseUrl)('Road permit API (PostgreSQL)', () => {
       .expect(201);
     const { caseNumber } = draft;
     const path = `/api/road-permit/${caseNumber}`;
+    await addContactPerson(prisma, caseNumber);
     const accessWays = 'Access from the south via the service road.';
     const dto = {
       ...roadPermitSubmission,

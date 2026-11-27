@@ -1,7 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router';
-import App, { NotFoundPage } from './app/App.js';
+import App, { NotFoundPage, RouteErrorPage } from './app/App.js';
 import { Providers } from './app/providers.js';
 import { pages } from './app/router.js';
 import { i18nReady } from './config/i18n.js';
@@ -17,6 +17,7 @@ if (!root) {
 const router = createBrowserRouter([
   {
     Component: App,
+    ErrorBoundary: RouteErrorPage,
     children: [
       ...Object.entries(pages).map(([path, Component]) => ({
         path,

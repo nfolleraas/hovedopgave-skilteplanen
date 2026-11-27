@@ -15,11 +15,6 @@ export const roadPermitSubmission: CreateRoadPermitDto = {
     city: ' Odense C ',
     locationDescription: 'Along the pavement',
   },
-  contactInformation: {
-    name: 'Site contact',
-    phone: '12345678',
-    email: 'site@example.com',
-  },
   documentPlaceholder: {
     name: '',
     DocumentType: '',

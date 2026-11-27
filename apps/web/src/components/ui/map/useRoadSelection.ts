@@ -5,6 +5,7 @@ import LineString from 'ol/geom/LineString.js';
 import VectorLayer from 'ol/layer/Vector.js';
 import type OpenLayersMap from 'ol/Map.js';
 import type MapBrowserEvent from 'ol/MapBrowserEvent.js';
+import { unByKey } from 'ol/Observable.js';
 import VectorSource from 'ol/source/Vector.js';
 import Stroke from 'ol/style/Stroke.js';
 import Style from 'ol/style/Style.js';
@@ -31,7 +32,7 @@ const sketchStyle = new Style({
   stroke: new Stroke({ color: '#1562AD', width: 3, lineDash: [8, 5] }),
 });
 
-type RoadSelectionStatus =
+export type RoadSelectionStatus =
   | 'zoomIn'
   | 'loading'
   | 'noRoad'
@@ -39,6 +40,26 @@ type RoadSelectionStatus =
   | 'drawEnd'
   | 'noPath'
   | 'drawn';
+
+/**
+ * Listens for the clicks and pointer moves that draw a road, and returns a
+ * function that removes the listeners again.
+ */
+function listenForDrawing(
+  map: OpenLayersMap,
+  handlers: {
+    click: (event: MapBrowserEvent) => void;
+    pointerMove: (event: MapBrowserEvent) => void;
+    moveEnd: () => void;
+  },
+): () => void {
+  const keys = [
+    map.on('singleclick', handlers.click),
+    map.on('pointermove', handlers.pointerMove),
+    map.on('moveend', handlers.moveEnd),
+  ];
+  return () => unByKey(keys);
+}
 
 /** Manages road drawing, address lookup, and the map layer for draft and confirmed geometry. */
 export function useRoadSelection(mapRef: RefObject<OpenLayersMap | null>) {
@@ -252,17 +273,17 @@ export function useRoadSelection(mapRef: RefObject<OpenLayersMap | null>) {
       }
     }
 
-    map.on('singleclick', handleClick);
-    map.on('pointermove', handlePointerMove);
-    map.on('moveend', handleMoveEnd);
+    const stopMapListeners = listenForDrawing(map, {
+      click: handleClick,
+      pointerMove: handlePointerMove,
+      moveEnd: handleMoveEnd,
+    });
     target.addEventListener('keydown', handleKeyDown);
     return () => {
       requestRef.current?.abort();
       requestRef.current = null;
       resetSketch();
-      map.un('singleclick', handleClick);
-      map.un('pointermove', handlePointerMove);
-      map.un('moveend', handleMoveEnd);
+      stopMapListeners();
       target.removeEventListener('keydown', handleKeyDown);
     };
   }, [drawingRoad, layer, mapRef, resetSketch, setDrawingRoad, sketch]);

@@ -3,14 +3,16 @@ import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { App } from 'supertest/types.js';
 import { AppModule } from './../src/app.module.js';
+import { configureApp } from './../src/app.setup.js';
 import { TrafficChange } from './../src/generated/prisma/enums.js';
-import { PrismaService } from './../src/prisma.service.js';
+import { PrismaService } from '../src/modules/prisma/prisma.service.js';
 
 describe('AppModule (e2e)', () => {
   let app: INestApplication<App>;
   const prisma = {
     $queryRaw: vi.fn(),
     municipality: { findMany: vi.fn() },
+    actor: { findMany: vi.fn() },
     application: {
       create: vi.fn(),
       updateMany: vi.fn(),
@@ -28,7 +30,8 @@ describe('AppModule (e2e)', () => {
       .compile();
 
     app = moduleFixture.createNestApplication();
-    app.setGlobalPrefix('api');
+    // The same setup as main.ts, so global pipes are tested too.
+    configureApp(app);
     await app.init();
   });
 
@@ -58,6 +61,7 @@ describe('AppModule (e2e)', () => {
   it('keeps the frontend draft creation, saving, and loading endpoints available', async () => {
     const draft = { caseNumber: 'permit-1', status: 'Draft' };
     const snapshot = { title: 'Road work', municipalityName: 'Odense' };
+    prisma.actor.findMany.mockResolvedValue([]);
     prisma.application.create.mockResolvedValue(draft);
     prisma.application.updateMany.mockResolvedValue({ count: 1 });
     prisma.application.findFirst.mockResolvedValue({
@@ -134,13 +138,13 @@ describe('AppModule (e2e)', () => {
     prisma.application.findFirst.mockResolvedValue({
       caseNumber: 'permit-1',
       status: 'Draft',
-      roadPermitDraft: { contactInformation: { email: false } },
+      roadPermitDraft: { usageDetails: { road: false } },
     });
     await request(app.getHttpServer())
       .get('/api/road-permit/permit-1')
       .expect(422)
       .expect(({ body }) =>
-        expect(body.message).toContain('contactInformation.email'),
+        expect(body.message).toContain('usageDetails.road'),
       );
   });
 });

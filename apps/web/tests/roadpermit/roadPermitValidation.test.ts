@@ -8,7 +8,6 @@ import {
 } from '../../src/pages/application-page/create-road-permit/formTypes';
 import {
   hasMaterialDraft,
-  validateContactInformation,
   validateUsageDetails,
 } from '../../src/pages/application-page/create-road-permit/validation';
 
@@ -62,28 +61,6 @@ describe('Road permit validation', () => {
     expect(errors.road).toBe(en.permit.errors.road);
     expect(errors.postalCode).toBe(en.permit.errors.postalCode);
     expect(errors.city).toBe(en.permit.errors.city);
-  });
-
-  it('accepts formatted international phone numbers and rejects invalid contact details', () => {
-    const valid = validateContactInformation(
-      {
-        name: 'Test Contact',
-        phone: '+45 12 34 56 78',
-        email: 'test@example.com',
-      },
-      i18n.t,
-    );
-    expect(Object.values(valid).filter(Boolean)).toEqual([]);
-
-    const invalid = validateContactInformation(
-      { name: ' ', phone: '1234', email: 'test@' },
-      i18n.t,
-    );
-    expect(invalid).toEqual({
-      name: en.permit.errors.contactName,
-      phone: en.permit.errors.contactPhone,
-      email: en.permit.errors.contactEmail,
-    });
   });
 
   it('recognizes edited and unfinished materials while allowing an empty draft', () => {

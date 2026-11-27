@@ -83,7 +83,6 @@ const usageDetails = {
   city: string,
   locationDescription: string,
 };
-const contactInformation = { name: string, phone: string, email: string };
 const roadMarking = {
   trafficChanges: array(string),
   accessWays: string,
@@ -103,7 +102,6 @@ const draftShape = object(
     municipalityName: nullable(string),
     materials,
     usageDetails: object(usageDetails, true),
-    contactInformation: object(contactInformation, true),
     roadMarking: object(roadMarking, true),
     materialDraft: object(
       {
@@ -123,7 +121,6 @@ const submissionShape = object({
   municipalityName: string,
   materials,
   usageDetails: object(usageDetails),
-  contactInformation: object(contactInformation),
   roadMarking: object(roadMarking),
   documentPlaceholder: object({
     name: string,
@@ -239,7 +236,7 @@ function validateContact(
 export function parseRoadPermitSubmission(value: unknown) {
   submissionShape(value, '');
   const dto = value as CreateRoadPermitDto & { municipalityName: string };
-  const { usageDetails: usage, contactInformation: contact, applicant } = dto;
+  const { usageDetails: usage, applicant } = dto;
   requireValue(dto.confirmed, 'confirmed', 'must be true');
   requireValue(dto.title.trim(), 'title', 'is required');
   requireValue(dto.municipalityName.trim(), 'municipalityName', 'is required');
@@ -264,13 +261,6 @@ export function parseRoadPermitSubmission(value: unknown) {
     'must be on or after the start date',
   );
   validateLocation(usage);
-  validateContact(
-    contact.name,
-    contact.phone,
-    contact.email,
-    'contactInformation',
-    'phone',
-  );
   validateContact(
     applicant.name,
     applicant.companyPhone,

@@ -1,0 +1,294 @@
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { Prisma } from '../../generated/prisma/client.js';
+import type {
+  ApplicationType,
+  Availability,
+} from '../../generated/prisma/enums.js';
+import {
+  type ContactPersonApplication,
+  ContactPersonsRepository,
+} from './contact-persons.repository.js';
+import {
+  ContactPersonFieldsDto,
+  CreateContactPersonDto,
+} from './dto/create-contact-person.dto.js';
+import { UpdateContactPersonDto } from './dto/update-contact-person.dto.js';
+import {
+  type ContactPersonActorResponse,
+  type ContactPersonResponse,
+  toContactPersonActorResponse,
+  toContactPersonResponse,
+} from './mappers/contact-person.mapper.js';
+import {
+  type ContactPersonRuleInput,
+  canDeleteContactPerson,
+  canEditContactPersons,
+  defaultAvailability,
+  findInvalidContactPersonFields,
+  getContactPersonFieldSet,
+  trimContactPersonText,
+} from './rules/contact-person-rules.js';
+
+export interface ApplicationContactPersons {
+  application: ContactPersonApplication;
+  /** The actors on the application. Each can have several contact persons. */
+  actors: ContactPersonActorResponse[];
+  contactPersons: ContactPersonResponse[];
+}
+
+@Injectable()
+export class ContactPersonsService {
+  constructor(private readonly contactPersons: ContactPersonsRepository) {}
+
+  async findByApplication(
+    applicationId: string,
+  ): Promise<ApplicationContactPersons> {
+    const application = await this.getApplication(applicationId);
+    const [actors, contactPersons] = await Promise.all([
+      this.contactPersons.getActorsByApplication(applicationId),
+      this.contactPersons.getAllByApplication(applicationId),
+    ]);
+
+    return {
+      application,
+      actors: actors.map(toContactPersonActorResponse),
+      contactPersons: contactPersons.map(toContactPersonResponse),
+    };
+  }
+
+  async findOne(id: string): Promise<ContactPersonResponse> {
+    return toContactPersonResponse(await this.getContactPerson(id));
+  }
+
+  /** Creates a contact person for an actor on an application (UC-031). */
+  async create(dto: CreateContactPersonDto): Promise<ContactPersonResponse> {
+    const application = await this.getApplication(dto.applicationId);
+    this.assertEditable(application);
+    await this.assertActorOnApplication(dto.actorId, application.caseNumber);
+    this.assertNoUnusedFields(application.type, dto);
+
+    const fields = trimContactPersonText(dto);
+    const input = this.withResolvedAvailability(application.type, fields);
+    this.assertValid(application.type, input);
+    await this.assertNotDuplicate({
+      applicationId: application.caseNumber,
+      phoneNumber: fields.phoneNumber,
+      email: fields.email,
+    });
+
+    const created = await this.contactPersons.add({
+      application: { connect: { caseNumber: application.caseNumber } },
+      actor: { connect: { uuid: dto.actorId } },
+      name: fields.name,
+      phoneNumber: fields.phoneNumber,
+      email: fields.email,
+      // assertValid has already checked that a value is present.
+      availability: input.availability as Availability,
+    });
+    return toContactPersonResponse(created);
+  }
+
+  /** Updates a contact person's details (UC-033). */
+  async update(
+    id: string,
+    dto: UpdateContactPersonDto,
+  ): Promise<ContactPersonResponse> {
+    const existing = await this.getContactPerson(id);
+    const { application } = existing;
+    this.assertEditable(application);
+    this.assertNoUnusedFields(application.type, dto);
+
+    const changes = trimContactPersonText(stripUndefined(dto));
+    const merged = this.withResolvedAvailability(application.type, {
+      name: existing.name,
+      availability: existing.availability,
+      phoneNumber: existing.phoneNumber,
+      email: existing.email,
+      ...changes,
+    });
+    this.assertValid(application.type, merged);
+    await this.assertNotDuplicate(
+      {
+        applicationId: existing.applicationId,
+        phoneNumber: merged.phoneNumber as string,
+        email: merged.email as string,
+      },
+      id,
+    );
+
+    const updated = await this.contactPersons.update(id, {
+      name: changes.name,
+      // assertValid has already checked that a value is present.
+      availability: merged.availability as Availability,
+      phoneNumber: changes.phoneNumber,
+      email: changes.email,
+    });
+
+    return toContactPersonResponse(updated);
+  }
+
+  /** Deletes a contact person from its application (UC-032). */
+  async remove(id: string): Promise<void> {
+    const contactPerson = await this.getContactPerson(id);
+    this.assertEditable(contactPerson.application);
+
+    const count = await this.contactPersons.countByApplication(
+      contactPerson.applicationId,
+    );
+    if (!canDeleteContactPerson(count)) {
+      throw new BadRequestException({
+        code: 'LAST_CONTACT_PERSON',
+        message: 'An application must have at least one contact person.',
+      });
+    }
+
+    // TODO(UC-032 F4): log a failed delete once a log service exists. For
+    // now the error reaches the client, which shows UC-032's error message.
+    await this.contactPersons.delete(id);
+    // TODO(UC-032 postcondition): log the deletion once a log service exists.
+  }
+
+  /**
+   * Two contact persons on the same application cannot share a phone
+   * number or an email.
+   */
+  private async assertNotDuplicate(
+    fields: Parameters<ContactPersonsRepository['findDuplicate']>[0],
+    excludeUuid?: string,
+  ): Promise<void> {
+    const duplicate = await this.contactPersons.findDuplicate(
+      fields,
+      excludeUuid,
+    );
+    if (duplicate) {
+      throw new ConflictException({
+        code: 'CONTACT_PERSON_DUPLICATE',
+        message:
+          'Another contact person on this application already uses this ' +
+          'phone number or email.',
+      });
+    }
+  }
+
+  /** UC-031 starts from an actor on the application (UC-040 step 7). */
+  private async assertActorOnApplication(
+    actorId: string,
+    caseNumber: string,
+  ): Promise<void> {
+    const actor = await this.contactPersons.getActorOnApplication(
+      actorId,
+      caseNumber,
+    );
+    if (!actor) {
+      throw new NotFoundException({
+        code: 'ACTOR_NOT_FOUND',
+        message: `Actor ${actorId} is not on application ${caseNumber}.`,
+      });
+    }
+  }
+
+  private async getApplication(
+    applicationId: string,
+  ): Promise<ContactPersonApplication> {
+    try {
+      return await this.contactPersons.getApplication(applicationId);
+    } catch (error) {
+      if (isRecordNotFound(error)) {
+        throw new NotFoundException({
+          code: 'APPLICATION_NOT_FOUND',
+          message: `Application ${applicationId} was not found.`,
+        });
+      }
+      throw error;
+    }
+  }
+
+  private async getContactPerson(id: string) {
+    try {
+      return await this.contactPersons.getById(id);
+    } catch (error) {
+      if (isRecordNotFound(error)) {
+        throw new NotFoundException({
+          code: 'CONTACT_PERSON_NOT_FOUND',
+          message: `Contact person ${id} was not found.`,
+        });
+      }
+      throw error;
+    }
+  }
+
+  private assertEditable(application: ContactPersonApplication): void {
+    if (!canEditContactPersons(application.status)) {
+      throw new ConflictException({
+        code: 'APPLICATION_NOT_EDITABLE',
+        message:
+          'Contact persons can only be changed while the application is a ' +
+          'draft or requires changes.',
+      });
+    }
+  }
+
+  /**
+   * Road use applications always use Day, so a chosen availability is
+   * rejected for them (UC-031 A1, UC-033 A1).
+   */
+  private assertNoUnusedFields(
+    type: ApplicationType,
+    fields: Partial<ContactPersonFieldsDto>,
+  ): void {
+    const fieldSet = getContactPersonFieldSet(type);
+    if (!fieldSet.availability && fields.availability != null) {
+      throw new BadRequestException({
+        code: 'CONTACT_PERSON_FIELDS_NOT_ALLOWED',
+        message: `Fields not used for ${type}: availability.`,
+        invalidFields: ['availability'],
+      });
+    }
+  }
+
+  private assertValid(
+    type: ApplicationType,
+    input: ContactPersonRuleInput,
+  ): void {
+    const invalidFields = findInvalidContactPersonFields(type, input);
+    if (invalidFields.length > 0) {
+      throw new BadRequestException({
+        code: 'CONTACT_PERSON_INVALID',
+        message:
+          'Missing or invalid contact person fields: ' +
+          `${invalidFields.join(', ')}.`,
+        invalidFields,
+      });
+    }
+  }
+
+  /** Sets availability to Day when the applicant cannot choose one. */
+  private withResolvedAvailability(
+    type: ApplicationType,
+    input: ContactPersonRuleInput,
+  ): ContactPersonRuleInput {
+    const fieldSet = getContactPersonFieldSet(type);
+    return fieldSet.availability
+      ? input
+      : { ...input, availability: defaultAvailability };
+  }
+}
+
+/** Prisma's error code when findUniqueOrThrow finds no record. */
+function isRecordNotFound(error: unknown): boolean {
+  return (
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    error.code === 'P2025'
+  );
+}
+
+function stripUndefined<T extends object>(value: T): Partial<T> {
+  return Object.fromEntries(
+    Object.entries(value).filter(([, entry]) => entry !== undefined),
+  ) as Partial<T>;
+}

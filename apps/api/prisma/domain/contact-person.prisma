@@ -4,6 +4,8 @@ model ContactPerson {
   email         String
   phoneNumber   String
   availability  Availability
-  applicationId String       @unique
+  applicationId String
   application   Application  @relation(fields: [applicationId], references: [caseNumber])
+  actorId       String
+  actor         Actor        @relation(fields: [actorId], references: [uuid])
 }

@@ -18,11 +18,6 @@ export class CreateRoadPermitDto {
     city: string;
     locationDescription: string;
   };
-  contactInformation: {
-    name: string;
-    phone: string;
-    email: string;
-  };
   documentPlaceholder: {
     name: string;
     DocumentType: string;

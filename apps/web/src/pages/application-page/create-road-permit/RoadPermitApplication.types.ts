@@ -1,6 +1,5 @@
 import type {
   CompanyInformation,
-  ContactInformation,
   MaterialDraft,
   MaterialEntry,
   RoadMarkingDetails,
@@ -12,7 +11,6 @@ export type RoadPermitApplication = {
   municipalityName: string | null;
   materials: MaterialEntry[];
   usageDetails: UsageDetails;
-  contactInformation: ContactInformation;
   documentPlaceholder: {
     name: string;
     DocumentType: string;
@@ -26,12 +24,7 @@ export type RoadPermitApplication = {
 
 export type RoadPermitDraft = Pick<
   RoadPermitApplication,
-  | 'title'
-  | 'municipalityName'
-  | 'materials'
-  | 'usageDetails'
-  | 'contactInformation'
-  | 'roadMarking'
+  'title' | 'municipalityName' | 'materials' | 'usageDetails' | 'roadMarking'
 > & { materialDraft: MaterialDraft };
 
 export type RoadPermitDraftSnapshot = Partial<{
@@ -39,7 +32,6 @@ export type RoadPermitDraftSnapshot = Partial<{
   municipalityName: string | null;
   materials: MaterialEntry[];
   usageDetails: Partial<UsageDetails>;
-  contactInformation: Partial<ContactInformation>;
   roadMarking: Partial<RoadMarkingDetails>;
   materialDraft: Partial<MaterialDraft>;
 }>;

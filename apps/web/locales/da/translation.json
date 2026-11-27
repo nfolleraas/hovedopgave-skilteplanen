@@ -59,6 +59,8 @@
       "municipalityUnavailable": "Den valgte kommune er ikke længere tilgængelig. Vælg en anden kommune.",
       "materialUnavailable": "Det valgte materiale er ikke længere tilgængeligt. Fjern det fra listen, eller vælg et andet.",
       "trafficChangeUnavailable": "Det trafikale valg «{{change}}» er ikke længere tilgængeligt. Fjern det fra listen, eller vælg et andet.",
+      "contactRequired": "Tilføj mindst én kontaktperson.",
+      "contactUnsaved": "Gem eller annullér den åbne kontaktperson.",
       "materialsRequired": "Tilføj mindst ét materiale til listen.",
       "materialDraft": "Tilføj materialet, gem ændringerne eller annuller kladden.",
       "trafficMeasureRequired": "Vælg mindst én trafikforanstaltning.",
@@ -71,9 +73,6 @@
       "dateOrder": "Slutdatoen må ikke ligge før startdatoen.",
       "usage": "Vælg en anvendelse.",
       "startDate": "Vælg en startdato.",
-      "contactName": "Indtast et navn.",
-      "contactPhone": "Indtast 8 cifre eller et internationalt nummer med landekode.",
-      "contactEmail": "Indtast en gyldig e-mailadresse.",
       "houseNumberFrom": "Angiv et gyldigt husnummer i feltet Fra, f.eks. 12 eller 12A.",
       "houseNumberMissing": "Angiv det første husnummer i intervallet.",
       "houseNumberTo": "Angiv et gyldigt husnummer i feltet Til, f.eks. 12 eller 12A.",
@@ -224,8 +223,12 @@
       "label": "Kommune"
     },
     "contact": {
-      "heading": "Opret kontaktperson",
+      "loading": "Henter kontaktpersoner…",
+      "retry": "Prøv igen",
+      "loadError": "Kontaktpersonerne kunne ikke hentes.",
       "name": "Navn",
+      "actor": "Aktør",
+      "availability": "Tilgængelighed",
       "phone": "Telefonnummer",
       "email": "E-mail"
     },
@@ -311,6 +314,279 @@
       "noProtection": "Ingen beskyttelsesgrad"
     }
   },
+  "devApplications": {
+    "loadError": "Ansøgningerne kunne ikke hentes. Kører API'et?",
+    "createError": "Ansøgningen kunne ikke oprettes, prøv igen.",
+    "title": "Testansøgninger",
+    "intro": "Kun til test: vælg en ansøgning, eller opret en ny kladde.",
+    "type": "Ansøgningstype",
+    "create": "Opret ny ansøgning",
+    "loading": "Henter ansøgninger",
+    "none": "Der er ingen ansøgninger endnu.",
+    "caseNumber": "Sagsnr.",
+    "status": "Status",
+    "contactPersonCount": "Kontaktpersoner",
+    "backToList": "← Alle testansøgninger",
+    "statuses": {
+      "Draft": "Kladde",
+      "InProgress": "I gang",
+      "Approved": "Godkendt",
+      "Rejected": "Afvist",
+      "ChangeRequired": "Rettelse påkrævet"
+    }
+  },
+  "wizard": {
+    "delete": "Slet",
+    "stepHasErrors_one": "Der er {{count}} fejl på dette trin. Ret feltet markeret med rødt.",
+    "stepHasErrors_other": "Der er {{count}} fejl på dette trin. Ret felterne markeret med rødt.",
+    "areasPlaceholder": "Pladsholder: Kort og områder (UC-034–036) bygges i områdefeaturen og er ikke med i denne testversion.",
+    "actors": {
+      "intro": "Tilføj andre aktører på ansøgningen, fx entreprenør eller leverandør. Trinnet kan springes over.",
+      "placeholder": "Pladsholder: Aktørerne er testaktører, som blev oprettet sammen med testansøgningen. Oprettelse og redigering af aktører (UC-040–042) bygges i aktørfeaturen.",
+      "none": "Der er ingen øvrige aktører på ansøgningen."
+    },
+    "documents": {
+      "intro": "Upload tegninger eller billeder til ansøgningen. Kun PNG og JPG er tilladt.",
+      "dropHint": "Træk filer hertil, eller",
+      "choose": "Vælg filer",
+      "wrongType": "Forkert filtype, tillader kun PNG og JPG: {{files}}",
+      "none": "Der er ikke tilføjet dokumenter.",
+      "notUploaded": "Gemmes kun i denne browser, indtil upload er bygget."
+    },
+    "deleteItem": "Slet {{item}}",
+    "period": {
+      "municipality": "Kommune",
+      "title": "Titel",
+      "permitType": "Type",
+      "noticeInfo": "Ved en anmeldelse kan der komme ekstra betingelser fra kommunen. Henvend dig til kommunen, hvis du har spørgsmål.",
+      "startDate": "Startdato",
+      "endDate": "Slutdato",
+      "usage": "Anvendelse af vejarealet",
+      "usageDescription": "Beskriv anvendelsen",
+      "intro": {
+        "ExcavationPermit": "Vælg kommune, type og periode for gravetilladelsen.",
+        "RoadUsePermit": "Vælg kommune, titel, anvendelse og periode for råden over vejarealet."
+      }
+    },
+    "signPlan": {
+      "signPlanTitle": "Skilteplan",
+      "signPlanIntro": "Vælg en standard skilteplan, eller upload din egen.",
+      "signPlanType": "Standardplan",
+      "group": "Gruppe",
+      "plan": "Plan",
+      "uploadSignPlan": "Upload skilteplan",
+      "noFile": "Ingen fil valgt",
+      "trafficTitle": "Trafikændringer",
+      "trafficChanges": "Trafikændringer",
+      "measuresTitle": "Trafikforanstaltninger",
+      "measureTitle": "Trafikforanstaltning {{number}}",
+      "measureType": "Type",
+      "scope": "Omfang",
+      "protectionLevel": "Beskyttelsesniveau",
+      "measureDescription": "Beskrivelse",
+      "addMeasure": "+ Tilføj trafikforanstaltning"
+    },
+    "summary": {
+      "intro": "Gennemgå ansøgningen {{caseNumber}}, før du sender den.",
+      "applicationType": "Ansøgningstype",
+      "period": "Periode",
+      "noContacts": "Der er ingen kontaktpersoner.",
+      "areasPlaceholder": "Områder vises her, når områdefeaturen er flettet ind.",
+      "files": "Filer",
+      "incomplete": "Nogle trin mangler oplysninger. Ret dem, før ansøgningen kan sendes.",
+      "submitNotBuilt": "Indsendelse er ikke bygget endnu, så ansøgningen er ikke sendt.",
+      "submit": "Send ansøgning",
+      "missingInfo": "mangler oplysninger",
+      "editSection": "Redigér {{section}}",
+      "edit": "Redigér"
+    },
+    "tasks": {
+      "taskTitle": "Opgave {{number}}",
+      "materialTitle": "Materiel {{number}}",
+      "introTasks": "Tilføj de opgaver, der skal udføres. Der skal være mindst én.",
+      "introMaterials": "Angiv det materiel, der skal stå på vejarealet.",
+      "cableType": "Ledningstype",
+      "cableSubtypes": "Ledningsnetdele",
+      "cableTypesDescription": "Bemærkning til ledningstype",
+      "cableSubtypesDescription": "Bemærkning til ledningsnetdel",
+      "workCategories": "Arbejdsform",
+      "executionMethods": "Udførelsesmetode",
+      "workCategoriesDescription": "Bemærkning til arbejdsform",
+      "executionMethodsDescription": "Bemærkning til udførelsesmetode",
+      "addTask": "+ Tilføj opgave",
+      "materialType": "Materieltype",
+      "amount": "Antal",
+      "materialDescription": "Bemærkning",
+      "addMaterial": "+ Tilføj materiel"
+    },
+    "errors": {
+      "required": "Skal udfyldes",
+      "endBeforeStart": "Slutdato må ikke være før startdato",
+      "startInPast": "Startdato må ikke være før dags dato",
+      "phone": "Telefonnr. skal være 8 cifre",
+      "email": "Ugyldig e-mailadresse",
+      "cvr": "CVR-nr. skal være 8 cifre",
+      "lettersOnly": "Må kun indeholde bogstaver",
+      "positiveWhole": "Skal være et helt tal på mindst 1",
+      "atLeastOneTask": "Der skal være mindst én opgave.",
+      "atLeastOneMaterial": "Der skal være mindst ét materiel.",
+      "atLeastOneContact": "Der skal være mindst én kontaktperson.",
+      "atLeastOneMeasure": "Der skal vælges mindst én trafikforanstaltning."
+    },
+    "enums": {
+      "ApplicationType": {
+        "ExcavationPermit": "Gravetilladelse",
+        "RoadUsePermit": "Råden over vejareal"
+      },
+      "ActorRole": {
+        "Supplier": "Leverandør",
+        "Contractor": "Entreprenør",
+        "NetworkOperator": "Ledningsejer",
+        "ProjectCoordinator": "Projektkoordinator",
+        "Private": "Privat"
+      },
+      "Availability": {
+        "Day": "Dag",
+        "Evening": "Aften",
+        "Night": "Nat",
+        "AllDay": "Døgn"
+      },
+      "CableSubtype": {
+        "MainLine": "Hovedledning",
+        "ServiceLine": "Stikledning",
+        "StreetCabinet": "Skab",
+        "Other": "Andet"
+      },
+      "CableType": {
+        "Telephone": "Telefon",
+        "Water": "Vand",
+        "Power": "El",
+        "Sewage": "Kloak",
+        "Gas": "Gas",
+        "DistrictHeating": "Fjernvarme",
+        "Coax": "Coax",
+        "Fiber": "Fiber",
+        "Other": "Andet"
+      },
+      "ExecutionMethod": {
+        "Excavation": "Opgravning",
+        "ExistingPipe": "Eksisterende rør",
+        "Ploughing": "Nedpløjning",
+        "ChainTrenching": "Kædegravning",
+        "SoilDisplacement": "Jordfortrængning",
+        "PipeCracking": "Rørsprængning",
+        "PipeRamming": "Rørramning",
+        "UndergroundDrilling": "Underboring",
+        "UndergroundDirectionalDrilling": "Styret underboring",
+        "Other": "Andet"
+      },
+      "MaterialType": {
+        "Banner": "Banner",
+        "TemporarySign": "Midlertidigt skilt",
+        "PermanentSign": "Permanent skilt",
+        "DrillingRig": "Borerig",
+        "Container": "Container",
+        "Crane": "Kran",
+        "Truck": "Lastbil",
+        "Lift": "Lift",
+        "OfficeCabin": "Kontorvogn",
+        "WelfareCabin": "Mandskabsvogn",
+        "TrenchlessUnit": "No-dig-udstyr",
+        "ReliningUnit": "Relining-udstyr",
+        "Scaffolding": "Stillads",
+        "LoadingTower": "Læssetårn",
+        "Tent": "Telt",
+        "Stage": "Scene",
+        "Grandstand": "Tribune",
+        "Other": "Andet"
+      },
+      "PermitType": {
+        "Application": "Ansøgning",
+        "Notice": "Anmeldelse"
+      },
+      "SignPlanType": {
+        "MarkingCityArea": "Afmærkning i byzone",
+        "MarkingHighway": "Afmærkning på motorvej",
+        "MarkingRuralArea": "Afmærkning i landzone",
+        "AuthorityMarkingPlan": "Myndighedens afmærkningsplan",
+        "AttachSpecificMarkingPlan": "Vedhæft specifik afmærkningsplan"
+      },
+      "TrafficCalmingMeasureScope": {
+        "OncomingTraffic": "Modkørende trafik",
+        "FollowingTraffic": "Medkørende trafik",
+        "Both": "Begge"
+      },
+      "TrafficCalmingMeasureType": {
+        "A": "Type A",
+        "B": "Type B",
+        "C": "Type C",
+        "D": "Type D",
+        "E": "Type E",
+        "F": "Type F",
+        "G": "Type G",
+        "H": "Type H",
+        "I": "Type I"
+      },
+      "TrafficChange": {
+        "SpeedLimitWorkZone": "Hastighedsbegrænsning ved arbejdsområde",
+        "SpeedLimitTrafficSafety": "Hastighedsbegrænsning af hensyn til trafiksikkerhed",
+        "OnewayTraffic": "Ensrettet trafik",
+        "TrafficLight": "Signalregulering",
+        "NoStoppingAndParking": "Stop- og parkeringsforbud",
+        "UnconditionalObligationInIntersection": "Ubetinget vigepligt i kryds"
+      },
+      "Usage": {
+        "AsphaltWork": "Asfaltarbejde",
+        "Construction": "Byggeri",
+        "Renovation": "Renovering",
+        "MaterialSpace": "Materialeplads",
+        "StreetFurnitureInstallation": "Opstilling af byinventar",
+        "BannerInstallation": "Opsætning af banner",
+        "SignInstallment": "Opsætning af skilte",
+        "MarketStand": "Markedsbod",
+        "OutdoorServing": "Udeservering",
+        "WaterDischarge": "Udledning af vand",
+        "ProductDisplay": "Vareudstilling",
+        "Other": "Andet"
+      },
+      "WorkCategory": {
+        "Establishment": "Etablering",
+        "Repair": "Reparation",
+        "JointBay": "Muffe",
+        "CableError": "Kabelfejl",
+        "Renovation": "Renovering",
+        "Decommission": "Nedlæggelse",
+        "AlarmError": "Alarmfejl",
+        "Removal": "Fjernelse",
+        "Cleaning": "Rensning",
+        "TrialHole": "Prøvehul",
+        "Investigation": "Undersøgelse",
+        "Other": "Andet"
+      }
+    }
+  },
+  "applicationWizard": {
+    "stepsLabel": "Ansøgningens trin",
+    "back": "Tilbage",
+    "next": "Næste",
+    "documentTitle": "{{step}} – Ansøgningsplatformen",
+    "loading": "Henter ansøgningen",
+    "steps": {
+      "otherActors": "Øvrige aktører",
+      "contactInfo": "Kontaktoplysninger",
+      "documents": "Dokumenter og tegninger",
+      "municipalityAndPeriod": "Vælg kommune & periode",
+      "signPlanAndTraffic": "Skilteplan og trafik",
+      "summary": "Opsummering & indsendelse",
+      "tasks": "Opgaver",
+      "map": "Kort",
+      "areas": "Områder"
+    },
+    "caseNotFound": "Ansøgningen blev ikke fundet.",
+    "loadError": "Ansøgningen kunne ikke hentes, prøv igen senere eller kontakt supporten.",
+    "draftCorrupt": "Nogle af dine tidligere indtastninger kunne ikke indlæses. Gennemgå trinnene og udfyld de manglende oplysninger igen.",
+    "draftUnavailable": "Browseren tillader ikke, at ansøgningen gemmes midlertidigt. Dine indtastninger går tabt, hvis du lukker eller genindlæser siden."
+  },
   "application": {
     "drafts": {
       "heading": "Kladder",
@@ -332,8 +608,98 @@
     "title": "Ansøgningsplatformen",
     "intro": "Velkommen til Ansøgningsplatformen"
   },
+  "contacts": {
+    "unknownActor": "Ukendt aktør",
+    "noActors": "Ansøgningen har ingen aktører endnu. Tilføj en aktør under »Øvrige aktører«, før du opretter en kontaktperson.",
+    "none": "Der er ingen kontaktpersoner endnu.",
+    "addContact": "Opret kontakt",
+    "newContact": "Ny kontaktperson",
+    "openInForm": "Redigeres i formularen",
+    "editContactFor": "Redigér {{name}}",
+    "edit": "Redigér",
+    "deleteContactFor": "Slet {{name}}",
+    "delete": "Slet",
+    "editTitle": "Rediger kontaktperson",
+    "cannotSaveYet": "Kontaktpersonen kan ikke gemmes endnu. Ret felterne markeret med rødt.",
+    "cancel": "Annuller",
+    "save": "Gem kontaktperson",
+    "saveChanges": "Gem ændringer",
+    "saveError": "Kontaktpersonen kunne ikke gemmes. Prøv igen senere eller kontakt supporten.",
+    "notEditable": "Kontaktpersoner kan kun ændres, mens ansøgningen er en kladde eller kræver rettelser.",
+    "actorNotFound": "Aktøren findes ikke længere på ansøgningen. Genindlæs siden.",
+    "duplicate": "Telefonnummeret eller e-mailen bruges allerede af en anden kontaktperson på ansøgningen.",
+    "notFound": "Kontaktpersonen findes ikke længere. Den kan være slettet i en anden fane. Genindlæs siden.",
+    "rejectedByServer": "Oplysningerne blev afvist. Kontrollér felterne, og prøv igen.",
+    "updated": "Ændringerne til {{name}} er gemt.",
+    "created": "Kontaktpersonen {{name}} er oprettet.",
+    "lastContactError": "Der skal være mindst én kontaktperson på ansøgningen. Opret en ny kontaktperson, før du sletter denne.",
+    "deleted": "Kontaktpersonen {{name}} er slettet.",
+    "alreadyDeleted": "Kontaktpersonen {{name}} var allerede slettet.",
+    "deleteError": "Kontaktpersonen kunne ikke slettes. Prøv igen senere eller kontakt supporten.",
+    "intro": "Tilføj de personer, kommunen kan kontakte om ansøgningen. Der skal være mindst én kontaktperson.",
+    "atLeastOne": "Der skal være mindst én kontaktperson, før du kan gå videre.",
+    "deleteDialog": {
+      "title": "Slet kontaktperson?",
+      "warning": "Kontaktpersonen slettes fra ansøgningen og kan ikke gendannes.",
+      "confirm": "Slet"
+    },
+    "unsavedDialog": {
+      "title": "Gem ændringerne?",
+      "text": "{{contact}} har ændringer, der ikke er gemt.",
+      "discard": "Kassér ændringer",
+      "save": "Gem"
+    },
+    "errors": {
+      "name": {
+        "required": "Navn skal udfyldes",
+        "name": "Navn må kun indeholde bogstaver, mellemrum, bindestreg og apostrof"
+      },
+      "availability": {
+        "required": "Vælg en tilgængelighed"
+      },
+      "phoneNumber": {
+        "required": "Telefonnummer skal udfyldes",
+        "phoneNumber": "Telefonnummer skal være 8 cifre"
+      },
+      "email": {
+        "required": "E-mail skal udfyldes",
+        "email": "Indtast en gyldig e-mailadresse, fx navn@firma.dk"
+      }
+    },
+    "fields": {
+      "name": "Navn",
+      "availability": "Tilgængelighed",
+      "phoneNumber": "Telefonnummer",
+      "email": "E-mail"
+    },
+    "actorsTitle": "Aktører",
+    "actorDetails": "Vis oplysninger om {{name}}",
+    "actorFields": {
+      "role": "Rolle",
+      "phoneNumber": "Telefonnummer",
+      "email": "E-mail",
+      "address": "Adresse",
+      "cvrNumber": "CVR-nummer",
+      "department": "Afdeling"
+    },
+    "notProvided": "Ikke oplyst",
+    "updateActor": "Opdater",
+    "deleteActor": "Slet",
+    "createActor": "Opret aktør",
+    "actorActionsPending": "Aktører oprettes, opdateres og slettes under et andet trin, som ikke er lavet endnu.",
+    "contactsHeading": "Kontaktpersoner",
+    "addContactFor": "Opret kontakt hos {{name}}",
+    "phoneLine": "Telefonnummer: {{phone}}",
+    "emailLine": "E-mail: {{email}}",
+    "availabilityLine": "Tilgængelighed: {{availability}}"
+  },
   "login": {
     "title": "Log ind",
     "formPlaceholder": "Her kommer loginformularen."
+  },
+  "routeError": {
+    "title": "Noget gik galt",
+    "text": "Siden kunne ikke vises. Prøv at genindlæse den.",
+    "reload": "Genindlæs siden"
   }
 }

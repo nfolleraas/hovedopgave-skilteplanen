@@ -32,7 +32,6 @@ including the not-found page.
 | `routes.home` | `/` | `HomePage` |
 | `routes.application` | `/ansoegning` | `ApplicationPage` |
 | `routes.createRoadPermit` | `/ansoegning/opret-vejtilladelse` | `CreateRoadPermitPage` |
-| `routes.contacts` | `/kontaktpersoner` | `ContactsPage` |
 | `routes.messages` | `/beskeder` | `MessagesPage` |
 | `routes.login` | `/login` | `LoginPage` |
 

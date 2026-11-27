@@ -10,6 +10,7 @@ import {
 } from '../../generated/prisma/enums.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import type { CreateRoadPermitData } from './mappers/road-permit.mapper.js';
+import { placeholderActorIds } from './placeholder-actors.js';
 import { RoadPermitRepository } from './road-permit.repository.js';
 
 const applicationData = {
@@ -61,16 +62,17 @@ const savedDraft = {
     city: '',
     locationDescription: '',
   },
-  contactInformation: { name: '', phone: '', email: '' },
   roadMarking: { trafficChanges: [], accessWays: '', trafficPrecautions: [] },
 };
 
 describe('RoadPermitRepository', () => {
   const transaction = {
     application: { updateMany: vi.fn(), update: vi.fn() },
+    contactPerson: { count: vi.fn() },
     roadUsePermit: { create: vi.fn() },
   };
   const prisma = {
+    actor: { findMany: vi.fn() },
     application: {
       create: vi.fn(),
       updateMany: vi.fn(),
@@ -97,8 +99,14 @@ describe('RoadPermitRepository', () => {
 
   it('creates an empty application in Draft status', async () => {
     const draft = { caseNumber: 'generated-case', status: Status.Draft };
+    const actors = [{ uuid: 'demo-actor' }];
+    prisma.actor.findMany.mockResolvedValue(actors);
     prisma.application.create.mockResolvedValue(draft);
     await expect(repository.create()).resolves.toEqual(draft);
+    expect(prisma.actor.findMany).toHaveBeenCalledExactlyOnceWith({
+      where: { uuid: { in: placeholderActorIds } },
+      select: { uuid: true },
+    });
     expect(prisma.application.create).toHaveBeenCalledExactlyOnceWith({
       data: {
         title: '',
@@ -106,6 +114,7 @@ describe('RoadPermitRepository', () => {
         type: ApplicationType.RoadUsePermit,
         status: Status.Draft,
         roadPermitDraft: {},
+        actors: { connect: actors },
       },
       select: { caseNumber: true, status: true },
     });
@@ -195,6 +204,7 @@ describe('RoadPermitRepository', () => {
       status: Status.InProgress,
     };
     transaction.application.updateMany.mockResolvedValue({ count: 1 });
+    transaction.contactPerson.count.mockResolvedValue(1);
     transaction.application.update.mockResolvedValue(application);
 
     await expect(
@@ -234,9 +244,25 @@ describe('RoadPermitRepository', () => {
     expect(transaction.roadUsePermit.create).not.toHaveBeenCalled();
   });
 
+  it('rejects a submission without a contact person', async () => {
+    transaction.application.updateMany.mockResolvedValue({ count: 1 });
+    transaction.contactPerson.count.mockResolvedValue(0);
+    await expect(
+      repository.submit('generated-case', data),
+    ).rejects.toMatchObject({
+      response: { code: 'CONTACT_PERSON_REQUIRED' },
+    });
+    expect(transaction.contactPerson.count).toHaveBeenCalledExactlyOnceWith({
+      where: { applicationId: 'generated-case' },
+    });
+    expect(transaction.application.update).not.toHaveBeenCalled();
+    expect(transaction.roadUsePermit.create).not.toHaveBeenCalled();
+  });
+
   it('rejects the transaction when the permit write fails', async () => {
     const error = new Error('Permit write failed');
     transaction.application.updateMany.mockResolvedValue({ count: 1 });
+    transaction.contactPerson.count.mockResolvedValue(1);
     transaction.application.update.mockResolvedValue({
       caseNumber: 'generated-case',
     });

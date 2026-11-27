@@ -1,5 +1,7 @@
 import {
+  BadRequestException,
   ConflictException,
+  HttpStatus,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -8,6 +10,7 @@ import { ApplicationType, Status } from '../../generated/prisma/enums.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import type { UpdateRoadPermitDto } from './dto/update-road-permit.dto.js';
 import type { CreateRoadPermitData } from './mappers/road-permit.mapper.js';
+import { placeholderActorIds } from './placeholder-actors.js';
 
 const editableDraft = {
   type: ApplicationType.RoadUsePermit,
@@ -21,7 +24,12 @@ export class RoadPermitRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   /** Creates an application before its permit, applicant, or location details exist. */
-  create() {
+  async create() {
+    // Seeded demo actors, so contact persons can be added (placeholder).
+    const actors = await this.prisma.actor.findMany({
+      where: { uuid: { in: placeholderActorIds } },
+      select: { uuid: true },
+    });
     return this.prisma.application.create({
       data: {
         title: '',
@@ -29,6 +37,7 @@ export class RoadPermitRepository {
         type: ApplicationType.RoadUsePermit,
         status: Status.Draft,
         roadPermitDraft: {},
+        actors: { connect: actors },
       },
       select: { caseNumber: true, status: true },
     });
@@ -45,6 +54,18 @@ export class RoadPermitRepository {
         throw new ConflictException(
           'The application is no longer an editable draft.',
         );
+      }
+      // Contact persons are saved separately, through /api/contact-persons.
+      const contactPersons = await prisma.contactPerson.count({
+        where: { applicationId: id },
+      });
+      if (!contactPersons) {
+        throw new BadRequestException({
+          statusCode: HttpStatus.BAD_REQUEST,
+          error: 'Bad Request',
+          message: 'The application must have at least one contact person.',
+          code: 'CONTACT_PERSON_REQUIRED',
+        });
       }
 
       const { roadUsePermit, ...applicationData } = data;
@@ -105,7 +126,6 @@ export class RoadPermitRepository {
       materials,
       materialDraft,
       usageDetails,
-      contactInformation,
       roadMarking,
     } = dto;
     const draft = await this.prisma.application.updateMany({
@@ -118,7 +138,6 @@ export class RoadPermitRepository {
           materials,
           materialDraft,
           usageDetails,
-          contactInformation,
           roadMarking,
         },
       },

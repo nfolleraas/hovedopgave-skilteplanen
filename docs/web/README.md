@@ -15,6 +15,11 @@ port `3000`.
 The [routing guide](routing.md) explains how URLs map to page components and
 how to register and link to new paths.
 
+Feature guides, such as [contact persons](../features/contact-persons.md), are
+in [`docs/features/`](../features/). The
+[placeholder guide](../features/placeholders.md) explains which parts are
+temporary and how to replace them.
+
 The [stylesheet](styles/stylesheet.md) documents the colours, typography, and
 component styles to use when implementing the UI.
 
@@ -30,6 +35,8 @@ Run these from the repository root:
 bun run --filter web dev
 bun run --filter web build
 bun run --filter web lint
+bun run --filter web test
+bun run --filter web test:bun
 ```
 
 ## Tests
@@ -40,6 +47,7 @@ bun run --filter web lint
 | `bun run test:e2e` | Playwright end-to-end tests |
 | `bun run test:ui` | Interactive Playwright runner |
 | `bun run test` | Both suites, starting with Vitest |
+| `bun run test:bun` | Contact-person tests under `src/`, run with `bun test` and happy-dom |
 
 From the repository root, add `--filter web` after `bun run`.
 

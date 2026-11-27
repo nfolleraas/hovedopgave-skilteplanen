@@ -1,6 +1,7 @@
 import axios, { type AxiosRequestConfig } from 'axios';
 
-const axiosClient = axios.create({
+/** Shared Axios instance; tests replace its adapter to fake the API. */
+export const axiosClient = axios.create({
   baseURL: '/api',
   headers: {
     'Content-Type': 'application/json',

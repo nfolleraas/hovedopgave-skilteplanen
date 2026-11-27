@@ -40,6 +40,8 @@ export function PermitTable({
           overflowWrap: 'anywhere',
           border: '1px solid grey',
           '& .MuiTableCell-root': { verticalAlign: 'top' },
+          // Column labels stay on one line; values may still wrap.
+          '& thead .MuiTableCell-root': { whiteSpace: 'nowrap' },
           '@media (max-width: 699px)': {
             display: 'block',
             '& thead': visuallyHidden,

@@ -14,6 +14,8 @@ export async function renderWithTranslations(
   await i18n.init({
     lng: language,
     resources: { da: { translation: da }, en: { translation: en } },
+    // As in the app: React escapes text when rendering translated values.
+    interpolation: { escapeValue: false },
   });
   return render(<I18nextProvider i18n={i18n}>{element}</I18nextProvider>);
 }

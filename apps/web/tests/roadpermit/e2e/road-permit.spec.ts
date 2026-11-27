@@ -182,9 +182,18 @@ test('validates, reviews and submits a road permit against its existing draft', 
   ).toBeVisible();
   await next.click();
 
+  // New drafts get the seeded demo actors, so a contact person can be added.
+  // Actor cards start collapsed, so open the first one to reach its button.
+  await page
+    .locator('button[aria-controls^="actor-"][aria-expanded="false"]')
+    .first()
+    .click();
+  await page.getByRole('button', { name: /^Create contact at / }).click();
   await page.getByLabel(/^name\b/i).fill('Test Contact');
   await page.getByLabel('Phone number').fill('12345678');
   await page.getByLabel(/^email\b/i).fill('test@example.com');
+  await page.getByRole('button', { name: 'Save contact person' }).click();
+  await expect(page.getByText('Test Contact').first()).toBeVisible();
   await next.click();
 
   await page.getByRole('combobox', { name: 'Traffic changes' }).click();

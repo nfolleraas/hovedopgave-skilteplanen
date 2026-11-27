@@ -4,9 +4,10 @@ import request from 'supertest';
 import type { App } from 'supertest/types.js';
 import { AppModule } from '../src/app.module.js';
 import { Status } from '../src/generated/prisma/enums.js';
+import { PrismaService } from '../src/modules/prisma/prisma.service.js';
 import { mapCreateRoadPermit } from '../src/modules/road-permit/mappers/road-permit.mapper.js';
 import { RoadPermitRepository } from '../src/modules/road-permit/road-permit.repository.js';
-import { PrismaService } from '../src/prisma.service.js';
+import { addContactPerson } from './fixtures/contact-person.js';
 import { roadPermitSubmission } from './fixtures/road-permit.js';
 
 // This suite writes to PostgreSQL. Use a disposable database with migrations applied.
@@ -34,10 +35,26 @@ describe.skipIf(!databaseUrl)('Road permit transactions (PostgreSQL)', () => {
     vi.unstubAllEnvs();
   });
 
+  it('rejects a submission without a contact person and keeps the draft', async () => {
+    const { caseNumber } = await permits.create();
+    await request(app.getHttpServer())
+      .post(`/api/road-permit/${caseNumber}/submit`)
+      .send(roadPermitSubmission)
+      .expect(400)
+      .expect(({ body }) => expect(body.code).toBe('CONTACT_PERSON_REQUIRED'));
+    await expect(
+      prisma.application.findUniqueOrThrow({
+        where: { caseNumber },
+        select: { status: true },
+      }),
+    ).resolves.toEqual({ status: Status.Draft });
+  });
+
   it('rolls back the application update when the linked permit write fails', async () => {
     const { caseNumber } = await permits.create();
     const original = { title: 'Draft before submission' };
     await permits.update(caseNumber, original);
+    await addContactPerson(prisma, caseNumber);
     const data = mapCreateRoadPermit(roadPermitSubmission);
     data.roadUsePermit.create.endDate = new Date(Number.NaN);
 

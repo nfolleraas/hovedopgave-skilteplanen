@@ -32,7 +32,7 @@ export default defineConfig({
       command: 'bun run vite --host 127.0.0.1 --port 4173 --strictPort',
       env: {
         API_PROXY_TARGET: apiURL,
-        VITE_DATAFORSYNINGEN_TOKEN: 'playwright-fixture',
+        VITE_DATAFORSYNINGEN_PUBLISHABLE_TOKEN: 'playwright-fixture',
       },
       url: baseURL,
     },

@@ -1,14 +1,5 @@
-import {
-  Alert,
-  Box,
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  Typography,
-} from '@mui/material';
+import { Alert, Box, Button, Typography } from '@mui/material';
+import type { TFunction } from 'i18next';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router';
@@ -24,26 +15,32 @@ import {
   MasterDetailGrid,
 } from '../../../components/layout/masterDetail/masterDetail';
 import { visuallyHidden } from '../../../components/ui/visuallyHidden';
+import { DraftSaveBar, UnsavedDraftDialog } from './DraftControls';
 import {
-  type ContactInformation,
+  getRejectionErrors,
+  saveFailureMessage,
+  submissionFailureMessage,
+} from './formErrors';
+import {
   emptyMaterialDraft,
   type MaterialDraft,
   type MaterialEntry,
   type RoadMarkingDetails,
+  type SubmissionStatus,
   type UsageDetails,
 } from './formTypes';
 import { ChooseMunicipalityAndTitlePage } from './pages/ChooseMunicipalityAndTitlePage';
-import { ContactInformationPage } from './pages/ContactInformationPage';
+import { ContactPersonsPage } from './pages/ContactPersonsPage';
 import { DocumentsAndDrawingsPage } from './pages/DocumentsAndDrawingsPage';
 import { MaterialsPage } from './pages/MaterialsPage';
 import { RoadMarkingPage } from './pages/RoadMarkingPage';
 import { SummaryAndSubmissionPage } from './pages/SummaryAndSubmissionPage';
 import { UsageDetailsPage } from './pages/UsageDetailsPage';
-import { getTrafficChangeLabels } from './permitOptions';
 import type {
   RoadPermitDraft,
   RoadPermitDraftSnapshot,
 } from './RoadPermitApplication.types';
+import { useContactPersons } from './useContactPersons';
 import {
   exampleApplicant,
   exampleDocument,
@@ -52,7 +49,6 @@ import {
 import { useUnsavedDraftNavigation } from './useUnsavedDraftNavigation';
 import {
   hasMaterialDraft,
-  validateContactInformation,
   validateMunicipalityAndTitle,
   validateUsageDetails,
 } from './validation';
@@ -158,6 +154,81 @@ function usePermitChoices<T>(load: () => Promise<T[]>) {
   return { choices, retry: () => setChoices(undefined) };
 }
 
+/** The form's starting values: the saved draft, completed with empty values. */
+function formValuesFromDraft(draft: RoadPermitDraftSnapshot) {
+  return {
+    title: draft.title ?? '',
+    municipalityName: draft.municipalityName ?? null,
+    materials: draft.materials ?? ([] as MaterialEntry[]),
+    materialDraft: {
+      ...emptyMaterialDraft,
+      ...draft.materialDraft,
+    } satisfies MaterialDraft,
+    usageDetails: {
+      usage: '',
+      startDate: '',
+      endDate: '',
+      locationDescription: '',
+      houseNumberFrom: '',
+      houseNumberTo: '',
+      road: '',
+      postalCode: '',
+      city: '',
+      ...draft.usageDetails,
+    } satisfies UsageDetails,
+    roadMarking: {
+      trafficChanges: [],
+      accessWays: '',
+      trafficPrecautions: [],
+      ...draft.roadMarking,
+    } satisfies RoadMarkingDetails,
+  };
+}
+
+/** The errors that keep the materials, road marking and summary steps open. */
+function getStepErrors(
+  t: TFunction,
+  values: {
+    materials: MaterialEntry[];
+    materialDraft: MaterialDraft;
+    unavailableMaterial?: { message: string };
+    roadMarking: RoadMarkingDetails;
+    confirmed: boolean;
+  },
+) {
+  const { materials, materialDraft, unavailableMaterial } = values;
+  return {
+    materialErrors: getValidationErrors({
+      materials: materials.length
+        ? undefined
+        : t('permit.errors.materialsRequired'),
+      materialDraft: hasMaterialDraft(materialDraft)
+        ? t('permit.errors.materialDraft')
+        : undefined,
+      unavailableMaterial: unavailableMaterial?.message,
+    }),
+    trafficMeasureError: values.roadMarking.trafficPrecautions.length
+      ? undefined
+      : t('permit.errors.trafficMeasureRequired'),
+    confirmationError: values.confirmed
+      ? undefined
+      : t('permit.errors.confirmation'),
+  };
+}
+
+/** Submitting needs every step complete and no save or submission running. */
+function canSubmitForm(
+  saveStatus: 'idle' | 'saving' | 'saved',
+  submissionStatus: SubmissionStatus,
+  steps: DetailItem[],
+) {
+  return (
+    saveStatus !== 'saving' &&
+    (submissionStatus === 'idle' || submissionStatus === 'error') &&
+    steps.every((step) => !step.validationErrors?.length)
+  );
+}
+
 /** Owns the editable form values and connects them to the permit steps. */
 function RoadPermitForm({
   caseNumber,
@@ -168,9 +239,11 @@ function RoadPermitForm({
 }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [title, setTitle] = useState(draft.title ?? '');
-  const [municipalityName, setMunicipalityName] = useState<string | null>(
-    draft.municipalityName ?? null,
+  // The saved values, completed with empty ones, are read once.
+  const [initial] = useState(() => formValuesFromDraft(draft));
+  const [title, setTitle] = useState(initial.title);
+  const [municipalityName, setMunicipalityName] = useState(
+    initial.municipalityName,
   );
   const { choices: municipalities, retry: retryMunicipalities } =
     usePermitChoices(getMunicipalities);
@@ -178,38 +251,12 @@ function RoadPermitForm({
     usePermitChoices(getRoadPermitMaterialTypes);
   const { choices: trafficChangeChoices, retry: retryTrafficChanges } =
     usePermitChoices(getRoadPermitTrafficChanges);
-  const [materials, setMaterials] = useState<MaterialEntry[]>(
-    draft.materials ?? [],
-  );
-  const [materialDraft, setMaterialDraft] = useState<MaterialDraft>({
-    ...emptyMaterialDraft,
-    ...draft.materialDraft,
-  });
-  const [usageDetails, setUsageDetails] = useState<UsageDetails>({
-    usage: '',
-    startDate: '',
-    endDate: '',
-    locationDescription: '',
-    houseNumberFrom: '',
-    houseNumberTo: '',
-    road: '',
-    postalCode: '',
-    city: '',
-    ...draft.usageDetails,
-  });
-  const [contactInformation, setContactInformation] =
-    useState<ContactInformation>({
-      name: '',
-      phone: '',
-      email: '',
-      ...draft.contactInformation,
-    });
-  const [roadMarking, setRoadMarking] = useState<RoadMarkingDetails>({
-    trafficChanges: [],
-    accessWays: '',
-    trafficPrecautions: [],
-    ...draft.roadMarking,
-  });
+  const [materials, setMaterials] = useState(initial.materials);
+  const [materialDraft, setMaterialDraft] = useState(initial.materialDraft);
+  const [usageDetails, setUsageDetails] = useState(initial.usageDetails);
+  // Contact persons are saved one by one through their own API.
+  const contacts = useContactPersons(caseNumber);
+  const [roadMarking, setRoadMarking] = useState(initial.roadMarking);
 
   const [confirmed, setConfirmed] = useState(false);
   const currentDraft: RoadPermitDraft = {
@@ -218,7 +265,6 @@ function RoadPermitForm({
     materials,
     materialDraft,
     usageDetails,
-    contactInformation,
     roadMarking,
   };
   const {
@@ -248,64 +294,30 @@ function RoadPermitForm({
     municipalities ?? [],
     t,
   );
-  const municipalityRejected = rejectedSelection?.field === 'municipality';
-  if (municipalityRejected) {
-    municipalityErrors.municipality = t(
-      'permit.errors.municipalityUnavailable',
-    );
+  // Choices the API rejected on submission stay marked until changed.
+  const rejected = getRejectionErrors(t, rejectedSelection);
+  const municipalityRejected = rejected.municipality !== undefined;
+  if (rejected.municipality) {
+    municipalityErrors.municipality = rejected.municipality;
   }
-  const unavailableMaterial =
-    rejectedSelection?.field === 'material'
-      ? {
-          type: rejectedSelection.value,
-          message: t('permit.errors.materialUnavailable'),
-        }
-      : undefined;
-  let trafficChangeError: string | undefined;
-  if (rejectedSelection?.field === 'trafficChange') {
-    const labels = getTrafficChangeLabels(t);
-    const change = rejectedSelection.value;
-    trafficChangeError = t('permit.errors.trafficChangeUnavailable', {
-      change: Object.hasOwn(labels, change) ? labels[change] : change,
-    });
-  }
-  const conflictError = t('permit.draft.conflictError');
-  const serviceUnavailable = t('permit.errors.serviceUnavailable');
-  const saveError = saveFailure
-    ? {
-        conflict: conflictError,
-        network: t('permit.draft.saveNetworkError'),
-        serviceUnavailable,
-        unexpected: t('permit.draft.saveError'),
-      }[saveFailure]
-    : undefined;
-  const submissionError = submissionFailure
-    ? {
-        conflict: conflictError,
-        network: t('permit.summary.submissionNetworkError'),
-        serviceUnavailable,
-        unexpected: t('permit.summary.submissionError'),
-      }[submissionFailure]
-    : municipalityRejected
-      ? municipalityErrors.municipality
-      : (unavailableMaterial?.message ?? trafficChangeError);
+  const { unavailableMaterial, trafficChange: trafficChangeError } = rejected;
+  const saveError = saveFailureMessage(t, saveFailure);
+  const submissionError =
+    submissionFailureMessage(t, submissionFailure) ??
+    rejected.municipality ??
+    unavailableMaterial?.message ??
+    trafficChangeError;
   const usageErrors = validateUsageDetails(usageDetails, t);
-  const contactErrors = validateContactInformation(contactInformation, t);
-  const materialErrors = getValidationErrors({
-    materials: materials.length
-      ? undefined
-      : t('permit.errors.materialsRequired'),
-    materialDraft: hasMaterialDraft(materialDraft)
-      ? t('permit.errors.materialDraft')
-      : undefined,
-    unavailableMaterial: unavailableMaterial?.message,
-  });
-  const trafficMeasureError = roadMarking.trafficPrecautions.length
-    ? undefined
-    : t('permit.errors.trafficMeasureRequired');
-  const confirmationError = confirmed
-    ? undefined
-    : t('permit.errors.confirmation');
+  const contactPersons = contacts.rows;
+  const contactErrors = contacts.errors;
+  const { materialErrors, trafficMeasureError, confirmationError } =
+    getStepErrors(t, {
+      materials,
+      materialDraft,
+      unavailableMaterial,
+      roadMarking,
+      confirmed,
+    });
 
   const categories: DetailItem[] = [
     {
@@ -361,14 +373,8 @@ function RoadPermitForm({
     {
       id: 'contact-information',
       label: t('permit.steps.contact'),
-      validationErrors: getValidationErrors(contactErrors),
-      content: (showErrors) => (
-        <ContactInformationPage
-          errors={showErrors ? contactErrors : undefined}
-          onChange={setContactInformation}
-          value={contactInformation}
-        />
-      ),
+      validationErrors: contactErrors,
+      content: <ContactPersonsPage contacts={contacts} />,
     },
 
     {
@@ -405,7 +411,7 @@ function RoadPermitForm({
           }}
           confirmationError={showErrors ? confirmationError : undefined}
           confirmed={confirmed}
-          contactInformation={contactInformation}
+          contactPersons={contactPersons}
           documentToUpload={exampleDocument}
           materials={materials}
           municipalityName={municipalityName}
@@ -432,10 +438,7 @@ function RoadPermitForm({
       ),
     },
   ];
-  const canSubmit =
-    saveStatus !== 'saving' &&
-    (submissionStatus === 'idle' || submissionStatus === 'error') &&
-    categories.every((step) => !step.validationErrors?.length);
+  const canSubmit = canSubmitForm(saveStatus, submissionStatus, categories);
 
   return (
     <Box
@@ -461,86 +464,26 @@ function RoadPermitForm({
       >
         {t('permit.title')}
       </Typography>
-      <Box
-        sx={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          justifyContent: 'flex-end',
-          gap: 1,
-          mb: 2,
-        }}
-      >
-        <Typography role="status" sx={{ textAlign: 'end' }}>
-          {saveError ??
-            {
-              idle: '',
-              saving: t('permit.draft.saving'),
-              saved: t('permit.draft.saved'),
-            }[saveStatus]}
-        </Typography>
-        <Button
-          disabled={isWriting || submissionStatus === 'success'}
-          onClick={handleSave}
-          sx={{ minHeight: 44 }}
-          variant="outlined"
-        >
-          {t('permit.actions.saveDraft')}
-        </Button>
-      </Box>
+      <DraftSaveBar
+        disabled={isWriting || submissionStatus === 'success'}
+        onSave={handleSave}
+        saveError={saveError}
+        saveStatus={saveStatus}
+      />
       <MasterDetailGrid
         items={categories}
         onSubmit={canSubmit ? () => handleSubmit(confirmed) : undefined}
         showStepValidation
       />
-      <Dialog
-        aria-describedby="permit-unsaved-description"
-        aria-labelledby="permit-unsaved-title"
-        onClose={() => {
-          if (!isWriting) blocker.reset?.();
-        }}
+      <UnsavedDraftDialog
+        isWriting={isWriting}
+        onKeepEditing={() => blocker.reset?.()}
+        onLeave={() => blocker.proceed?.()}
+        onSaveAndLeave={saveAndLeave}
         open={blocker.state === 'blocked' && submissionStatus !== 'success'}
-      >
-        <DialogTitle id="permit-unsaved-title">
-          {t('permit.draft.unsavedTitle')}
-        </DialogTitle>
-        <DialogContent>
-          <DialogContentText id="permit-unsaved-description">
-            {t('permit.draft.unsavedDescription')}
-          </DialogContentText>
-          {saveStatus === 'saving' && (
-            <Typography role="status" sx={{ mt: 2 }}>
-              {t('permit.draft.saving')}
-            </Typography>
-          )}
-          {saveError && (
-            <Alert severity="error" sx={{ mt: 2 }}>
-              {saveError}
-            </Alert>
-          )}
-        </DialogContent>
-        <DialogActions
-          sx={{
-            flexWrap: 'wrap',
-            gap: 1,
-            '& .MuiButton-root': { minHeight: 44 },
-          }}
-        >
-          <Button autoFocus disabled={isWriting} onClick={blocker.reset}>
-            {t('permit.draft.keepEditing')}
-          </Button>
-          <Button disabled={isWriting} onClick={blocker.proceed}>
-            {t('permit.draft.leaveWithoutSaving')}
-          </Button>
-          <Button
-            disabled={isWriting}
-            onClick={saveAndLeave}
-            variant="contained"
-          >
-            {t('permit.draft.saveAndLeave')}
-          </Button>
-        </DialogActions>
-      </Dialog>
+        saveError={saveError}
+        saving={saveStatus === 'saving'}
+      />
     </Box>
   );
 }

@@ -1,0 +1,176 @@
+import { describe, expect, test } from 'bun:test';
+import type { ContactPerson } from '../../types/contact-person.types.js';
+import { Availability } from '../../types/prisma-enums.js';
+import {
+  type ContactPersonEditAction,
+  type ContactPersonEditState,
+  contactPersonEditReducer,
+  initialContactPersonEditState,
+  isDirty,
+} from './contact-person-edit-state.js';
+
+function buildContactPerson(
+  uuid: string,
+  overrides: Partial<ContactPerson> = {},
+): ContactPerson {
+  return {
+    uuid,
+    applicationId: 'APP-1',
+    actorId: `actor-${uuid}`,
+    name: 'Jens Jensen',
+    availability: Availability.Day,
+    phoneNumber: '12345678',
+    email: 'jens@example.com',
+    ...overrides,
+  };
+}
+
+function reduce(
+  actions: ContactPersonEditAction[],
+  start: ContactPersonEditState = initialContactPersonEditState,
+): ContactPersonEditState {
+  return actions.reduce(contactPersonEditReducer, start);
+}
+
+describe('contactPersonEditReducer', () => {
+  test('loaded replaces the entries with the saved contact persons', () => {
+    const state = reduce([
+      { type: 'loaded', contactPersons: [buildContactPerson('a')] },
+    ]);
+
+    expect(state.entries).toHaveLength(1);
+    expect(state.entries[0]).toMatchObject({ key: 'a' });
+    expect(state.activeKey).toBeNull();
+  });
+
+  test('addNew opens an empty form with a temporary key', () => {
+    const state = reduce([{ type: 'addNew', actorId: 'actor-x' }]);
+
+    expect(state.entries).toHaveLength(1);
+    expect(state.activeKey).toBe('new-1');
+    expect(state.draft).toMatchObject({ name: '', phoneNumber: '' });
+  });
+
+  test('saved swaps the temporary key for the stored uuid', () => {
+    const state = reduce([
+      { type: 'addNew', actorId: 'actor-x' },
+      { type: 'saved', key: 'new-1', contactPerson: buildContactPerson('a') },
+    ]);
+
+    expect(state.entries[0]).toMatchObject({ key: 'a' });
+    // The form closes after saving.
+    expect(state.activeKey).toBeNull();
+    expect(isDirty(state)).toBe(false);
+  });
+
+  test('saved opens the contact person that was waiting', () => {
+    const state = reduce([
+      {
+        type: 'loaded',
+        contactPersons: [buildContactPerson('a'), buildContactPerson('b')],
+      },
+      { type: 'open', key: 'a' },
+      { type: 'change', field: 'name', value: 'Ny Kontakt' },
+      { type: 'open', key: 'b' },
+      {
+        type: 'saved',
+        key: 'a',
+        contactPerson: buildContactPerson('a', { name: 'Ny Kontakt' }),
+      },
+    ]);
+
+    expect(state.activeKey).toBe('b');
+    expect(state.pendingKey).toBeNull();
+  });
+
+  test('setActor moves a new contact person to another actor', () => {
+    const state = reduce([
+      { type: 'addNew', actorId: 'actor-x' },
+      { type: 'setActor', actorId: 'actor-y' },
+    ]);
+
+    expect(state.entries[0]).toMatchObject({ actorId: 'actor-y' });
+  });
+
+  test('setActor does not move a saved contact person', () => {
+    const state = reduce([
+      { type: 'loaded', contactPersons: [buildContactPerson('a')] },
+      { type: 'open', key: 'a' },
+      { type: 'setActor', actorId: 'actor-y' },
+    ]);
+
+    expect(state.entries[0]).toMatchObject({ actorId: 'actor-a' });
+  });
+
+  test('change marks the draft dirty and cancel discards it', () => {
+    const loaded = reduce([
+      { type: 'loaded', contactPersons: [buildContactPerson('a')] },
+      { type: 'open', key: 'a' },
+      { type: 'change', field: 'name', value: 'Ny Kontakt' },
+    ]);
+    expect(isDirty(loaded)).toBe(true);
+
+    const cancelled = reduce([{ type: 'cancel' }], loaded);
+    expect(cancelled.activeKey).toBeNull();
+    expect(isDirty(cancelled)).toBe(false);
+
+    const reopened = reduce([{ type: 'open', key: 'a' }], cancelled);
+    expect(reopened.draft?.name).toBe('Jens Jensen');
+  });
+
+  test('cancel removes a new contact person that was never saved', () => {
+    const state = reduce([
+      { type: 'addNew', actorId: 'actor-x' },
+      { type: 'cancel' },
+    ]);
+
+    expect(state.entries).toHaveLength(0);
+    expect(state.activeKey).toBeNull();
+  });
+
+  test('open over unsaved changes waits for the dialog (UC-032 A1)', () => {
+    const dirty = reduce([
+      {
+        type: 'loaded',
+        contactPersons: [buildContactPerson('a'), buildContactPerson('b')],
+      },
+      { type: 'open', key: 'a' },
+      { type: 'change', field: 'name', value: 'Ny Kontakt' },
+      { type: 'open', key: 'b' },
+    ]);
+    expect(dirty.pendingKey).toBe('b');
+    expect(dirty.activeKey).toBe('a');
+
+    const discarded = reduce([{ type: 'discardAndOpenPending' }], dirty);
+    expect(discarded.activeKey).toBe('b');
+    expect(discarded.pendingKey).toBeNull();
+
+    const kept = reduce([{ type: 'cancelPending' }], dirty);
+    expect(kept.activeKey).toBe('a');
+    expect(kept.pendingKey).toBeNull();
+  });
+
+  test('addNew adds another contact person to an actor that has one', () => {
+    const state = reduce([
+      { type: 'loaded', contactPersons: [buildContactPerson('a')] },
+      { type: 'addNew', actorId: 'actor-a' },
+    ]);
+
+    expect(state.entries.map((entry) => entry.actorId)).toEqual([
+      'actor-a',
+      'actor-a',
+    ]);
+    expect(state.activeKey).toBe('new-1');
+  });
+
+  test('removed drops the entry and closes it when it was open', () => {
+    const state = reduce([
+      { type: 'loaded', contactPersons: [buildContactPerson('a')] },
+      { type: 'open', key: 'a' },
+      { type: 'removed', key: 'a' },
+    ]);
+
+    expect(state.entries).toHaveLength(0);
+    expect(state.activeKey).toBeNull();
+  });
+});

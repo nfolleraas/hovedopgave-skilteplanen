@@ -1,9 +1,10 @@
 model Address {
-  uuid         String        @id @default(uuid())
+  uuid         String         @id @default(uuid())
   street       String
   houseNumber  String
   postalCode   String
   city         String
-  applicant    Applicant?
-  municipality Municipality?
+  applicant    Applicant[]
+  municipality Municipality[]
+  actors       Actor[]
 }
