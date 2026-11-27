@@ -39,6 +39,11 @@ echo "Configuring Zsh"
 bash "$SCRIPT_DIR/setup-zsh.sh"
 
 echo "Installing workspace dependencies"
+# New dependency volumes are empty and owned by root; Bun runs as remoteUser.
+sudo chown "$(id -u):$(id -g)" \
+  "$REPO_ROOT/node_modules" \
+  "$REPO_ROOT/apps/api/node_modules" \
+  "$REPO_ROOT/apps/web/node_modules"
 bun install
 
 echo "Installing Playwright Chromium and its system dependencies"

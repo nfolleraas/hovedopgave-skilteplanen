@@ -105,7 +105,6 @@ export class RoadPermitRepository {
       materials,
       materialDraft,
       usageDetails,
-      contactInformation,
       roadMarking,
     } = dto;
     const draft = await this.prisma.application.updateMany({
@@ -118,7 +117,6 @@ export class RoadPermitRepository {
           materials,
           materialDraft,
           usageDetails,
-          contactInformation,
           roadMarking,
         },
       },

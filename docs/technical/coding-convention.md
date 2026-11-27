@@ -225,8 +225,7 @@ apps/
     ├── src/<component-or-page>/
     │   └── index.test.tsx
     └── tests/<domain>/
-        ├── <use-case>.test.tsx
-        └── e2e/<flow>.spec.ts
+        ├── <use-case>.spec.ts
 ```
 
 Run the relevant suite from the repository root:
@@ -252,6 +251,7 @@ bun run --cwd apps/web test
 
 - Is each function, class, or module's responsibility clear?
 - Are inputs validated early and are failures handled with useful context?
+- Do broken internal contracts fail visibly without silent fallbacks or side effects?
 - Do comments explain intent or complex reasoning, and match the code?
 - Is duplicated logic worth extracting without adding needless abstraction?
 - Is this the simplest design that satisfies the requirement?

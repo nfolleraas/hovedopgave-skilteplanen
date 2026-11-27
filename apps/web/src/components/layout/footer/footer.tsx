@@ -1,7 +1,8 @@
 import { Box, Container, Typography } from '@mui/material';
+import type { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 
-export default function Footer() {
+export default function Footer(): ReactElement {
   const { t } = useTranslation();
   const sections = [
     {
@@ -33,10 +34,11 @@ export default function Footer() {
           sx={{
             display: 'grid',
             gap: 4,
+            overflowWrap: 'anywhere',
             gridTemplateColumns: {
-              xs: '1fr',
-              sm: 'repeat(2, 1fr)',
-              md: '2fr repeat(3, 1fr)',
+              xs: 'minmax(0, 1fr)',
+              sm: 'repeat(2, minmax(0, 1fr))',
+              md: 'minmax(0, 2fr) repeat(3, minmax(0, 1fr))',
             },
           }}
         >

@@ -8,21 +8,23 @@ The web app uses React Router. Routes are defined centrally in
 
 ## How the setup works
 
-1. [`main.tsx`](../../apps/web/src/main.tsx) wraps the app in `BrowserRouter`.
-   This connects React Router to the browser URL and navigation history.
-2. [`App.tsx`](../../apps/web/src/app/App.tsx) loops over `pages` and creates a
-   `<Route>` for every entry:
+1. [`main.tsx`](../../apps/web/src/main.tsx) creates the browser router and
+   renders it with `RouterProvider`. It loops over `pages` to register each
+   page as a child of the shared `App` layout:
 
    ```tsx
-   {Object.entries(pages).map(([path, Page]) => (
-     <Route element={<Page />} key={path} path={path} />
-   ))}
+   ...Object.entries(pages).map(([path, Component]) => ({
+     path,
+     Component,
+   })),
    ```
 
-3. React Router renders the matching page. If no route matches, the `*` route
+2. [`App.tsx`](../../apps/web/src/app/App.tsx) renders the navbar, an `Outlet`
+   for the matching page, and the footer.
+3. If no route matches, the `*` route
    displays the not-found page.
 
-The navbar and footer sit outside `<Routes>`, so they appear on every page,
+The navbar and footer belong to the shared layout, so they appear on every page,
 including the not-found page.
 
 ### Current routes
@@ -122,8 +124,9 @@ uses local React state to choose which section to show.
 
 To add another form step with the same behavior, add it to `categories`.
 The URL stays `/ansoegning/opret-vejtilladelse`; browser back/forward does not
-switch between those steps. If a step needs its own shareable URL, define its
-routing explicitly. The current map does not define nested layouts or outlets.
+switch between those steps. Actor creation and editing use dialogs inside
+step 4 and the current draft's case number; they have no standalone routes.
+If a step needs its own shareable URL, define its routing explicitly.
 
 ## Checking a new route
 

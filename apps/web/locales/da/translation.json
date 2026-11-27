@@ -3,17 +3,14 @@
     "title": "Siden blev ikke fundet"
   },
   "navigation": {
-    "skipToMain": "Spring til hovedindhold",
-    "home": "Hjem",
     "application": "Ansøgning",
-    "messages": "Beskeder",
+    "skipToMain": "Spring til hovedindhold",
     "openUserMenu": "Åbn brugermenu",
     "settings": "Indstillinger",
     "logOut": "Log af",
     "language": "Sprog",
     "danish": "Dansk",
     "english": "Engelsk",
-    "logoHome": "Ansøgningsplatformen – gå til forsiden",
     "main": "Hovednavigation"
   },
   "footer": {
@@ -48,7 +45,7 @@
       "municipalityHeading": "Kommune & titel",
       "usage": "Detaljer om anvendelse",
       "materials": "Materiale",
-      "contact": "Kontaktoplysninger",
+      "contact": "Aktør",
       "roadMarking": "Afmærkning",
       "documents": "Dokumenter og tegninger",
       "summary": "Opsummering & indsendelse"
@@ -71,9 +68,6 @@
       "dateOrder": "Slutdatoen må ikke ligge før startdatoen.",
       "usage": "Vælg en anvendelse.",
       "startDate": "Vælg en startdato.",
-      "contactName": "Indtast et navn.",
-      "contactPhone": "Indtast 8 cifre eller et internationalt nummer med landekode.",
-      "contactEmail": "Indtast en gyldig e-mailadresse.",
       "houseNumberFrom": "Angiv et gyldigt husnummer i feltet Fra, f.eks. 12 eller 12A.",
       "houseNumberMissing": "Angiv det første husnummer i intervallet.",
       "houseNumberTo": "Angiv et gyldigt husnummer i feltet Til, f.eks. 12 eller 12A.",
@@ -191,8 +185,9 @@
       "notProvided": "Ikke angivet",
       "submissionSuccess": "Din ansøgning er indsendt.",
       "submissionPending": "Sender ansøgningen…",
-      "exampleApplicant": "Ansøger (eksempeloplysninger)",
+      "cvr": "CVR-nummer",
       "department": "Afdeling",
+      "exampleApplicant": "Ansøger (eksempeloplysninger)",
       "address1": "Adresse 1",
       "address2": "Adresse 2",
       "postalCode": "Postnummer",
@@ -201,11 +196,14 @@
       "directPhone": "Direkte telefon",
       "mobile": "Mobil",
       "companyPhone": "Firmatelefon",
-      "cvr": "CVR-nummer",
       "confirmTitle": "Bekræft oplysninger",
       "confirmLabel": "Jeg bekræfter, at oplysningerne er korrekte og afgivet på tro og love.",
       "seeMissingFields": "Se hvad der mangler",
       "validationError": "Ret de markerede felter."
+    },
+    "actors": {
+      "loading": "Henter aktører…",
+      "loadError": "Aktørerne kunne ikke hentes. Prøv igen i trin 4."
     },
     "title": "Opret vejtilladelse",
     "municipality": {
@@ -224,7 +222,6 @@
       "label": "Kommune"
     },
     "contact": {
-      "heading": "Opret kontaktperson",
       "name": "Navn",
       "phone": "Telefonnummer",
       "email": "E-mail"
@@ -311,6 +308,63 @@
       "noProtection": "Ingen beskyttelsesgrad"
     }
   },
+  "actors": {
+    "loading": "Henter aktører…",
+    "retry": "Prøv igen",
+    "empty": "Der er endnu ingen aktører på ansøgningen.",
+    "deleted": "{{name}} er slettet.",
+    "update": "Opdater",
+    "updateLabel": "Opdater {{name}}",
+    "delete": "Slet",
+    "deleteLabel": "Slet {{name}}",
+    "phoneNumber": "Telefonnummer",
+    "email": "E-mail",
+    "department": "Afdeling",
+    "contacts": "Kontaktpersoner",
+    "noContacts": "Der er endnu ingen kontaktpersoner på aktøren.",
+    "contactPhone": "Telefonnummer: {{phoneNumber}}",
+    "contactEmail": "E-mail: {{email}}",
+    "createContact": "Opret kontakt",
+    "createContactLabel": "Opret kontakt for {{name}}",
+    "createContactHint": "Kontaktoprettelse kommer senere.",
+    "create": "Opret aktør",
+    "cvrNumber": "CVR-nummer",
+    "cvrLookupHint": "Bekræft CVR-nummeret for at hente virksomhedens oplysninger.",
+    "cvrLookupSearch": "Søg",
+    "errors": {
+      "load": "Aktørerne kunne ikke hentes. Prøv igen.",
+      "addressLookup": "Adressen kunne ikke verificeres. Prøv igen.",
+      "name": "Navn må kun indeholde bogstaver.",
+      "notFound": "Aktøren findes ikke længere. Opdater siden.",
+      "delete": "Aktøren kunne ikke slettes. Prøv igen."
+    },
+    "addressSearching": "Søger efter adresser…",
+    "addressSearchHint": "Skriv mindst 3 tegn for at søge.",
+    "addressClear": "Ryd adresse",
+    "addressClose": "Luk adresseforslag",
+    "addressNoMatches": "Ingen adresser fundet. Prøv en mere præcis søgning.",
+    "addressOpen": "Vis adresseforslag",
+    "address": "Adresse",
+    "addressPlaceholder": "Vejnavn, nr., postnr. og by",
+    "roles": {
+      "Supplier": "Leverandør",
+      "Contractor": "Entreprenør",
+      "NetworkOperator": "Ledningsejer",
+      "ProjectCoordinator": "Projektkoordinator",
+      "Private": "Privat"
+    },
+    "role": "Rolle",
+    "deleteDescription": "Er du sikker på, at du vil slette {{name}}? Aktørens kontaktpersoner bliver også slettet."
+  },
+  "dialogs": {
+    "deleteConfirmation": {
+      "title": "Bekræft sletning",
+      "description": "Er du sikker på, at du vil slette {{name}}? Handlingen kan ikke fortrydes.",
+      "cancel": "Annuller",
+      "deleting": "Sletter…",
+      "confirm": "Slet"
+    }
+  },
   "application": {
     "drafts": {
       "heading": "Kladder",
@@ -333,7 +387,7 @@
     "intro": "Velkommen til Ansøgningsplatformen"
   },
   "login": {
-    "title": "Log ind",
-    "formPlaceholder": "Her kommer loginformularen."
+    "title": "",
+    "formPlaceholder": ""
   }
 }

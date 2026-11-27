@@ -31,9 +31,8 @@ export default function Navbar() {
     setMenuAnchor(null);
   };
   const navigationItems = [
-    { label: t('navigation.home'), path: routes.home },
+    { label: 'Dashboard', path: routes.home },
     { label: t('navigation.application'), path: routes.application },
-    { label: t('navigation.messages'), path: routes.messages },
   ];
   const activeTab = navigationItems.findIndex(
     (item) =>
@@ -114,14 +113,17 @@ export default function Navbar() {
     >
       <Toolbar
         sx={{
-          columnGap: 2,
-          flexWrap: { xs: 'wrap', md: 'nowrap' },
+          columnGap: { xs: 1, md: 3 },
+          rowGap: 1,
+          flexWrap: { xs: 'wrap', sm: 'nowrap' },
+          minHeight: 72,
           justifyContent: 'space-between',
           px: { xs: 2, sm: 3 },
+          py: { xs: 1, sm: 0 },
         }}
       >
         <Box
-          aria-label={t('navigation.logoHome')}
+          aria-label="Gå til dashboard"
           component={Link}
           sx={{
             display: 'block',
@@ -130,14 +132,14 @@ export default function Navbar() {
           to={routes.home}
         >
           <Box
-            alt=""
+            alt="Skilteplanen"
             component="img"
             src="/Logo/Logo.webp"
             sx={{
               display: 'block',
-              height: 'clamp(40px, 5vw, 60px)',
-              objectFit: 'cover',
-              width: 'clamp(160px, 25vw, 300px)',
+              height: 42,
+              objectFit: 'contain',
+              width: { xs: 120, sm: 190 },
             }}
           />
         </Box>

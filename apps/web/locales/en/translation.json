@@ -3,17 +3,14 @@
     "title": "Page not found"
   },
   "navigation": {
-    "skipToMain": "Skip to main content",
-    "home": "Home",
     "application": "Application",
-    "messages": "Messages",
+    "skipToMain": "Skip to main content",
     "openUserMenu": "Open user menu",
     "settings": "Settings",
     "logOut": "Log out",
     "language": "Language",
     "danish": "Danish",
     "english": "English",
-    "logoHome": "Applicantplatform – go to the home page",
     "main": "Main navigation"
   },
   "footer": {
@@ -48,7 +45,7 @@
       "municipalityHeading": "Municipality & title",
       "usage": "Usage details",
       "materials": "Materials",
-      "contact": "Contact details",
+      "contact": "Actor",
       "roadMarking": "Road markings",
       "documents": "Documents and drawings",
       "summary": "Review & submission"
@@ -71,9 +68,6 @@
       "dateOrder": "The end date cannot be before the start date.",
       "usage": "Select a type of use.",
       "startDate": "Select a start date.",
-      "contactName": "Enter a name.",
-      "contactPhone": "Enter 8 digits or an international number with a country code.",
-      "contactEmail": "Enter a valid email address.",
       "houseNumberFrom": "Enter a valid house number in the From field, for example 12 or 12A.",
       "houseNumberMissing": "Enter the first house number in the range.",
       "houseNumberTo": "Enter a valid house number in the To field, for example 12 or 12A.",
@@ -191,8 +185,9 @@
       "notProvided": "Not provided",
       "submissionSuccess": "Your application has been submitted.",
       "submissionPending": "Sending your application…",
-      "exampleApplicant": "Applicant (example details)",
+      "cvr": "Danish company registration number (CVR)",
       "department": "Department",
+      "exampleApplicant": "Applicant (example details)",
       "address1": "Address line 1",
       "address2": "Address line 2",
       "postalCode": "Postal code",
@@ -201,11 +196,14 @@
       "directPhone": "Direct phone",
       "mobile": "Mobile phone",
       "companyPhone": "Company phone",
-      "cvr": "Danish company registration number (CVR)",
       "confirmTitle": "Confirm the information",
       "confirmLabel": "I declare that the information provided is correct.",
       "seeMissingFields": "See what’s missing",
       "validationError": "Fix the highlighted fields."
+    },
+    "actors": {
+      "loading": "Loading actors…",
+      "loadError": "Actors could not be loaded. Retry in step 4."
     },
     "title": "Apply for a road permit",
     "municipality": {
@@ -224,7 +222,6 @@
       "label": "Municipality"
     },
     "contact": {
-      "heading": "Add a contact person",
       "name": "Name",
       "phone": "Phone number",
       "email": "Email"
@@ -309,6 +306,63 @@
       "scopeApproaching": "Traffic approaching from behind",
       "measure": "Type {{type}}",
       "noProtection": "No protection level"
+    }
+  },
+  "actors": {
+    "loading": "Loading actors…",
+    "retry": "Try again",
+    "empty": "There are no actors on the application yet.",
+    "deleted": "{{name}} has been deleted.",
+    "update": "Update",
+    "updateLabel": "Update {{name}}",
+    "delete": "Delete",
+    "deleteLabel": "Delete {{name}}",
+    "phoneNumber": "Phone number",
+    "email": "Email",
+    "department": "Department",
+    "contacts": "Contact persons",
+    "noContacts": "There are no contact persons for this actor yet.",
+    "contactPhone": "Phone number: {{phoneNumber}}",
+    "contactEmail": "Email: {{email}}",
+    "createContact": "Create contact",
+    "createContactLabel": "Create contact for {{name}}",
+    "createContactHint": "Contact creation is coming later.",
+    "create": "Create actor",
+    "cvrNumber": "CVR number",
+    "cvrLookupHint": "Confirm the CVR number to retrieve the company details.",
+    "cvrLookupSearch": "Search",
+    "errors": {
+      "load": "The actors could not be loaded. Try again.",
+      "addressLookup": "The address could not be verified. Try again.",
+      "name": "Name may only contain letters.",
+      "notFound": "The actor no longer exists. Refresh the page.",
+      "delete": "The actor could not be deleted. Try again."
+    },
+    "addressSearching": "Searching for addresses…",
+    "addressSearchHint": "Enter at least 3 characters to search.",
+    "addressClear": "Clear address",
+    "addressClose": "Close address suggestions",
+    "addressNoMatches": "No addresses found. Try a more specific search.",
+    "addressOpen": "Show address suggestions",
+    "address": "Address",
+    "addressPlaceholder": "Street, number, postal code and city",
+    "roles": {
+      "Supplier": "Supplier",
+      "Contractor": "Contractor",
+      "NetworkOperator": "Network operator",
+      "ProjectCoordinator": "Project coordinator",
+      "Private": "Private"
+    },
+    "role": "Role",
+    "deleteDescription": "Are you sure you want to delete {{name}}? The actor's contact persons will also be deleted."
+  },
+  "dialogs": {
+    "deleteConfirmation": {
+      "title": "Confirm deletion",
+      "description": "Are you sure you want to delete {{name}}?",
+      "cancel": "Cancel",
+      "deleting": "Deleting…",
+      "confirm": "Delete"
     }
   },
   "application": {

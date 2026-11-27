@@ -1,5 +1,5 @@
 import { Container, Typography } from '@mui/material';
-import { useEffect, useRef } from 'react';
+import { type ReactElement, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Outlet, useLocation } from 'react-router';
 import Footer from '../components/layout/footer/footer.js';
@@ -7,11 +7,11 @@ import Navbar from '../components/layout/navbar/navbar.js';
 import { routes } from './router.js';
 
 /** Renders the translated fallback for routes that do not match a page. */
-export function NotFoundPage() {
+export function NotFoundPage(): ReactElement {
   const { t } = useTranslation();
 
   return (
-    <main>
+    <main id="main-content" tabIndex={-1}>
       <Container sx={{ py: 8 }}>
         <Typography component="h1" variant="h4">
           {t('notFound.title')}
@@ -21,8 +21,8 @@ export function NotFoundPage() {
   );
 }
 
-/** Renders the route layout and moves focus to the main content after supported route changes. */
-export default function App() {
+/** Renders the shared layout and focuses content after supported route changes. */
+export default function App(): ReactElement {
   const { t } = useTranslation();
   const { pathname } = useLocation();
   const previousPath = useRef(pathname);

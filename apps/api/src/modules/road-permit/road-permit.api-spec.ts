@@ -1,4 +1,4 @@
-import type { INestApplication } from '@nestjs/common';
+import { type INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import type { App } from 'supertest/types.js';
@@ -21,6 +21,13 @@ describe.skipIf(!databaseUrl)('Road permit API (PostgreSQL)', () => {
     }).compile();
     app = fixture.createNestApplication();
     app.setGlobalPrefix('api');
+    app.useGlobalPipes(
+      new ValidationPipe({
+        forbidNonWhitelisted: true,
+        transform: true,
+        whitelist: true,
+      }),
+    );
     await app.init();
     prisma = fixture.get(PrismaService);
   });
@@ -29,6 +36,20 @@ describe.skipIf(!databaseUrl)('Road permit API (PostgreSQL)', () => {
     await app?.close();
     vi.unstubAllEnvs();
   });
+
+  it.each(['patch', 'post'] as const)(
+    'keeps service validation for invalid %s bodies with the global pipe enabled',
+    async (method) => {
+      const path = '/api/road-permit/invalid-body';
+      await request(app.getHttpServer())
+        [method](method === 'post' ? `${path}/submit` : path)
+        .send({ title: 42 })
+        .expect(400)
+        .expect(({ body }) => {
+          expect(body.message).toBe('title must be a string.');
+        });
+    },
+  );
 
   it('stores the road markings on submission and rejects a duplicate', async () => {
     const { body: draft } = await request(app.getHttpServer())

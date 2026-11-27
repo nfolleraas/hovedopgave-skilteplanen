@@ -11,14 +11,44 @@ if (!databaseURL) {
 export default defineConfig({
   forbidOnly: Boolean(process.env.CI),
   fullyParallel: true,
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
-  testDir: './tests',
-  testMatch: '**/*.spec.{ts,tsx}',
+  retries: process.env.CI ? 2 : 0,
+  reporter: [['list'], ['html', { open: 'never' }]],
+  projects: [
+    {
+      name: 'chromium',
+      testDir: '.',
+      testMatch: ['tests/navigation/**/*.spec.ts', 'tests/actors/**/*.spec.ts'],
+      use: {
+        ...devices['Desktop Chrome'],
+        locale: 'da-DK',
+        screenshot: 'only-on-failure',
+      },
+    },
+    {
+      name: 'mobile-chromium',
+      testDir: '.',
+      testMatch: ['tests/navigation/**/*.spec.ts', 'tests/actors/**/*.spec.ts'],
+      use: {
+        ...devices['Pixel 7'],
+        locale: 'da-DK',
+        screenshot: 'only-on-failure',
+      },
+    },
+    {
+      name: 'road-permit-chromium',
+      testDir: './tests',
+      testMatch: '**/*.spec.{ts,tsx}',
+      testIgnore: ['**/actors/**', '**/navigation/**'],
+      use: {
+        ...devices['Desktop Chrome'],
+        actionTimeout: 8_000,
+        contextOptions: { reducedMotion: 'reduce' },
+        locale: 'en-GB',
+      },
+    },
+  ],
   use: {
-    actionTimeout: 8_000,
     baseURL,
-    contextOptions: { reducedMotion: 'reduce' },
-    locale: 'en-GB',
     trace: 'retain-on-failure',
   },
   webServer: [
@@ -35,7 +65,8 @@ export default defineConfig({
         VITE_DATAFORSYNINGEN_TOKEN: 'playwright-fixture',
       },
       url: baseURL,
+      reuseExistingServer: false,
     },
   ],
-  workers: 5,
+  workers: 2,
 });

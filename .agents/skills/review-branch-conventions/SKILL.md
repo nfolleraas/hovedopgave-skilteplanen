@@ -1,10 +1,11 @@
 ---
-description: Review changed branch files against coding-convention
-argument-hint: "[base branch]"
+name: review-branch-conventions
+description: Review committed branch changes against the repository coding conventions. Use when asked for a branch convention review or when the user types /review-branch-conventions, optionally followed by a base branch. Report required fixes without modifying files.
 ---
 
-Review the current branch. If the following optional argument is nonempty, use it as the base branch.
-Base branch argument: $ARGUMENTS
+Review the current branch. Treat a branch supplied after
+`/review-branch-conventions` or `$review-branch-conventions` as the base branch.
+For example, `/review-branch-conventions origin/Staging` compares against staging.
 
 # Review branch conventions
 
@@ -13,7 +14,7 @@ Perform a read-only review. Use the language of the request for findings and pre
 ## Establish the comparison
 
 1. Use the requested branch or PR head, defaulting to HEAD. Use an explicitly provided base, then the PR target if known, then the remote default branch. If the base cannot be determined, ask for it. Resolve both refs to commits and compute their merge base. Use those snapshots throughout, excluding local uncommitted edits.
-2. Enumerate every changed path with `git diff --name-status -z -M "$$merge_base" "$$head"` and inspect the corresponding diff and branch-side files. Include additions, renames, and deletions. Read other files only as context for a changed file. Anchor a deletion finding to its old path and label the line as belonging to the base.
+2. Enumerate every changed path with `git diff --name-status -z -M "$merge_base" "$head"` and inspect the corresponding diff and branch-side files. Include additions, renames, and deletions. Read other files only as context for a changed file. Anchor a deletion finding to its old path and label the line as belonging to the base.
 3. Read the convention document specified by the user, or locate the tracked document named `coding-convention` in the branch snapshot. Match case-insensitively and allow filename extensions such as .md, .docx, or .pdf. Extract headings, numbering and table contents when relevant. If the document is missing, ambiguous, or unreadable, ask for the path or contents before issuing a verdict.
 
 ## Identify required changes

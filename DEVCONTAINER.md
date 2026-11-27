@@ -47,6 +47,22 @@ Bun bruger sin isolerede linker til workspaces: de rigtige pakker ligger i den
 skjulte `node_modules/.bun` i roden, og hver apps `node_modules` indeholder
 kun symlinks til det, den faktisk erklærer. Kør altid `bun install` fra roden.
 
+Alle tre `node_modules`-mapper ligger i Docker-navngivne volumes
+(`root-node-modules`, `api-node-modules` og `web-node-modules`). Kildekoden er
+stadig bind-mountet fra værten, mens afhængigheder læses fra Dockers filsystem
+for at reducere filadgang under kompilering og API-opstart.
+
+Efter denne ændring skal du vælge **Dev Containers: Rebuild Container** i
+VS Codes kommandopalette. Oprettelsesscriptet giver containerbrugeren ejerskab
+over de tomme volumes og kører `bun install` automatisk. Første installation
+kræver netværksadgang. Eksisterende afhængigheder på værten bliver liggende,
+men skjules inde i containeren af de nye mounts. `nocopy: true` forhindrer
+Docker i at kopiere eksisterende indhold ind i nye volumes.
+
+Volumes bevares ved genopbygning. Kør fortsat `bun install` fra repo-roden,
+når afhængigheder ændres. Ved tilføjelse af en workspace-app skal dens
+`node_modules` have et tilsvarende volume og ejerskab i oprettelsesscriptet.
+
 ## Filerne, linje for linje
 
 ### `.devcontainer/devcontainer.json`
@@ -228,19 +244,11 @@ volumes:
   playwright-browsers:
 ```
 
-- **`app.build`** bygger `.devcontainer/Dockerfile`, som tager udgangspunkt i
-  Microsofts forbyggede Node 22-image på Debian bookworm med git, zsh og
-  `node`-brugeren. Dockerfilen installerer også `ripgrep`, så kommandoen `rg` er
-  tilgængelig for terminaler og udviklingsværktøjer efter et container-rebuild.
-  Node 22 bruges, fordi Vite 8 kræver mindst 20.19.
-- **`app.volumes`** bind-mounts repoet. Compose-filen ligger i
-  `.devcontainer/`, så `..` er repo-roden. `node_modules` for roden og begge
-  apps ligger i navngivne Docker-volumes. De tunge afhængighedsopslag bruger
-  derfor Docker-VM'ens Linux-filsystem i stedet for Windows-bind-mountet.
-  `nocopy` forhindrer Docker i at kopiere eksisterende host-indhold ind i et
-  tomt volume ved første oprettelse. API'ens `dist` må ikke være et separat
-  mount, fordi Nest sletter hele outputmappen ved starten af et build, og et
-  Docker-mountpoint kan ikke fjernes.
+- **`app.image`** er Microsofts forbyggede Node 22-image på Debian bookworm med
+  git, zsh og `node`-brugeren. Node 22, fordi Vite 8 kræver mindst 20.19.
+- **`app.volumes`** bind-mounts repoet og monterer separate navngivne volumes
+  over de tre `node_modules`-mapper. Compose-filen ligger i `.devcontainer/`,
+  så `..` er repo-roden. Dependency-mounts er vist i den aktuelle Compose-fil.
 - **`app.command: sleep infinity`** holder containeren i live. Billedet har ingen
   langvarig proces, så uden dette lukker den med det samme og VS Code har
   intet at tilslutte sig til.

@@ -7,12 +7,6 @@ export type UsageDetails = RoadLocation & {
   locationDescription: string;
 };
 
-export type ContactInformation = {
-  name: string;
-  phone: string;
-  email: string;
-};
-
 export type SubmissionStatus = 'idle' | 'sending' | 'success' | 'error';
 
 export type MaterialEntry = {

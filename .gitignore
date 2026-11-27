@@ -23,6 +23,10 @@ dist-ssr
 
 *.tsbuildinfo
 
+# Playwright browser test artifacts
+playwright-report/
+test-results/
+
 .env
 
 # Prisma-generated API files and local setup artifacts

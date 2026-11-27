@@ -2,6 +2,7 @@ import axios, { type AxiosRequestConfig } from 'axios';
 
 const axiosClient = axios.create({
   baseURL: '/api',
+  timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -29,22 +30,27 @@ export const apiClient = {
   /**
    * Retrieves a resource from the API.
    * @param path - The resource path
+   * @param signal - Optional signal to cancel the request
    * @returns The typed response body
    */
-  get: <T>(path: string) => request<T>(path),
+  get: <T>(path: string, signal?: AbortSignal): Promise<T> =>
+    request<T>(path, {
+      method: 'GET',
+      signal,
+    }),
   /**
    * Sends a JSON-compatible request body to the API.
    * @param path - The resource path
    * @param body - The request body
    * @returns The typed response body
    */
-  post: <T>(path: string, body: unknown) =>
+  post: <T>(path: string, body: unknown): Promise<T> =>
     request<T>(path, {
       method: 'POST',
       data: body,
     }),
   /** Updates a resource with a JSON-compatible request body. */
-  patch: <T>(path: string, body: unknown) =>
+  patch: <T>(path: string, body: unknown): Promise<T> =>
     request<T>(path, { method: 'PATCH', data: body }),
   /**
    * Sends multipart form data to the API.
@@ -52,7 +58,7 @@ export const apiClient = {
    * @param body - The multipart form data
    * @returns The typed response body
    */
-  postForm: <T>(path: string, body: FormData) =>
+  postForm: <T>(path: string, body: FormData): Promise<T> =>
     request<T>(path, {
       method: 'POST',
       data: body,
@@ -65,7 +71,7 @@ export const apiClient = {
    * @param path - The resource path
    * @returns The typed response body
    */
-  delete: <T>(path: string) =>
+  delete: <T>(path: string): Promise<T> =>
     request<T>(path, {
       method: 'DELETE',
     }),
