@@ -58,11 +58,10 @@ test('unknown route displays translated not-found page', async ({ page }) => {
   await expect(
     page.getByRole('heading', { name: 'Siden blev ikke fundet' }),
   ).toBeVisible();
-  await page.getByRole('tab', { name: 'Dashboard', exact: true }).click();
+  const dashboard = page.getByRole('link', { name: 'Dashboard', exact: true });
+  await dashboard.click();
   await expect(page).toHaveURL('/');
-  await expect(
-    page.getByRole('tab', { name: 'Dashboard', exact: true }),
-  ).toHaveAttribute('aria-selected', 'true');
+  await expect(dashboard).toHaveAttribute('aria-current', 'page');
 });
 
 for (const path of ['/kontaktpersoner', '/beskeder']) {
