@@ -182,7 +182,7 @@ test('validates, reviews and submits a road permit against its existing draft', 
   ).toBeVisible();
   await next.click();
 
-  await page.route('**/address-lookup/husnumre/soeg?*', (route) =>
+  await page.route('https://adressevaelger.dk/husnumre/soeg?*', (route) =>
     route.fulfill({
       json: {
         status: 'ok',
@@ -192,18 +192,20 @@ test('validates, reviews and submits a road permit against its existing draft', 
       },
     }),
   );
-  await page.route('**/address-lookup/husnumre/permit-actor-address', (route) =>
-    route.fulfill({
-      json: {
-        status: 'ok',
-        husnummer: {
-          status: '3',
-          vejnavn: 'Parkvej',
-          husnummertekst: '12',
-          postnummer: { postnr: '5260', navn: 'Odense S' },
+  await page.route(
+    'https://adressevaelger.dk/husnumre/permit-actor-address?*',
+    (route) =>
+      route.fulfill({
+        json: {
+          status: 'ok',
+          husnummer: {
+            status: '3',
+            vejnavn: 'Parkvej',
+            husnummertekst: '12',
+            postnummer: { postnr: '5260', navn: 'Odense S' },
+          },
         },
-      },
-    }),
+      }),
   );
   await page.getByRole('button', { name: 'Opret aktør', exact: true }).click();
   const actorEditor = page.getByRole('dialog', { name: 'Opret aktør' });
@@ -220,7 +222,7 @@ test('validates, reviews and submits a road permit against its existing draft', 
     .getByRole('combobox', { name: 'Address' })
     .fill('Parkvej 12');
   const addressLookup = page.waitForResponse(
-    '**/address-lookup/husnumre/permit-actor-address',
+    'https://adressevaelger.dk/husnumre/permit-actor-address?*',
   );
   await page.getByRole('option', { name: mapAddress }).click();
   await addressLookup;

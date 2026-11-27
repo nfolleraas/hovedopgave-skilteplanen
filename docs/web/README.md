@@ -22,6 +22,10 @@ The [accessibility requirements](accessibility.md) define the minimum standard
 for accessible pages and components, including screen readers, keyboard-only
 navigation, visual accessibility, and clear language for non-technical users.
 
+Address lookups call Adressevælger directly from the browser using the public
+`VITE_DATAFORSYNINGEN_TOKEN` setting, also used by the map. CVR lookups call
+APICVR directly. Neither lookup uses the application proxy.
+
 ## Temporary feature placeholders
 
 Contact persons are implemented in a separate branch. Actor forms must allow

@@ -50,7 +50,7 @@ test('creates an actor for the current application without leaving its step', as
   await page.route('**/api/actors?*', (route) =>
     route.fulfill({ json: created ? [actor] : [] }),
   );
-  await page.route('**/address-lookup/husnumre/soeg?*', (route) =>
+  await page.route('https://adressevaelger.dk/husnumre/soeg?*', (route) =>
     route.fulfill({
       json: {
         status: 'ok',
@@ -65,7 +65,7 @@ test('creates an actor for the current application without leaving its step', as
     }),
   );
   await page.route(
-    `**/address-lookup/husnumre/${actor.address.uuid}`,
+    `https://adressevaelger.dk/husnumre/${actor.address.uuid}?*`,
     (route) =>
       route.fulfill({
         json: {
@@ -119,7 +119,7 @@ test('creates an actor for the current application without leaving its step', as
     .getByRole('combobox', { name: 'Adresse', exact: false })
     .fill('Vestergade');
   const lookup = page.waitForResponse(
-    `**/address-lookup/husnumre/${actor.address.uuid}`,
+    `https://adressevaelger.dk/husnumre/${actor.address.uuid}?*`,
   );
   await page
     .getByRole('option', { name: 'Vestergade 10, 5000 Odense C' })

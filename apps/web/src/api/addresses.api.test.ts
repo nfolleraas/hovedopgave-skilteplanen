@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   lookupAddress,
   parseAddressLookup,
@@ -7,15 +7,34 @@ import {
 } from './addresses.api.js';
 
 describe('Adressevælger response mapping', () => {
-  it('searches through the local proxy without exposing a token', async () => {
+  beforeEach(() => {
+    vi.stubEnv('VITE_DATAFORSYNINGEN_TOKEN', 'address-test-fixture');
+  });
+  afterEach(() => vi.unstubAllEnvs());
+
+  it('rejects missing configuration before sending an address request', async () => {
+    vi.stubEnv('VITE_DATAFORSYNINGEN_TOKEN', '');
+    const fetch = vi.fn();
+    vi.stubGlobal('fetch', fetch);
+    await expect(searchAddresses('Testvej')).rejects.toThrow(
+      'Address search is not configured.',
+    );
+    await expect(lookupAddress('address-id')).rejects.toThrow(
+      'Address search is not configured.',
+    );
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it('searches Adressevælger directly with the configured public token', async () => {
     const originalFetch = globalThis.fetch;
     const controller = new AbortController();
     try {
       globalThis.fetch = async (input, options) => {
-        const url = new URL(String(input), 'http://localhost');
-        expect(url.pathname).toBe('/address-lookup/husnumre/soeg');
+        const url = new URL(String(input));
+        expect(url.origin).toBe('https://adressevaelger.dk');
+        expect(url.pathname).toBe('/husnumre/soeg');
         expect(url.searchParams.get('tekst')).toBe('Testvej 1');
-        expect(url.searchParams.has('token')).toBe(false);
+        expect(url.searchParams.get('token')).toBe('address-test-fixture');
         expect(options?.signal).toBeTruthy();
         expect(options?.signal?.aborted).toBe(false);
         return Response.json({ status: 'ok', fund: [] });
@@ -32,7 +51,10 @@ describe('Adressevælger response mapping', () => {
     const originalFetch = globalThis.fetch;
     try {
       globalThis.fetch = async (input) => {
-        expect(input).toBe('/address-lookup/husnumre/address-id');
+        const url = new URL(String(input));
+        expect(url.origin).toBe('https://adressevaelger.dk');
+        expect(url.pathname).toBe('/husnumre/address-id');
+        expect(url.searchParams.get('token')).toBe('address-test-fixture');
         return new Response(null, { status: 503 });
       };
       await expect(lookupAddress('address-id')).rejects.toThrow(

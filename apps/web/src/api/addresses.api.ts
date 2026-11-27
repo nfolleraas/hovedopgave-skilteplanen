@@ -11,8 +11,18 @@ export interface VerifiedAddress {
   city: string;
 }
 
-// The development proxy adds the configured token outside the browser.
-const baseUrl = '/address-lookup';
+/**
+ * Builds a direct Adressevælger URL using the configured public browser token.
+ * @param path - House-number endpoint path
+ * @returns The authenticated address lookup URL
+ */
+function addressUrl(path: string): URL {
+  const token = import.meta.env.VITE_DATAFORSYNINGEN_TOKEN?.trim();
+  if (!token) throw new Error('Address search is not configured.');
+  const url = new URL(path, 'https://adressevaelger.dk/husnumre/');
+  url.searchParams.set('token', token);
+  return url;
+}
 
 /**
  * Narrows an unknown value to a non-null object for response parsing.
@@ -125,11 +135,11 @@ export async function searchAddresses(
   query: string,
   signal?: AbortSignal,
 ): Promise<AddressSuggestion[]> {
-  const url = new URL(`${baseUrl}/husnumre/soeg`, 'http://localhost');
+  const url = addressUrl('soeg');
   url.searchParams.set('tekst', query);
   url.searchParams.set('maksimum', '10');
 
-  const response = await fetch(`${url.pathname}${url.search}`, {
+  const response = await fetch(url.toString(), {
     signal: requestSignal(signal),
   });
   if (!response.ok) throw new Error('Address search failed.');
@@ -146,9 +156,11 @@ export async function lookupAddress(
   id: string,
   signal?: AbortSignal,
 ): Promise<VerifiedAddress> {
-  const url = `${baseUrl}/husnumre/${encodeURIComponent(id)}`;
+  const url = addressUrl(encodeURIComponent(id));
 
-  const response = await fetch(url, { signal: requestSignal(signal) });
+  const response = await fetch(url.toString(), {
+    signal: requestSignal(signal),
+  });
   if (!response.ok) throw new Error('Address lookup failed.');
   return parseAddressLookup(await response.json());
 }
