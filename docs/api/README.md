@@ -25,13 +25,30 @@ Run these from the repository root:
 bun run --filter api dev
 bun run --filter api build
 bun run --filter api test
-bun run --filter api test:e2e
+bun run --cwd apps/api test:api
 bun run --filter api lint
 ```
 
 The generated NestJS starter README is at
 [`apps/api/README.md`](../../apps/api/README.md). The root README is the source
 for shared development instructions.
+
+## API integration tests
+
+`bun run --cwd apps/api test:api` runs files named `*.api-spec.ts` to test API
+endpoints and their integration with services and the database. Database tests
+require PostgreSQL with the committed migrations applied and `DATABASE_URL`
+configured in the development environment. Run these commands from the
+repository root:
+
+```bash
+bun run --cwd apps/api db:deploy
+bun run --cwd apps/api test:api
+```
+
+Database tests should create and clean up their own fixtures so they can run
+independently of development seed data. The backend CI job provisions
+PostgreSQL and applies migrations before running the API integration suite.
 
 ## Guides
 

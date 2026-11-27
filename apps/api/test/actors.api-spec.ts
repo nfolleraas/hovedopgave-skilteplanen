@@ -17,7 +17,7 @@ import { ActorMapper } from '../src/modules/actors/mappers/actor.mapper.js';
 import { AddressRepository } from '../src/modules/address/address.repository.js';
 import { AddressService } from '../src/modules/address/address.service.js';
 import { ApplicationsRepository } from '../src/modules/applications/applications.repository.js';
-import { PrismaService } from '../src/prisma.service.js';
+import { PrismaService } from '../src/modules/prisma/prisma.service.js';
 
 describe('ActorsService database write', () => {
   const marker = randomUUID();
