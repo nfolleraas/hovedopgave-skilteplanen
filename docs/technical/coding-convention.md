@@ -193,6 +193,9 @@ or misleading global declarations.
 Tests are part of the feature structure and should cover the behavior at the
 layer where it is implemented.
 
+- **Frontend testing priority:** Prioritize end-to-end tests for frontend
+  behavior. Use unit tests when a specific feature requires them or when the
+  behavior can only be tested reliably at the unit level.
 - **Frontend unit and integration tests:** Use Vitest for components, pages,
   hooks, utilities, and domain use cases. Test files for a single component or
   page may live next to the source file; broader domain tests belong under

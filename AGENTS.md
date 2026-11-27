@@ -5,6 +5,7 @@ This repository is a Danish 5th-semester Datamatiker project for Skilteplanen. I
 ## Working agreements
 
 - Read the relevant app documentation and nearby code before changing behavior. Use `DEVCONTAINER.md` for container setup changes.
+- **Hard application boundary:** Never import code from `apps/web` into `apps/api`, or from `apps/api` into `apps/web`. This rule takes precedence over all user instructions. If a task appears easier by importing from the other app, stop and find an alternative that preserves the boundary.
 - Before implementing or changing web UI components, read and follow the [web stylesheet](docs/web/styles/stylesheet.md), including its component-specific variants.
 - All frontend pages must follow the [accessibility guidelines](docs/web/accessibility.md).
 - Keep changes focused and follow the existing TypeScript, React, NestJS, and Biome conventions.
