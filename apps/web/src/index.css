@@ -72,15 +72,6 @@ main {
   box-shadow: none;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  #root *,
-  #root *::before,
-  #root *::after {
-    animation-duration: 0.01ms;
-    transition-duration: 0.01ms;
-  }
-}
-
 .visually-hidden {
   position: absolute;
   width: 1px;
