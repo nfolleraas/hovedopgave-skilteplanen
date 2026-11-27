@@ -1,0 +1,84 @@
+import type {
+  ApplicationType,
+  Direction,
+  RoadOwnership,
+  RoadSection,
+  RoadSide,
+  Status,
+} from './prisma-enums.js';
+
+/** Area as returned by the areas API. */
+export interface Area {
+  uuid: string;
+  applicationId: string;
+  roadName: string;
+  roadOwnership: RoadOwnership | null;
+  postalCode: string;
+  houseNumberFrom: string | null;
+  houseNumberTo: string | null;
+  alternativeDescription: string | null;
+  /** True when the road was typed in instead of found on the map. */
+  isManual: boolean;
+  roadSection: RoadSection | null;
+  roadSectionDescription: string | null;
+  roadSide: RoadSide | null;
+  direction: Direction | null;
+  lengthInMeters: number | null;
+  widthInMeters: number | null;
+  depthInMeters: number | null;
+  areaInSquareMeters: number | null;
+}
+
+export interface AreaApplication {
+  caseNumber: string;
+  type: ApplicationType;
+  status: Status;
+}
+
+export interface ApplicationAreas {
+  application: AreaApplication;
+  areas: Area[];
+}
+
+/** Fields sent when creating or updating an area. */
+export type AreaInput = Partial<
+  Omit<Area, 'uuid' | 'applicationId' | 'areaInSquareMeters' | 'isManual'>
+>;
+
+/** Where the road came from can only be set when the area is created. */
+export type AreaCreateInput = AreaInput & Partial<Pick<Area, 'isManual'>>;
+
+/** Form values are kept as text so the user's input is never reformatted. */
+export interface AreaFormValues {
+  roadName: string;
+  roadOwnership: RoadOwnership | '';
+  postalCode: string;
+  houseNumberFrom: string;
+  houseNumberTo: string;
+  alternativeDescription: string;
+  roadSection: RoadSection | '';
+  roadSectionDescription: string;
+  roadSide: RoadSide | '';
+  direction: Direction | '';
+  lengthInMeters: string;
+  widthInMeters: string;
+  depthInMeters: string;
+}
+
+export type AreaFormField = keyof AreaFormValues;
+
+/**
+ * A road found by the road search. Dataforsyningen does not say whether a
+ * road is municipal or private, so the applicant chooses it after selecting.
+ */
+export interface RoadSearchResult {
+  id: string;
+  roadName: string;
+  postalCode: string;
+  city: string;
+}
+
+/** A road the applicant has selected, with the ownership they chose. */
+export interface SelectedRoad extends RoadSearchResult {
+  roadOwnership: RoadOwnership | '';
+}

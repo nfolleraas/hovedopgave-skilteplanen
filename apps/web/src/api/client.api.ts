@@ -1,4 +1,4 @@
-import axios, { type AxiosRequestConfig } from 'axios';
+import axios, { type AxiosRequestConfig, isAxiosError } from 'axios';
 
 const axiosClient = axios.create({
   baseURL: '/api',
@@ -43,7 +43,12 @@ export const apiClient = {
       method: 'POST',
       data: body,
     }),
-  /** Updates a resource with a JSON-compatible request body. */
+  /**
+   * Updates a resource with a JSON-compatible request body.
+   * @param path - The resource path
+   * @param body - The request body
+   * @returns The typed response body
+   */
   patch: <T>(path: string, body: unknown) =>
     request<T>(path, { method: 'PATCH', data: body }),
   /**
@@ -70,3 +75,27 @@ export const apiClient = {
       method: 'DELETE',
     }),
 };
+
+/**
+ * Reads the HTTP status of a failed API request.
+ * @param error - The value thrown by `apiClient`
+ * @returns The status code, or `undefined` when the API did not answer
+ */
+export function getApiErrorStatus(error: unknown): number | undefined {
+  return isAxiosError(error) ? error.response?.status : undefined;
+}
+
+/**
+ * Reads the error code that the API sends in its error body, such as
+ * `LAST_AREA`.
+ * @param error - The value thrown by `apiClient`
+ * @returns The error code, or `undefined` when the body has none
+ */
+export function getApiErrorCode(error: unknown): string | undefined {
+  if (!isAxiosError(error)) return undefined;
+  const body: unknown = error.response?.data;
+  if (typeof body === 'object' && body && 'code' in body) {
+    return String(body.code);
+  }
+  return undefined;
+}

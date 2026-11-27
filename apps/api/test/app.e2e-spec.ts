@@ -4,7 +4,7 @@ import request from 'supertest';
 import { App } from 'supertest/types.js';
 import { AppModule } from './../src/app.module.js';
 import { TrafficChange } from './../src/generated/prisma/enums.js';
-import { PrismaService } from './../src/prisma.service.js';
+import { PrismaService } from '../src/modules/prisma/prisma.service.js';
 
 describe('AppModule (e2e)', () => {
   let app: INestApplication<App>;

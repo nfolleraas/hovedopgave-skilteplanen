@@ -4,9 +4,9 @@ import request from 'supertest';
 import type { App } from 'supertest/types.js';
 import { AppModule } from '../src/app.module.js';
 import { Status } from '../src/generated/prisma/enums.js';
+import { PrismaService } from '../src/modules/prisma/prisma.service.js';
 import { mapCreateRoadPermit } from '../src/modules/road-permit/mappers/road-permit.mapper.js';
 import { RoadPermitRepository } from '../src/modules/road-permit/road-permit.repository.js';
-import { PrismaService } from '../src/prisma.service.js';
 import { roadPermitSubmission } from './fixtures/road-permit.js';
 
 // This suite writes to PostgreSQL. Use a disposable database with migrations applied.

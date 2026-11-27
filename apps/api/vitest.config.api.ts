@@ -6,6 +6,9 @@ export default defineConfig({
   test: {
     globals: true,
     root: './',
-    include: ['**/*.api-spec.ts'],
+    include: ['**/*.e2e-spec.ts', '**/*.api-spec.ts'],
+    // Starting the whole Nest app can take over 10s in the dev container.
+    hookTimeout: 60_000,
+    testTimeout: 60_000,
   },
 });

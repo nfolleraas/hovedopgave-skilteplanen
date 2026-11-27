@@ -33,7 +33,8 @@
     "socialLinksPlaceholder": "[Social media links]"
   },
   "common": {
-    "brandName": "Skilteplanen"
+    "brandName": "Skilteplanen",
+    "skipToContent": "Skip to main content"
   },
   "permit": {
     "steps": {
@@ -324,6 +325,401 @@
     "creatingDraft": "Creating draft…",
     "unavailable": "Coming later",
     "createDraftError": "The application draft could not be created. Try again."
+  },
+  "devApplications": {
+    "loadError": "The applications could not be loaded. Is the API running?",
+    "createError": "The application could not be created, try again.",
+    "title": "Test applications",
+    "intro": "For testing only: choose an application, or create a new draft.",
+    "type": "Application type",
+    "create": "Create new application",
+    "loading": "Loading applications",
+    "none": "There are no applications yet.",
+    "caseNumber": "Case number",
+    "status": "Status",
+    "areaCount": "Areas",
+    "backToList": "← All test applications",
+    "statuses": {
+      "Draft": "Draft",
+      "InProgress": "In progress",
+      "Approved": "Approved",
+      "Rejected": "Rejected",
+      "ChangeRequired": "Change required"
+    }
+  },
+  "wizard": {
+    "delete": "Delete",
+    "stepHasErrors_one": "There is {{count}} error on this step. Fix the field marked in red.",
+    "stepHasErrors_other": "There are {{count}} errors on this step. Fix the fields marked in red.",
+    "actors": {
+      "intro": "Add other actors on the application, e.g. a contractor or supplier. This step can be skipped.",
+      "none": "There are no other actors on the application.",
+      "actorTitle": "Actor {{number}}",
+      "role": "Role",
+      "name": "Name",
+      "cvrNumber": "CVR number",
+      "department": "Department",
+      "contactPersonName": "Contact person",
+      "add": "+ Add actor"
+    },
+    "deleteItem": "Delete {{item}}",
+    "phoneNumber": "Phone number",
+    "email": "Email",
+    "contacts": {
+      "intro": "Enter who the municipality can contact about the application. There must be at least one contact person.",
+      "contactTitle": "Contact person {{number}}",
+      "name": "Name",
+      "availability": "Availability",
+      "add": "+ Add contact person"
+    },
+    "documents": {
+      "intro": "Upload drawings or pictures to the application. Only PNG and JPG are allowed.",
+      "dropHint": "Drag files here, or",
+      "choose": "Choose files",
+      "wrongType": "Wrong file type, only PNG and JPG are allowed: {{files}}",
+      "none": "No documents have been added.",
+      "notUploaded": "Only kept in this browser until upload is built."
+    },
+    "period": {
+      "municipality": "Municipality",
+      "title": "Title",
+      "permitType": "Type",
+      "noticeInfo": "A notice can come with extra terms from the municipality. Contact the municipality if you have questions.",
+      "startDate": "Start date",
+      "endDate": "End date",
+      "usage": "Use of the road area",
+      "usageDescription": "Describe the usage",
+      "intro": {
+        "ExcavationPermit": "Choose the municipality, type and period of the excavation permit.",
+        "RoadUsePermit": "Choose the municipality, title, usage and period of the road use."
+      }
+    },
+    "signPlan": {
+      "signPlanTitle": "Sign plan",
+      "signPlanIntro": "Choose a standard sign plan, or upload your own.",
+      "signPlanType": "Standard plan",
+      "group": "Group",
+      "plan": "Plan",
+      "uploadSignPlan": "Upload sign plan",
+      "noFile": "No file chosen",
+      "trafficTitle": "Traffic changes",
+      "trafficChanges": "Traffic changes",
+      "measuresTitle": "Traffic calming measures",
+      "measureTitle": "Traffic calming measure {{number}}",
+      "measureType": "Type",
+      "scope": "Scope",
+      "protectionLevel": "Protection level",
+      "measureDescription": "Description",
+      "addMeasure": "+ Add traffic calming measure"
+    },
+    "summary": {
+      "intro": "Review application {{caseNumber}} before you send it.",
+      "applicationType": "Application type",
+      "period": "Period",
+      "noAreas": "There are no areas.",
+      "files": "Files",
+      "incomplete": "Some steps are missing information. Fix them before the application can be sent.",
+      "submitNotBuilt": "Sending is not built yet, so the application has not been sent.",
+      "submit": "Send application",
+      "editSection": "Edit {{section}}"
+    },
+    "tasks": {
+      "taskTitle": "Task {{number}}",
+      "materialTitle": "Equipment {{number}}",
+      "introTasks": "Add the tasks to be carried out. There must be at least one.",
+      "introMaterials": "Enter the equipment that will be placed on the road area.",
+      "cableType": "Cable type",
+      "cableSubtypes": "Network parts",
+      "cableTypesDescription": "Note on cable type",
+      "cableSubtypesDescription": "Note on network part",
+      "workCategories": "Type of work",
+      "executionMethods": "Execution method",
+      "workCategoriesDescription": "Note on type of work",
+      "executionMethodsDescription": "Note on execution method",
+      "addTask": "+ Add task",
+      "materialType": "Equipment type",
+      "amount": "Amount",
+      "materialDescription": "Note",
+      "addMaterial": "+ Add equipment"
+    },
+    "errors": {
+      "required": "Required",
+      "endBeforeStart": "End date cannot be before start date",
+      "startInPast": "Start date cannot be before today",
+      "phone": "Phone number must be 8 digits",
+      "email": "Invalid email address",
+      "cvr": "CVR number must be 8 digits",
+      "lettersOnly": "Letters only",
+      "positiveWhole": "Must be a whole number of at least 1",
+      "atLeastOneTask": "There must be at least one task.",
+      "atLeastOneMaterial": "There must be at least one item of equipment.",
+      "atLeastOneContact": "There must be at least one contact person.",
+      "atLeastOneMeasure": "Choose at least one traffic calming measure."
+    },
+    "enums": {
+      "ActorRole": {
+        "Supplier": "Supplier",
+        "Contractor": "Contractor",
+        "NetworkOperator": "Network operator",
+        "ProjectCoordinator": "Project coordinator",
+        "Private": "Private"
+      },
+      "Availability": {
+        "Day": "Day",
+        "Evening": "Evening",
+        "Night": "Night",
+        "AllDay": "24 hours"
+      },
+      "CableSubtype": {
+        "MainLine": "Main line",
+        "ServiceLine": "Service line",
+        "StreetCabinet": "Street cabinet",
+        "Other": "Other"
+      },
+      "CableType": {
+        "Telephone": "Telephone",
+        "Water": "Water",
+        "Power": "Power",
+        "Sewage": "Sewage",
+        "Gas": "Gas",
+        "DistrictHeating": "District heating",
+        "Coax": "Coax",
+        "Fiber": "Fibre",
+        "Other": "Other"
+      },
+      "ExecutionMethod": {
+        "Excavation": "Excavation",
+        "ExistingPipe": "Existing pipe",
+        "Ploughing": "Ploughing",
+        "ChainTrenching": "Chain trenching",
+        "SoilDisplacement": "Soil displacement",
+        "PipeCracking": "Pipe cracking",
+        "PipeRamming": "Pipe ramming",
+        "UndergroundDrilling": "Underground drilling",
+        "UndergroundDirectionalDrilling": "Directional drilling",
+        "Other": "Other"
+      },
+      "MaterialType": {
+        "Banner": "Banner",
+        "TemporarySign": "Temporary sign",
+        "PermanentSign": "Permanent sign",
+        "DrillingRig": "Drilling rig",
+        "Container": "Container",
+        "Crane": "Crane",
+        "Truck": "Truck",
+        "Lift": "Lift",
+        "OfficeCabin": "Office cabin",
+        "WelfareCabin": "Welfare cabin",
+        "TrenchlessUnit": "Trenchless unit",
+        "ReliningUnit": "Relining unit",
+        "Scaffolding": "Scaffolding",
+        "LoadingTower": "Loading tower",
+        "Tent": "Tent",
+        "Stage": "Stage",
+        "Grandstand": "Grandstand",
+        "Other": "Other"
+      },
+      "PermitType": {
+        "Application": "Application",
+        "Notice": "Notice"
+      },
+      "SignPlanType": {
+        "MarkingCityArea": "Marking in urban area",
+        "MarkingHighway": "Marking on motorway",
+        "MarkingRuralArea": "Marking in rural area",
+        "AuthorityMarkingPlan": "Authority's marking plan",
+        "AttachSpecificMarkingPlan": "Attach specific marking plan"
+      },
+      "TrafficCalmingMeasureScope": {
+        "OncomingTraffic": "Oncoming traffic",
+        "FollowingTraffic": "Following traffic",
+        "Both": "Both"
+      },
+      "TrafficCalmingMeasureType": {
+        "A": "Type A",
+        "B": "Type B",
+        "C": "Type C",
+        "D": "Type D",
+        "E": "Type E",
+        "F": "Type F",
+        "G": "Type G",
+        "H": "Type H",
+        "I": "Type I"
+      },
+      "TrafficChange": {
+        "SpeedLimitWorkZone": "Speed limit at work zone",
+        "SpeedLimitTrafficSafety": "Speed limit for traffic safety",
+        "OnewayTraffic": "One-way traffic",
+        "TrafficLight": "Traffic lights",
+        "NoStoppingAndParking": "No stopping or parking",
+        "UnconditionalObligationInIntersection": "Give way at junction"
+      },
+      "Usage": {
+        "AsphaltWork": "Asphalt work",
+        "Construction": "Construction",
+        "Renovation": "Renovation",
+        "MaterialSpace": "Material storage",
+        "StreetFurnitureInstallation": "Street furniture",
+        "BannerInstallation": "Banner installation",
+        "SignInstallment": "Sign installation",
+        "MarketStand": "Market stall",
+        "OutdoorServing": "Outdoor serving",
+        "WaterDischarge": "Water discharge",
+        "ProductDisplay": "Product display",
+        "Other": "Other"
+      },
+      "WorkCategory": {
+        "Establishment": "Establishment",
+        "Repair": "Repair",
+        "JointBay": "Joint bay",
+        "CableError": "Cable fault",
+        "Renovation": "Renovation",
+        "Decommission": "Decommissioning",
+        "AlarmError": "Alarm fault",
+        "Removal": "Removal",
+        "Cleaning": "Cleaning",
+        "TrialHole": "Trial hole",
+        "Investigation": "Investigation",
+        "Other": "Other"
+      }
+    }
+  },
+  "applicationWizard": {
+    "stepsLabel": "Application steps",
+    "back": "Back",
+    "next": "Next",
+    "documentTitle": "{{step}} – Application platform",
+    "loading": "Loading the application",
+    "steps": {
+      "otherActors": "Other actors",
+      "contactInfo": "Contact information",
+      "documents": "Documents and drawings",
+      "municipalityAndPeriod": "Municipality & period",
+      "signPlanAndTraffic": "Sign plan and traffic",
+      "summary": "Summary & submission",
+      "tasks": "Tasks",
+      "map": "Map",
+      "areas": "Areas"
+    },
+    "caseNotFound": "The application was not found.",
+    "loadError": "The application could not be loaded. Try again later or contact support."
+  },
+  "areas": {
+    "cardTitle": "Area {{number}} · {{road}}",
+    "areaNumber": "Area {{number}}",
+    "newRoad": "New road",
+    "missingInfo": "missing information",
+    "editArea": "Edit {{area}}",
+    "edit": "Edit",
+    "deleteAreaFor": "Delete {{area}}",
+    "delete": "Delete area",
+    "cancel": "Cancel",
+    "save": "Save area",
+    "characterCount": "{{length}} of {{max}} characters",
+    "houseNumberOrDescriptionHint": "Fill in house number from and to or an alternative description.",
+    "or": "or",
+    "areaCalculated": "Calculated from length × width",
+    "fields": {
+      "areaInSquareMeters": "Area (m²)",
+      "roadName": "Street name",
+      "roadOwnership": "Road status",
+      "postalCode": "Postal code",
+      "houseNumberFrom": "House no. from",
+      "houseNumberTo": "House no. to",
+      "alternativeDescription": "Alternative description",
+      "roadSection": "Road element",
+      "roadSectionDescription": "Describe road element",
+      "roadSide": "Road side",
+      "direction": "Direction",
+      "lengthInMeters": "Length (m)",
+      "widthInMeters": "Width (m)",
+      "depthInMeters": "Depth (m)"
+    },
+    "saved": "{{area}} was saved.",
+    "notEditable": "Areas can only be changed while the application is a draft or requires changes.",
+    "saveError": "The area could not be saved. Try again later or contact support.",
+    "lastAreaError": "The application must have at least one area.",
+    "deleted": "The area on {{road}} was deleted.",
+    "deleteError": "The area could not be deleted. Try again later or contact support.",
+    "title": "Areas",
+    "addManually": "+ Add road manually",
+    "deleteDialog": {
+      "title": "Delete area?",
+      "houseNumbers": "House no.: {{value}}",
+      "description": "Description: {{value}}",
+      "warning": "The area and its details will be deleted permanently.",
+      "confirm": "Delete",
+      "none": "No description"
+    },
+    "summary": {
+      "title": "You can't continue yet",
+      "noAreas": "The application must have at least one area.",
+      "missingFields": "{{area}} is missing: {{fields}}",
+      "unsaved": "{{area}} has unsaved changes."
+    },
+    "unsavedDialog": {
+      "title": "Save changes?",
+      "text": "{{area}} has unsaved changes.",
+      "discard": "Discard changes",
+      "save": "Save"
+    },
+    "errors": {
+      "required": "Required",
+      "positiveNumber": "Must be a number greater than 0. Use a comma for decimals, e.g. 0,6",
+      "postalCode": "Must be 4 digits",
+      "houseNumberOrDescription": "Fill in house number from and to or an alternative description"
+    },
+    "labels": {
+      "roadOwnership": {
+        "Municipality": "Municipal road",
+        "Private": "Private common road"
+      },
+      "roadSection": {
+        "Lane": "Lane",
+        "EmergencyLane": "Emergency lane",
+        "BikeLane": "Bike lane",
+        "Pavement": "Pavement",
+        "Roundabout": "Roundabout",
+        "RoadVerge": "Road verge",
+        "Other": "Other"
+      },
+      "roadSide": {
+        "Left": "Left",
+        "Right": "Right",
+        "Both": "Both",
+        "Middle": "Middle"
+      },
+      "direction": {
+        "Along": "Along",
+        "Across": "Across"
+      },
+      "applicationType": {
+        "ExcavationPermit": "Excavation permit",
+        "RoadUsePermit": "Road use permit"
+      },
+      "source": {
+        "manual": "Entered manually",
+        "search": "Found on the map"
+      }
+    }
+  },
+  "mapStep": {
+    "mapPlaceholder": "Interactive map coming later",
+    "createError": "The areas could not be created. Try again later or contact support.",
+    "title": "Map",
+    "cannotFindRoad": "Can't find the road?",
+    "searchLabel": "Search road",
+    "searchPlaceholder": "E.g. Strandvej or Strandvej 5000",
+    "searchResults": "Search results",
+    "noResults": "No roads found",
+    "searchError": "The road search is not working right now. Try again later, or add the road manually.",
+    "resultCount_one": "{{count}} road found. Use the up and down arrows and press Enter to select or deselect a road.",
+    "resultCount_other": "{{count}} roads found. Use the up and down arrows and press Enter to select or deselect a road.",
+    "selectedRoads": "Selected roads",
+    "noSelectedRoads": "You have not selected any roads yet.",
+    "removeRoad": "Remove {{road}}",
+    "remove": "Remove",
+    "ownershipRequired": "Choose whether the road is a municipal road or a private road."
   },
   "home": {
     "createRoadPermit": "Apply for a road occupancy permit",

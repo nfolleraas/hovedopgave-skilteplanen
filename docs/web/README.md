@@ -13,7 +13,10 @@ container, Vite listens on port `5173` and proxies `/api` requests to the API on
 port `3000`.
 
 The [routing guide](routing.md) explains how URLs map to page components and
-how to register and link to new paths.
+how to register and link to new paths. Feature guides, such as
+[areas](../features/areas.md), are in [`docs/features/`](../features/). The
+[placeholder guide](../features/placeholders.md) explains which parts of the
+application flow are temporary and how to replace them.
 
 The [stylesheet](styles/stylesheet.md) documents the colours, typography, and
 component styles to use when implementing the UI.
@@ -30,6 +33,7 @@ Run these from the repository root:
 bun run --filter web dev
 bun run --filter web build
 bun run --filter web lint
+bun run --filter web test
 ```
 
 ## Tests

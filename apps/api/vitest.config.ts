@@ -9,5 +9,9 @@ export default defineConfig({
     globals: true,
     root: './',
     include: ['**/*.spec.ts'],
+    // Creating the first Nest testing module can take over 10s in the
+    // dev container.
+    hookTimeout: 60_000,
+    testTimeout: 60_000,
   },
 });
