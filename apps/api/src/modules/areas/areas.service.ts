@@ -45,8 +45,18 @@ export interface ApplicationAreas {
 
 @Injectable()
 export class AreasService {
+  /**
+   * Creates the service for area business rules.
+   * @param areas - Repository for area data access
+   */
   constructor(private readonly areas: AreasRepository) {}
 
+  /**
+   * Finds an application and all of its areas.
+   * @param applicationId - The case number of the application
+   * @returns The application and its areas
+   * @throws NotFoundException if the application does not exist
+   */
   async findByApplication(applicationId: string): Promise<ApplicationAreas> {
     const application = await this.getApplication(applicationId);
     const areas = await this.areas.getAllByApplication(applicationId);
@@ -54,17 +64,34 @@ export class AreasService {
     return { application, areas: areas.map(toAreaResponse) };
   }
 
+  /**
+   * Finds one area.
+   * @param id - The ID of the area
+   * @returns The area
+   * @throws NotFoundException if the area does not exist
+   */
   async findOne(id: string): Promise<AreaResponse> {
     return toAreaResponse(await this.getArea(id));
   }
 
+  /**
+   * Creates one area by reusing the rules for creating several areas.
+   * @param dto - The application ID and the area fields
+   * @returns The created area
+   */
   async create(dto: CreateAreaDto): Promise<AreaResponse> {
     const { applicationId, ...fields } = dto;
     const [area] = await this.createMany({ applicationId, areas: [fields] });
     return area;
   }
 
-  /** Creates one area per selected road (UC-034). */
+  /**
+   * Creates one area per selected road (UC-034).
+   * @param dto - The application ID and the areas to create
+   * @returns The created areas
+   * @throws ConflictException if the application can no longer be edited
+   * @throws BadRequestException if an area has unused or invalid fields
+   */
   async createMany(dto: CreateAreasDto): Promise<AreaResponse[]> {
     const application = await this.getApplication(dto.applicationId);
     this.assertEditable(application);
@@ -76,7 +103,15 @@ export class AreasService {
     return created.map(toAreaResponse);
   }
 
-  /** Updates an area and its details (UC-036). */
+  /**
+   * Updates an area and its details (UC-036). The changed fields are merged
+   * with the stored values before the whole area is validated.
+   * @param id - The ID of the area
+   * @param dto - The fields to change
+   * @returns The updated area
+   * @throws ConflictException if the application can no longer be edited
+   * @throws BadRequestException if the merged area is invalid
+   */
   async update(id: string, dto: UpdateAreaDto): Promise<AreaResponse> {
     const existing = await this.getArea(id);
     const { application } = existing;
@@ -104,7 +139,12 @@ export class AreasService {
     return toAreaResponse(updated);
   }
 
-  /** Deletes an area with its detail and size records (UC-035). */
+  /**
+   * Deletes an area with its detail and size records (UC-035).
+   * @param id - The ID of the area
+   * @returns A promise that resolves when the area is deleted
+   * @throws BadRequestException if it is the last area of the application
+   */
   async remove(id: string): Promise<void> {
     const area = await this.getArea(id);
     this.assertEditable(area.application);
@@ -125,6 +165,12 @@ export class AreasService {
     }
   }
 
+  /**
+   * Gets the application and translates Prisma's not-found error.
+   * @param applicationId - The case number of the application
+   * @returns The case number, type and status of the application
+   * @throws NotFoundException if the application does not exist
+   */
   private async getApplication(
     applicationId: string,
   ): Promise<AreaApplication> {
@@ -141,6 +187,12 @@ export class AreasService {
     }
   }
 
+  /**
+   * Gets the area and translates Prisma's not-found error.
+   * @param id - The ID of the area
+   * @returns The area with its detail, size and application
+   * @throws NotFoundException if the area does not exist
+   */
   private async getArea(id: string) {
     try {
       return await this.areas.getById(id);
@@ -155,6 +207,11 @@ export class AreasService {
     }
   }
 
+  /**
+   * Ensures that the application's areas may still be changed.
+   * @param application - The application the areas belong to
+   * @throws ConflictException if the status does not allow changes
+   */
   private assertEditable(application: AreaApplication): void {
     if (!canEditAreas(application.status)) {
       throw new ConflictException({
@@ -166,7 +223,12 @@ export class AreasService {
     }
   }
 
-  /** Rejects detail fields that the application type does not use. */
+  /**
+   * Rejects detail fields that the application type does not use.
+   * @param type - The application type
+   * @param fields - The area fields sent by the client
+   * @throws BadRequestException if a field is not used for the type
+   */
   private assertNoUnusedFields(
     type: ApplicationType,
     fields: Partial<AreaFieldsDto>,
@@ -188,6 +250,12 @@ export class AreasService {
     }
   }
 
+  /**
+   * Ensures that all required area fields are present and valid.
+   * @param type - The application type
+   * @param input - The area values to check
+   * @throws BadRequestException if any field is missing or invalid
+   */
   private assertValid(type: ApplicationType, input: AreaRuleInput): void {
     const invalidFields = findInvalidAreaFields(type, input);
     if (invalidFields.length > 0) {
@@ -200,8 +268,12 @@ export class AreasService {
   }
 
   /**
-   * New areas from the road search only need the road. If any detail is
-   * sent, the whole area must be valid so no half-filled details are stored.
+   * Maps area fields to Prisma create data. New areas from the road search
+   * only need the road. If any detail is sent, the whole area must be valid so
+   * no half-filled details are stored.
+   * @param application - The application the area belongs to
+   * @param fields - The area fields sent by the client
+   * @returns The Prisma create input for the area
    */
   private toCreateData(
     application: AreaApplication,
@@ -229,6 +301,12 @@ export class AreasService {
     };
   }
 
+  /**
+   * Builds the detail and size values for an area that has been validated.
+   * @param type - The application type, which decides the used fields
+   * @param input - The validated area values
+   * @returns The detail and size values, including the calculated area
+   */
   private toDetailValues(type: ApplicationType, input: AreaRuleInput) {
     const fieldSet = getAreaFieldSet(type);
     // assertValid has already checked that these values are present.
@@ -256,6 +334,12 @@ export class AreasService {
     };
   }
 
+  /**
+   * Builds nested Prisma create data for the area detail and size.
+   * @param type - The application type
+   * @param input - The validated area values
+   * @returns The nested create input
+   */
   private toDetailCreate(type: ApplicationType, input: AreaRuleInput) {
     const { detail, size } = this.toDetailValues(type, input);
     return {
@@ -264,6 +348,13 @@ export class AreasService {
     };
   }
 
+  /**
+   * Builds nested Prisma upsert data for the area detail and size, so details
+   * are created for areas that did not have any.
+   * @param type - The application type
+   * @param input - The validated area values
+   * @returns The nested upsert input
+   */
   private toDetailUpsert(type: ApplicationType, input: AreaRuleInput) {
     const { detail, size } = this.toDetailValues(type, input);
     return {
@@ -273,7 +364,11 @@ export class AreasService {
   }
 }
 
-/** Prisma's error code when findUniqueOrThrow finds no record. */
+/**
+ * Checks for Prisma's error code when findUniqueOrThrow finds no record.
+ * @param error - The caught error
+ * @returns True if the error means that the record was not found
+ */
 function isRecordNotFound(error: unknown): boolean {
   return (
     error instanceof Prisma.PrismaClientKnownRequestError &&
@@ -281,6 +376,11 @@ function isRecordNotFound(error: unknown): boolean {
   );
 }
 
+/**
+ * Flattens a stored area into the shape used by the area rules.
+ * @param area - The stored area with its relations
+ * @returns The area values used for validation
+ */
 function flattenRuleInput(area: AreaWithRelations): AreaRuleInput {
   const response = toAreaResponse(area);
   return {
@@ -297,13 +397,23 @@ function flattenRuleInput(area: AreaWithRelations): AreaRuleInput {
   };
 }
 
-/** Leaves a field out of an update (undefined) instead of clearing it. */
+/**
+ * Normalizes a house number for an update, but leaves an omitted field out
+ * (undefined) instead of clearing it.
+ * @param value - The house number sent by the client
+ * @returns The normalized house number, null, or undefined if omitted
+ */
 function normalizeOptionalHouseNumber(
   value: string | null | undefined,
 ): string | null | undefined {
   return value === undefined ? undefined : normalizeHouseNumber(value);
 }
 
+/**
+ * Removes properties whose value is undefined.
+ * @param value - The object to copy
+ * @returns A copy without undefined properties
+ */
 function stripUndefined<T extends object>(value: T): Partial<T> {
   return Object.fromEntries(
     Object.entries(value).filter(([, entry]) => entry !== undefined),

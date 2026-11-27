@@ -38,8 +38,11 @@ export interface AreaFieldSet {
 }
 
 /**
- * Which detail fields an application type uses. Excavation permits use all
- * of them (UC-034); road use permits have no direction or depth (UC-034 A1).
+ * Finds the detail fields an application type uses. Excavation permits use
+ * all of them (UC-034); road use permits have no direction or depth
+ * (UC-034 A1).
+ * @param type - The application type
+ * @returns Whether direction and depth are used
  */
 export function getAreaFieldSet(type: ApplicationType): AreaFieldSet {
   return type === ApplicationType.ExcavationPermit
@@ -52,22 +55,40 @@ const editableStatuses: readonly Status[] = [
   Status.ChangeRequired,
 ];
 
+/**
+ * Checks whether areas may be changed for an application status.
+ * @param status - The status of the application
+ * @returns True for drafts and applications that require changes
+ */
 export function canEditAreas(status: Status): boolean {
   return editableStatuses.includes(status);
 }
 
+/**
+ * Checks whether a value contains non-whitespace text.
+ * @param value - The value to check
+ * @returns True if the value is a non-blank string
+ */
 function hasText(value: string | null | undefined): boolean {
   return typeof value === 'string' && value.trim().length > 0;
 }
 
+/**
+ * Checks whether a value is a finite number greater than zero.
+ * @param value - The value to check
+ * @returns True if the value is a positive number
+ */
 function isPositive(value: number | null | undefined): boolean {
   return typeof value === 'number' && Number.isFinite(value) && value > 0;
 }
 
 /**
- * Returns the fields that are missing or invalid for a complete area.
+ * Finds the fields that are missing or invalid for a complete area.
  * Either both house numbers or an alternative description is enough
  * (UC-034 F1).
+ * @param type - The application type, which decides the required fields
+ * @param input - The area values to check
+ * @returns The missing or invalid fields, or an empty array if none
  */
 export function findInvalidAreaFields(
   type: ApplicationType,
@@ -103,9 +124,11 @@ export function findInvalidAreaFields(
 }
 
 /**
- * Stores a house number the way Danish addresses write it: a house number's
- * letter is uppercase, e.g. `5a` becomes `5A` (BEK nr. 271 af 2018, § 16,
- * stk. 2). Blank values become null. The format itself is not checked.
+ * Normalizes a house number the way Danish addresses write it: a house
+ * number's letter is uppercase, e.g. `5a` becomes `5A` (BEK nr. 271 af 2018,
+ * § 16, stk. 2). The format itself is not checked.
+ * @param value - The house number to normalize
+ * @returns The trimmed, uppercase house number, or null if it is blank
  */
 export function normalizeHouseNumber(
   value: string | null | undefined,
@@ -114,6 +137,12 @@ export function normalizeHouseNumber(
   return (value as string).trim().toUpperCase();
 }
 
+/**
+ * Calculates the area of a rectangle.
+ * @param lengthInMeters - The length in meters
+ * @param widthInMeters - The width in meters
+ * @returns The area in square meters
+ */
 export function calculateAreaInSquareMeters(
   lengthInMeters: number,
   widthInMeters: number,

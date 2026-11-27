@@ -36,6 +36,12 @@ export interface AreaResponse {
   areaInSquareMeters: number | null;
 }
 
+/**
+ * Maps a stored area with its detail and size records to the flat API shape.
+ * Missing detail or size values become null.
+ * @param area - The stored area with its relations
+ * @returns The area as returned by the API
+ */
 export function toAreaResponse(area: AreaWithRelations): AreaResponse {
   return {
     uuid: area.uuid,

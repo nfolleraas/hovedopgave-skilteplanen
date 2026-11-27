@@ -29,8 +29,16 @@ const caseNumberPrefix: Record<SupportedApplicationType, string> = {
  */
 @Injectable()
 export class DevApplicationsService {
+  /**
+   * Creates the service for test-only applications.
+   * @param repository - Repository for application data access
+   */
   constructor(private readonly repository: DevApplicationsRepository) {}
 
+  /**
+   * Lists all applications with their number of areas.
+   * @returns A summary of each application
+   */
   async findAll(): Promise<DevApplicationSummary[]> {
     const applications = await this.repository.getAllWithAreaCount();
     return applications.map(({ _count, ...application }) => ({
@@ -39,6 +47,12 @@ export class DevApplicationsService {
     }));
   }
 
+  /**
+   * Creates a draft application with a placeholder applicant, period and
+   * permit, so areas can be tested without the full application flow.
+   * @param type - The type of application to create
+   * @returns A summary of the created application
+   */
   async create(type: SupportedApplicationType): Promise<DevApplicationSummary> {
     const caseNumber = await this.nextCaseNumber(type);
     const title = `Testansøgning ${caseNumber}`;
@@ -103,7 +117,12 @@ export class DevApplicationsService {
     return { caseNumber, title, type, status: Status.Draft, areaCount: 0 };
   }
 
-  /** The next free number, e.g. DEV-GRAVE-4 when DEV-GRAVE-1..3 exist. */
+  /**
+   * Finds the next free case number for a type, e.g. DEV-GRAVE-4 when
+   * DEV-GRAVE-1..3 exist.
+   * @param type - The application type, which decides the prefix
+   * @returns The next free case number
+   */
   private async nextCaseNumber(
     type: SupportedApplicationType,
   ): Promise<string> {

@@ -16,9 +16,17 @@ export type AreaApplication = Pick<
 
 @Injectable()
 export class AreasRepository {
+  /**
+   * Creates the repository for area data access.
+   * @param prisma - Prisma client used for database queries
+   */
   constructor(private readonly prisma: PrismaService) {}
 
-  /** Creates all areas in one transaction, so either all or none are saved. */
+  /**
+   * Creates all areas in one transaction, so either all or none are saved.
+   * @param areas - The areas to create
+   * @returns The created areas with their detail and size records
+   */
   async addMany(areas: Prisma.AreaCreateInput[]): Promise<AreaWithRelations[]> {
     return await this.prisma.$transaction(
       areas.map((area) =>
@@ -27,6 +35,11 @@ export class AreasRepository {
     );
   }
 
+  /**
+   * Gets all areas for an application, ordered by ID.
+   * @param applicationId - The case number of the application
+   * @returns The areas with their detail and size records
+   */
   async getAllByApplication(
     applicationId: string,
   ): Promise<AreaWithRelations[]> {
@@ -37,6 +50,12 @@ export class AreasRepository {
     });
   }
 
+  /**
+   * Gets one area with its detail, size and application.
+   * Throws Prisma's not-found error if the area does not exist.
+   * @param uuid - The ID of the area
+   * @returns The area with its relations
+   */
   async getById(uuid: string): Promise<AreaWithApplication> {
     return await this.prisma.area.findUniqueOrThrow({
       where: { uuid },
@@ -44,10 +63,21 @@ export class AreasRepository {
     });
   }
 
+  /**
+   * Counts the areas that belong to an application.
+   * @param applicationId - The case number of the application
+   * @returns The number of areas
+   */
   async countByApplication(applicationId: string): Promise<number> {
     return await this.prisma.area.count({ where: { applicationId } });
   }
 
+  /**
+   * Updates an area.
+   * @param uuid - The ID of the area
+   * @param updatedArea - The fields to change
+   * @returns The updated area with its detail and size records
+   */
   async update(
     uuid: string,
     updatedArea: Prisma.AreaUpdateInput,
@@ -59,7 +89,11 @@ export class AreasRepository {
     });
   }
 
-  /** Deletes the area together with its detail and size records. */
+  /**
+   * Deletes the area together with its detail and size records.
+   * @param uuid - The ID of the area
+   * @returns The deleted area
+   */
   async delete(uuid: string): Promise<Area> {
     return await this.prisma.$transaction(async (tx) => {
       // The area holds the foreign keys, so it is deleted first.
@@ -74,6 +108,12 @@ export class AreasRepository {
     });
   }
 
+  /**
+   * Gets the application fields that decide how areas may be changed.
+   * Throws Prisma's not-found error if the application does not exist.
+   * @param caseNumber - The case number of the application
+   * @returns The case number, type and status of the application
+   */
   async getApplication(caseNumber: string): Promise<AreaApplication> {
     return await this.prisma.application.findUniqueOrThrow({
       where: { caseNumber },
