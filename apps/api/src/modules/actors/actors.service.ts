@@ -23,8 +23,10 @@ export class ActorsService {
   ) {}
 
   /**
-   * @summary Create an actor for an existing application,
-   * reusing a matching address and applying role-specific business rules.
+   * Creates an actor for an existing application, reusing a matching address
+   * and applying role-specific business rules.
+   * @param createActorDto - Actor details and application case number
+   * @returns The created actor with its address and contact persons
    */
   async create(
     createActorDto: CreateActorDto,
@@ -77,14 +79,22 @@ export class ActorsService {
     });
   }
 
-  /** @summary List actors with their related details. */
+  /**
+   * Lists actors with their related details.
+   * @param caseNumber - Optional application case number to filter by
+   * @returns The matching actors with their related details
+   */
   findAll(caseNumber?: string): ReturnType<ActorsRepository['getAll']> {
     return caseNumber
       ? this.actorsRepository.getAll(caseNumber)
       : this.actorsRepository.getAll();
   }
 
-  /** @summary Find an actor or throw a not-found exception. */
+  /**
+   * Finds an actor or throws a not-found exception.
+   * @param uuid - UUID of the actor to find
+   * @returns The actor with its related details
+   */
   async findOne(
     uuid: string,
   ): Promise<NonNullable<Awaited<ReturnType<ActorsRepository['get']>>>> {
@@ -96,8 +106,11 @@ export class ActorsService {
   }
 
   /**
-   * @summary Update supplied actor fields while rejecting role changes
-   * and reporting missing actors as not found.
+   * Updates supplied actor fields while rejecting role changes and reporting
+   * missing actors as not found.
+   * @param uuid - UUID of the actor to update
+   * @param updateActorDto - Actor fields to update
+   * @returns The updated actor with its related details
    */
   async update(
     uuid: string,
@@ -162,7 +175,11 @@ export class ActorsService {
     }
   }
 
-  /** @summary Delete an actor or throw a not-found exception. */
+  /**
+   * Deletes an actor or throws a not-found exception.
+   * @param uuid - UUID of the actor to delete
+   * @returns The deleted actor
+   */
   async delete(uuid: string): Promise<Actor> {
     const actor = await this.actorsRepository.delete(uuid);
     if (!actor) {

@@ -11,8 +11,11 @@ interface CvrLookupProps {
 }
 
 /**
- * @summary Render a CVR input with search-button and Enter-key confirmation
- * when its eight-digit value is valid and lookup is available.
+ * Renders a CVR input with search-button and Enter-key confirmation when its
+ * eight-digit value is valid and lookup is available.
+ * @param props - CVR value, lookup state, and change and confirmation
+ *   callbacks
+ * @returns The CVR input and lookup button
  */
 export function CvrLookup({
   value,

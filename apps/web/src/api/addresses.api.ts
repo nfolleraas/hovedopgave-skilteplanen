@@ -14,25 +14,39 @@ export interface VerifiedAddress {
 // The development proxy adds the configured token outside the browser.
 const baseUrl = '/address-lookup';
 
-/** @summary Narrow an unknown value to a non-null object for response parsing. */
+/**
+ * Narrows an unknown value to a non-null object for response parsing.
+ * @param value - Response value to check
+ * @returns Whether the value is a non-null object that is not an array
+ */
 function isObject(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
 
-/** @summary Require nonempty text before accepting an address field. */
+/**
+ * Requires nonempty text before accepting an address field.
+ * @param value - Address field to check
+ * @returns Whether the value is a string containing non-whitespace text
+ */
 function isText(value: unknown): value is string {
   return typeof value === 'string' && value.trim().length > 0;
 }
 
-/** @summary Limit address requests to ten seconds while preserving caller cancellation. */
+/**
+ * Limits address requests to ten seconds while preserving caller cancellation.
+ * @param signal - Optional caller cancellation signal
+ * @returns A signal that aborts on timeout or caller cancellation
+ */
 function requestSignal(signal?: AbortSignal): AbortSignal {
   const timeout = AbortSignal.timeout(10_000);
   return signal ? AbortSignal.any([signal, timeout]) : timeout;
 }
 
 /**
- * @summary Validate a search response and extract selectable house numbers
- * and suggestions that refine the address search.
+ * Validates a search response and extracts selectable house numbers and
+ * suggestions that refine the address search.
+ * @param data - Untrusted address search response
+ * @returns Selectable house numbers and suggestions that refine the search
  */
 export function parseAddressSuggestions(data: unknown): AddressSuggestion[] {
   if (!isObject(data) || data.status !== 'ok' || !Array.isArray(data.fund)) {
@@ -69,7 +83,11 @@ export function parseAddressSuggestions(data: unknown): AddressSuggestion[] {
   });
 }
 
-/** @summary Validate and map a current, complete house-number lookup response. */
+/**
+ * Validates and maps a current, complete house-number lookup response.
+ * @param data - Untrusted house-number lookup response
+ * @returns The verified address with normalized fields
+ */
 export function parseAddressLookup(data: unknown): VerifiedAddress {
   if (!isObject(data) || data.status !== 'ok' || !isObject(data.husnummer)) {
     throw new Error('Invalid address lookup response.');
@@ -97,7 +115,12 @@ export function parseAddressLookup(data: unknown): VerifiedAddress {
   };
 }
 
-/** @summary Fetch up to ten address suggestions for the supplied search text. */
+/**
+ * Fetches up to ten address suggestions for the supplied search text.
+ * @param query - Address search text
+ * @param signal - Optional signal to cancel the request
+ * @returns Up to ten address suggestions
+ */
 export async function searchAddresses(
   query: string,
   signal?: AbortSignal,
@@ -113,7 +136,12 @@ export async function searchAddresses(
   return parseAddressSuggestions(await response.json());
 }
 
-/** @summary Resolve a house-number ID to a verified address. */
+/**
+ * Resolves a house-number ID to a verified address.
+ * @param id - House-number ID to resolve
+ * @param signal - Optional signal to cancel the request
+ * @returns The verified address for the selected house number
+ */
 export async function lookupAddress(
   id: string,
   signal?: AbortSignal,

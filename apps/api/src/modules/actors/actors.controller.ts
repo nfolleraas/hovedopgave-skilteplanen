@@ -18,7 +18,11 @@ import { UpdateActorDto } from './dto/update-actor.dto.js';
 export class ActorsController {
   constructor(private readonly actorsService: ActorsService) {}
 
-  /** @summary Create an actor from the request body. */
+  /**
+   * Creates an actor from the request body.
+   * @param createActorDto - Validated actor details from the request body
+   * @returns The created actor with its related details
+   */
   @Post()
   create(
     @Body() createActorDto: CreateActorDto,
@@ -26,7 +30,11 @@ export class ActorsController {
     return this.actorsService.create(createActorDto);
   }
 
-  /** @summary Return all actors with their related details. */
+  /**
+   * Returns all actors with their related details.
+   * @param caseNumber - Optional application case number from the query
+   * @returns The matching actors with their related details
+   */
   @Get()
   getAll(
     @Query('caseNumber') caseNumber?: string,
@@ -36,7 +44,11 @@ export class ActorsController {
       : this.actorsService.findAll();
   }
 
-  /** @summary Return the actor identified by its UUID. */
+  /**
+   * Returns the actor identified by its UUID.
+   * @param uuid - Validated UUID of the actor to find
+   * @returns The actor with its related details
+   */
   @Get(':uuid')
   get(
     @Param('uuid', ParseUUIDPipe) uuid: string,
@@ -44,7 +56,12 @@ export class ActorsController {
     return this.actorsService.findOne(uuid);
   }
 
-  /** @summary Partially update an actor from the request body. */
+  /**
+   * Partially update an actor from the request body.
+   * @param uuid - Validated UUID of the actor to update
+   * @param updateActorDto - Validated actor fields from the request body
+   * @returns The updated actor with its related details
+   */
   @Patch(':uuid')
   update(
     @Param('uuid', ParseUUIDPipe) uuid: string,
@@ -53,7 +70,11 @@ export class ActorsController {
     return this.actorsService.update(uuid, updateActorDto);
   }
 
-  /** @summary Delete the requested actor and its contact persons. */
+  /**
+   * Deletes the requested actor and its contact persons.
+   * @param uuid - Validated UUID of the actor to delete
+   * @returns The deleted actor
+   */
   @Delete(':uuid')
   delete(@Param('uuid', ParseUUIDPipe) uuid: string): Promise<Actor> {
     return this.actorsService.delete(uuid);

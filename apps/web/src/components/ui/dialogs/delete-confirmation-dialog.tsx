@@ -23,9 +23,11 @@ interface DeleteConfirmationDialogProps {
 }
 
 /**
- * @summary Confirm deletion with a translated message naming the item
- * or a caller-provided description, displaying any error state and
- * preventing confirmation and dismissal while deletion is in progress.
+ * Confirms deletion with a translated message naming the item or a caller-
+ * provided description, displaying any error state and preventing confirmation
+ * and dismissal while deletion is in progress.
+ * @param props - Dialog content, deletion state, and lifecycle callbacks
+ * @returns The deletion confirmation dialog
  */
 export function DeleteConfirmationDialog({
   open,

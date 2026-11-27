@@ -5,17 +5,30 @@ import {
 } from '../pages/actors-page/actor.types.js';
 import { apiClient } from './client.api.js';
 
-/** @summary Check that a response value is a record before reading its fields. */
+/**
+ * Checks that a response value is a record before reading its fields.
+ * @param value - Response value to check
+ * @returns Whether the value is a non-null object that is not an array
+ */
 function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
 
-/** @summary Require a nonempty string for fields used to identify or display actors. */
+/**
+ * Requires a nonempty string for fields used to identify or display actors.
+ * @param value - Response field to check
+ * @returns Whether the value is a string containing non-whitespace text
+ */
 function isText(value: unknown): value is string {
   return typeof value === 'string' && value.trim().length > 0;
 }
 
-/** @summary Validate an actor and its nested address and contact persons at the API boundary. */
+/**
+ * Validates an actor and its nested address and contact persons at the API
+ * boundary.
+ * @param value - Response value to validate
+ * @returns Whether the value satisfies the saved actor response shape
+ */
 function isSavedActor(value: unknown): value is SavedActor {
   return (
     isRecord(value) &&
@@ -47,7 +60,11 @@ function isSavedActor(value: unknown): value is SavedActor {
   );
 }
 
-/** @summary Reject malformed actor responses before they reach the UI. */
+/**
+ * Rejects malformed actor responses before they reach the UI.
+ * @param data - Untrusted actor response
+ * @returns The validated saved actor
+ */
 function parseActor(data: unknown): SavedActor {
   if (!isSavedActor(data)) {
     throw new Error('Serveren returnerede ugyldige aktøroplysninger.');
@@ -55,7 +72,12 @@ function parseActor(data: unknown): SavedActor {
   return data;
 }
 
-/** @summary Fetch and validate all actors, allowing the request to be cancelled. */
+/**
+ * Fetches and validates all actors, allowing the request to be cancelled.
+ * @param signal - Optional signal to cancel the request
+ * @param caseNumber - Optional application case number to filter by
+ * @returns The validated actors returned by the API
+ */
 export async function getActors(
   signal?: AbortSignal,
   caseNumber?: string,
@@ -70,12 +92,20 @@ export async function getActors(
   return data.map(parseActor);
 }
 
-/** @summary Delete the actor identified by its UUID. */
+/**
+ * Deletes the actor identified by its UUID.
+ * @param uuid - UUID of the actor to delete
+ */
 export async function deleteActor(uuid: string): Promise<void> {
   await apiClient.delete(`/actors/${encodeURIComponent(uuid)}`);
 }
 
-/** @summary Create an actor linked to the supplied application case number. */
+/**
+ * Creates an actor linked to the supplied application case number.
+ * @param caseNumber - Case number of the application receiving the actor
+ * @param draft - Actor details to submit
+ * @returns The validated created actor
+ */
 export async function createActor(
   caseNumber: string,
   draft: ActorSubmission,
@@ -90,7 +120,12 @@ export async function createActor(
   return parseActor(data);
 }
 
-/** @summary Update an actor while excluding its immutable role from the request. */
+/**
+ * Updates an actor while excluding its immutable role from the request.
+ * @param uuid - UUID of the actor to update
+ * @param draft - Actor details whose mutable fields should be submitted
+ * @returns The validated updated actor
+ */
 export async function updateActor(
   uuid: string,
   draft: ActorSubmission,

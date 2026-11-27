@@ -15,8 +15,11 @@ export class ActorsRepository {
   }
 
   /**
-   * @summary Keep identity checks and writes in one serializable transaction.
-   * Retry serialization conflicts so a concurrent duplicate becomes a field error.
+   * Keeps identity checks and writes in one serializable transaction. Retry
+   * serialization conflicts so a concurrent duplicate becomes a field error.
+   * @param operation - Identity checks and writes using the transaction
+   *   repository
+   * @returns The result of the committed operation
    */
   async withTransaction<T>(
     operation: (
@@ -48,7 +51,11 @@ export class ActorsRepository {
     }
   }
 
-  /** @summary Create an actor and return its address and contact persons. */
+  /**
+   * Creates an actor and returns its address and contact persons.
+   * @param data - Actor fields and relations to create
+   * @returns The created actor with its address and contact persons
+   */
   create(data: Prisma.ActorCreateInput): Promise<ActorWithDetails> {
     return this.client.actor.create({
       data,
@@ -56,7 +63,12 @@ export class ActorsRepository {
     });
   }
 
-  /** @summary Update an actor, returning null if the actor is missing. */
+  /**
+   * Updates an actor, returning null if the actor is missing.
+   * @param uuid - UUID of the actor to update
+   * @param data - Actor fields and relations to update
+   * @returns The updated actor with its details, or null if missing
+   */
   async update(
     uuid: string,
     data: Prisma.ActorUpdateInput,
@@ -82,8 +94,10 @@ export class ActorsRepository {
   }
 
   /**
-   * @summary Delete an actor and its contact persons atomically,
-   * returning null if the actor does not exist.
+   * Deletes an actor and its contact persons atomically, returning null if the
+   * actor does not exist.
+   * @param uuid - UUID of the actor to delete
+   * @returns The deleted actor, or null if missing
    */
   async delete(uuid: string): Promise<Actor | null> {
     try {
@@ -105,7 +119,11 @@ export class ActorsRepository {
     }
   }
 
-  /** @summary Find an actor with its related details, returning null if absent. */
+  /**
+   * Finds an actor with its related details, returning null if absent.
+   * @param uuid - UUID of the actor to find
+   * @returns The actor with its related details, or null if absent
+   */
   get(uuid: string): Promise<ActorWithDetails | null> {
     return this.client.actor.findUnique({
       where: { uuid },
@@ -113,7 +131,11 @@ export class ActorsRepository {
     });
   }
 
-  /** @summary List all actors with their addresses and contact persons. */
+  /**
+   * Lists all actors with their addresses and contact persons.
+   * @param caseNumber - Optional application case number to filter by
+   * @returns The matching actors with their addresses and contact persons
+   */
   getAll(caseNumber?: string): Promise<ActorWithDetails[]> {
     return this.client.actor.findMany({
       ...(caseNumber
@@ -123,7 +145,14 @@ export class ActorsRepository {
     });
   }
 
-  /** @summary Find the same actor identity within the selected applications. */
+  /**
+   * Finds the same actor identity within the selected applications.
+   * @param identity - CVR number, or email for an actor without a CVR number
+   * @param application - Filter selecting the applications to check
+   * @param excludeUuid - Optional actor UUID to exclude when checking an
+   *   update
+   * @returns The duplicate actor UUID, or null if no duplicate exists
+   */
   findDuplicate(
     identity: { cvrNumber: string | null; email: string },
     application: Prisma.ApplicationWhereInput,

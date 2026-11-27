@@ -10,8 +10,11 @@ export interface CompanyDetails {
 }
 
 /**
- * @summary Look up an eight-digit CVR number with a ten-second timeout
- * and return normalized company details.
+ * Looks up an eight-digit CVR number with a ten-second timeout and returns
+ * normalized company details.
+ * @param cvrNumber - Eight-digit CVR number to look up
+ * @param signal - Optional signal to cancel the request
+ * @returns Normalized company details with any usable address
  */
 export async function lookupCompany(
   cvrNumber: string,
@@ -34,19 +37,30 @@ export async function lookupCompany(
   return parseCompanyLookup(await response.json(), cvrNumber);
 }
 
-/** @summary Narrow an unknown value to a non-null object for response parsing. */
+/**
+ * Narrows an unknown value to a non-null object for response parsing.
+ * @param value - Response value to check
+ * @returns Whether the value is a non-null object
+ */
 function isObject(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object';
 }
 
-/** @summary Trim string values and represent non-string values as empty text. */
+/**
+ * Trims string values and represents non-string values as empty text.
+ * @param value - Response field to normalize
+ * @returns Trimmed text, or an empty string for non-string values
+ */
 function text(value: unknown): string {
   return typeof value === 'string' ? value.trim() : '';
 }
 
 /**
- * @summary Validate the company response against the requested CVR number
- * and normalize contact details and any usable address for the actor form.
+ * Validates the company response against the requested CVR number and
+ * normalizes contact details and any usable address for the actor form.
+ * @param data - Untrusted company lookup response
+ * @param cvrNumber - Requested CVR number that the response must match
+ * @returns Normalized company details with any usable address
  */
 export function parseCompanyLookup(
   data: unknown,

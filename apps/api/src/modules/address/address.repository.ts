@@ -6,7 +6,11 @@ import { PrismaService } from '../prisma/prisma.service.js';
 export class AddressRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  /** @summary Find the first address matching all supplied fields, or null. */
+  /**
+   * Finds the first address matching all supplied fields, or null.
+   * @param address - Address fields that must all match
+   * @returns The first matching address, or null if none exists
+   */
   findMatching(
     address: Prisma.AddressCreateManyInput,
   ): Promise<Address | null> {

@@ -19,8 +19,10 @@ interface AddressSearchProps {
 }
 
 /**
- * @summary Render a debounced address search that resolves selected house
- * numbers to verified addresses and supports an existing address selection.
+ * Renders a debounced address search that resolves selected house numbers to
+ * verified addresses and supports an existing address selection.
+ * @param props - Initial address, input state, and selection change callback
+ * @returns The address search input with lookup feedback and suggestions
  */
 export function AddressSearch({
   disabled,
@@ -76,8 +78,9 @@ export function AddressSearch({
   useEffect(() => () => lookupController.current?.abort(), []);
 
   /**
-   * @summary Replace the search text, cancelling pending requests
-   * and clearing the previously verified address.
+   * Replaces the search text, cancelling pending requests and clearing the
+   * previously verified address.
+   * @param text - Replacement address search text
    */
   function changeQuery(text: string): void {
     searchController.current?.abort();
@@ -92,8 +95,9 @@ export function AddressSearch({
   }
 
   /**
-   * @summary Clear the selection, refine the search, or resolve a house-number
+   * Clears the selection, refines the search, or resolves a house-number
    * suggestion, publishing the address only if its lookup is still current.
+   * @param option - Selected suggestion, or null to clear the selection
    */
   async function selectAddress(
     option: AddressSuggestion | null,

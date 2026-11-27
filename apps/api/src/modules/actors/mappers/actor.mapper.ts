@@ -11,8 +11,11 @@ type ActorCreationData = Omit<CreateActorDto, 'cvrNumber' | 'department'> & {
 
 export class ActorMapper {
   /**
-   * @summary Map actor creation data to normalized fields
-   * and application and address relations.
+   * Maps actor creation data to normalized fields and application and address
+   * relations.
+   * @param dto - Actor creation data to normalize
+   * @param existingAddressId - Optional UUID of an address to reuse
+   * @returns Prisma creation data with application and address relations
    */
   toCreateInput(
     dto: ActorCreationData,
@@ -35,8 +38,11 @@ export class ActorMapper {
   }
 
   /**
-   * @summary Map supplied actor updates while preserving omitted fields
-   * and excluding the immutable role.
+   * Maps supplied actor updates while preserving omitted fields and excluding
+   * the immutable role.
+   * @param dto - Supplied actor fields to update
+   * @param existingAddressId - Optional UUID of an address to reuse
+   * @returns Prisma update data containing only supplied mutable fields
    */
   toUpdateInput(
     dto: UpdateActorDto,
