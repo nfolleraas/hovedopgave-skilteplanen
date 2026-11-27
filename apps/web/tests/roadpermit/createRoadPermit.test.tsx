@@ -225,7 +225,7 @@ describe('Road permit application', () => {
     await renderPermitFlow();
     await user.click(button('Actor'));
     expect(getActors).toHaveBeenCalledWith(expect.any(AbortSignal), draftId);
-    await user.click(button('Opret aktør'));
+    await user.click(button('Create actor'));
     expect(screen.getByRole('dialog', { name: 'Opret aktør' })).toBeTruthy();
     expect(screen.getByRole('combobox', { name: 'Role' })).toBeTruthy();
     await user.click(button('Annuller'));
@@ -242,7 +242,7 @@ describe('Road permit application', () => {
       phoneNumber: '87654321',
     });
     await user.click(button('Actor'));
-    await user.click(button('Opdater Test Contact'));
+    await user.click(button('Update Test Contact'));
     const phone = screen.getByRole('textbox', { name: 'Telefonnummer' });
     await user.clear(phone);
     await user.type(phone, '87654321');

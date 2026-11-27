@@ -79,7 +79,7 @@ export default function ActorsPage({
     setDeleteFailed(false);
     try {
       await deleteActorRequest(actorToDelete.uuid);
-      setStatusMessage(`${actorToDelete.name} er slettet.`);
+      setStatusMessage(t('actors.deleted', { name: actorToDelete.name }));
       restoreFocusAfterDelete.current = true;
       setActors((current) =>
         current.filter((actor) => actor.uuid !== actorToDelete.uuid),
@@ -102,35 +102,38 @@ export default function ActorsPage({
         component="section"
         elevation={0}
         sx={{
-          border: '1px solid #D7E0E9',
+          border: 1,
+          borderColor: 'divider',
           borderRadius: 3,
-          boxShadow: '0 4px 14px rgba(33, 54, 76, 0.06)',
+          boxShadow: 2,
           overflow: 'hidden',
         }}
       >
         {isLoading ? (
           <Stack role="status" spacing={1} sx={{ alignItems: 'center', p: 4 }}>
             <CircularProgress size={28} />
-            <Typography color="text.secondary">Henter aktører…</Typography>
+            <Typography color="text.secondary">
+              {t('actors.loading')}
+            </Typography>
           </Stack>
         ) : loadFailed ? (
           <Alert
             action={
               <Button color="inherit" onClick={retry} ref={retryButton}>
-                Prøv igen
+                {t('actors.retry')}
               </Button>
             }
             severity="error"
             sx={{ m: 2 }}
           >
-            Aktørerne kunne ikke hentes. Prøv igen.
+            {t('actors.errors.load')}
           </Alert>
         ) : actors.length === 0 ? (
           <Typography
-            color="#757575"
+            color="text.secondary"
             sx={{ px: 3, py: 4, textAlign: 'center' }}
           >
-            Der er endnu ingen aktører på ansøgningen.
+            {t('actors.empty')}
           </Typography>
         ) : (
           <Stack divider={<Divider flexItem />}>
@@ -173,7 +176,7 @@ export default function ActorsPage({
                     {actor.name}
                   </Button>
                   <Button
-                    aria-label={`Opdater ${actor.name}`}
+                    aria-label={t('actors.updateLabel', { name: actor.name })}
                     onClick={() => onEdit(actor)}
                     sx={{
                       flexShrink: 0,
@@ -182,10 +185,10 @@ export default function ActorsPage({
                     }}
                     variant="outlined"
                   >
-                    Opdater
+                    {t('actors.update')}
                   </Button>
                   <Button
-                    aria-label={`Slet ${actor.name}`}
+                    aria-label={t('actors.deleteLabel', { name: actor.name })}
                     color="error"
                     onClick={() => openDeleteDialog(actor)}
                     sx={{
@@ -195,13 +198,13 @@ export default function ActorsPage({
                     }}
                     variant="outlined"
                   >
-                    Slet
+                    {t('actors.delete')}
                   </Button>
                 </Stack>
                 <Box
                   hidden={!expandedActors.has(actor.uuid)}
                   id={`actor-details-${actor.uuid}`}
-                  sx={{ bgcolor: '#F7F9FC', px: 3.5, py: 2 }}
+                  sx={{ bgcolor: 'background.supporting', px: 3.5, py: 2 }}
                 >
                   <Box
                     component="dl"
@@ -218,14 +221,14 @@ export default function ActorsPage({
                   >
                     {[
                       [t('actors.role'), t(`actors.roles.${actor.role}`)],
-                      ['Telefonnummer', actor.phoneNumber],
-                      ['E-mail', actor.email],
+                      [t('actors.phoneNumber'), actor.phoneNumber],
+                      [t('actors.email'), actor.email],
                       [
                         t('actors.address'),
                         `${actor.address.street} ${actor.address.houseNumber}, ${actor.address.postalCode} ${actor.address.city}`,
                       ],
-                      ['CVR-nummer', actor.cvrNumber],
-                      ['Afdeling', actor.department],
+                      [t('actors.cvrNumber'), actor.cvrNumber],
+                      [t('actors.department'), actor.department],
                     ].map(([label, value]) =>
                       value ? (
                         <Box key={label}>
@@ -250,9 +253,10 @@ export default function ActorsPage({
                     sx={{
                       mt: 3,
                       p: 2,
-                      border: '1px solid #D7E0E9',
+                      border: 1,
+                      borderColor: 'divider',
                       borderRadius: 2,
-                      boxShadow: '0 2px 8px rgba(33, 54, 76, 0.06)',
+                      boxShadow: 1,
                     }}
                   >
                     <Typography
@@ -261,19 +265,19 @@ export default function ActorsPage({
                       sx={{ fontWeight: 600, mb: 2 }}
                       variant="h6"
                     >
-                      Kontaktpersoner
+                      {t('actors.contacts')}
                     </Typography>
                     <Stack spacing={2}>
                       {actor.contactPersons.length === 0 ? (
                         <Typography color="text.secondary">
-                          Der er endnu ingen kontaktpersoner på aktøren.
+                          {t('actors.noContacts')}
                         </Typography>
                       ) : (
                         actor.contactPersons.map((contact) => (
                           <Box
                             key={contact.uuid}
                             sx={{
-                              bgcolor: '#F7F9FC',
+                              bgcolor: 'background.supporting',
                               borderRadius: 1,
                               p: 2,
                               overflowWrap: 'anywhere',
@@ -283,26 +287,34 @@ export default function ActorsPage({
                               {contact.name}
                             </Typography>
                             <Typography>
-                              Telefonnummer: {contact.phoneNumber}
+                              {t('actors.contactPhone', {
+                                phoneNumber: contact.phoneNumber,
+                              })}
                             </Typography>
-                            <Typography>E-mail: {contact.email}</Typography>
+                            <Typography>
+                              {t('actors.contactEmail', {
+                                email: contact.email,
+                              })}
+                            </Typography>
                           </Box>
                         ))
                       )}
                       {/* PLACEHOLDER: Wire contact creation in the contact-person branch. */}
                       <Button
                         aria-disabled="true"
-                        aria-label={`Opret kontakt for ${actor.name}`}
+                        aria-label={t('actors.createContactLabel', {
+                          name: actor.name,
+                        })}
                         color="primary"
                         sx={{
                           alignSelf: { xs: 'stretch', sm: 'flex-end' },
                           minHeight: 44,
                         }}
-                        title="Kontaktoprettelse kommer senere."
+                        title={t('actors.createContactHint')}
                         type="button"
                         variant="contained"
                       >
-                        Opret kontakt
+                        {t('actors.createContact')}
                       </Button>
                     </Stack>
                   </Paper>
@@ -317,7 +329,7 @@ export default function ActorsPage({
           spacing={2}
           sx={{
             alignItems: { xs: 'stretch', sm: 'center' },
-            bgcolor: '#F5F5F5',
+            bgcolor: 'grey.100',
             justifyContent: 'flex-end',
             px: 2.5,
             py: 2,
@@ -330,7 +342,7 @@ export default function ActorsPage({
             sx={{ borderRadius: 1, px: 2.5 }}
             variant="contained"
           >
-            Opret aktør
+            {t('actors.create')}
           </Button>
         </Stack>
       </Paper>

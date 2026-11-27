@@ -1,11 +1,22 @@
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import type { ReactElement, ReactNode } from 'react';
 
+declare module '@mui/material/styles' {
+  interface TypeBackground {
+    supporting: string;
+  }
+}
+
 const theme = createTheme({
   palette: {
-    background: { default: '#FFFFFF', paper: '#FFFFFF' },
+    background: {
+      default: '#FFFFFF',
+      paper: '#FFFFFF',
+      supporting: '#F7F9FC',
+    },
     error: { main: '#C62828' },
     primary: { main: '#1562AD', contrastText: '#FFFFFF' },
+    secondary: { main: '#424242', contrastText: '#FFFFFF' },
     success: { main: '#4CAF50' },
     text: { primary: '#212121', secondary: '#616161' },
   },

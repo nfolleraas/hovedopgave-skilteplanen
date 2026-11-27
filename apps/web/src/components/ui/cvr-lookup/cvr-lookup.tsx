@@ -1,5 +1,6 @@
 import { Box, Button, TextField } from '@mui/material';
 import type { ReactElement } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface CvrLookupProps {
   value: string;
@@ -25,6 +26,7 @@ export function CvrLookup({
   onChange,
   onConfirm,
 }: CvrLookupProps): ReactElement {
+  const { t } = useTranslation();
   const canConfirm = !disabled && !loading && /^\d{8}$/.test(value.trim());
 
   return (
@@ -34,11 +36,8 @@ export function CvrLookup({
         disabled={disabled}
         error={Boolean(error)}
         fullWidth
-        helperText={
-          error ??
-          'Bekræft CVR-nummeret for at hente virksomhedens oplysninger.'
-        }
-        label="CVR-nummer"
+        helperText={error ?? t('actors.cvrLookupHint')}
+        label={t('actors.cvrNumber')}
         name="cvrNumber"
         onChange={(event) => onChange(event.target.value)}
         onKeyDown={(event) => {
@@ -60,7 +59,7 @@ export function CvrLookup({
         type="button"
         variant="outlined"
       >
-        Søg
+        {t('actors.cvrLookupSearch')}
       </Button>
     </Box>
   );

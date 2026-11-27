@@ -207,7 +207,7 @@ test('validates, reviews and submits a road permit against its existing draft', 
         },
       }),
   );
-  await page.getByRole('button', { name: 'Opret aktør', exact: true }).click();
+  await page.getByRole('button', { name: 'Create actor', exact: true }).click();
   const actorEditor = page.getByRole('dialog', { name: 'Opret aktør' });
   await actorEditor
     .getByRole('combobox', { name: 'Role', exact: false })

@@ -277,9 +277,10 @@ export function ActorForm({
       noValidate
       onSubmit={submit}
       sx={{
-        border: '1px solid #D7E0E9',
+        border: 1,
+        borderColor: 'divider',
         borderRadius: 3,
-        boxShadow: '0 4px 14px rgba(33, 54, 76, 0.06)',
+        boxShadow: 2,
         overflow: 'hidden',
       }}
     >
@@ -381,18 +382,18 @@ export function ActorForm({
         direction={{ xs: 'column', sm: 'row' }}
         spacing={1.5}
         sx={{
-          bgcolor: '#F5F5F5',
-          borderTop: '1px solid #D7E0E9',
+          bgcolor: 'grey.100',
+          borderTop: 1,
+          borderColor: 'divider',
           justifyContent: 'flex-end',
           p: { xs: 2, md: 3 },
         }}
       >
         <Button
+          color="secondary"
           disabled={saving}
           onClick={onCancel}
           sx={{
-            bgcolor: '#424242',
-            '&:hover': { bgcolor: '#333333' },
             minHeight: 42,
           }}
           variant="contained"
