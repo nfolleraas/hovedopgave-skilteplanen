@@ -262,7 +262,7 @@ test('updating a deleted actor asks the user to refresh and keeps their input', 
     .getByRole('button', { name: 'Opdater aktør', exact: true })
     .click();
   await expect(page.getByRole('alert')).toHaveText(
-    'akør findes ikke længere opdater siden',
+    'Aktøren findes ikke længere. Opdater siden.',
   );
   await expect(name).toHaveValue('Anna Hansen');
   await expect(

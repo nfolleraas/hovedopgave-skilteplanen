@@ -77,8 +77,7 @@ export function mapCreateRoadPermit(
           usageDetails.locationDescription?.trim() || null,
       },
     },
-    // PLACEHOLDER: Contact persons are created with non-private actors until
-    // the contact-person branch handles submitted contact information.
+    // Contact-person placeholders are created when actors are saved.
     trafficCalmingMeasures: {
       create: dto.roadMarking.trafficPrecautions.map((measure) => ({
         type: measure.type as TrafficCalmingMeasureType,

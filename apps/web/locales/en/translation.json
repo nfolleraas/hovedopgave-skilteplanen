@@ -67,9 +67,6 @@
       "dateOrder": "The end date cannot be before the start date.",
       "usage": "Select a type of use.",
       "startDate": "Select a start date.",
-      "contactName": "Enter a name.",
-      "contactPhone": "Enter 8 digits or an international number with a country code.",
-      "contactEmail": "Enter a valid email address.",
       "houseNumberFrom": "Enter a valid house number in the From field, for example 12 or 12A.",
       "houseNumberMissing": "Enter the first house number in the range.",
       "houseNumberTo": "Enter a valid house number in the To field, for example 12 or 12A.",
@@ -224,7 +221,6 @@
       "label": "Municipality"
     },
     "contact": {
-      "heading": "Add a contact person",
       "name": "Name",
       "phone": "Phone number",
       "email": "Email"
@@ -315,6 +311,7 @@
     "errors": {
       "addressLookup": "The address could not be verified. Try again.",
       "name": "Name may only contain letters.",
+      "notFound": "The actor no longer exists. Refresh the page.",
       "delete": "The actor could not be deleted. Try again."
     },
     "addressSearching": "Searching for addresses…",

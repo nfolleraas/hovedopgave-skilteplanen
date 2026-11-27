@@ -85,7 +85,6 @@ export default function ActorsPage({
         current.filter((actor) => actor.uuid !== actorToDelete.uuid),
       );
       setActorToDelete(null);
-      retry();
     } catch (error: unknown) {
       reportError('Deleting actor failed', error);
       setDeleteFailed(true);

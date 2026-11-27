@@ -1,11 +1,7 @@
 import type { TFunction } from 'i18next';
 import type { Municipality } from '../../../api/municipalities.api';
 import { validateRoadLocation } from '../../../utils/validateRoadLocation';
-import type {
-  ContactInformation,
-  MaterialDraft,
-  UsageDetails,
-} from './formTypes';
+import type { MaterialDraft, UsageDetails } from './formTypes';
 
 /** Requires a nonblank title and a municipality from the supported list. */
 export function validateMunicipalityAndTitle(
@@ -21,7 +17,6 @@ export function validateMunicipalityAndTitle(
       : t('permit.errors.municipality'),
   };
 }
-
 /** Checks whether the material editor has an active edit or unsaved input. */
 export function hasMaterialDraft(draft: MaterialDraft) {
   return Boolean(
@@ -50,21 +45,5 @@ export function validateUsageDetails(value: UsageDetails, t: TFunction) {
     startDate: value.startDate ? undefined : t('permit.errors.startDate'),
     endDate,
     ...validateRoadLocation(value, t),
-  };
-}
-
-/** Checks the contact name, normalized phone number, and email format. */
-export function validateContactInformation(
-  value: ContactInformation,
-  t: TFunction,
-) {
-  const phone = value.phone.replace(/[\s().-]/g, '');
-  const validPhone = /^(?:\d{8}|(?:\+|00)[1-9]\d{6,14})$/.test(phone);
-  const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.email.trim());
-
-  return {
-    name: value.name.trim() ? undefined : t('permit.errors.contactName'),
-    phone: validPhone ? undefined : t('permit.errors.contactPhone'),
-    email: validEmail ? undefined : t('permit.errors.contactEmail'),
   };
 }

@@ -7,6 +7,6 @@ export type ActorsPageContext = {
   isLoading: boolean;
   loadFailed: boolean;
   retry: () => void;
-  createActor: (caseNumber: string, actor: ActorSubmission) => Promise<void>;
+  createActor: (actor: ActorSubmission) => Promise<void>;
   updateActor: (uuid: string, actor: ActorSubmission) => Promise<void>;
 };

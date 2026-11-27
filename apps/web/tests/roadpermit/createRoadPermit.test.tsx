@@ -347,7 +347,6 @@ describe('Road permit application', () => {
         title: 'Saved title',
         municipalityName: 'Odense',
         usageDetails: { road: 'Adamsgade' },
-        contactInformation: { name: 'Contact' },
       },
     });
     await renderPermitFlow();
@@ -964,7 +963,6 @@ describe('Road permit application', () => {
       expect.objectContaining({
         municipalityName: 'Odense',
         confirmed: true,
-        contactInformation: { name: '', phone: '', email: '' },
         roadMarking: expect.objectContaining({
           trafficChanges: ['NoStoppingAndParking'],
         }),

@@ -61,7 +61,6 @@ const savedDraft = {
     city: '',
     locationDescription: '',
   },
-  contactInformation: { name: '', phone: '', email: '' },
   roadMarking: { trafficChanges: [], accessWays: '', trafficPrecautions: [] },
 };
 

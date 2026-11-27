@@ -134,13 +134,13 @@ describe('AppModule (e2e)', () => {
     prisma.application.findFirst.mockResolvedValue({
       caseNumber: 'permit-1',
       status: 'Draft',
-      roadPermitDraft: { contactInformation: { email: false } },
+      roadPermitDraft: { usageDetails: { endDate: false } },
     });
     await request(app.getHttpServer())
       .get('/api/road-permit/permit-1')
       .expect(422)
       .expect(({ body }) =>
-        expect(body.message).toContain('contactInformation.email'),
+        expect(body.message).toContain('usageDetails.endDate'),
       );
   });
 });

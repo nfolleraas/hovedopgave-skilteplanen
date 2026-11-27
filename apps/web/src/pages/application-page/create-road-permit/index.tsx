@@ -26,7 +26,6 @@ import {
 import { visuallyHidden } from '../../../components/ui/visuallyHidden';
 import { useApplicationActors } from '../../actors-page/use-application-actors';
 import {
-  type ContactInformation,
   emptyMaterialDraft,
   type MaterialDraft,
   type MaterialEntry,
@@ -198,15 +197,6 @@ function RoadPermitForm({
     ...draft.usageDetails,
   });
   const actorContext = useApplicationActors(caseNumber);
-  const firstActor = actorContext.actors[0];
-  // PLACEHOLDER: Keep the submission contract until the contact-person branch.
-  const contactInformation: ContactInformation = firstActor
-    ? {
-        name: firstActor.name,
-        phone: firstActor.phoneNumber,
-        email: firstActor.email,
-      }
-    : { name: '', phone: '', email: '' };
   const [roadMarking, setRoadMarking] = useState<RoadMarkingDetails>({
     trafficChanges: [],
     accessWays: '',
@@ -221,12 +211,6 @@ function RoadPermitForm({
     materials,
     materialDraft,
     usageDetails,
-    contactInformation: {
-      name: '',
-      phone: '',
-      email: '',
-      ...draft.contactInformation,
-    },
     roadMarking,
   };
   const {
@@ -239,7 +223,7 @@ function RoadPermitForm({
     saveStatus,
     submissionFailure,
     submissionStatus,
-  } = useRoadPermitWrites(caseNumber, currentDraft, contactInformation);
+  } = useRoadPermitWrites(caseNumber, currentDraft);
   const { blocker, saveAndLeave } = useUnsavedDraftNavigation(
     hasUnsavedChanges,
     handleSave,
@@ -374,7 +358,7 @@ function RoadPermitForm({
       id: 'actors',
       label: t('permit.steps.contact'),
       validationErrors: actorError ? [actorError] : [],
-      content: <ActorsSection caseNumber={caseNumber} context={actorContext} />,
+      content: <ActorsSection context={actorContext} />,
     },
 
     {

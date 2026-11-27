@@ -67,9 +67,6 @@
       "dateOrder": "Slutdatoen må ikke ligge før startdatoen.",
       "usage": "Vælg en anvendelse.",
       "startDate": "Vælg en startdato.",
-      "contactName": "Indtast et navn.",
-      "contactPhone": "Indtast 8 cifre eller et internationalt nummer med landekode.",
-      "contactEmail": "Indtast en gyldig e-mailadresse.",
       "houseNumberFrom": "Angiv et gyldigt husnummer i feltet Fra, f.eks. 12 eller 12A.",
       "houseNumberMissing": "Angiv det første husnummer i intervallet.",
       "houseNumberTo": "Angiv et gyldigt husnummer i feltet Til, f.eks. 12 eller 12A.",
@@ -224,7 +221,6 @@
       "label": "Kommune"
     },
     "contact": {
-      "heading": "Opret kontaktperson",
       "name": "Navn",
       "phone": "Telefonnummer",
       "email": "E-mail"
@@ -315,6 +311,7 @@
     "errors": {
       "addressLookup": "Adressen kunne ikke verificeres. Prøv igen.",
       "name": "Navn må kun indeholde bogstaver.",
+      "notFound": "Aktøren findes ikke længere. Opdater siden.",
       "delete": "Aktøren kunne ikke slettes. Prøv igen."
     },
     "addressSearching": "Søger efter adresser…",

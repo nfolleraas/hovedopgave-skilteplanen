@@ -193,7 +193,7 @@ export function ActorForm({
         isAxiosError(error) &&
         error.response?.status === 404
       ) {
-        setSaveError('akør findes ikke længere opdater siden');
+        setSaveError(t('actors.errors.notFound'));
         return;
       }
       if (

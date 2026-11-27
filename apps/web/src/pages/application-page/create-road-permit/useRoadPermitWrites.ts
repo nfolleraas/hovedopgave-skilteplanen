@@ -85,7 +85,6 @@ function getRejectedSelection(
 export function useRoadPermitWrites(
   caseNumber: string,
   currentDraft: RoadPermitDraft,
-  submissionContact = currentDraft.contactInformation,
 ) {
   const [submissionStatus, setSubmissionStatus] =
     useState<SubmissionStatus>('idle');
@@ -138,7 +137,6 @@ export function useRoadPermitWrites(
         postalCode: usageDetails.postalCode.trim(),
         city: usageDetails.city.trim(),
       },
-      contactInformation: submissionContact,
       documentPlaceholder: exampleDocument,
       roadMarking,
       applicant: exampleApplicant,

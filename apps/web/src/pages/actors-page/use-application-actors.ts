@@ -43,7 +43,7 @@ export function useApplicationActors(caseNumber: string): ActorsPageContext {
     isLoading,
     loadFailed,
     retry: () => setAttempt((current) => current + 1),
-    createActor: async (_caseNumber, values) => {
+    createActor: async (values) => {
       const saved = await createActor(caseNumber, values);
       setActors((current) => [...current, saved]);
     },

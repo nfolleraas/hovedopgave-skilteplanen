@@ -8,10 +8,8 @@ import ActorsPage from '../../../actors-page/index.js';
 
 /** Keeps actor creation and editing inside the application's fourth step. */
 export function ActorsSection({
-  caseNumber,
   context,
 }: {
-  caseNumber: string;
   context: ActorsPageContext;
 }): ReactElement {
   const [editor, setEditor] = useState<SavedActor | 'create' | null>(null);
@@ -46,7 +44,7 @@ export function ActorsSection({
                 setIsSaving(true);
                 try {
                   if (editor === 'create') {
-                    await context.createActor(caseNumber, values);
+                    await context.createActor(values);
                   } else {
                     await context.updateActor(editor.uuid, values);
                   }
