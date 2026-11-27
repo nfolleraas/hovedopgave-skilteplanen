@@ -86,4 +86,5 @@ jobs:
         working-directory: apps/api
         run: |
           bun run db:deploy
+          bun run db:seed
           bun run test:api
