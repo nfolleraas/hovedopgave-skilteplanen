@@ -1,5 +1,4 @@
-import assert from 'node:assert/strict';
-import { describe, it } from 'node:test';
+import { describe, expect, it } from 'vitest';
 import type { CreateActorValues } from './actor.types.js';
 import {
   toActorSubmission,
@@ -30,8 +29,8 @@ describe('create actor form', () => {
       cvrNumber: '12345678',
       department: '87654321',
     };
-    assert.deepEqual(validateCreateActor(values), {});
-    assert.deepEqual(toActorSubmission(values), {
+    expect(validateCreateActor(values)).toStrictEqual({});
+    expect(toActorSubmission(values)).toStrictEqual({
       role: 'Private',
       name: 'Jane Doe',
       phoneNumber: '01234567',
@@ -53,15 +52,15 @@ describe('create actor form', () => {
       address: null,
       addressId: null,
     });
-    assert.ok(errors.role);
-    assert.ok(errors.name);
-    assert.ok(errors.address);
+    expect(errors.role).toBeTruthy();
+    expect(errors.name).toBeTruthy();
+    expect(errors.address).toBeTruthy();
   });
 
   it('requires an address selected from the API and prevents invalid submissions', () => {
     const unverified = { ...privateActor, addressId: null };
-    assert.ok(validateCreateActor(unverified).address);
-    assert.throws(() => toActorSubmission(unverified), /Vælg en adresse/);
+    expect(validateCreateActor(unverified).address).toBeTruthy();
+    expect(() => toActorSubmission(unverified)).toThrow(/Vælg en adresse/);
     const incomplete = {
       ...privateActor,
       address: {
@@ -71,8 +70,8 @@ describe('create actor form', () => {
         city: ' ',
       },
     };
-    assert.ok(validateCreateActor(incomplete).address);
-    assert.throws(() => toActorSubmission(incomplete), /Vælg en adresse/);
+    expect(validateCreateActor(incomplete).address).toBeTruthy();
+    expect(() => toActorSubmission(incomplete)).toThrow(/Vælg en adresse/);
   });
 
   it('requires all business fields and exactly eight digits', () => {
@@ -84,7 +83,7 @@ describe('create actor form', () => {
       department: 'abcdefgh',
     });
     for (const field of ['phoneNumber', 'cvrNumber'] as const) {
-      assert.ok(errors[field]);
+      expect(errors[field]).toBeTruthy();
     }
   });
 
@@ -95,13 +94,14 @@ describe('create actor form', () => {
       cvrNumber: '00123456',
       department: '00001234',
     };
-    assert.deepEqual(validateCreateActor(values), {});
-    assert.equal(toActorSubmission(values).department, '00001234');
-    assert.equal(
-      Object.hasOwn(toActorSubmission(values), 'contactPerson'),
+    expect(validateCreateActor(values)).toStrictEqual({});
+    expect(toActorSubmission(values).department).toBe('00001234');
+    expect(Object.hasOwn(toActorSubmission(values), 'contactPerson')).toBe(
       false,
     );
-    assert.ok(validateCreateActor({ ...values, email: 'invalid' }).email);
+    expect(
+      validateCreateActor({ ...values, email: 'invalid' }).email,
+    ).toBeTruthy();
   });
 
   it('saves a business actor without contact details', () => {
@@ -111,8 +111,8 @@ describe('create actor form', () => {
       cvrNumber: '12345678',
       department: 'Anlæg',
     };
-    assert.deepEqual(validateCreateActor(values), {});
-    assert.deepEqual(toActorSubmission(values), {
+    expect(validateCreateActor(values)).toStrictEqual({});
+    expect(toActorSubmission(values)).toStrictEqual({
       role: 'Contractor',
       name: 'Jane Doe',
       phoneNumber: '01234567',
@@ -138,15 +138,14 @@ describe('actor CVR verification before saving', () => {
         requests++;
         throw new Error('Unexpected lookup');
       };
-      assert.equal(await validateActorCvr(privateActor), undefined);
-      assert.match(
+      expect(await validateActorCvr(privateActor)).toBe(undefined);
+      expect(
         (await validateActorCvr({
           role: 'Supplier',
           cvrNumber: '123',
         })) ?? '',
-        /8 cifre/,
-      );
-      assert.equal(requests, 0);
+      ).toMatch(/8 cifre/);
+      expect(requests).toBe(0);
     } finally {
       globalThis.fetch = originalFetch;
     }
@@ -156,24 +155,22 @@ describe('actor CVR verification before saving', () => {
     const originalFetch = globalThis.fetch;
     try {
       globalThis.fetch = async (input) => {
-        assert.equal(input, 'https://apicvr.dk/api/v1/00123456');
+        expect(input).toBe('https://apicvr.dk/api/v1/00123456');
         return Response.json({ vat: 123456, name: 'Eksempel A/S' });
       };
-      assert.equal(
+      expect(
         await validateActorCvr({ role: 'Supplier', cvrNumber: ' 00123456 ' }),
-        undefined,
-      );
+      ).toBe(undefined);
       globalThis.fetch = async (input) => {
-        assert.equal(input, 'https://apicvr.dk/api/v1/87654321');
+        expect(input).toBe('https://apicvr.dk/api/v1/87654321');
         return new Response(null, { status: 404 });
       };
-      assert.match(
+      expect(
         (await validateActorCvr({
           role: 'Supplier',
           cvrNumber: '87654321',
         })) ?? '',
-        /ikke fundet/,
-      );
+      ).toMatch(/ikke fundet/);
     } finally {
       globalThis.fetch = originalFetch;
     }
@@ -185,15 +182,15 @@ describe('actor CVR verification before saving', () => {
     try {
       for (const status of [404, 502]) {
         globalThis.fetch = async () => new Response(null, { status });
-        assert.ok(await validateActorCvr(values));
+        expect(await validateActorCvr(values)).toBeTruthy();
       }
       globalThis.fetch = async () => {
         throw new TypeError('Failed to fetch');
       };
-      assert.match((await validateActorCvr(values)) ?? '', /Prøv igen/);
+      expect((await validateActorCvr(values)) ?? '').toMatch(/Prøv igen/);
       globalThis.fetch = async () =>
         Response.json({ vat: 87654321, name: 'Forkert virksomhed' });
-      assert.match((await validateActorCvr(values)) ?? '', /ugyldigt svar/);
+      expect((await validateActorCvr(values)) ?? '').toMatch(/ugyldigt svar/);
     } finally {
       globalThis.fetch = originalFetch;
     }

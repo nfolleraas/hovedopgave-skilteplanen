@@ -225,8 +225,7 @@ apps/
     ├── src/<component-or-page>/
     │   └── index.test.tsx
     └── tests/<domain>/
-        ├── <use-case>.test.tsx
-        └── e2e/<flow>.spec.ts
+        ├── <use-case>.spec.ts
 ```
 
 Run the relevant suite from the repository root:

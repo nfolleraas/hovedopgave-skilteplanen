@@ -1,5 +1,4 @@
-import assert from 'node:assert/strict';
-import { describe, it } from 'node:test';
+import { describe, expect, it } from 'vitest';
 import { lookupCompany, parseCompanyLookup } from './companies.api.js';
 
 const company = {
@@ -14,7 +13,7 @@ const company = {
 
 describe('APICVR lookup', () => {
   it('maps the public company fields and separates street from house number', () => {
-    assert.deepEqual(parseCompanyLookup(company, '30714024'), {
+    expect(parseCompanyLookup(company, '30714024')).toStrictEqual({
       cvrNumber: '30714024',
       name: 'Eksempel A/S',
       phoneNumber: '12345678',
@@ -35,10 +34,14 @@ describe('APICVR lookup', () => {
       ['Testvej 12A-14B, 2', 'Testvej', '12A-14B'],
       ['Stoltenbergsgade 5, 4', 'Stoltenbergsgade', '5'],
     ]) {
-      assert.deepEqual(
+      expect(
         parseCompanyLookup({ ...company, address }, '30714024').address,
-        { street, houseNumber, postalCode: '5000', city: 'Odense' },
-      );
+      ).toStrictEqual({
+        street,
+        houseNumber,
+        postalCode: '5000',
+        city: 'Odense',
+      });
     }
   });
 
@@ -52,10 +55,10 @@ describe('APICVR lookup', () => {
       },
       '30714024',
     );
-    assert.equal(result.phoneNumber, '');
-    assert.equal(result.email, '');
-    assert.equal(result.address, null);
-    assert.equal(result.addressId, null);
+    expect(result.phoneNumber).toBe('');
+    expect(result.email).toBe('');
+    expect(result.address).toBe(null);
+    expect(result.addressId).toBe(null);
   });
 
   it('does not invent address fields for an incomplete or unrecognized address', () => {
@@ -68,8 +71,8 @@ describe('APICVR lookup', () => {
         { ...company, ...overrides },
         '30714024',
       );
-      assert.equal(result.address, null);
-      assert.equal(result.addressId, null);
+      expect(result.address).toBe(null);
+      expect(result.addressId).toBe(null);
     }
   });
 
@@ -80,18 +83,16 @@ describe('APICVR lookup', () => {
       { ...company, name: null },
       { ...company, vat: 12345678 },
     ]) {
-      assert.throws(
-        () => parseCompanyLookup(data, '30714024'),
+      expect(() => parseCompanyLookup(data, '30714024')).toThrow(
         /ugyldigt svar/,
       );
     }
   });
 
   it('preserves leading zeros in CVR numbers', () => {
-    assert.equal(
+    expect(
       parseCompanyLookup({ ...company, vat: 123456 }, '00123456').cvrNumber,
-      '00123456',
-    );
+    ).toBe('00123456');
   });
 
   it('calls APICVR directly without credentials or a backend proxy', async () => {
@@ -99,14 +100,13 @@ describe('APICVR lookup', () => {
     const controller = new AbortController();
     try {
       globalThis.fetch = async (input, options) => {
-        assert.equal(input, 'https://apicvr.dk/api/v1/30714024');
-        assert.equal(options?.body, undefined);
-        assert.equal(options?.headers, undefined);
-        assert.ok(options?.signal);
+        expect(input).toBe('https://apicvr.dk/api/v1/30714024');
+        expect(options?.body).toBe(undefined);
+        expect(options?.headers).toBe(undefined);
+        expect(options?.signal).toBeTruthy();
         return Response.json(company);
       };
-      assert.equal(
-        (await lookupCompany('30714024', controller.signal)).name,
+      expect((await lookupCompany('30714024', controller.signal)).name).toBe(
         'Eksempel A/S',
       );
     } finally {
@@ -123,9 +123,9 @@ describe('APICVR lookup', () => {
         return Response.json(company);
       };
       for (const value of ['1234567', '123456789', 'abcdefgh', '']) {
-        await assert.rejects(lookupCompany(value), /8 cifre/);
+        await expect(lookupCompany(value)).rejects.toThrow(/8 cifre/);
       }
-      assert.equal(requests, 0);
+      expect(requests).toBe(0);
     } finally {
       globalThis.fetch = originalFetch;
     }
@@ -135,9 +135,11 @@ describe('APICVR lookup', () => {
     const originalFetch = globalThis.fetch;
     try {
       globalThis.fetch = async () => new Response(null, { status: 404 });
-      await assert.rejects(lookupCompany('30714024'), /ikke fundet/);
+      await expect(lookupCompany('30714024')).rejects.toThrow(/ikke fundet/);
       globalThis.fetch = async () => new Response(null, { status: 502 });
-      await assert.rejects(lookupCompany('30714024'), /kunne ikke hentes/);
+      await expect(lookupCompany('30714024')).rejects.toThrow(
+        /kunne ikke hentes/,
+      );
     } finally {
       globalThis.fetch = originalFetch;
     }
@@ -157,7 +159,7 @@ describe('APICVR lookup', () => {
         });
       const pending = lookupCompany('30714024', controller.signal);
       controller.abort();
-      await assert.rejects(pending, { name: 'AbortError' });
+      await expect(pending).rejects.toMatchObject({ name: 'AbortError' });
     } finally {
       globalThis.fetch = originalFetch;
     }

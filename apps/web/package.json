@@ -12,7 +12,6 @@
     "test:e2e": "tsc -p tsconfig.playwright.json && bun --env-file=../../.devcontainer/.env run playwright test",
     "test:ui": "bun run test:e2e --ui --ui-host=127.0.0.1 --ui-port=9323",
     "preview": "vite preview",
-    "test:e2e:ui": "playwright test --ui",
     "locale:extract": "i18next 'src/**/*.{ts,tsx}' --config locales/i18next-parser.config.mjs",
     "locale:check": "node locales/check-locales.mjs"
   },

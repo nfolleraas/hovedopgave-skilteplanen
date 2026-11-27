@@ -58,8 +58,10 @@ bun run --filter web test:e2e
 
 From the repository root, add `--filter web` after `bun run`.
 
-Frontend tests live in [`apps/web/tests/`](../../apps/web/tests/). The Vitest
-tests for road permits and their map tools are in
+Vitest discovers `*.test.ts` and `*.test.tsx` files under both
+[`apps/web/src/`](../../apps/web/src/) and
+[`apps/web/tests/`](../../apps/web/tests/). The unit and integration tests
+use Vitest imports and assertions. The tests for road permits and their map tools are in
 [`roadpermit/`](../../apps/web/tests/roadpermit/). They use simulated DOM
 interactions, with permit submission and map service responses mocked.
 
@@ -92,7 +94,7 @@ Playwright runs the browser suite in desktop Chromium and mobile Chromium
 ```bash
 bun run --cwd apps/web playwright install --with-deps chromium
 bun run --filter web test:e2e
-bun run --filter web test:e2e:ui
+bun run --cwd apps/web test:ui
 ```
 
 The suite starts its own Vite server on `127.0.0.1:4173`; leave that port free.
@@ -104,7 +106,10 @@ uses step 4. The test servers therefore require the development API and
 database. Address and company lookups use fixture responses. These tests do
 not verify actor persistence or external integrations.
 
-Tests live in [`apps/web/e2e/`](../../apps/web/e2e/) and configuration in
+Actor tests live in
+[`apps/web/tests/actors/`](../../apps/web/tests/actors/), with separate
+tests for creating, updating, and deleting an actor. Navigation tests live in
+[`apps/web/tests/navigation/`](../../apps/web/tests/navigation/), and configuration is in
 [`playwright.config.ts`](../../apps/web/playwright.config.ts). The test server
 starts Vite directly to avoid rewriting translation catalogs via `dev`.
 Run `bun run --filter web locale:check` separately to verify extracted keys

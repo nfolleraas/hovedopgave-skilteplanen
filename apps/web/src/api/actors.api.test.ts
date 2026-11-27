@@ -1,6 +1,5 @@
-import assert from 'node:assert/strict';
-import { describe, it } from 'node:test';
 import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios';
+import { describe, expect, it } from 'vitest';
 import type {
   ActorDraft,
   SavedActor,
@@ -47,24 +46,23 @@ describe('actor API', () => {
       return validActor;
     };
     for (const caseNumber of ['', '   ']) {
-      await assert.rejects(
+      await expect(
         createActor(caseNumber, {
           ...validActor,
           cvrNumber: undefined,
           department: undefined,
         }),
-        /valgt ansøgning/,
-      );
+      ).rejects.toThrow(/valgt ansøgning/);
     }
-    assert.equal(requests, 0);
+    expect(requests).toBe(0);
   });
 
   it('deletes an actor by uuid through the proxy without a request body', async () => {
     respond = (config) => {
-      assert.equal(config.baseURL, '/api');
-      assert.equal(config.url, '/actors/actor-id');
-      assert.equal(config.method, 'delete');
-      assert.equal(config.data, undefined);
+      expect(config.baseURL).toBe('/api');
+      expect(config.url).toBe('/actors/actor-id');
+      expect(config.method).toBe('delete');
+      expect(config.data).toBe(undefined);
       return { uuid: 'actor-id' };
     };
     await deleteActor('actor-id');
@@ -75,19 +73,19 @@ describe('actor API', () => {
     respond = () => {
       throw error;
     };
-    await assert.rejects(deleteActor('actor-id'), (caught) => caught === error);
+    await expect(deleteActor('actor-id')).rejects.toBe(error);
   });
 
   it('loads actors using GET through the proxy with a timeout', async () => {
     const actors = [validActor];
     respond = (config) => {
-      assert.equal(config.baseURL, '/api');
-      assert.equal(config.url, '/actors');
-      assert.equal(config.method, 'get');
-      assert.equal(config.timeout, 10000);
+      expect(config.baseURL).toBe('/api');
+      expect(config.url).toBe('/actors');
+      expect(config.method).toBe('get');
+      expect(config.timeout).toBe(10000);
       return actors;
     };
-    assert.deepEqual(await getActors(), actors);
+    expect(await getActors()).toStrictEqual(actors);
   });
 
   it('propagates request failures to the page', async () => {
@@ -95,20 +93,20 @@ describe('actor API', () => {
     respond = () => {
       throw error;
     };
-    await assert.rejects(getActors(), (caught) => caught === error);
+    await expect(getActors()).rejects.toBe(error);
   });
 
   it('forwards cancellation and supports an empty actor list', async () => {
     const controller = new AbortController();
     respond = (config) => {
-      assert.equal(config.signal, controller.signal);
+      expect(config.signal).toBe(controller.signal);
       return [];
     };
-    assert.deepEqual(await getActors(controller.signal), []);
+    expect(await getActors(controller.signal)).toStrictEqual([]);
     controller.abort();
-    await assert.rejects(getActors(controller.signal), (error) =>
-      axios.isCancel(error),
-    );
+    await expect(getActors(controller.signal)).rejects.toMatchObject({
+      __CANCEL__: true,
+    });
   });
 
   it('preserves the existing actor POST request', async () => {
@@ -127,15 +125,15 @@ describe('actor API', () => {
       },
     };
     respond = (config) => {
-      assert.equal(config.url, '/actors');
-      assert.equal(config.method, 'post');
-      assert.deepEqual(JSON.parse(config.data), {
+      expect(config.url).toBe('/actors');
+      expect(config.method).toBe('post');
+      expect(JSON.parse(config.data)).toStrictEqual({
         ...draft,
         applicationCaseNumber: 'CASE-123',
       });
       return validActor;
     };
-    assert.deepEqual(await createActor('CASE-123', draft), validActor);
+    expect(await createActor('CASE-123', draft)).toStrictEqual(validActor);
   });
 
   it('sends business contact details for creation and editing and returns the saved actor', async () => {
@@ -170,11 +168,13 @@ describe('actor API', () => {
         config.method === 'post'
           ? { ...draft, applicationCaseNumber: 'CASE-123' }
           : update;
-      assert.deepEqual(JSON.parse(config.data), expected);
+      expect(JSON.parse(config.data)).toStrictEqual(expected);
       return savedActor;
     };
-    assert.deepEqual(await createActor('CASE-123', draft), savedActor);
-    assert.deepEqual(await updateActor('server-actor-id', draft), savedActor);
+    expect(await createActor('CASE-123', draft)).toStrictEqual(savedActor);
+    expect(await updateActor('server-actor-id', draft)).toStrictEqual(
+      savedActor,
+    );
   });
 
   it('propagates create and update failures so the form preserves entered values', async () => {
@@ -196,14 +196,8 @@ describe('actor API', () => {
     respond = () => {
       throw error;
     };
-    await assert.rejects(
-      createActor('CASE-123', draft),
-      (caught) => caught === error,
-    );
-    await assert.rejects(
-      updateActor('actor-id', draft),
-      (caught) => caught === error,
-    );
+    await expect(createActor('CASE-123', draft)).rejects.toBe(error);
+    await expect(updateActor('actor-id', draft)).rejects.toBe(error);
   });
 
   it('updates an actor using PATCH through the proxy without submitting its role', async () => {
@@ -222,14 +216,14 @@ describe('actor API', () => {
       },
     };
     respond = (config) => {
-      assert.equal(config.url, '/actors/actor-id');
-      assert.equal(config.method, 'patch');
+      expect(config.url).toBe('/actors/actor-id');
+      expect(config.method).toBe('patch');
       const { role: _role, ...update } = draft;
-      assert.deepEqual(JSON.parse(config.data), update);
-      assert.equal(Object.hasOwn(JSON.parse(config.data), 'role'), false);
+      expect(JSON.parse(config.data)).toStrictEqual(update);
+      expect(Object.hasOwn(JSON.parse(config.data), 'role')).toBe(false);
       return { ...validActor, name: 'Updated Actor' };
     };
-    assert.deepEqual(await updateActor('actor-id', draft), {
+    expect(await updateActor('actor-id', draft)).toStrictEqual({
       ...validActor,
       name: 'Updated Actor',
     });
@@ -238,7 +232,7 @@ describe('actor API', () => {
   it('rejects responses that are not actor lists', async () => {
     for (const data of [null, {}, 'invalid']) {
       respond = () => data;
-      await assert.rejects(getActors(), /ugyldig aktørliste/);
+      await expect(getActors()).rejects.toThrow(/ugyldig aktørliste/);
     }
   });
 
@@ -271,24 +265,22 @@ describe('actor API', () => {
       },
     ]) {
       respond = () => [validActor, data];
-      await assert.rejects(getActors(), /ugyldige aktøroplysninger/);
+      await expect(getActors()).rejects.toThrow(/ugyldige aktøroplysninger/);
       respond = () => data;
-      await assert.rejects(
+      await expect(
         createActor('CASE-123', {
           ...validActor,
           cvrNumber: undefined,
           department: undefined,
         }),
-        /ugyldige aktøroplysninger/,
-      );
-      await assert.rejects(
+      ).rejects.toThrow(/ugyldige aktøroplysninger/);
+      await expect(
         updateActor('actor-id', {
           ...validActor,
           cvrNumber: undefined,
           department: undefined,
         }),
-        /ugyldige aktøroplysninger/,
-      );
+      ).rejects.toThrow(/ugyldige aktøroplysninger/);
     }
   });
 });

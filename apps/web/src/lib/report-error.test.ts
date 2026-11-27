@@ -1,5 +1,4 @@
-import assert from 'node:assert/strict';
-import { it } from 'node:test';
+import { expect, it } from 'vitest';
 import { reportError } from './report-error.js';
 
 it('reports the failed operation with the original error as its cause', () => {
@@ -14,7 +13,9 @@ it('reports the failed operation with the original error as its cause', () => {
   } finally {
     console.error = originalConsoleError;
   }
-  assert.ok(reported instanceof Error);
-  assert.equal(reported.message, 'Loading actors failed');
-  assert.equal(reported.cause, cause);
+  expect(reported).toBeInstanceOf(Error);
+  if (!(reported instanceof Error))
+    throw new Error('Expected a reported Error.');
+  expect(reported.message).toBe('Loading actors failed');
+  expect(reported.cause).toBe(cause);
 });

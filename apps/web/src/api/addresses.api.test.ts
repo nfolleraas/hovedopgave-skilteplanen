@@ -1,5 +1,4 @@
-import assert from 'node:assert/strict';
-import { describe, it } from 'node:test';
+import { describe, expect, it } from 'vitest';
 import {
   lookupAddress,
   parseAddressLookup,
@@ -14,17 +13,16 @@ describe('Adressevælger response mapping', () => {
     try {
       globalThis.fetch = async (input, options) => {
         const url = new URL(String(input), 'http://localhost');
-        assert.equal(url.pathname, '/address-lookup/husnumre/soeg');
-        assert.equal(url.searchParams.get('tekst'), 'Testvej 1');
-        assert.equal(url.searchParams.has('token'), false);
-        assert.ok(options?.signal);
-        assert.equal(options.signal.aborted, false);
+        expect(url.pathname).toBe('/address-lookup/husnumre/soeg');
+        expect(url.searchParams.get('tekst')).toBe('Testvej 1');
+        expect(url.searchParams.has('token')).toBe(false);
+        expect(options?.signal).toBeTruthy();
+        expect(options?.signal?.aborted).toBe(false);
         return Response.json({ status: 'ok', fund: [] });
       };
-      assert.deepEqual(
+      expect(
         await searchAddresses('Testvej 1', controller.signal),
-        [],
-      );
+      ).toStrictEqual([]);
     } finally {
       globalThis.fetch = originalFetch;
     }
@@ -34,11 +32,10 @@ describe('Adressevælger response mapping', () => {
     const originalFetch = globalThis.fetch;
     try {
       globalThis.fetch = async (input) => {
-        assert.equal(input, '/address-lookup/husnumre/address-id');
+        expect(input).toBe('/address-lookup/husnumre/address-id');
         return new Response(null, { status: 503 });
       };
-      await assert.rejects(
-        lookupAddress('address-id'),
+      await expect(lookupAddress('address-id')).rejects.toThrow(
         /Address lookup failed/,
       );
     } finally {
@@ -46,7 +43,7 @@ describe('Adressevælger response mapping', () => {
     }
   });
   it('offers street suggestions for refining a search alongside complete addresses', () => {
-    assert.deepEqual(
+    expect(
       parseAddressSuggestions({
         status: 'ok',
         fund: [
@@ -58,18 +55,17 @@ describe('Adressevælger response mapping', () => {
           },
         ],
       }),
-      [
-        {
-          id: 'vejnavn:Sankt Kjelds Plads',
-          title: 'Sankt Kjelds Plads',
-          searchText: 'Sankt Kjelds Plads',
-        },
-        {
-          id: 'address-id',
-          title: 'Sankt Kjelds Plads 11, 2100 København Ø',
-        },
-      ],
-    );
+    ).toStrictEqual([
+      {
+        id: 'vejnavn:Sankt Kjelds Plads',
+        title: 'Sankt Kjelds Plads',
+        searchText: 'Sankt Kjelds Plads',
+      },
+      {
+        id: 'address-id',
+        title: 'Sankt Kjelds Plads 11, 2100 København Ø',
+      },
+    ]);
   });
 
   it('offers partial matches without address ids as search refinements', () => {
@@ -80,30 +76,28 @@ describe('Adressevælger response mapping', () => {
       'vejnavnhusnummer',
     ];
     for (const type of partialTypes) {
-      assert.deepEqual(
+      expect(
         parseAddressSuggestions({
           status: 'ok',
           fund: [{ type, titel: 'Testvej 5000 Odense' }],
         }),
-        [
-          {
-            id: `${type}:Testvej 5000 Odense`,
-            title: 'Testvej 5000 Odense',
-            searchText: 'Testvej 5000 Odense',
-          },
-        ],
-      );
+      ).toStrictEqual([
+        {
+          id: `${type}:Testvej 5000 Odense`,
+          title: 'Testvej 5000 Odense',
+          searchText: 'Testvej 5000 Odense',
+        },
+      ]);
     }
   });
 
   it('ignores unsupported hits', () => {
-    assert.deepEqual(
+    expect(
       parseAddressSuggestions({
         status: 'ok',
         fund: [null, {}, { type: 'unknown', titel: 'Unknown' }],
       }),
-      [],
-    );
+    ).toStrictEqual([]);
   });
 
   it('rejects supported suggestions with missing or blank IDs and titles', () => {
@@ -113,18 +107,16 @@ describe('Adressevælger response mapping', () => {
       { type: 'husnummer', id: 'address-id', titel: '   ' },
       { type: 'vejnavn', titel: '' },
     ]) {
-      assert.throws(
-        () => parseAddressSuggestions({ status: 'ok', fund: [item] }),
-        /Invalid address suggestion/,
-      );
+      expect(() =>
+        parseAddressSuggestions({ status: 'ok', fund: [item] }),
+      ).toThrow(/Invalid address suggestion/);
     }
-    assert.deepEqual(
+    expect(
       parseAddressSuggestions({
         status: 'ok',
         fund: [{ type: 'husnummer', id: ' address-id ', titel: ' Testvej 1 ' }],
       }),
-      [{ id: 'address-id', title: 'Testvej 1' }],
-    );
+    ).toStrictEqual([{ id: 'address-id', title: 'Testvej 1' }]);
   });
 
   it('rejects incomplete address fields and normalizes valid surrounding whitespace', () => {
@@ -143,24 +135,21 @@ describe('Adressevælger response mapping', () => {
       { postnummer: { postnr: '50000', navn: 'Odense' } },
       { postnummer: { postnr: 5000, navn: 'Odense' } },
     ]) {
-      assert.throws(
-        () =>
-          parseAddressLookup({
-            status: 'ok',
-            husnummer: { ...houseNumber, ...overrides },
-          }),
-        /incomplete/,
-      );
+      expect(() =>
+        parseAddressLookup({
+          status: 'ok',
+          husnummer: { ...houseNumber, ...overrides },
+        }),
+      ).toThrow(/incomplete/);
     }
-    assert.deepEqual(
+    expect(
       parseAddressLookup({ status: 'ok', husnummer: houseNumber }),
-      {
-        street: 'Testvej',
-        houseNumber: '1',
-        postalCode: '5000',
-        city: 'Odense',
-      },
-    );
+    ).toStrictEqual({
+      street: 'Testvej',
+      houseNumber: '1',
+      postalCode: '5000',
+      city: 'Odense',
+    });
   });
 
   it('times out stalled searches and lookups after the configured deadline', async () => {
@@ -173,7 +162,7 @@ describe('Adressevælger response mapping', () => {
       ]) {
         const deadline = new AbortController();
         AbortSignal.timeout = (milliseconds) => {
-          assert.equal(milliseconds, 10_000);
+          expect(milliseconds).toBe(10_000);
           return deadline.signal;
         };
         globalThis.fetch = (_input, options) =>
@@ -186,7 +175,7 @@ describe('Adressevælger response mapping', () => {
           });
         const pending = request();
         deadline.abort(new DOMException('Request timed out', 'TimeoutError'));
-        await assert.rejects(pending, { name: 'TimeoutError' });
+        await expect(pending).rejects.toMatchObject({ name: 'TimeoutError' });
       }
     } finally {
       globalThis.fetch = originalFetch;
@@ -209,7 +198,7 @@ describe('Adressevælger response mapping', () => {
           });
         const pending = request('address', controller.signal);
         controller.abort();
-        await assert.rejects(pending, { name: 'AbortError' });
+        await expect(pending).rejects.toMatchObject({ name: 'AbortError' });
       }
     } finally {
       globalThis.fetch = originalFetch;
@@ -217,7 +206,7 @@ describe('Adressevælger response mapping', () => {
   });
 
   it('maps the authoritative address fields from an id lookup', () => {
-    assert.deepEqual(
+    expect(
       parseAddressLookup({
         status: 'ok',
         husnummer: {
@@ -227,21 +216,20 @@ describe('Adressevælger response mapping', () => {
           postnummer: { postnr: '2100', navn: 'København Ø' },
         },
       }),
-      {
-        street: 'Sankt Kjelds Plads',
-        houseNumber: '11',
-        postalCode: '2100',
-        city: 'København Ø',
-      },
-    );
+    ).toStrictEqual({
+      street: 'Sankt Kjelds Plads',
+      houseNumber: '11',
+      postalCode: '2100',
+      city: 'København Ø',
+    });
   });
 
   it('rejects inactive or incomplete lookup results', () => {
-    assert.throws(() =>
+    expect(() =>
       parseAddressLookup({
         status: 'ok',
         husnummer: { status: '5', vejnavn: 'Old Road' },
       }),
-    );
+    ).toThrow();
   });
 });

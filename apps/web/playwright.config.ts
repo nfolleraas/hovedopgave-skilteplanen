@@ -16,7 +16,8 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      testDir: './e2e',
+      testDir: '.',
+      testMatch: ['tests/navigation/**/*.spec.ts', 'tests/actors/**/*.spec.ts'],
       use: {
         ...devices['Desktop Chrome'],
         locale: 'da-DK',
@@ -25,7 +26,8 @@ export default defineConfig({
     },
     {
       name: 'mobile-chromium',
-      testDir: './e2e',
+      testDir: '.',
+      testMatch: ['tests/navigation/**/*.spec.ts', 'tests/actors/**/*.spec.ts'],
       use: {
         ...devices['Pixel 7'],
         locale: 'da-DK',
@@ -36,6 +38,7 @@ export default defineConfig({
       name: 'road-permit-chromium',
       testDir: './tests',
       testMatch: '**/*.spec.{ts,tsx}',
+      testIgnore: ['**/actors/**', '**/navigation/**'],
       use: {
         ...devices['Desktop Chrome'],
         actionTimeout: 8_000,
