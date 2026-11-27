@@ -182,9 +182,55 @@ test('validates, reviews and submits a road permit against its existing draft', 
   ).toBeVisible();
   await next.click();
 
-  await page.getByLabel(/^name\b/i).fill('Test Contact');
-  await page.getByLabel('Phone number').fill('12345678');
-  await page.getByLabel(/^email\b/i).fill('test@example.com');
+  await page.route('**/address-lookup/husnumre/soeg?*', (route) =>
+    route.fulfill({
+      json: {
+        status: 'ok',
+        fund: [
+          { type: 'husnummer', id: 'permit-actor-address', titel: mapAddress },
+        ],
+      },
+    }),
+  );
+  await page.route('**/address-lookup/husnumre/permit-actor-address', (route) =>
+    route.fulfill({
+      json: {
+        status: 'ok',
+        husnummer: {
+          status: '3',
+          vejnavn: 'Parkvej',
+          husnummertekst: '12',
+          postnummer: { postnr: '5260', navn: 'Odense S' },
+        },
+      },
+    }),
+  );
+  await page.getByRole('button', { name: 'Opret aktør', exact: true }).click();
+  const actorEditor = page.getByRole('dialog', { name: 'Opret aktør' });
+  await actorEditor
+    .getByRole('combobox', { name: 'Role', exact: false })
+    .click();
+  await page.getByRole('option', { name: 'Private', exact: true }).click();
+  await actorEditor.getByLabel(/^Navn\b/).fill('Test Contact');
+  await actorEditor
+    .getByLabel('Telefonnummer', { exact: false })
+    .fill('12345678');
+  await actorEditor.getByLabel(/^E-mail\b/).fill('test@example.com');
+  await actorEditor
+    .getByRole('combobox', { name: 'Address' })
+    .fill('Parkvej 12');
+  const addressLookup = page.waitForResponse(
+    '**/address-lookup/husnumre/permit-actor-address',
+  );
+  await page.getByRole('option', { name: mapAddress }).click();
+  await addressLookup;
+  await actorEditor
+    .getByRole('button', { name: 'Gem aktør', exact: true })
+    .click();
+  await expect(actorEditor).toBeHidden();
+  await expect(
+    page.getByRole('button', { name: 'Test Contact', exact: true }),
+  ).toBeVisible();
   await next.click();
 
   await page.getByRole('combobox', { name: 'Traffic changes' }).click();
